@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { OAuthService } from 'angular-oauth2-oidc';
+import { environment } from '../../environments/environment.development';
 import { authCodeFlowConfig } from '../app.config';
 
 @Injectable({
@@ -54,6 +55,23 @@ export class AuthenticationService {
    */
   hasValidToken(): boolean {
     return this.oAuthService.hasValidIdToken() && this.oAuthService.hasValidAccessToken();
+  }
+
+  /**
+   * Checks if the user is authenticated and has the required role.
+   * @returns {boolean} True if the user is authenticated and has the required role, false otherwise.
+   */
+  isAuthorised(): boolean {
+    return this.isAuthorisedFor(environment.requiredRole);
+  }
+
+  /**
+   * Checks if the user has a specific role.
+   * @param {string} role - The role to check against the user's roles.
+   * @returns {boolean} True if the user has the specified role, false otherwise.
+   */
+  isAuthorisedFor(role: string): boolean {
+    return this.getRoles().includes(role);
   }
 
   /**
