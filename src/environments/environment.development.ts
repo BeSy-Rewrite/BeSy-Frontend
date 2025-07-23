@@ -4,5 +4,7 @@ export const environment = {
 
     // Keycloak configuration
     identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
-    clientId: 'besy-dev'
+    clientId: 'besy-dev',
+    requiredRole: "besy",
+    approveOrdersRole: "dekanat"
 };

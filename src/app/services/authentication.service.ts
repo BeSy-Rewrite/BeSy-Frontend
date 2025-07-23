@@ -11,6 +11,7 @@ export class AuthenticationService {
   constructor(private oAuthService: OAuthService,
     private readonly router: Router) {
     this.oAuthService.configure(authCodeFlowConfig);
+    this.oAuthService.setStorage(localStorage);
 
     this.initializeAuthentication();
 
@@ -44,7 +45,7 @@ export class AuthenticationService {
    * Logs out the user and redirects them to the home page.
    */
   logout(): void {
-    this.oAuthService.logOut();
+    this.oAuthService.revokeTokenAndLogout();
   }
 
   /**
@@ -53,6 +54,14 @@ export class AuthenticationService {
    */
   hasValidToken(): boolean {
     return this.oAuthService.hasValidIdToken() && this.oAuthService.hasValidAccessToken();
+  }
+
+  /**
+   * Retrieves the roles of the authenticated user.
+   * @returns {string[]} An array of roles assigned to the user.
+   */
+  getRoles(): string[] {
+    return this.oAuthService.getIdentityClaims()?.['realm_access']?.['roles'] ?? [];
   }
 
   /**

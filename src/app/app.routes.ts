@@ -8,6 +8,11 @@ export const routes: Routes = [
     {
         title: 'BeSy',
         path: '',
+        component: HomepageComponent
+    },
+    {
+        title: 'test',
+        path: 'test',
         component: HomepageComponent,
         canActivate: [DefaultGuard]
     },
