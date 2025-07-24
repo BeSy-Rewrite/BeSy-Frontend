@@ -61,8 +61,8 @@ export class AuthenticationService {
    * Checks if the user is authenticated and has the required role.
    * @returns {boolean} True if the user is authenticated and has the required role, false otherwise.
    */
-  isAuthorised(): boolean {
-    return this.isAuthorisedFor(environment.requiredRole);
+  isAuthorized(): boolean {
+    return this.isAuthorizedFor(environment.requiredRole);
   }
 
   /**
@@ -70,7 +70,7 @@ export class AuthenticationService {
    * @param {string} role - The role to check against the user's roles.
    * @returns {boolean} True if the user has the specified role, false otherwise.
    */
-  isAuthorisedFor(role: string): boolean {
+  isAuthorizedFor(role: string): boolean {
     return this.getRoles().includes(role);
   }
 

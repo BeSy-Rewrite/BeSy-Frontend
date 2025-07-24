@@ -18,7 +18,7 @@ export const routes: Routes = [
     },
     {
         title: 'Unautorisiert',
-        path: 'unauthorised',
+        path: 'unauthorized',
         component: UnauthorizedComponent
     },
     {
