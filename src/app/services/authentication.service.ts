@@ -22,7 +22,7 @@ export class AuthenticationService {
   /**
    * Initializes the authentication process.
    * This method loads the discovery document and attempts to log in the user.
-   * If the user is redirected back to the application after login, it navigates to the original URL. 
+   * If the user is redirected back to the application after login, it navigates to the original URL.
    */
   private initializeAuthentication(): void {
     this.oAuthService.loadDiscoveryDocumentAndTryLogin().then(() => {
