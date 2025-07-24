@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-import { DefaultGuard } from './guards/default-guard.guard';
+import { ApproveOrdersGuard } from './guards/approve-orders.guard';
+import { DefaultGuard } from './guards/default.guard';
 import { HomepageComponent } from './homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
@@ -11,13 +12,22 @@ export const routes: Routes = [
         component: HomepageComponent
     },
     {
-        title: 'test',
-        path: 'test',
+        title: 'Guard Test',
+        path: 'default',
         component: HomepageComponent,
         canActivate: [DefaultGuard]
     },
     {
-        title: 'Unautorisiert',
+        title: 'Approve Orders Test',
+        path: 'dekanat',
+        component: HomepageComponent,
+        canActivate: [
+            DefaultGuard,
+            ApproveOrdersGuard
+        ]
+    },
+    {
+        title: 'Unauthorisiert',
         path: 'unauthorized',
         component: UnauthorizedComponent
     },

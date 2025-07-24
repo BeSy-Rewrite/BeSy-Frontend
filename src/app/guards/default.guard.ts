@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
-import { GuardResult, MaybeAsync, Router } from '@angular/router';
-import { environment } from '../../environments/environment';
+import { ActivatedRouteSnapshot, CanActivate, GuardResult, MaybeAsync, Router, RouterStateSnapshot } from '@angular/router';
 import { AuthenticationService } from '../services/authentication.service';
 
 @Injectable({
@@ -10,17 +9,19 @@ import { AuthenticationService } from '../services/authentication.service';
  * DefaultGuard is an Angular route guard that checks if the user is authenticated and authorized
  * before allowing access to certain routes. It uses the AuthenticationService to verify the user's
  * authentication status and roles.
- * If the user is not authenticated or does not have the required role, they are redirected to
- * the unauthorized page.
+ * If the user is not authenticated or does not have the required role, the unauthorized page is displayed.
  */
-export class DefaultGuard {
+export class DefaultGuard implements CanActivate {
 
   constructor(private readonly authService: AuthenticationService,
     private readonly router: Router) { }
 
-  canActivate(): MaybeAsync<GuardResult> {
+  canActivate(
+    route: ActivatedRouteSnapshot,
+    state: RouterStateSnapshot): MaybeAsync<GuardResult> {
+
     const isAuthenticated = this.authService.hasValidToken();
-    const isAuthorized = this.authService.getRoles().includes(environment.requiredRole);
+    const isAuthorized = this.authService.isAuthorized();
 
     if (isAuthenticated && isAuthorized) {
       return true;
