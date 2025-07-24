@@ -3,7 +3,7 @@ import { provideRouter } from '@angular/router';
 
 import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
-import { environment } from '../environments/environment.development';
+import { environment } from '../environments/environment';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
