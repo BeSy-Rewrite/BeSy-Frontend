@@ -22,7 +22,7 @@ export class ApproveOrdersGuard implements CanActivate {
     route: ActivatedRouteSnapshot,
     state: RouterStateSnapshot): MaybeAsync<GuardResult> {
 
-    const isAuthorized = this.authService.isAuthorizedFor(environment.approveOrdersRole)
+    const isAuthorized = this.authService.isAuthorizedFor(environment.approveOrdersRole);
     if (isAuthorized) {
       return true;
     }
