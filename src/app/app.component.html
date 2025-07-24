@@ -182,13 +182,13 @@
   <button mat-flat-button color="primary" (click)="authService.login()">Login</button>
   }
   @if (authService.isAuthorizedFor(environment.approveOrdersRole)) {
-  <div class="text-green-600">Authorised for Approve Orders</div>
+  <div class="text-green-600">Authorized for Approve Orders</div>
   } @else if (authService.isAuthorized()) {
-  <div class="text-yellow-600">Authorised</div>
+  <div class="text-yellow-600">Authorized</div>
   } @else if (authService.hasValidToken()) {
   <div class="text-blue-600">Authenticated</div>
   } @else {
-  <div class="text-red-600">Not Authorised</div>
+  <div class="text-red-600">Not Authorized</div>
   }
   <div class="content">
     <div class="left-side">
