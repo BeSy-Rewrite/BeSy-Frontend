@@ -1,7 +1,7 @@
 import { Routes } from '@angular/router';
 import { ApproveOrdersGuard } from './guards/approve-orders.guard';
 import { DefaultGuard } from './guards/default.guard';
-import { HomepageComponent } from './homepage/homepage.component';
+import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 
