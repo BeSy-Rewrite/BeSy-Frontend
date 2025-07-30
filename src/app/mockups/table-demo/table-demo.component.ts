@@ -22,6 +22,7 @@ export class TableDemoComponent {
 
   /**
    * The column definitions for the table, required to be provided.
+   * The id must match the keys in the data source.
    */
   columns: TableColumn[] = [
     { id: 'name', label: 'Name', isUnsortable: true },

@@ -39,6 +39,7 @@ export class GenericTableComponent {
 
   /**
    * The columns to be displayed in the table, required to be provided.
+   * Each column must have an `id` that matches the keys in the data source.
    */
   columns = input.required<TableColumn[]>();
 
