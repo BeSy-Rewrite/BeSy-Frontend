@@ -10,6 +10,14 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
  * 
  * This component uses Angular Material's table, sort, and button modules to provide a flexible and customizable table.
  * It supports dynamic columns, sorting, and action buttons.
+ * 
+ * @example
+ * <app-generic-table
+ *  [dataSource]="dataSource"
+ *  [columns]="columns"
+ *  [displayedColumnIds]="displayedColumnIds"
+ *  [actions]="actions">
+ * </app-generic-table>
  */
 @Component({
   selector: 'app-generic-table',
