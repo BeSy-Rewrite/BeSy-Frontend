@@ -4,6 +4,7 @@ import { DefaultGuard } from './guards/default.guard';
 import { TableDemoComponent } from './mockups/table-demo/table-demo.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
+import { OrdersTableComponent } from './pages/orders-table/orders-table.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 
 export const routes: Routes = [
@@ -31,6 +32,12 @@ export const routes: Routes = [
             DefaultGuard,
             ApproveOrdersGuard
         ]
+    },
+    {
+        title: 'Bestellungen',
+        path: 'orders',
+        component: OrdersTableComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Unauthorisiert',
