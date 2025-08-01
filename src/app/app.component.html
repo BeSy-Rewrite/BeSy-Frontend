@@ -1,43 +1,18 @@
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-<!-- * * * * * * * * * * * The content below * * * * * * * * * * * -->
-<!-- * * * * * * * * * * is only a placeholder * * * * * * * * * * -->
-<!-- * * * * * * * * * * and can be replaced.  * * * * * * * * * * -->
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-<!-- * * * * * * * * * Delete the template below * * * * * * * * * -->
-<!-- * * * * * * * to get started with your project! * * * * * * * -->
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-
-<style>
-</style>
-
-<app-homebar></app-homebar>
-<!-- Offset wird anhand der Größe der Homebar gesetzt -->
-<main class="pt-20">
-  @if (authService.hasValidToken()) {
-  <button mat-flat-button color="accent" (click)="authService.logout()">
-    Logout
-  </button>
-  } @else {
-  <button mat-flat-button color="primary" (click)="authService.login()">
-    Login
-  </button>
-  } @if (authService.isAuthorizedFor(environment.approveOrdersRole)) {
+<!-- Temporary Authorization Message -->
+<div class="fixed top-17 left-0 w-full p-4 text-center">
+  @if (authService.isAuthorizedFor(environment.approveOrdersRole)) {
   <div class="text-green-600">Authorized for Approve Orders</div>
   } @else if (authService.isAuthorized()) {
   <div class="text-yellow-600">Authorized</div>
   } @else if (authService.hasValidToken()) {
   <div class="text-blue-600">Authenticated</div>
   } @else {
-  <div class="text-red-600">Not Authorized</div>
+  <div class="text-red-600">Not Authenticated/Authorized</div>
   }
+</div>
+
+<app-homebar />
+<!-- Offset wird anhand der Größe der Homebar gesetzt -->
+<main class="mt-20 p-8">
+  <router-outlet />
 </main>
-
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-<!-- * * * * * * * * * * * The content above * * * * * * * * * * * * -->
-<!-- * * * * * * * * * * is only a placeholder * * * * * * * * * * * -->
-<!-- * * * * * * * * * * and can be replaced.  * * * * * * * * * * * -->
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-<!-- * * * * * * * * * * End of Placeholder  * * * * * * * * * * * * -->
-<!-- * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * -->
-
-<router-outlet />
