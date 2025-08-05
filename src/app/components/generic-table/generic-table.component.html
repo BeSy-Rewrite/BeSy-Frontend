@@ -12,7 +12,7 @@
                 @if (column.action === undefined) {
                 {{element[column.id]}}
                 } @else {
-                <button mat-stroked-button color="primary"
+                <button mat-stroked-button color="primary" [attr.aria-label]="'Perform action on ' + element[column.id]"
                     (click)="column.action(element)">{{element[column.id]}}</button>
                 }
             </td>
