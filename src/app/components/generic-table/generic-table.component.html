@@ -8,7 +8,15 @@
             </th>
 
             @if (column.id !== 'actions') {
-            <td mat-cell *matCellDef="let element">{{element[column.id]}}</td>
+            <td mat-cell *matCellDef="let element">
+                @if (column.action === undefined) {
+                {{element[column.id]}}
+                } @else {
+                <button mat-stroked-button color="primary" [attr.aria-label]="'Perform action on ' + element[column.id]"
+                    (click)="column.action(element)">{{element[column.id]}}</button>
+                }
+            </td>
+
 
             } @else {
             <td mat-cell *matCellDef="let element">
@@ -27,8 +35,8 @@
         </ng-container>
         }
 
-        <tr mat-header-row *matHeaderRowDef="internalDisplayedColumnIds()" sticky></tr>
-        <tr mat-row *matRowDef="let row; columns: internalDisplayedColumnIds();"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumnIds()" sticky></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumnIds();"></tr>
 
     </table>
 </div>
