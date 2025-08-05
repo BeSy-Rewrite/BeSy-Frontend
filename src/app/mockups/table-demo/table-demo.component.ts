@@ -5,7 +5,9 @@ import { ButtonColor, TableActionButton, TableColumn } from '../../models/generi
 
 @Component({
   selector: 'app-table-demo',
-  imports: [GenericTableComponent],
+  imports: [
+    GenericTableComponent
+  ],
   templateUrl: './table-demo.component.html',
   styleUrl: './table-demo.component.css'
 })
@@ -76,5 +78,11 @@ export class TableDemoComponent {
       action: (row: any) => console.log('Info action on row:', row)
     }
   ]
+
+  onDateRangeChange(event: { start: Date, end: Date }) {
+    console.log('Selected date range:', event.start, '–', event.end);
+    // Here you can implement logic to filter the dataSource based on the selected date range
+    // For example, you could fetch new data or filter the existing data based on the date range
+  }
 
 }

@@ -1,0 +1,13 @@
+<mat-form-field [formGroup]="range" class="max-w-full min-h-fit">
+    <mat-label>Zeitraum angeben</mat-label>
+
+    <mat-date-range-input [rangePicker]="picker" [min]="minDate()" [max]="maxDate()">
+        <input matStartDate placeholder="Start date" formControlName="start">
+        <input matEndDate placeholder="End date" formControlName="end">
+    </mat-date-range-input>
+
+    <mat-hint>DD.MM.YYYY – DD.MM.YYYY</mat-hint>
+
+    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+    <mat-date-range-picker #picker [startAt]="today"></mat-date-range-picker>
+</mat-form-field>
