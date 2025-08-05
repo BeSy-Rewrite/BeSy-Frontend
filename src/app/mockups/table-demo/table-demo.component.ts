@@ -83,7 +83,7 @@ export class TableDemoComponent {
     }
   ]
 
-  handleExampleColumnAction(row: any) {
+  handleExampleColumnAction(row: DemoRow) {
     console.log('Example column action on row:', row);
     this.snackBar.open('Aktion für Zeile ausgeführt!\n' + JSON.stringify(row), 'Schließen', {
       duration: 3000,
