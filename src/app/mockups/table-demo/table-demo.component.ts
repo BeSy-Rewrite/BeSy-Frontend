@@ -95,4 +95,10 @@ export class TableDemoComponent {
     });
   }
 
+  onDateRangeChange(event: { start: Date, end: Date }) {
+    console.log('Selected date range:', event.start, '–', event.end);
+    // Here you can implement logic to filter the dataSource based on the selected date range
+    // For example, you could fetch new data or filter the existing data based on the date range
+  }
+
 }
