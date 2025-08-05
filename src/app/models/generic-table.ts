@@ -5,6 +5,7 @@ export interface TableColumn {
     id: string;
     label: string;
     isUnsortable?: boolean;
+    action?: (row: any) => void; // Optional action for the column
 }
 
 export interface TableActionButton {

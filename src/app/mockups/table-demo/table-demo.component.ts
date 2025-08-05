@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { GenericTableComponent } from "../../components/generic-table/generic-table.component";
 import { ButtonColor, TableActionButton, TableColumn } from '../../models/generic-table';
@@ -11,6 +12,7 @@ import { ButtonColor, TableActionButton, TableColumn } from '../../models/generi
 })
 
 export class TableDemoComponent {
+  constructor(private readonly snackBar: MatSnackBar) { }
   /**
    * The data source for the table, required to be provided.
    */
@@ -23,9 +25,12 @@ export class TableDemoComponent {
   /**
    * The column definitions for the table, required to be provided.
    * The id must match the keys in the data source.
+   *
+   * Each column can have an optional action that will be executed when the column is clicked.
+   * If the action is defined, it will be executed with the row data as an argument.
    */
   columns: TableColumn[] = [
-    { id: 'name', label: 'Name', isUnsortable: true },
+    { id: 'name', label: 'Name', isUnsortable: true, action: (row: any) => this.handleExampleColumnAction(row) },
     { id: 'age', label: 'Age', isUnsortable: false },
     { id: 'email', label: 'Email' }, // This column is sortable by default
     { id: 'secret', label: 'Secret' } // This column is not displayed as it is not included in displayedColumnIds
@@ -76,5 +81,13 @@ export class TableDemoComponent {
       action: (row: any) => console.log('Info action on row:', row)
     }
   ]
+
+  handleExampleColumnAction(row: any) {
+    console.log('Example column action on row:', row);
+    this.snackBar.open('Aktion für Zeile ausgeführt!\n' + JSON.stringify(row), 'Schließen', {
+      duration: 3000,
+      verticalPosition: 'top',
+    });
+  }
 
 }
