@@ -1,7 +1,7 @@
 <div class="rounded overflow-hidden shadow-sm bg-white m-2 px-6 py-4">
   <div class="flex items-center">
     <ng-content select="[title-prefix]"></ng-content>
-    <h1 class="grow-1 font-semibold text-xl mb-2"> {{ title() }} </h1>
+    <h1 class="grow font-semibold text-xl mb-2"> {{ title() }} </h1>
     <ng-content select="[title-suffix]"></ng-content>
   </div>
   <ng-content select="[card-content]"></ng-content>
