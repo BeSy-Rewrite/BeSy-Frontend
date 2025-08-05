@@ -35,8 +35,8 @@
         </ng-container>
         }
 
-        <tr mat-header-row *matHeaderRowDef="internalDisplayedColumnIds()" sticky></tr>
-        <tr mat-row *matRowDef="let row; columns: internalDisplayedColumnIds();"></tr>
+        <tr mat-header-row *matHeaderRowDef="displayedColumnIds()" sticky></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumnIds();"></tr>
 
     </table>
 </div>

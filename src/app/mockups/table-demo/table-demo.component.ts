@@ -33,15 +33,8 @@ export class TableDemoComponent {
     { id: 'name', label: 'Name', isUnsortable: true, action: (row: any) => this.handleExampleColumnAction(row) },
     { id: 'age', label: 'Age', isUnsortable: false },
     { id: 'email', label: 'Email' }, // This column is sortable by default
-    { id: 'secret', label: 'Secret' } // This column is not displayed as it is not included in displayedColumnIds
+    { id: 'secret', label: 'Secret', isInvisible: true } // This column is not displayed
   ];
-
-  /**
-   * The IDs of the columns to be displayed, optional.
-   * If not provided, it will be derived from the columns input,
-   * defaulting to all columns.
-   */
-  displayedColumnIds: string[] = ['name', 'age', 'email'];
 
   /**
    * The action buttons to be displayed in the table, optional.

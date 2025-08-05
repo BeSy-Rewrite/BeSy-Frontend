@@ -7,10 +7,10 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
 
 /**
  * A generic table component for displaying tabular data with optional action buttons.
- * 
+ *
  * This component uses Angular Material's table, sort, and button modules to provide a flexible and customizable table.
  * It supports dynamic columns, sorting, and action buttons.
- * 
+ *
  * @example
  * <app-generic-table
  *  [dataSource]="dataSource"
@@ -44,12 +44,6 @@ export class GenericTableComponent {
   columns = input.required<TableColumn[]>();
 
   /**
-   * The IDs of the columns to be displayed, optional.
-   * If not provided, it will be derived from the columns input.
-   */
-  displayedColumnIds = input<string[]>();
-
-  /**
    * The action buttons to be displayed in the table, optional.
    * If not provided, no action buttons will be displayed.
    */
@@ -63,7 +57,7 @@ export class GenericTableComponent {
   /**
    * Internal representation of the displayed column IDs.
    */
-  internalDisplayedColumnIds = signal<string[]>([]);
+  displayedColumnIds = signal<string[]>([]);
 
   /**
    * Reference to the MatSort directive for enabling sorting functionality.
@@ -110,15 +104,14 @@ export class GenericTableComponent {
 
   /**
    * Sets up the internal state of the component based on the provided inputs.
-   * If displayedColumnIds is not provided, it defaults to the IDs of the columns.
+   * It filters out invisible columns and sets the displayed column IDs.
+   * It also initializes the internal columns with the provided column definitions.
    * @private
    */
   private _setupInternals() {
-    if (this.displayedColumnIds() !== undefined) {
-      this.internalDisplayedColumnIds.set(this.displayedColumnIds()!);
-    } else {
-      this.internalDisplayedColumnIds.set(this.columns().map(c => c.id))
-    }
+    this.displayedColumnIds.set(this.columns()
+      .filter(c => !c.isInvisible)
+      .map(c => c.id));
     this.internalColumns.set(this.columns());
   }
 
@@ -129,7 +122,7 @@ export class GenericTableComponent {
    */
   private _setupActions() {
     if (this.actions().length > 0) {
-      this.internalDisplayedColumnIds.update(ids => [...ids, 'actions']);
+      this.displayedColumnIds.update(ids => [...ids, 'actions']);
       this.internalColumns.update(cols => [...cols, { id: 'actions', label: 'Actions', isUnsortable: true }]);
     }
   }
