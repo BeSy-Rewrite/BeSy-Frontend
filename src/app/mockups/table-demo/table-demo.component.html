@@ -1,6 +1,13 @@
-<h1 class="text-3xl font-bold mb-4">Table Demo Component</h1>
-<p class="text-xl">This component demonstrates the usage of the generic table component.</p>
-<p class="text-xl mb-4">It provides a data source, columns, and action buttons to demonstrate the table's functionality.
-</p>
+<app-card title="Table Demo Component">
 
-<app-generic-table [dataSource]="dataSource" [columns]="columns" [actions]="actions" />
+    <div card-content>
+        <p class="text-xl">This component demonstrates the usage of the generic table component.</p>
+        <p class="text-xl mb-4">
+            It provides a data source, columns, and action buttons to demonstrate the table's
+            functionality.
+        </p>
+
+        <app-generic-table [dataSource]="dataSource" [columns]="columns" [actions]="actions" />
+    </div>
+
+</app-card>

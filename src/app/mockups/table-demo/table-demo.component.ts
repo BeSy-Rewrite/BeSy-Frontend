@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
+import { CardComponent } from "../../components/card/card.component";
 import { GenericTableComponent } from "../../components/generic-table/generic-table.component";
 import { ButtonColor, TableActionButton, TableColumn } from '../../models/generic-table';
 
@@ -14,7 +15,10 @@ interface DemoRow {
 
 @Component({
   selector: 'app-table-demo',
-  imports: [GenericTableComponent],
+  imports: [
+    GenericTableComponent,
+    CardComponent
+  ],
   templateUrl: './table-demo.component.html',
   styleUrl: './table-demo.component.css'
 })
