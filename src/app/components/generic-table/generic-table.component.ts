@@ -10,12 +10,12 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
  *
  * This component uses Angular Material's table, sort, and button modules to provide a flexible and customizable table.
  * It supports dynamic columns, sorting, and action buttons.
+ * The type parameter `T` of dataSource and columns must be the same.
  *
  * @example
  * <app-generic-table
  *  [dataSource]="dataSource"
  *  [columns]="columns"
- *  [displayedColumnIds]="displayedColumnIds"
  *  [actions]="actions">
  * </app-generic-table>
  */
@@ -30,18 +30,18 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.css'
 })
-export class GenericTableComponent {
+export class GenericTableComponent<T> {
 
   /**
    * The data source for the table, required to be provided.
    */
-  dataSource = input.required<MatTableDataSource<any>>();
+  dataSource = input.required<MatTableDataSource<T>>();
 
   /**
    * The columns to be displayed in the table, required to be provided.
    * Each column must have an `id` that matches the keys in the data source.
    */
-  columns = input.required<TableColumn[]>();
+  columns = input.required<TableColumn<T>[]>();
 
   /**
    * The action buttons to be displayed in the table, optional.
@@ -96,9 +96,9 @@ export class GenericTableComponent {
   /**
    * Handles the action button click event.
    * @param {TableActionButton} button - The action button that was clicked.
-   * @param {any} row - The data row associated with the button click.
+   * @param {T} row - The data row associated with the button click.
    */
-  handleAction(button: TableActionButton, row: any) {
+  handleAction(button: TableActionButton, row: T) {
     button.action ? button.action(row) : console.warn(`No action defined for button: ${button.label}`);
   }
 

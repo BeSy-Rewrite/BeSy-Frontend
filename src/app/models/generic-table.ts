@@ -1,12 +1,12 @@
 import { MatButtonAppearance } from "@angular/material/button";
 
 
-export interface TableColumn {
+export interface TableColumn<T = any> {
     id: string;
     label: string;
     isInvisible?: boolean; // Optional property to hide the column
     isUnsortable?: boolean; // Optional property to make the column unsortable
-    action?: (row: any) => void; // Optional action for the column
+    action?: (row: T) => void; // Optional action for the column
 }
 
 export interface TableActionButton {

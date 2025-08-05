@@ -4,6 +4,14 @@ import { MatTableDataSource } from '@angular/material/table';
 import { GenericTableComponent } from "../../components/generic-table/generic-table.component";
 import { ButtonColor, TableActionButton, TableColumn } from '../../models/generic-table';
 
+
+interface DemoRow {
+  name: string;
+  age: number;
+  email: string;
+  secret: string;
+}
+
 @Component({
   selector: 'app-table-demo',
   imports: [GenericTableComponent],
@@ -16,7 +24,7 @@ export class TableDemoComponent {
   /**
    * The data source for the table, required to be provided.
    */
-  dataSource: MatTableDataSource<any> = new MatTableDataSource([
+  dataSource: MatTableDataSource<DemoRow> = new MatTableDataSource([
     { name: 'John Doe', age: 30, email: 'john.doe@example.com', secret: 'Top Secret 1' },
     { name: 'Jane Smith', age: 25, email: 'jane.smith@example.com', secret: 'Top Secret 2' },
     { name: 'Alice Johnson', age: 35, email: 'alice.johnson@example.com', secret: 'Top Secret 3' }
@@ -29,8 +37,8 @@ export class TableDemoComponent {
    * Each column can have an optional action that will be executed when the column is clicked.
    * If the action is defined, it will be executed with the row data as an argument.
    */
-  columns: TableColumn[] = [
-    { id: 'name', label: 'Name', isUnsortable: true, action: (row: any) => this.handleExampleColumnAction(row) },
+  columns: TableColumn<DemoRow>[] = [
+    { id: 'name', label: 'Name', isUnsortable: true, action: (row: DemoRow) => this.handleExampleColumnAction(row) },
     { id: 'age', label: 'Age', isUnsortable: false },
     { id: 'email', label: 'Email' }, // This column is sortable by default
     { id: 'secret', label: 'Secret', isInvisible: true } // This column is not displayed
