@@ -7,15 +7,15 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
 
 /**
  * A generic table component for displaying tabular data with optional action buttons.
- * 
+ *
  * This component uses Angular Material's table, sort, and button modules to provide a flexible and customizable table.
  * It supports dynamic columns, sorting, and action buttons.
- * 
+ * The type parameter `T` of dataSource and columns must be the same.
+ *
  * @example
  * <app-generic-table
  *  [dataSource]="dataSource"
  *  [columns]="columns"
- *  [displayedColumnIds]="displayedColumnIds"
  *  [actions]="actions">
  * </app-generic-table>
  */
@@ -30,24 +30,18 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.css'
 })
-export class GenericTableComponent {
+export class GenericTableComponent<T> {
 
   /**
    * The data source for the table, required to be provided.
    */
-  dataSource = input.required<MatTableDataSource<any>>();
+  dataSource = input.required<MatTableDataSource<T>>();
 
   /**
    * The columns to be displayed in the table, required to be provided.
    * Each column must have an `id` that matches the keys in the data source.
    */
-  columns = input.required<TableColumn[]>();
-
-  /**
-   * The IDs of the columns to be displayed, optional.
-   * If not provided, it will be derived from the columns input.
-   */
-  displayedColumnIds = input<string[]>();
+  columns = input.required<TableColumn<T>[]>();
 
   /**
    * The action buttons to be displayed in the table, optional.
@@ -63,7 +57,7 @@ export class GenericTableComponent {
   /**
    * Internal representation of the displayed column IDs.
    */
-  internalDisplayedColumnIds = signal<string[]>([]);
+  displayedColumnIds = signal<string[]>([]);
 
   /**
    * Reference to the MatSort directive for enabling sorting functionality.
@@ -102,23 +96,22 @@ export class GenericTableComponent {
   /**
    * Handles the action button click event.
    * @param {TableActionButton} button - The action button that was clicked.
-   * @param {any} row - The data row associated with the button click.
+   * @param {T} row - The data row associated with the button click.
    */
-  handleAction(button: TableActionButton, row: any) {
+  handleAction(button: TableActionButton, row: T) {
     button.action ? button.action(row) : console.warn(`No action defined for button: ${button.label}`);
   }
 
   /**
    * Sets up the internal state of the component based on the provided inputs.
-   * If displayedColumnIds is not provided, it defaults to the IDs of the columns.
+   * It filters out invisible columns and sets the displayed column IDs.
+   * It also initializes the internal columns with the provided column definitions.
    * @private
    */
   private _setupInternals() {
-    if (this.displayedColumnIds() !== undefined) {
-      this.internalDisplayedColumnIds.set(this.displayedColumnIds()!);
-    } else {
-      this.internalDisplayedColumnIds.set(this.columns().map(c => c.id))
-    }
+    this.displayedColumnIds.set(this.columns()
+      .filter(c => !c.isInvisible)
+      .map(c => c.id));
     this.internalColumns.set(this.columns());
   }
 
@@ -129,7 +122,7 @@ export class GenericTableComponent {
    */
   private _setupActions() {
     if (this.actions().length > 0) {
-      this.internalDisplayedColumnIds.update(ids => [...ids, 'actions']);
+      this.displayedColumnIds.update(ids => [...ids, 'actions']);
       this.internalColumns.update(cols => [...cols, { id: 'actions', label: 'Actions', isUnsortable: true }]);
     }
   }

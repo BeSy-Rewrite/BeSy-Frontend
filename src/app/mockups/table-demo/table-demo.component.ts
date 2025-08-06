@@ -1,22 +1,34 @@
 import { Component } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
+import { CardComponent } from "../../components/card/card.component";
 import { GenericTableComponent } from "../../components/generic-table/generic-table.component";
 import { ButtonColor, TableActionButton, TableColumn } from '../../models/generic-table';
+
+
+interface DemoRow {
+  name: string;
+  age: number;
+  email: string;
+  secret: string;
+}
 
 @Component({
   selector: 'app-table-demo',
   imports: [
-    GenericTableComponent
+    GenericTableComponent,
+    CardComponent
   ],
   templateUrl: './table-demo.component.html',
   styleUrl: './table-demo.component.css'
 })
 
 export class TableDemoComponent {
+  constructor(private readonly snackBar: MatSnackBar) { }
   /**
    * The data source for the table, required to be provided.
    */
-  dataSource: MatTableDataSource<any> = new MatTableDataSource([
+  dataSource: MatTableDataSource<DemoRow> = new MatTableDataSource([
     { name: 'John Doe', age: 30, email: 'john.doe@example.com', secret: 'Top Secret 1' },
     { name: 'Jane Smith', age: 25, email: 'jane.smith@example.com', secret: 'Top Secret 2' },
     { name: 'Alice Johnson', age: 35, email: 'alice.johnson@example.com', secret: 'Top Secret 3' }
@@ -25,20 +37,16 @@ export class TableDemoComponent {
   /**
    * The column definitions for the table, required to be provided.
    * The id must match the keys in the data source.
+   *
+   * Each column can have an optional action that will be executed when the column is clicked.
+   * If the action is defined, it will be executed with the row data as an argument.
    */
-  columns: TableColumn[] = [
-    { id: 'name', label: 'Name', isUnsortable: true },
+  columns: TableColumn<DemoRow>[] = [
+    { id: 'name', label: 'Name', isUnsortable: true, action: (row: DemoRow) => this.handleExampleColumnAction(row) },
     { id: 'age', label: 'Age', isUnsortable: false },
     { id: 'email', label: 'Email' }, // This column is sortable by default
-    { id: 'secret', label: 'Secret' } // This column is not displayed as it is not included in displayedColumnIds
+    { id: 'secret', label: 'Secret', isInvisible: true } // This column is not displayed
   ];
-
-  /**
-   * The IDs of the columns to be displayed, optional.
-   * If not provided, it will be derived from the columns input,
-   * defaulting to all columns.
-   */
-  displayedColumnIds: string[] = ['name', 'age', 'email'];
 
   /**
    * The action buttons to be displayed in the table, optional.
@@ -78,6 +86,14 @@ export class TableDemoComponent {
       action: (row: any) => console.log('Info action on row:', row)
     }
   ]
+
+  handleExampleColumnAction(row: DemoRow) {
+    console.log('Example column action on row:', row);
+    this.snackBar.open('Aktion für Zeile ausgeführt!\n' + JSON.stringify(row), 'Schließen', {
+      duration: 3000,
+      verticalPosition: 'top',
+    });
+  }
 
   onDateRangeChange(event: { start: Date, end: Date }) {
     console.log('Selected date range:', event.start, '–', event.end);
