@@ -1,0 +1,19 @@
+<div class="container">
+  <app-generic-form-page
+    *ngIf="addressData && !loading && !error"
+    [config]="editFormConfig"
+    [editMode]="true"
+    [initialData]="addressData"
+    (formSubmitted)="onAddressUpdated($event)"
+    (backClicked)="onBack()">
+  </app-generic-form-page>
+  
+  <div *ngIf="loading" class="loading-container">
+    <p>Lade Adresse...</p>
+  </div>
+  
+  <div *ngIf="error" class="error-container">
+    <p>Fehler beim Laden der Adresse: {{ error }}</p>
+    <button mat-button (click)="onBack()">Zurück</button>
+  </div>
+</div>

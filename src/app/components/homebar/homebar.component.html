@@ -19,26 +19,26 @@
     <app-navbar-button
       label="Bestellungen"
       routerLink="/orders"
-      [isExact]="true"
+      [isExact]="false"
     ></app-navbar-button>
     <app-navbar-button
       label="Lieferanten"
       routerLink="/suppliers"
-      [isExact]="true"
+      [isExact]="false"
     ></app-navbar-button>
     <app-navbar-button
       label="Adressen"
       routerLink="/addresses"
-      [isExact]="true"
+      [isExact]="false"
     ></app-navbar-button>
     <app-navbar-button
       label="Personen"
       routerLink="/persons"
-      [isExact]="true"
+      [isExact]="false"
     ></app-navbar-button>
   </nav>
 
-  <div class="homebar__user ml-auto">
+  <div class="homebar__user ml-auto mr-4">
     @if (authService.hasValidToken()) {
     <button mat-flat-button color="accent" (click)="authService.logout()">
       Logout

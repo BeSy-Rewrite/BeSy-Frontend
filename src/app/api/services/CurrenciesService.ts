@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CurrencyResponseDTO } from '../models/CurrencyResponseDTO';
+import type { CurrencyResponseDTO } from '../models/response-dtos/CurrencyResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';

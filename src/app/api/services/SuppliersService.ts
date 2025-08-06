@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { SupplierRequestDTO } from '../models/SupplierRequestDTO';
-import type { SupplierResponseDTO } from '../models/SupplierResponseDTO';
+import type { SupplierRequestDTO } from '../models/request-dtos/SupplierRequestDTO';
+import type { SupplierResponseDTO } from '../models/response-dtos/SupplierResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';

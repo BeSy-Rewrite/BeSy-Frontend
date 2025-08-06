@@ -1,0 +1,48 @@
+.form-limiter {
+  max-width: 90%;
+  margin: 20px auto;
+  padding: 20px;
+  border-radius: 8px;
+  background: radial-gradient(circle, #9bb9d7, #ffffff);
+}
+
+.container-spacing {
+  padding: 16px;
+  background-color: rgb(255, 255, 255);
+}
+
+.entity-container {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+}
+
+.entity-titles {
+  width: 25%;
+  padding: 8px;
+  font-weight: 500;
+  vertical-align: top;
+  padding-top: 20px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: flex-start;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+mat-form-field {
+  width: 50%;
+}
+
+h4 {
+  margin-bottom: 16px;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: #333;
+}
+
+mat-divider {
+  margin-bottom: 20px;
+}

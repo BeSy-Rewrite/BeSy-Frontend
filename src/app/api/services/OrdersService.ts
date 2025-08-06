@@ -2,11 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ItemResponseDTO } from '../models/ItemResponseDTO';
-import type { OrderPatchRequestDTO } from '../models/OrderPatchRequestDTO';
-import type { OrderRequestDTO } from '../models/OrderRequestDTO';
-import type { OrderResponseDTO } from '../models/OrderResponseDTO';
-import type { QuotationResponseDTO } from '../models/QuotationResponseDTO';
+import type { ItemResponseDTO } from '../models/response-dtos/ItemResponseDTO';
+import type { OrderPatchRequestDTO } from '../models/request-dtos/OrderPatchRequestDTO';
+import type { OrderRequestDTO } from '../models/request-dtos/OrderRequestDTO';
+import type { OrderResponseDTO } from '../models/response-dtos/OrderResponseDTO';
+import type { QuotationResponseDTO } from '../models/response-dtos/QuotationResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';

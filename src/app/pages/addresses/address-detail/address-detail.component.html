@@ -1,0 +1,64 @@
+<div class="container" *ngIf="!loading && !error && addressData">
+  <div class="header-section">
+    <button mat-icon-button (click)="onBack()" class="back-button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Adresse Details</h1>
+    <button mat-raised-button color="primary" (click)="onEdit()" class="edit-button">
+      <mat-icon>edit</mat-icon>
+      Bearbeiten
+    </button>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <mat-card class="address-card">
+    <mat-card-header>
+      <mat-card-title>{{ addressData.name }}</mat-card-title>
+      <mat-card-subtitle>ID: {{ addressData.id }}</mat-card-subtitle>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <div class="address-details">
+        <div class="detail-row" *ngIf="addressData.building_name">
+          <strong>Gebäudename:</strong>
+          <span>{{ addressData.building_name }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <strong>Straße:</strong>
+          <span>{{ addressData.street }} {{ addressData.building_number || '' }}</span>
+        </div>
+        
+        <div class="detail-row">
+          <strong>Stadt:</strong>
+          <span>{{ addressData.postal_code }} {{ addressData.town }}</span>
+        </div>
+        
+        <div class="detail-row" *ngIf="addressData.county">
+          <strong>Region:</strong>
+          <span>{{ addressData.county }}</span>
+        </div>
+        
+        <div class="detail-row" *ngIf="addressData.country">
+          <strong>Land:</strong>
+          <span>{{ addressData.country }}</span>
+        </div>
+        
+        <div class="detail-row" *ngIf="addressData.comment">
+          <strong>Kommentar:</strong>
+          <span>{{ addressData.comment }}</span>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<div class="loading-container" *ngIf="loading">
+  <p>Lade Adresse...</p>
+</div>
+
+<div class="error-container" *ngIf="error">
+  <p>Fehler beim Laden der Adresse: {{ error }}</p>
+  <button mat-button (click)="onBack()">Zurück zur Liste</button>
+</div>

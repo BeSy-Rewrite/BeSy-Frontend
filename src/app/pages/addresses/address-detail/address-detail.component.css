@@ -1,0 +1,65 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.header-section {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.header-section h1 {
+  flex: 1;
+  margin: 0;
+}
+
+.back-button {
+  margin-right: 8px;
+}
+
+.edit-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.address-card {
+  margin-top: 20px;
+}
+
+.address-details {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.detail-row {
+  display: flex;
+  gap: 12px;
+}
+
+.detail-row strong {
+  min-width: 120px;
+  color: #666;
+}
+
+.detail-row span {
+  flex: 1;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+}
+
+.error-container {
+  color: #d32f2f;
+}

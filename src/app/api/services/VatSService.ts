@@ -2,7 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { VatResponseDTO } from '../models/VatResponseDTO';
+import type { VatResponseDTO } from '../models/response-dtos/VatResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
