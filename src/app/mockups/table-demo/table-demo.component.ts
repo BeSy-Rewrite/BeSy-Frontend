@@ -1,8 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { CardComponent } from "../../components/card/card.component";
+import { DateRangePickerComponent } from "../../components/date-range-picker/date-range-picker.component";
 import { GenericTableComponent } from "../../components/generic-table/generic-table.component";
+import { DateRange } from '../../models/date-range';
 import { ButtonColor, TableActionButton, TableColumn } from '../../models/generic-table';
 
 
@@ -17,7 +19,8 @@ interface DemoRow {
   selector: 'app-table-demo',
   imports: [
     GenericTableComponent,
-    CardComponent
+    CardComponent,
+    DateRangePickerComponent
   ],
   templateUrl: './table-demo.component.html',
   styleUrl: './table-demo.component.css'
@@ -95,10 +98,22 @@ export class TableDemoComponent {
     });
   }
 
-  onDateRangeChange(event: { start: Date, end: Date }) {
-    console.log('Selected date range:', event.start, '–', event.end);
+  onDateRangeChange(event: DateRange) {
+    console.log('Selected date range:', event.start, '-', event.end);
     // Here you can implement logic to filter the dataSource based on the selected date range
     // For example, you could fetch new data or filter the existing data based on the date range
   }
 
+  range = signal<DateRange>({
+    start: new Date(2023, 0, 1), // January 1
+    end: new Date(2023, 11, 31) // December 31
+  });
+
+  test() {
+    console.log('Test button clicked');
+    this.range.set({
+      start: new Date(2023, 3, 1),
+      end: new Date(2024, 11, 31)
+    });
+  }
 }

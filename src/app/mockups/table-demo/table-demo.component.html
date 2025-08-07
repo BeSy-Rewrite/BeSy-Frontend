@@ -8,6 +8,11 @@
         </p>
 
         <app-generic-table [dataSource]="dataSource" [columns]="columns" [actions]="actions" />
+
+        <app-date-range-picker [initialDateRange]="range()"
+            (dateRangeChange)="onDateRangeChange($event)"></app-date-range-picker>
+
+        <button mat-flat-button color="primary" (click)="test()">Add Row</button>
     </div>
 
 </app-card>
