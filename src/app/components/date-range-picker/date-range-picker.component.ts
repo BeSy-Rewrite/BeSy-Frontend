@@ -2,6 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule, MatDateRangeInput } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { DateRange } from '../../models/date-range';
 
 /**
  * A date range picker component that allows users to select a start and end date.
@@ -36,6 +37,15 @@ export class DateRangePickerComponent {
    */
   maxDate = input<Date>(new Date()); // Today
 
+  /**
+   * The initial date range to be used when the component is initialized.
+   * It can be set to a specific date range or left undefined.
+   */
+  initialDateRange = input<DateRange>({
+    start: undefined,
+    end: undefined
+  });
+
   range = new FormGroup({
     start: new FormControl(),
     end: new FormControl()
@@ -44,28 +54,33 @@ export class DateRangePickerComponent {
   /**
    * Emits the selected date range when it changes.
    */
-  dateRange = output<{ start: Date | undefined, end: Date | undefined }>();
+  dateRangeChange = output<DateRange>();
 
   /**
-   * Initializes the date range picker with default values.
-   * Sets the start date to the minimum date and the end date to the maximum date.
+   * Initializes the date range picker component.
+   * Sets up the initial values for the date range and subscribes to changes.
+   * This method is called when the component is created.
    */
   ngOnInit() {
-    this.range.get('start')!.setValue(this.minDate());
-    this.range.get('end')!.setValue(this.maxDate());
+    this.dateRangeChange.emit(this.getRange());
 
-    this.range.valueChanges.subscribe(value => {
-      this.dateRange.emit(
-        this.getRange()
-      );
+    this.range.valueChanges.subscribe(() => {
+      this.dateRangeChange.emit(this.getRange());
     });
+  }
+
+  /**
+   * Sets the initial date range when the components input's change.
+   */
+  ngOnChanges() {
+    this.range.setValue(this.initialDateRange());
   }
 
   /**
    * Returns the selected date range as an object with start and end dates.
    * If the start or end date is not set, it returns undefined for that field.
    */
-  getRange() {
+  getRange(): DateRange {
     let start = this.range.get('start')!.value;
     let end = this.range.get('end')!.value;
 
