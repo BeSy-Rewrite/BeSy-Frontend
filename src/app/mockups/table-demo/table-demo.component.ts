@@ -1,11 +1,14 @@
 import { Component, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { CardComponent } from "../../components/card/card.component";
 import { DateRangePickerComponent } from "../../components/date-range-picker/date-range-picker.component";
 import { GenericTableComponent } from "../../components/generic-table/generic-table.component";
+import { RangeSelectionSliderComponent } from "../../components/range-selection-slider/range-selection-slider.component";
 import { DateRange } from '../../models/date-range';
 import { ButtonColor, TableActionButton, TableColumn } from '../../models/generic-table';
+import { Range } from '../../models/range';
 
 
 interface DemoRow {
@@ -20,7 +23,9 @@ interface DemoRow {
   imports: [
     GenericTableComponent,
     CardComponent,
-    DateRangePickerComponent
+    DateRangePickerComponent,
+    RangeSelectionSliderComponent,
+    MatButtonModule
   ],
   templateUrl: './table-demo.component.html',
   styleUrl: './table-demo.component.css'
@@ -90,6 +95,7 @@ export class TableDemoComponent {
     }
   ]
 
+
   handleExampleColumnAction(row: DemoRow) {
     console.log('Example column action on row:', row);
     this.snackBar.open('Aktion für Zeile ausgeführt!\n' + JSON.stringify(row), 'Schließen', {
@@ -104,16 +110,28 @@ export class TableDemoComponent {
     // For example, you could fetch new data or filter the existing data based on the date range
   }
 
-  range = signal<DateRange>({
+  dateRange = signal<DateRange>({
     start: new Date(2023, 0, 1), // January 1
     end: new Date(2023, 11, 31) // December 31
   });
 
-  test() {
+  changeDate() {
     console.log('Test button clicked');
-    this.range.set({
+    this.dateRange.set({
       start: new Date(2023, 3, 1),
       end: new Date(2024, 11, 31)
     });
+  }
+
+  range = signal<Range>({ start: 0.1, end: 100 });
+
+  changeRange() {
+    this.range.update(initial => ({
+      start: initial.start + 10,
+      end: initial.end - 10
+    }));
+  }
+  onRangeChange(newRange: Range) {
+    console.log('Range changed:', newRange, this.range());
   }
 }
