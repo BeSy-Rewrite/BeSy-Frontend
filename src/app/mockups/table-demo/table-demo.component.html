@@ -9,13 +9,6 @@
 
         <app-generic-table [dataSource]="dataSource" [columns]="columns" [actions]="actions" />
 
-        <app-date-range-picker [initialDateRange]="dateRange()"
-            (dateRangeChange)="onDateRangeChange($event)"></app-date-range-picker>
-        <button mat-flat-button color="primary" (click)="changeDate()">change date range</button>
-
-        <app-range-selection-slider [(selectedRange)]="range" (onChanges)="onRangeChange($event)" />
-        <button mat-flat-button color="primary" (click)="changeRange()">change range</button>
-
     </div>
 
 </app-card>
