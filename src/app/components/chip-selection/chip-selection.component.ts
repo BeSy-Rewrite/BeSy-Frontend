@@ -4,6 +4,7 @@ import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { FilterChipData } from '../../models/filter-chip-data';
 
@@ -25,7 +26,8 @@ import { FilterChipData } from '../../models/filter-chip-data';
     MatInputModule,
     MatAutocompleteModule,
     ReactiveFormsModule,
-    CommonModule
+    CommonModule,
+    MatIconModule
   ],
   templateUrl: './chip-selection.component.html',
   styleUrl: './chip-selection.component.css'

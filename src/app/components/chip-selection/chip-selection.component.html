@@ -7,7 +7,7 @@
         <mat-chip-row [style]="item.color ? 'background-color: ' + item.color + ';' : ''" (removed)="remove(item)">
             {{item.label}}
             <button matChipRemove>
-                <mat-icon matChipRemove>X</mat-icon>
+                <mat-icon svgIcon="cancel" matChipRemove class="!p-0"></mat-icon>
             </button>
         </mat-chip-row>
         }
