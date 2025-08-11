@@ -4,6 +4,7 @@ import { CardComponent } from '../../components/card/card.component';
 import { ChipSelectionComponent } from '../../components/chip-selection/chip-selection.component';
 import { DateRangePickerComponent } from '../../components/date-range-picker/date-range-picker.component';
 import { RangeSelectionSliderComponent } from '../../components/range-selection-slider/range-selection-slider.component';
+import { FilterChipData } from '../../models/filter-chip-data';
 import { FilterDateRange } from '../../models/filter-date-range';
 import { FilterRange } from '../../models/filter-range';
 
@@ -57,7 +58,28 @@ export class FilterDemoComponent {
 
 
   // Chip Selection
-  items = signal<string[]>(['Option 1', 'Option 2', 'Option 3']);
+  items = signal<FilterChipData[]>([
+    { label: 'Option 1', color: 'oklch(0.809 0.105 251.813)' },
+    { label: 'Option 2' },
+    { label: 'Option 3', color: 'var(--color-emerald-300)', isSelected: true }
+  ]);
   selectedItems = signal<string[]>([]);
 
+  useCustomChipData() {
+    const customItems: CustomFilterChipData[] = [
+      { label: 'Custom Option 1', color: 'oklch(0.809 0.105 251.813)', customProperty: 'Custom Value 1' },
+      { label: 'Custom Option 2', customProperty: 'Custom Value 2' },
+      { label: 'Custom Option 3', color: 'var(--color-emerald-300)', isSelected: true, customProperty: 'Custom Value 3' }
+    ];
+    this.items.set(customItems);
+  }
+
+  onChipChange(item: FilterChipData) {
+    console.log('Chip changed:', item);
+  }
+
+}
+
+interface CustomFilterChipData extends FilterChipData {
+  customProperty: string;
 }

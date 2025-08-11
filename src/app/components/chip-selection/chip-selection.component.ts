@@ -1,18 +1,20 @@
+import { CommonModule } from '@angular/common';
 import { Component, computed, ElementRef, input, model, output, signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { FilterChipData } from '../../models/filter-chip-data';
 
 /**
  * Component for selecting items using chips.
  * This component allows users to select multiple items from a list using a chip-based interface.
  * Users can type to filter the list of available items and select their desired items.
  * The selected items are displayed as chips, which can be removed individually.
- * 
+ *
  * Usage:
- * <app-chip-selection [items]="itemList" [(selectedItems)]="selectedItems" />
+ * <app-chip-selection [items]="itemList" />
  */
 
 @Component({
@@ -22,7 +24,8 @@ import { MatInputModule } from '@angular/material/input';
     MatChipsModule,
     MatInputModule,
     MatAutocompleteModule,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    CommonModule
   ],
   templateUrl: './chip-selection.component.html',
   styleUrl: './chip-selection.component.css'
@@ -30,34 +33,41 @@ import { MatInputModule } from '@angular/material/input';
 export class ChipSelectionComponent {
 
   /**
-   * The list of available items for selection.
+   * The label for the input field.
    */
-  items = input.required<string[]>();
+  inputLabel = input<string>('Items auswählen');
+  /**
+   * The placeholder text for the input field.
+   */
+  inputPlaceholder = input<string>('Suchbegriff eingeben');
 
   /**
-   * The currently selected items.
+   * The list of items to select from.
+   * Each item is represented by a FilterChipData object.
    */
-  selectedItems = model<string[]>([]);
+  items = model<FilterChipData[]>([]);
 
   /**
    * Output event emitter for changes in the selected items.
    */
-  onChanges = output<string[]>();
+  onChanges = output<FilterChipData>();
 
   /**
    * The items that match the current text input and are not selected.
    */
   autocompleteItems = computed<string[]>(() =>
     this.items()
-      .filter(item => !this.selectedItems().includes(item))
+      .filter(item => !item.isSelected)
+      .map(item => item.label)
       .filter(item => item.toLowerCase().includes(this.textInput().toLowerCase() ?? ''))
   );
 
-  selectedItemsControl = new FormControl<string[]>([]);
+  selectedItems: FilterChipData[] = [];
+
   textInputControl = new FormControl<string>('');
   textInput = signal<string>('');
 
-  chipInput = viewChild.required<ElementRef<HTMLInputElement>>('chipInput');
+  chipInputField = viewChild.required<ElementRef<HTMLInputElement>>('chipInput');
 
   /**
    * Initialize the component.
@@ -70,27 +80,58 @@ export class ChipSelectionComponent {
   }
 
   /**
+   * Handle changes in the component inputs.
+   * This updates the selected items based on the items provided.
+   */
+  ngOnChanges() {
+    this.selectedItems = this.items().filter(item => item.isSelected);
+  }
+
+  /**
    * Handle the selection of an item from the autocomplete list.
-   * @param event The selection event containing the selected item.
+   * This updates the selected items and emits the change event.
+   * @param event The event containing the selected item.
    */
   select(event: MatAutocompleteSelectedEvent) {
-    const selectedItem = event.option.viewValue;
-    this.selectedItems.set([...this.selectedItems(), selectedItem]);
-    this.selectedItemsControl.setValue(this.selectedItems());
-    this.onChanges.emit(this.selectedItems());
-
+    const item = this.getItemByName(event.option.viewValue);
+    if (item) {
+      this.selectedItems.push(item);
+      this.applyChanges(item);
+    }
     this.textInputControl.reset('');
-    this.chipInput().nativeElement.value = '';
+    this.chipInputField().nativeElement.value = '';
 
   }
 
   /**
    * Remove an item from the selection.
-   * @param item The item to remove.
+   * @param itemToRemove The name of the item to remove.
    */
-  remove(item: string) {
-    this.selectedItems.update(items => items.filter(currentItem => currentItem !== item));
-    this.selectedItemsControl.setValue(this.selectedItems());
-    this.onChanges.emit(this.selectedItems());
+  remove(itemToRemove: FilterChipData) {
+    this.selectedItems = this.selectedItems.filter(item => item !== itemToRemove);
+
+    this.applyChanges(itemToRemove);
   }
+
+  /**
+   * Apply changes to the items based on the selected or removed item.
+   * This updates the isSelected property of the item and emits the change event.
+   * @param itemName The name of the item to toggle selection.
+   */
+  private applyChanges(item: FilterChipData) {
+    this.items.update(items => items.map(
+      i => i === item ? { ...i, isSelected: !i.isSelected } : i
+    ));
+    this.onChanges.emit(this.getItemByName(item.label)!);
+  }
+
+  /**
+   * Get an item by its name.
+   * @param itemName The name of the item to retrieve.
+   * @returns The item if found, or undefined.
+   */
+  getItemByName(itemName: string): FilterChipData | undefined {
+    return this.items().find(item => item.label === itemName);
+  }
+
 }
