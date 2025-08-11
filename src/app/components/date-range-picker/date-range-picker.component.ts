@@ -1,4 +1,4 @@
-import { Component, input, model, output } from '@angular/core';
+import { Component, input, model, OnChanges, OnInit, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule, MatDateRangeInput } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,7 +14,6 @@ import { FilterDateRange } from '../../models/filter-date-range';
 
 @Component({
   selector: 'app-date-range-picker',
-  standalone: true,
   imports: [
     MatFormFieldModule,
     MatDateRangeInput,
@@ -24,7 +23,7 @@ import { FilterDateRange } from '../../models/filter-date-range';
   templateUrl: './date-range-picker.component.html',
   styleUrls: ['./date-range-picker.component.css']
 })
-export class DateRangePickerComponent {
+export class DateRangePickerComponent implements OnInit, OnChanges {
   readonly today = new Date();
 
   /**
@@ -80,8 +79,8 @@ export class DateRangePickerComponent {
    * If the start or end date is not set, it returns undefined for that field.
    */
   getRange(): FilterDateRange {
-    let start = this.range.get('start')!.value;
-    let end = this.range.get('end')!.value;
+    let start = this.range.get('start')?.value;
+    let end = this.range.get('end')?.value;
 
     if (!(start instanceof Date)) {
       start = start?.toJSDate();

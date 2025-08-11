@@ -1,4 +1,4 @@
-import { Component, input, model, output } from '@angular/core';
+import { Component, input, model, OnChanges, OnInit, output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -17,7 +17,7 @@ import { FilterRange } from '../../models/filter-range';
   templateUrl: './range-selection-slider.component.html',
   styleUrl: './range-selection-slider.component.css'
 })
-export class RangeSelectionSliderComponent {
+export class RangeSelectionSliderComponent implements OnInit, OnChanges {
 
   /**
    * Minimum boundary for the selectable range of the slider.
