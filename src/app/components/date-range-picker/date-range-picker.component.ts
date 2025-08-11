@@ -1,4 +1,4 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, model, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule, MatDateRangeInput } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -9,7 +9,7 @@ import { FilterDateRange } from '../../models/filter-date-range';
  * This component uses Angular Material's datepicker and form field modules.
  * It emits the selected date range when it changes.
  * @example
- * <app-date-range-picker (dateRange)="onDateRangeChange($event)" />
+ * <app-date-range-picker [(dateRange)]="dateRange" />
  */
 
 @Component({
@@ -38,10 +38,10 @@ export class DateRangePickerComponent {
   maxDate = input<Date>(new Date()); // Today
 
   /**
-   * The initial date range to be used when the component is initialized.
-   * It can be set to a specific date range or left undefined.
+   * The currently selected date range.
+   * This is a model that is synchronized with the form controls.
    */
-  initialDateRange = input<FilterDateRange>({
+  dateRange = model<FilterDateRange>({
     start: undefined,
     end: undefined
   });
@@ -54,7 +54,7 @@ export class DateRangePickerComponent {
   /**
    * Emits the selected date range when it changes.
    */
-  dateRangeChange = output<FilterDateRange>();
+  onChanges = output<FilterDateRange>();
 
   /**
    * Initializes the date range picker component.
@@ -62,10 +62,9 @@ export class DateRangePickerComponent {
    * This method is called when the component is created.
    */
   ngOnInit() {
-    this.dateRangeChange.emit(this.getRange());
-
     this.range.valueChanges.subscribe(() => {
-      this.dateRangeChange.emit(this.getRange());
+      this.dateRange.set(this.getRange());
+      this.onChanges.emit(this.getRange());
     });
   }
 
@@ -73,7 +72,7 @@ export class DateRangePickerComponent {
    * Sets the initial date range when the components input's change.
    */
   ngOnChanges() {
-    this.range.setValue(this.initialDateRange());
+    this.range.setValue(this.dateRange());
   }
 
   /**

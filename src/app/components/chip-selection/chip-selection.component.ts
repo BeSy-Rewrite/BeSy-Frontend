@@ -1,4 +1,4 @@
-import { Component, computed, ElementRef, input, model, signal, viewChild } from '@angular/core';
+import { Component, computed, ElementRef, input, model, output, signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 import { MatChipsModule } from '@angular/material/chips';
@@ -40,6 +40,11 @@ export class ChipSelectionComponent {
   selectedItems = model<string[]>([]);
 
   /**
+   * Output event emitter for changes in the selected items.
+   */
+  onChanges = output<string[]>();
+
+  /**
    * The items that match the current text input and are not selected.
    */
   autocompleteItems = computed<string[]>(() =>
@@ -72,6 +77,7 @@ export class ChipSelectionComponent {
     const selectedItem = event.option.viewValue;
     this.selectedItems.set([...this.selectedItems(), selectedItem]);
     this.selectedItemsControl.setValue(this.selectedItems());
+    this.onChanges.emit(this.selectedItems());
 
     this.textInputControl.reset('');
     this.chipInput().nativeElement.value = '';
@@ -85,5 +91,6 @@ export class ChipSelectionComponent {
   remove(item: string) {
     this.selectedItems.update(items => items.filter(currentItem => currentItem !== item));
     this.selectedItemsControl.setValue(this.selectedItems());
+    this.onChanges.emit(this.selectedItems());
   }
 }
