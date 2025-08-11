@@ -1,4 +1,4 @@
-export interface DateRange {
+export interface FilterDateRange {
     start: Date | undefined;
     end: Date | undefined;
 }

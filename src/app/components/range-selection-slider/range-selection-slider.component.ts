@@ -4,7 +4,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSliderModule } from '@angular/material/slider';
 import { startWith } from 'rxjs';
-import { Range } from '../../models/range';
+import { FilterRange } from '../../models/filter-range';
 
 @Component({
   selector: 'app-range-selection-slider',
@@ -35,7 +35,7 @@ export class RangeSelectionSliderComponent {
    * The currently selected value interval (start, end).
    * Used as a model and synchronized on changes.
    */
-  selectedRange = model<Range>();
+  selectedRange = model<FilterRange>();
   /**
    * Internal flag to prevent recursive changes during synchronization.
    */
@@ -44,7 +44,7 @@ export class RangeSelectionSliderComponent {
   /**
    * Output event emitter for changes in the selected range.
    */
-  onChanges = output<Range>();
+  onChanges = output<FilterRange>();
 
   /**
    * FormGroup for managing input fields and the slider.
@@ -127,7 +127,7 @@ export class RangeSelectionSliderComponent {
    * @param range Range to check and adjust.
    * @returns Range with valid values.
    */
-  private clampRange(range: Range): Range {
+  private clampRange(range: FilterRange): FilterRange {
     const clampedStart = Math.max(this.minValue(), Math.min(range.start, this.maxValue()));
     const clampedEnd = Math.max(clampedStart, Math.min(range.end, this.maxValue()));
     return { start: clampedStart, end: clampedEnd };

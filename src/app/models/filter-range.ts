@@ -1,4 +1,4 @@
-export interface Range {
+export interface FilterRange {
     start: number;
     end: number;
 }

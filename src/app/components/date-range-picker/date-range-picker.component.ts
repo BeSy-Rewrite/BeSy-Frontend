@@ -2,7 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule, MatDateRangeInput } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { DateRange } from '../../models/date-range';
+import { FilterDateRange } from '../../models/filter-date-range';
 
 /**
  * A date range picker component that allows users to select a start and end date.
@@ -41,7 +41,7 @@ export class DateRangePickerComponent {
    * The initial date range to be used when the component is initialized.
    * It can be set to a specific date range or left undefined.
    */
-  initialDateRange = input<DateRange>({
+  initialDateRange = input<FilterDateRange>({
     start: undefined,
     end: undefined
   });
@@ -54,7 +54,7 @@ export class DateRangePickerComponent {
   /**
    * Emits the selected date range when it changes.
    */
-  dateRangeChange = output<DateRange>();
+  dateRangeChange = output<FilterDateRange>();
 
   /**
    * Initializes the date range picker component.
@@ -80,7 +80,7 @@ export class DateRangePickerComponent {
    * Returns the selected date range as an object with start and end dates.
    * If the start or end date is not set, it returns undefined for that field.
    */
-  getRange(): DateRange {
+  getRange(): FilterDateRange {
     let start = this.range.get('start')!.value;
     let end = this.range.get('end')!.value;
 
