@@ -21,7 +21,7 @@ import { FilterDateRange } from '../../models/filter-date-range';
     ReactiveFormsModule
   ],
   templateUrl: './date-range-picker.component.html',
-  styleUrls: ['./date-range-picker.component.css']
+  styleUrl: './date-range-picker.component.css'
 })
 export class DateRangePickerComponent implements OnInit, OnChanges {
   readonly today = new Date();

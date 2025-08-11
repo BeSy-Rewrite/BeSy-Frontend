@@ -65,6 +65,7 @@ export class ChipSelectionComponent implements OnInit, OnChanges {
   );
 
   selectedItems: FilterChipData[] = [];
+  skipChangeDetection = false;
 
   textInputControl = new FormControl<string>('');
   textInput = signal<string>('');
@@ -86,7 +87,7 @@ export class ChipSelectionComponent implements OnInit, OnChanges {
    * This updates the selected items based on the items provided.
    */
   ngOnChanges() {
-    this.selectedItems = this.items().filter(item => item.isSelected);
+    this.skipChangeDetection ? this.skipChangeDetection = false : this.selectedItems = this.items().filter(item => item.isSelected);
   }
 
   /**
@@ -95,6 +96,8 @@ export class ChipSelectionComponent implements OnInit, OnChanges {
    * @param event The event containing the selected item.
    */
   select(event: MatAutocompleteSelectedEvent) {
+    this.skipChangeDetection = true;
+
     const item = this.getItemByName(event.option.viewValue);
     if (item) {
       this.selectedItems.push(item);
@@ -110,8 +113,9 @@ export class ChipSelectionComponent implements OnInit, OnChanges {
    * @param itemToRemove The name of the item to remove.
    */
   remove(itemToRemove: FilterChipData) {
-    this.selectedItems = this.selectedItems.filter(item => item !== itemToRemove);
+    this.skipChangeDetection = true;
 
+    this.selectedItems = this.selectedItems.filter(item => item !== itemToRemove);
     this.applyChanges(itemToRemove);
   }
 
@@ -122,7 +126,7 @@ export class ChipSelectionComponent implements OnInit, OnChanges {
    */
   private applyChanges(item: FilterChipData) {
     this.items.update(items => items.map(
-      i => i === item ? { ...i, isSelected: !i.isSelected } : i
+      i => i === item ? { ...i, isSelected: !i.isSelected } : { ...i }
     ));
     this.onChanges.emit(this.getItemByName(item.label)!);
   }

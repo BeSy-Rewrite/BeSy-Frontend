@@ -3,7 +3,7 @@ import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSliderModule } from '@angular/material/slider';
-import { startWith } from 'rxjs';
+import { startWith } from 'rxjs/operators';
 import { FilterRange } from '../../models/filter-range';
 
 @Component({
