@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { CardComponent } from "../../components/card/card.component";
@@ -17,7 +18,8 @@ interface DemoRow {
   selector: 'app-table-demo',
   imports: [
     GenericTableComponent,
-    CardComponent
+    CardComponent,
+    MatButtonModule
   ],
   templateUrl: './table-demo.component.html',
   styleUrl: './table-demo.component.css'
@@ -86,6 +88,7 @@ export class TableDemoComponent {
       action: (row: any) => console.log('Info action on row:', row)
     }
   ]
+
 
   handleExampleColumnAction(row: DemoRow) {
     console.log('Example column action on row:', row);
