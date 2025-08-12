@@ -87,7 +87,11 @@ export class ChipSelectionComponent implements OnInit, OnChanges {
    * This updates the selected items based on the items provided.
    */
   ngOnChanges() {
-    this.skipChangeDetection ? this.skipChangeDetection = false : this.selectedItems = this.items().filter(item => item.isSelected);
+    if (this.skipChangeDetection) {
+      this.skipChangeDetection = false;
+    } else {
+      this.selectedItems = this.items().filter(item => item.isSelected);
+    }
   }
 
   /**
