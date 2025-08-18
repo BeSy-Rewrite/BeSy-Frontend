@@ -73,13 +73,14 @@
         </tr>
       </table>
 
-      <div class="buttons">
+      <div class="buttons" style="justify-content: flex-end;">
         <button
           mat-raised-button
           type="submit"
           aria-label="save"
           style="margin-right: 8px; background-color: #193058; color: white;"
-          [disabled]="form.invalid">
+          (click)="onSubmit()"
+          [ngClass]="{ shake: isShaking}">
           {{ editMode() ? 'Änderungen speichern' : config().title.includes('Adresse') ? 'Adresse speichern' : 'Speichern' }}
         </button>
 
@@ -89,7 +90,7 @@
           type="button"
           (click)="onBack()"
           aria-label="cancel"
-          style="margin-right: 8px;">
+          style="margin-right: 8px; background-color: red; color: white;">
           Verwerfen
         </button>
 

@@ -1,9 +1,10 @@
 .form-limiter {
-  max-width: 90%;
-  margin: 20px auto;
-  padding: 20px;
+  max-width: 95%;
+  /* margin: 20px auto; */
+   padding: 10px;
   border-radius: 8px;
   background: radial-gradient(circle, #9bb9d7, #ffffff);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .container-spacing {
@@ -45,4 +46,19 @@ h4 {
 
 mat-divider {
   margin-bottom: 20px;
+}
+
+.shake {
+  animation: shake 0.2s ease-in-out;
+  animation-iteration-count: infinite;
+  color: red;
+  font-weight: bold;
+}
+
+@keyframes shake {
+  0% { transform: translate(0, 0) rotate(0deg); background-color: #d32f2f;}
+  25% { transform: translate(5px, 5px) rotate(5deg); background-color: #d32f2f; }
+  50% { transform: translate(0, 0) rotate(0eg); background-color: #d32f2f;}
+  75% { transform: translate(-5px, 5px) rotate(-5deg); background-color: #d32f2f;}
+  100% { transform: translate(0, 0) rotate(0deg); background-color: #d32f2f;}
 }

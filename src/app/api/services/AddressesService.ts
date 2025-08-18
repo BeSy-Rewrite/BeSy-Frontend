@@ -122,4 +122,26 @@ export class AddressesService {
             return Promise.reject(new Error('Address not found')) as CancelablePromise<AddressResponseDTO>;
         }
     }
-}
+
+
+    public static deleteAddress(
+        id: number,
+    ): CancelablePromise<void> {
+        /*return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/addresses/{id}',
+            path: {
+                'id': id,
+            },
+            errors: {
+                500: `Internal server error`,
+                400: `Invalid input`,
+                404: `Address not found`,
+            },
+        });*/
+
+        // Mock implementation for testing
+        console.log('Delete address with ID:', id);
+        return Promise.resolve() as CancelablePromise<void>;
+    }
+  }

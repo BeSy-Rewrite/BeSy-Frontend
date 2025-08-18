@@ -48,13 +48,15 @@ export interface FormFieldConfig {
   validators?: any[];
 }
 
+// Form page configuration interface
+// This interface defines the structure of the form page configuration
 export interface FormPageConfig {
-  title: string;
-  fields: FormFieldConfig[];
-  apiEndpoint: string;
-  successMessage?: string;
-  editMode?: boolean;
-  initialData?: any;
+  title: string; // The title of the form page
+  fields: FormFieldConfig[]; // The fields to be displayed on the form, as defined by FormFieldConfig
+  apiEndpoint: string; // The API endpoint for form submission
+  successMessage?: string; // The message to display on successful form submission
+  editMode?: boolean; // Flag to indicate if the form is in edit mode
+  initialData?: any; // Initial data to populate the form in edit mode
 }
 
 @Component({
@@ -91,6 +93,7 @@ export class GenericFormPageComponent implements OnInit {
 
   form!: FormGroup;
   dropdownData: { [key: string]: any[] } = {};
+  isShaking = false;
 
   private URL = environment.apiUrl;
 
@@ -114,6 +117,7 @@ export class GenericFormPageComponent implements OnInit {
     if (this.editMode() && data) {
       this.patchFormValues(data);
     }
+    this.setDefaultValues(); // Set default values based on entity type
   }
 
   // Build the form controls based on the configuration
@@ -179,7 +183,7 @@ export class GenericFormPageComponent implements OnInit {
     }
   }
 
-  // Check if the form is in edit mode
+  // Patch form values with initial data
   private patchFormValues(data: any): void {
     this.form.patchValue(data);
 
@@ -188,12 +192,12 @@ export class GenericFormPageComponent implements OnInit {
     // ToDo: Change this to show the ID in the title or a read-only field
     if (this.editMode()) {
       const idFieldMap: { [endpoint: string]: string } = {
-        'addresses': 'name',
-        'suppliers': 'id',
-        'persons': 'id',
-        'orders': 'id',
-        'cost_centers': 'cost_center_id',
-        'customer_id': 'customer_id'
+        addresses: 'name',
+        suppliers: 'id',
+        persons: 'id',
+        orders: 'id',
+        cost_centers: 'cost_center_id',
+        customer_id: 'customer_id',
       };
 
       const idField = idFieldMap[this.config().apiEndpoint];
@@ -218,6 +222,9 @@ export class GenericFormPageComponent implements OnInit {
 
   onBack(): void {
     this.backClicked.emit();
+    this.formGroupDirective.resetForm();
+    this.form.reset();
+    this.setDefaultValues(); // Reset to default values when going back
   }
 
   onCancel(): void {
@@ -233,12 +240,12 @@ export class GenericFormPageComponent implements OnInit {
       // Re-enable disabled fields for submission
       if (this.editMode()) {
         const idFieldMap: { [endpoint: string]: string } = {
-          'addresses': 'name',
-          'suppliers': 'id',
-          'persons': 'id',
-          'orders': 'id',
-          'cost_centers': 'cost_center_id',
-          'customer_id': 'customer_id'
+          addresses: 'name',
+          suppliers: 'id',
+          persons: 'id',
+          orders: 'id',
+          cost_centers: 'cost_center_id',
+          customer_id: 'customer_id',
         };
 
         const idField = idFieldMap[this.config().apiEndpoint];
@@ -251,7 +258,10 @@ export class GenericFormPageComponent implements OnInit {
       // Choose between POST (create) and PUT (update) based on edit mode
       const request = this.editMode()
         ? this.http.put(
-            this.URL + this.config().apiEndpoint + '/' + this.getEditId(formData),
+            this.URL +
+              this.config().apiEndpoint +
+              '/' +
+              this.getEditId(formData),
             JSON.stringify(formData),
             { headers }
           )
@@ -277,17 +287,17 @@ export class GenericFormPageComponent implements OnInit {
         },
         error: (error) => {
           console.error('There was an error!', error);
-          this._notifications.open('Fehler beim Speichern ');
+          this._notifications.open('Fehler beim Speichern ', undefined, { duration: 3000 });
 
           // Re-disable field if there was an error
           if (this.editMode()) {
             const idFieldMap: { [endpoint: string]: string } = {
-              'addresses': 'name',
-              'suppliers': 'id',
-              'persons': 'id',
-              'orders': 'id',
-              'cost_centers': 'cost_center_id',
-              'customer_id': 'customer_id'
+              addresses: 'name',
+              suppliers: 'id',
+              persons: 'id',
+              orders: 'id',
+              cost_centers: 'cost_center_id',
+              customer_id: 'customer_id',
             };
 
             const idField = idFieldMap[this.config().apiEndpoint];
@@ -299,23 +309,32 @@ export class GenericFormPageComponent implements OnInit {
       });
     } else {
       this.form.markAllAsTouched();
-      this._notifications.open('Benötigte Werte nicht komplett');
+      this._notifications.open('Benötigte Werte nicht komplett', undefined, { duration: 3000 });
+      this.isShaking = true;
+      setTimeout(() => {
+        this.isShaking = false;
+      }, 1000);
     }
   }
 
+
+  // Get the ID of the entity being edited
   private getEditId(formData: any): string {
-    // Map entity types to their ID fields
+
+    // The ID fields for each entity type, used in the put-request url
     const idFieldMap: { [endpoint: string]: string } = {
-      'addresses': 'name',
-      'suppliers': 'id',
-      'persons': 'id',
-      'orders': 'id',
-      'cost_centers': 'cost_center_id',
-      'customer_id': 'customer_id'
+      addresses: 'id',
+      suppliers: 'id',
+      persons: 'id',
+      orders: 'id',
+      cost_centers: 'cost_center_id',
+      customer_id: 'customer_id',
     };
 
     const idField = idFieldMap[this.config().apiEndpoint];
-    return idField ? formData[idField] : formData.id || formData[Object.keys(formData)[0]];
+    return idField
+      ? formData[idField]
+      : formData.id || formData[Object.keys(formData)[0]];
   }
 
   private setDefaultValues(): void {
@@ -323,13 +342,13 @@ export class GenericFormPageComponent implements OnInit {
     switch (this.config().apiEndpoint) {
       case 'addresses':
         this.form.patchValue({
-          country: 'Germany'
+          country: 'Deutschland',
         });
         break;
       case 'suppliers':
         this.form.patchValue({
-          country: 'Germany',
-          flag_preferred: false
+          country: 'Deutschland',
+          flag_preferred: false,
         });
         break;
       // Add other default values as needed

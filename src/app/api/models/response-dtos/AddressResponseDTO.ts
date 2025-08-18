@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 export type AddressResponseDTO = {
-    id?: number;
+    id: number;
     postal_code?: string;
     building_name?: string;
     building_number?: string;

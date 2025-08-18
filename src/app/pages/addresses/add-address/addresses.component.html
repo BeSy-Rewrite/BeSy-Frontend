@@ -1,25 +1,42 @@
-<mat-tab-group #tabGroup (selectedTabChange)="tabChange($event)" mat-stretch-tabs="true" mat-align-tabs="start">
-    <mat-tab label="Adressen verwalten">
-      <mat-divider style="background-color: darkgrey; color: darkgrey;"></mat-divider>
-      <div class="table-container">
-        <app-generic-table
-          [dataSource]=datasource
-          [columns]="addressColumns"
-          [actions]=actions
-          (rowSelected)="onRowSelected($event)"
-          (actionClicked)="onActionClicked($event)">
-        </app-generic-table>
-      </div>
-      <div class="add-address-button" style="display: flex; justify-content: flex-end; margin-top: 16px;">
-        <button
-          mat-raised-button
-          color="primary"
-          (click)="addButtonClick()"
-          style="margin-right: 8px; background-color: green; color: white;">
-          <mat-icon svgIcon="add_button"></mat-icon>
-        </button>
-      </div>
-      <!-- Editing Address -->
+<mat-tab-group
+  #tabGroup
+  (selectedTabChange)="tabChange($event)"
+  mat-stretch-tabs="true"
+  mat-align-tabs="start"
+>
+  <mat-tab label="Adressen verwalten">
+    <mat-divider
+      style="background-color: darkgrey; color: darkgrey"
+    ></mat-divider>
+    <div class="table-container">
+      <app-generic-table
+        [dataSource]="datasource"
+        [columns]="addressColumns"
+        [actions]="actions"
+        (rowSelected)="onRowSelected($event)"
+        (actionClicked)="onActionClicked($event)"
+      >
+      </app-generic-table>
+    </div>
+    <div
+      class="add-address-button"
+      style="
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 16px;
+        margin-right: 16px;
+      "
+    >
+      <button
+        mat-fab
+        color="primary"
+        (click)="addButtonClick()"
+        title="Neue Adresse anlegen"
+      >
+        <mat-icon>add</mat-icon>
+      </button>
+    </div>
+    <!-- Editing Address -->
     <div class="table-container" *ngIf="edit == true">
       <!-- Use generic form component for editing -->
       <app-generic-form-page
@@ -27,20 +44,24 @@
         [editMode]="true"
         [initialData]="detailElement"
         (formSubmitted)="onAddressCreated($event)"
-        (backClicked)="editViewChange(null)">
+        (backClicked)="editViewChange(null)"
+      >
       </app-generic-form-page>
     </div>
-    </mat-tab>
+  </mat-tab>
 
-    <!-- Address Creation Tab -->
-    <mat-tab label="Adresse anlegen">
-      <mat-divider style="background-color: darkgrey; color: darkgrey;"></mat-divider>
-      <div class="table-container">
-        <app-generic-form-page
-          [config]="addressFormConfig"
-          [editMode]="false"
-          (formSubmitted)="onAddressCreated($event)">
-        </app-generic-form-page>
-      </div>
-    </mat-tab>
-  </mat-tab-group>
+  <!-- Address Creation Tab -->
+  <mat-tab label="Adresse anlegen">
+    <mat-divider
+      style="background-color: darkgrey; color: darkgrey"
+    ></mat-divider>
+    <div class="table-container">
+      <app-generic-form-page
+        [config]="addressFormConfig"
+        [editMode]="false"
+        (formSubmitted)="onAddressCreated($event)"
+      >
+      </app-generic-form-page>
+    </div>
+  </mat-tab>
+</mat-tab-group>

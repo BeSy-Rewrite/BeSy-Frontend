@@ -81,6 +81,7 @@ export class AddressesComponent {
         label: 'Delete',
         buttonType: 'filled',
         color: ButtonColor.WARN,
+        action: (row: AddressResponseDTO) => { this.deleteAddress(row); }
       },
       {
         id: 'view',
@@ -88,19 +89,6 @@ export class AddressesComponent {
         buttonType: 'text',
         color: ButtonColor.ACCENT,
         action: (row: AddressResponseDTO) => this.viewAddress(row)
-      },
-      {
-        id: 'custom',
-        label: 'Custom Action',
-        buttonType: 'outlined',
-        color: ButtonColor.DEFAULT,
-        action: (row: any) => console.log('Custom action on row:', row)
-      },
-      {
-        id: 'info',
-        label: 'Info',
-        buttonType: 'tonal',
-        action: (row: any) => console.log('Info action on row:', row)
       }
     ]
   // Form configuration for the generic form component
@@ -116,7 +104,6 @@ export class AddressesComponent {
 
   // Tab change handler
   tabChange(event: any) {
-    console.log('Tab changed:', event);
     // Reset view states when switching tabs
     this.edit = false;
     this.details = false;
@@ -191,5 +178,17 @@ export class AddressesComponent {
   // This method is called when the view button in the table is clicked
   viewAddress(address: AddressResponseDTO) {
     this.router.navigate(['/addresses/detail', address.id]);
+  }
+
+  deleteAddress(address: AddressResponseDTO) {
+    // Implement the logic to delete the address
+    // This could involve calling a service method to delete the address and then updating the UI accordingly
+    console.log('Delete address:', address);
+    AddressesService.deleteAddress(address.id).then(() => {
+      // Optionally, refresh the addresses list or show a success message
+      this.datasource.data = this.datasource.data.filter(a => a.id !== address.id);
+    }).catch(error => {
+      console.error('Error deleting address:', error);
+    });
   }
 }
