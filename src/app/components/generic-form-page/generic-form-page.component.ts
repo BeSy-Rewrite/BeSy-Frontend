@@ -20,7 +20,20 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { AddressesService } from '../../api2_0/services/AddressesService';
+import { SuppliersService } from '../../api2_0/services/SuppliersService';
+import { PersonsService } from '../../api2_0/services/PersonsService';
+import { OrdersService } from '../../api2_0/services/OrdersService';
+import type { ItemRequestDTO } from '../../api2_0/models/ItemRequestDTO';
+import type { QuotationRequestDTO } from '../../api2_0/models/QuotationRequestDTO';
+import { CostCentersService } from '../../api2_0/services/CostCentersService';
+import type { AddressRequestDTO } from '../../api2_0/models/AddressRequestDTO';
+import type { SupplierRequestDTO } from '../../api2_0/models/SupplierRequestDTO';
+import type { PersonRequestDTO } from '../../api2_0/models/PersonRequestDTO';
+import type { OrderRequestDTO } from '../../api2_0/models/OrderRequestDTO';
+import type { CostCenterRequestDTO } from '../../api2_0/models/CostCenterRequestDTO';
 import { MatDividerModule } from '@angular/material/divider';
+import { firstValueFrom } from 'rxjs';
 import { MatSelectModule } from '@angular/material/select';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
@@ -57,6 +70,8 @@ export interface FormPageConfig {
   successMessage?: string; // The message to display on successful form submission
   editMode?: boolean; // Flag to indicate if the form is in edit mode
   initialData?: any; // Initial data to populate the form in edit mode
+  // Optional parent order id for nested submissions (e.g., items, quotations)
+  parentOrderId?: number;
 }
 
 @Component({
@@ -192,7 +207,7 @@ export class GenericFormPageComponent implements OnInit {
     // ToDo: Change this to show the ID in the title or a read-only field
     if (this.editMode()) {
       const idFieldMap: { [endpoint: string]: string } = {
-        addresses: 'name',
+        addresses: 'id',
         suppliers: 'id',
         persons: 'id',
         orders: 'id',
@@ -240,7 +255,7 @@ export class GenericFormPageComponent implements OnInit {
       // Re-enable disabled fields for submission
       if (this.editMode()) {
         const idFieldMap: { [endpoint: string]: string } = {
-          addresses: 'name',
+          addresses: 'id',
           suppliers: 'id',
           persons: 'id',
           orders: 'id',
@@ -255,58 +270,74 @@ export class GenericFormPageComponent implements OnInit {
         }
       }
 
-      // Choose between POST (create) and PUT (update) based on edit mode
-      const request = this.editMode()
-        ? this.http.put(
-            this.URL +
-              this.config().apiEndpoint +
-              '/' +
-              this.getEditId(formData),
-            JSON.stringify(formData),
-            { headers }
-          )
-        : this.http.post(
-            this.URL + this.config().apiEndpoint,
-            JSON.stringify(formData),
-            { headers }
-          );
+      // Choose between service-based create and HTTP PUT (edit) based on edit mode
+      if (this.editMode()) {
+        // ToDo: Switch to api2_0 service update methods once available (currently not all PUT endpoints are implemented)
+        const request = this.http.put(
+          this.URL +
+            this.config().apiEndpoint +
+            '/' +
+            this.getEditId(formData),
+          JSON.stringify(formData),
+          { headers }
+        );
 
-      request.subscribe({
-        next: (data) => {
-          this._notifications.open(
-            this.config().successMessage || 'Erfolgreich gespeichert'
-          );
-          this.formSubmitted.emit(formData);
+        request.subscribe({
+          next: () => this.handleSubmitSuccess(formData, true),
+          error: (error) => this.handleSubmitError(error),
+        });
+      } else {
+        // Create mode: route to api2_0 services
+        const endpoint = this.config().apiEndpoint;
+        const requestBody = formData;
+        let promise: Promise<any> | undefined;
 
-          // Reset form after successful submission (for create mode)
-          if (!this.editMode()) {
-            this.formGroupDirective.resetForm();
-            this.form.reset();
-            this.setDefaultValues();
-          }
-        },
-        error: (error) => {
-          console.error('There was an error!', error);
-          this._notifications.open('Fehler beim Speichern ', undefined, { duration: 3000 });
-
-          // Re-disable field if there was an error
-          if (this.editMode()) {
-            const idFieldMap: { [endpoint: string]: string } = {
-              addresses: 'name',
-              suppliers: 'id',
-              persons: 'id',
-              orders: 'id',
-              cost_centers: 'cost_center_id',
-              customer_id: 'customer_id',
-            };
-
-            const idField = idFieldMap[this.config().apiEndpoint];
-            if (idField && this.form.get(idField)) {
-              this.form.get(idField)?.disable();
+        switch (endpoint) {
+          case 'addresses':
+            promise = AddressesService.createAddress(requestBody as AddressRequestDTO) as unknown as Promise<any>;
+            break;
+          case 'suppliers':
+            promise = SuppliersService.createSupplier(requestBody as SupplierRequestDTO) as unknown as Promise<any>;
+            break;
+          case 'persons':
+            promise = PersonsService.createPerson(requestBody as PersonRequestDTO) as unknown as Promise<any>;
+            break;
+          case 'orders':
+            promise = OrdersService.createOrder(requestBody as OrderRequestDTO) as unknown as Promise<any>;
+            break;
+          case 'items': {
+            const parentId = this.config().parentOrderId;
+            if (parentId == null) {
+              return this.handleSubmitError(new Error('Parent order ID is required to create items.'));
             }
+            const itemDto: ItemRequestDTO = requestBody as ItemRequestDTO;
+            promise = OrdersService.createOrderItems(parentId, [itemDto]) as unknown as Promise<any>;
+            break;
           }
-        },
-      });
+          case 'quotations': {
+            const parentId = this.config().parentOrderId;
+            if (parentId == null) {
+              return this.handleSubmitError(new Error('Parent order ID is required to create quotations.'));
+            }
+            const quotationDto: QuotationRequestDTO = requestBody as QuotationRequestDTO;
+            promise = OrdersService.createOrderQuotations(parentId, [quotationDto]) as unknown as Promise<any>;
+            break;
+          }
+          case 'cost_centers':
+            promise = CostCentersService.createCostCenter(requestBody as CostCenterRequestDTO) as unknown as Promise<any>;
+            break;
+          default:
+            // Fallback to raw HTTP POST if no service is available.
+            // ToDo: remove when api is final
+            promise = firstValueFrom(
+              this.http.post(this.URL + endpoint, JSON.stringify(requestBody), { headers })
+            );
+        }
+
+        promise
+          ?.then(() => this.handleSubmitSuccess(formData, false))
+          .catch((error) => this.handleSubmitError(error));
+      }
     } else {
       this.form.markAllAsTouched();
       this._notifications.open('Benötigte Werte nicht komplett', undefined, { duration: 3000 });
@@ -335,6 +366,38 @@ export class GenericFormPageComponent implements OnInit {
     return idField
       ? formData[idField]
       : formData.id || formData[Object.keys(formData)[0]];
+  }
+
+  private handleSubmitSuccess(formData: any, isEdit: boolean): void {
+    this._notifications.open(this.config().successMessage || 'Erfolgreich gespeichert', undefined, { duration: 3000 });
+    this.formSubmitted.emit(formData);
+
+    if (!isEdit) {
+      this.formGroupDirective.resetForm();
+      this.form.reset();
+      this.setDefaultValues();
+    }
+  }
+
+  private handleSubmitError(error: any): void {
+    console.error('There was an error!', error);
+    this._notifications.open('Fehler beim Speichern ', undefined, { duration: 3000 });
+
+    if (this.editMode()) {
+      const idFieldMap: { [endpoint: string]: string } = {
+        addresses: 'id',
+        suppliers: 'id',
+        persons: 'id',
+        orders: 'id',
+        cost_centers: 'cost_center_id',
+        customer_id: 'customer_id',
+      };
+
+      const idField = idFieldMap[this.config().apiEndpoint];
+      if (idField && this.form.get(idField)) {
+        this.form.get(idField)?.disable();
+      }
+    }
   }
 
   private setDefaultValues(): void {

@@ -32,7 +32,7 @@ export class AddressDetailComponent implements OnInit {
 
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
-    
+
     if (id) {
       try {
         this.addressData = await AddressesService.getAddressById(parseInt(id));
@@ -53,7 +53,7 @@ export class AddressDetailComponent implements OnInit {
 
   onEdit() {
     if (this.addressData) {
-      this.router.navigate(['/addresses/edit', this.addressData.id]);
+      this.router.navigate(['/addresses/', this.addressData.id, '/edit']);
     }
   }
 

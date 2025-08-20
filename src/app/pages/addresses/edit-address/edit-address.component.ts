@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { AddressesService, AddressResponseDTO } from '../../../api';
+import { AddressesService, AddressResponseDTO } from '../../../api2_0';
 import { GenericFormPageComponent } from '../../../components/generic-form-page/generic-form-page.component';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/form-configs';
 
@@ -49,7 +49,7 @@ export class EditAddressComponent implements OnInit {
     }
   }
 
-  
+
   onAddressUpdated(updatedData: any) {
     console.log('Address updated:', updatedData);
     // Navigate back to the addresses list

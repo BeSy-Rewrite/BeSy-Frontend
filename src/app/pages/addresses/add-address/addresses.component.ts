@@ -1,3 +1,4 @@
+import { AddressesService, AddressResponseDTO } from '../../../api2_0';
 import { MatTableDataSource } from '@angular/material/table';
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,7 +19,6 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { GenericFormPageComponent } from '../../../components/generic-form-page/generic-form-page.component';
 import { createAddressFormConfig } from '../../../configs/form-configs';
-import { AddressesService, AddressResponseDTO } from '../../../api';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { ViewChild } from '@angular/core';
@@ -51,6 +51,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class AddressesComponent {
   // Properties for managing view states
   constructor(
+      private AddressesService: AddressesService,
       private MatIconRegistry: MatIconRegistry,
       private sanitizer: DomSanitizer,
       private router: Router
@@ -60,6 +61,8 @@ export class AddressesComponent {
       this.sanitizer.bypassSecurityTrustResourceUrl('assets/add_button.svg')
     );
   }
+
+
   edit = false;
   details = false;
   detailElement: any = null;
@@ -150,6 +153,7 @@ export class AddressesComponent {
 
 
 
+
     // Handle successful address creation
     // You might want to refresh the addresses table, show a success message, etc.
 
@@ -171,24 +175,24 @@ export class AddressesComponent {
   // Navigate to the edit address page
   // This method is called when the edit button in the table is clicked
   editAddress(address: AddressResponseDTO) {
-    this.router.navigate(['/addresses/edit', address.id]);
+    this.router.navigate(['/addresses/', address.id, 'edit']);
   }
 
   // Navigate to the view address page
   // This method is called when the view button in the table is clicked
   viewAddress(address: AddressResponseDTO) {
-    this.router.navigate(['/addresses/detail', address.id]);
+    this.router.navigate(['/addresses/', address.id, 'detail']);
   }
 
   deleteAddress(address: AddressResponseDTO) {
     // Implement the logic to delete the address
     // This could involve calling a service method to delete the address and then updating the UI accordingly
     console.log('Delete address:', address);
-    AddressesService.deleteAddress(address.id).then(() => {
+    /* AddressesService.deleteAddress(address.id).then(() => {
       // Optionally, refresh the addresses list or show a success message
       this.datasource.data = this.datasource.data.filter(a => a.id !== address.id);
     }).catch(error => {
       console.error('Error deleting address:', error);
-    });
+    }); */
   }
 }

@@ -79,7 +79,6 @@
           type="submit"
           aria-label="save"
           style="margin-right: 8px; background-color: #193058; color: white;"
-          (click)="onSubmit()"
           [ngClass]="{ shake: isShaking}">
           {{ editMode() ? 'Änderungen speichern' : config().title.includes('Adresse') ? 'Adresse speichern' : 'Speichern' }}
         </button>

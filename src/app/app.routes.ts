@@ -43,12 +43,12 @@ export const routes: Routes = [
     },
     {
       title: 'Address Detail',
-      path: 'addresses/detail/:id',
+      path: 'addresses/:id/detail',
       component: AddressDetailComponent
     },
     {
       title: 'Edit Address',
-      path: 'addresses/edit/:id',
+      path: 'addresses/:id/edit',
       component: EditAddressComponent
     },
     {

@@ -13,36 +13,21 @@ export const ORDER_FORM_CONFIG: FormPageConfig = {
       required: false
     },
     {
-      name: 'status',
-      label: 'Status',
-      type: 'select',
-      required: false,
-      options: [
-        { value: 'ABR', label: 'ABR' },
-        { value: 'ABS', label: 'ABS' },
-        { value: 'ARC', label: 'ARC' },
-        { value: 'DEL', label: 'DEL' },
-        { value: 'INB', label: 'INB' }
-      ],
-      optionValue: 'value',
-      optionLabel: 'label'
-    },
-    {
       name: 'primary_cost_center_id',
       label: 'Primäre Kostenstelle ID',
       type: 'text',
-      required: false
+      required: true
     },
     {
       name: 'booking_year',
-      label: 'Buchungsjahr',
+      label: 'Buchungsjahr (z.B. 25)',
       type: 'text',
-      required: false
+      required: true
     },
     {
       name: 'owner_id',
       label: 'Besitzer ID',
-      type: 'text',
+      type: 'number',
       required: false
     },
     {

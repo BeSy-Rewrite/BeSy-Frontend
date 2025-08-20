@@ -1,0 +1,15 @@
+/* generated using openapi-typescript-codegen -- do not edit */
+/* istanbul ignore file */
+/* tslint:disable */
+/* eslint-disable */
+export type CustomerIdRequestDTO = {
+    /**
+     * Customer identifier (external or internal)
+     */
+    customer_id: string;
+    /**
+     * Optional comment about the customer ID
+     */
+    comment?: string;
+};
+

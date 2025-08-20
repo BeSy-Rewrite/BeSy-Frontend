@@ -8,31 +8,25 @@ export const COST_CENTER_FORM_CONFIG: FormPageConfig = {
   successMessage: 'Kostenstelle erfolgreich gespeichert ',
   fields: [
     {
-      name: 'cost_center_id',
-      label: 'Kostenstellenummer',
+      name: 'name',
+      label: 'Kostenstellenname',
       type: 'text',
       required: true
     },
     {
-      name: 'cost_center_name',
-      label: 'Kostenstellename',
-      type: 'text',
-      required: true
-    },
-    {
-      name: 'cost_center_begin_date',
+      name: 'begin_date',
       label: 'Gültig ab',
       type: 'date',
       required: false
     },
     {
-      name: 'cost_center_end_date',
+      name: 'end_date',
       label: 'Gültig bis',
       type: 'date',
       required: false
     },
     {
-      name: 'cost_center_comment',
+      name: 'comment',
       label: 'Kommentar',
       type: 'text',
       required: false
@@ -140,26 +134,26 @@ export const CUSTOMER_FORM_CONFIG: FormPageConfig = {
   ]
 };
 
-// Item Configuration
+// Item Configuration (matches ItemRequestDTO)
 export const ITEM_FORM_CONFIG: FormPageConfig = {
   title: 'Neue Bestellposition hinzufügen',
   apiEndpoint: 'items',
   successMessage: 'Bestellposition erfolgreich gespeichert',
   fields: [
     {
-      name: 'item_quantity',
+      name: 'quantity',
       label: 'Menge',
       type: 'number',
       required: false
     },
     {
-      name: 'item_article_id',
+      name: 'article_id',
       label: 'Artikelnummer',
       type: 'text',
       required: false
     },
     {
-      name: 'item_name',
+      name: 'name',
       label: 'Beschreibung',
       type: 'text',
       required: true
@@ -174,7 +168,7 @@ export const ITEM_FORM_CONFIG: FormPageConfig = {
       optionLabel: 'vat_value'
     },
     {
-      name: 'item_vat_type',
+      name: 'vat_type',
       label: 'Eingabeformat',
       type: 'select',
       required: true,
@@ -186,19 +180,19 @@ export const ITEM_FORM_CONFIG: FormPageConfig = {
       optionLabel: 'label'
     },
     {
-      name: 'item_price_per_unit',
+      name: 'price_per_unit',
       label: 'Preis pro Einheit',
       type: 'number',
       required: true
     },
     {
-      name: 'item_quantity_unit',
+      name: 'quantity_unit',
       label: 'Mengeneinheit',
       type: 'text',
       required: false
     },
     {
-      name: 'preferred_list_abbr',
+      name: 'preferred_list',
       label: 'Vorzugsliste',
       type: 'select',
       required: false,
@@ -207,13 +201,13 @@ export const ITEM_FORM_CONFIG: FormPageConfig = {
       optionLabel: 'preferred_list_abbr'
     },
     {
-      name: 'item_preferred_list_number',
+      name: 'preferred_list_number',
       label: 'Vorzugslistennummer',
       type: 'text',
       required: false
     },
     {
-      name: 'item_comment',
+      name: 'comment',
       label: 'Kommentar',
       type: 'text',
       required: false
@@ -221,35 +215,35 @@ export const ITEM_FORM_CONFIG: FormPageConfig = {
   ]
 };
 
-// Quotation Configuration
+// Quotation Configuration (matches QuotationRequestDTO)
 export const QUOTATION_FORM_CONFIG: FormPageConfig = {
   title: 'Neues Vergleichsangebot hinzufügen',
   apiEndpoint: 'quotations',
   successMessage: 'Vergleichsangebot erfolgreich gespeichert',
   fields: [
     {
-      name: 'quotation_company_name',
-      label: 'Unternehmen',
-      type: 'text',
+      name: 'supplier_id',
+      label: 'Lieferant ID',
+      type: 'number',
       required: true
     },
     {
-      name: 'quotation_price',
+      name: 'price',
       label: 'Preis',
       type: 'number',
       required: true
     },
     {
-      name: 'quotation_quote_date',
+      name: 'quote_date',
       label: 'Datum',
       type: 'date',
       required: true
     },
     {
-      name: 'quotation_company_city',
-      label: 'Stadt',
-      type: 'text',
-      required: false
+      name: 'index',
+      label: 'Index',
+      type: 'number',
+      required: true
     }
   ]
 };
@@ -260,12 +254,6 @@ export const ADDRESS_FORM_CONFIG: FormPageConfig = {
   apiEndpoint: 'addresses',
   successMessage: 'Adresse erfolgreich gespeichert',
   fields: [
-    {
-      name: 'name',
-      label: 'Adressbezeichnung',
-      type: 'text',
-      required: true
-    },
     {
       name: 'building_name',
       label: 'Gebäudename',
@@ -342,37 +330,6 @@ export const SUPPLIER_FORM_CONFIG: FormPageConfig = {
       required: true
     },
     {
-      name: 'phone',
-      label: 'Telefon',
-      type: 'tel',
-      required: false
-    },
-    {
-      name: 'fax',
-      label: 'Fax',
-      type: 'tel',
-      required: false
-    },
-    {
-      name: 'email',
-      label: 'E-Mail',
-      type: 'email',
-      required: false,
-      validators: [Validators.email]
-    },
-    {
-      name: 'website',
-      label: 'Website',
-      type: 'text',
-      required: false
-    },
-    {
-      name: 'vat_id',
-      label: 'VAT ID',
-      type: 'text',
-      required: false
-    },
-    {
       name: 'flag_preferred',
       label: 'Vorzugslieferant',
       type: 'select',
@@ -385,57 +342,39 @@ export const SUPPLIER_FORM_CONFIG: FormPageConfig = {
       optionLabel: 'label'
     },
     {
-      name: 'address_id',
-      label: 'Adress-ID (optional)',
-      type: 'number',
-      required: false
-    },
-    // Address fields embedded in supplier
-    {
-      name: 'building_name',
-      label: 'Gebäudename',
+      name: 'vat_id',
+      label: 'VAT ID',
       type: 'text',
       required: false
     },
     {
-      name: 'street',
-      label: 'Straßenname',
-      type: 'text',
-      required: true
+      name: 'email',
+      label: 'E-Mail',
+      type: 'email',
+      required: false,
+      validators: [Validators.email]
     },
     {
-      name: 'building_number',
-      label: 'Hausnummer',
-      type: 'text',
+      name: 'fax',
+      label: 'Fax',
+      type: 'tel',
       required: false
     },
     {
-      name: 'postal_code',
-      label: 'PLZ',
-      type: 'text',
-      required: true
-    },
-    {
-      name: 'town',
-      label: 'Stadt',
-      type: 'text',
-      required: true
-    },
-    {
-      name: 'county',
-      label: 'Region',
-      type: 'text',
+      name: 'phone',
+      label: 'Telefon',
+      type: 'tel',
       required: false
-    },
-    {
-      name: 'country',
-      label: 'Land',
-      type: 'text',
-      required: true
     },
     {
       name: 'comment',
       label: 'Kommentar',
+      type: 'text',
+      required: false
+    },
+    {
+      name: 'website',
+      label: 'Website',
       type: 'text',
       required: false
     }
