@@ -9,6 +9,7 @@ import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.compone
 import { AddressesComponent } from './pages/addresses/add-address/addresses.component';
 import { EditAddressComponent } from './pages/addresses/edit-address/edit-address.component';
 import { AddressDetailComponent } from './pages/addresses/address-detail/address-detail.component';
+import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.component';
 
 export const routes: Routes = [
     {
@@ -50,6 +51,11 @@ export const routes: Routes = [
       title: 'Edit Address',
       path: 'addresses/:id/edit',
       component: EditAddressComponent
+    },
+    {
+      title: 'Persons',
+      path: 'persons',
+      component: PersonsPageComponent
     },
     {
       title: 'Test Forms',
