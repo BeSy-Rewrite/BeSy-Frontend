@@ -20,7 +20,7 @@
 }
 
 .scared-btn.wiggle {
-  transform: rotate(-1.5deg) scale(1.02);
+  transform: translate(-50%, -50%) rotate(-1.5deg) scale(1.02);
 }
 
 
