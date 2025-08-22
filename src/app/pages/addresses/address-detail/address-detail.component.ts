@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
-import { AddressesService, AddressResponseDTO } from '../../../api';
+import { AddressesService, AddressResponseDTO } from '../../../api2_0';
 
 @Component({
   selector: 'app-address-detail',
@@ -53,7 +53,7 @@ export class AddressDetailComponent implements OnInit {
 
   onEdit() {
     if (this.addressData) {
-      this.router.navigate(['/addresses/', this.addressData.id, '/edit']);
+      this.router.navigate(['/addresses/', this.addressData.id, 'edit']);
     }
   }
 

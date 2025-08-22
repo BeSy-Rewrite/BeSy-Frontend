@@ -58,7 +58,7 @@ mat-divider {
 @keyframes shake {
   0% { transform: translate(0, 0) rotate(0deg); background-color: #d32f2f;}
   25% { transform: translate(5px, 5px) rotate(5deg); background-color: #d32f2f; }
-  50% { transform: translate(0, 0) rotate(0eg); background-color: #d32f2f;}
+  50% { transform: translate(0, 0) rotate(0deg); background-color: #d32f2f;}
   75% { transform: translate(-5px, 5px) rotate(-5deg); background-color: #d32f2f;}
   100% { transform: translate(0, 0) rotate(0deg); background-color: #d32f2f;}
 }
