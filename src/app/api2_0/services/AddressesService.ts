@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { AddressRequestDTO } from '../models/AddressRequestDTO';
-import type { AddressResponseDTO } from '../models/AddressResponseDTO';
+import type { AddressRequestDTO } from '../models/request-dtos/AddressRequestDTO';
+import type { AddressResponseDTO } from '../models/response-dtos/AddressResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';

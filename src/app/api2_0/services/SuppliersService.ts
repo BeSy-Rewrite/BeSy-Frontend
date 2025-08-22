@@ -2,10 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CustomerIdRequestDTO } from '../models/CustomerIdRequestDTO';
-import type { CustomerIdResponseDTO } from '../models/CustomerIdResponseDTO';
-import type { SupplierRequestDTO } from '../models/SupplierRequestDTO';
-import type { SupplierResponseDTO } from '../models/SupplierResponseDTO';
+import type { CustomerIdRequestDTO } from '../models/request-dtos/CustomerIdRequestDTO';
+import type { CustomerIdResponseDTO } from '../models/response-dtos/CustomerIdResponseDTO';
+import type { SupplierRequestDTO } from '../models/request-dtos/SupplierRequestDTO';
+import type { SupplierResponseDTO } from '../models/response-dtos/SupplierResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';

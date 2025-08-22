@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { PersonRequestDTO } from '../models/PersonRequestDTO';
-import type { PersonResponseDTO } from '../models/PersonResponseDTO';
+import type { PersonRequestDTO } from '../models/request-dtos/PersonRequestDTO';
+import type { PersonResponseDTO } from '../models/response-dtos/PersonResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
