@@ -1,0 +1,27 @@
+<mat-form-field class="w-full">
+
+    <mat-label>{{inputLabel()}}</mat-label>
+    <mat-chip-grid #chipGrid>
+
+        @for (item of selectedItems; track $index) {
+        <mat-chip-row [style]="item.color ? 'background-color: ' + item.color + ';' : ''" (removed)="remove(item)">
+            {{item.label}}
+            <button matChipRemove>
+                <mat-icon svgIcon="cancel" class="!p-0"></mat-icon>
+            </button>
+        </mat-chip-row>
+        }
+
+    </mat-chip-grid>
+
+    <input #chipInput matInput [placeholder]="inputPlaceholder()" type="search" [matChipInputFor]="chipGrid"
+        [matAutocomplete]="auto" [formControl]="textInputControl" />
+
+    <mat-autocomplete #auto="matAutocomplete" (optionSelected)="select($event)" hideSingleSelectionIndicator="true"
+        autoActiveFirstOption>
+        @for (item of autocompleteItems().values(); track $index) {
+        <mat-option [value]="item">{{item}}</mat-option>
+        }
+    </mat-autocomplete>
+
+</mat-form-field>
