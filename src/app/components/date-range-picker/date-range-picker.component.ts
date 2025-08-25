@@ -1,19 +1,19 @@
-import { Component, input, output } from '@angular/core';
+import { Component, input, model, OnChanges, OnInit, output } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule, MatDateRangeInput } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { FilterDateRange } from '../../models/filter-date-range';
 
 /**
  * A date range picker component that allows users to select a start and end date.
  * This component uses Angular Material's datepicker and form field modules.
  * It emits the selected date range when it changes.
  * @example
- * <app-date-range-picker (dateRange)="onDateRangeChange($event)" />
+ * <app-date-range-picker [(dateRange)]="dateRange" />
  */
 
 @Component({
   selector: 'app-date-range-picker',
-  standalone: true,
   imports: [
     MatFormFieldModule,
     MatDateRangeInput,
@@ -21,9 +21,9 @@ import { MatFormFieldModule } from '@angular/material/form-field';
     ReactiveFormsModule
   ],
   templateUrl: './date-range-picker.component.html',
-  styleUrls: ['./date-range-picker.component.css']
+  styleUrl: './date-range-picker.component.css'
 })
-export class DateRangePickerComponent {
+export class DateRangePickerComponent implements OnInit, OnChanges {
   readonly today = new Date();
 
   /**
@@ -36,6 +36,15 @@ export class DateRangePickerComponent {
    */
   maxDate = input<Date>(new Date()); // Today
 
+  /**
+   * The currently selected date range.
+   * This is a model that is synchronized with the form controls.
+   */
+  dateRange = model<FilterDateRange>({
+    start: undefined,
+    end: undefined
+  });
+
   range = new FormGroup({
     start: new FormControl(),
     end: new FormControl()
@@ -44,30 +53,34 @@ export class DateRangePickerComponent {
   /**
    * Emits the selected date range when it changes.
    */
-  dateRange = output<{ start: Date | undefined, end: Date | undefined }>();
+  onChanges = output<FilterDateRange>();
 
   /**
-   * Initializes the date range picker with default values.
-   * Sets the start date to the minimum date and the end date to the maximum date.
+   * Initializes the date range picker component.
+   * Sets up the initial values for the date range and subscribes to changes.
+   * This method is called when the component is created.
    */
   ngOnInit() {
-    this.range.get('start')!.setValue(this.minDate());
-    this.range.get('end')!.setValue(this.maxDate());
-
-    this.range.valueChanges.subscribe(value => {
-      this.dateRange.emit(
-        this.getRange()
-      );
+    this.range.valueChanges.subscribe(() => {
+      this.dateRange.set(this.getRange());
+      this.onChanges.emit(this.getRange());
     });
+  }
+
+  /**
+   * Sets the initial date range when the components input's change.
+   */
+  ngOnChanges() {
+    this.range.setValue(this.dateRange());
   }
 
   /**
    * Returns the selected date range as an object with start and end dates.
    * If the start or end date is not set, it returns undefined for that field.
    */
-  getRange() {
-    let start = this.range.get('start')!.value;
-    let end = this.range.get('end')!.value;
+  getRange(): FilterDateRange {
+    let start = this.range.get('start')?.value;
+    let end = this.range.get('end')?.value;
 
     if (!(start instanceof Date)) {
       start = start?.toJSDate();

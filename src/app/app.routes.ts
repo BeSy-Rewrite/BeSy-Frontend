@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { ApproveOrdersGuard } from './guards/approve-orders.guard';
 import { DefaultGuard } from './guards/default.guard';
+import { FilterDemoComponent } from './mockups/filter-demo/filter-demo.component';
 import { TableDemoComponent } from './mockups/table-demo/table-demo.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
@@ -14,9 +15,14 @@ export const routes: Routes = [
         component: HomepageComponent
     },
     {
-        title: 'table demo',
+        title: 'Table Demo',
         path: 'table',
         component: TableDemoComponent
+    },
+    {
+        title: 'Filter Demo',
+        path: 'filter',
+        component: FilterDemoComponent
     },
     {
         title: 'Guard Test',
