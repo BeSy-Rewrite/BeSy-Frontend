@@ -4,15 +4,11 @@
 /* eslint-disable */
 export type CustomerIdRequestDTO = {
     /**
-     * ID of the related supplier
-     */
-    supplier_id: number;
-    /**
-     * Customer identifier (external or internal)
+     * Kundenkennung (extern oder intern)
      */
     customer_id: string;
     /**
-     * Optional comment about the customer ID
+     * Optionaler Kommentar zur Kundenkennung
      */
     comment?: string;
 };

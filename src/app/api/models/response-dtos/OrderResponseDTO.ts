@@ -2,6 +2,7 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CurrencyResponseDTO } from './CurrencyResponseDTO';
 export type OrderResponseDTO = {
     id?: number;
     primary_cost_center_id?: string;
@@ -9,10 +10,10 @@ export type OrderResponseDTO = {
     auto_index?: number;
     created_date?: string;
     legacy_alias?: string;
-    owner_id?: string;
+    owner_id?: number;
     content_description?: string;
     status?: OrderResponseDTO.status;
-    currency_short?: string;
+    currency?: CurrencyResponseDTO;
     comment?: string;
     comment_for_supplier?: string;
     quote_number?: string;

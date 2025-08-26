@@ -1,6 +1,14 @@
 import { FormPageConfig, FormFieldConfig } from '../components/generic-form-page/generic-form-page.component';
 import { Validators } from '@angular/forms';
 
+// Form Configurations für Angular Material Forms
+// Felder:
+// -name: Name des Feldes in der DTO
+// -label: Anzeigename des Feldes
+// -type: Typ des Feldes (z.B. text, number, date, etc.)
+// -required: Ob das Feld erforderlich ist oder nicht
+// -options: Array von Optionen für Dropdown-Menü
+
 // Cost Center Configuration
 export const COST_CENTER_FORM_CONFIG: FormPageConfig = {
   title: 'Neue Kostenstelle hinzufügen',
@@ -103,6 +111,15 @@ export const PERSON_FORM_CONFIG: FormPageConfig = {
     }
   ]
 };
+
+export function createPersonsFormConfig(isEdit: boolean = false): FormPageConfig {
+  return {
+    title: isEdit ? 'Person bearbeiten' : 'Person hinzufügen',
+    apiEndpoint: 'persons',
+    successMessage: isEdit ? 'Person erfolgreich aktualisiert' : 'Person erfolgreich gespeichert',
+    fields: PERSON_FORM_CONFIG.fields
+  };
+}
 
 // Customer Configuration
 export const CUSTOMER_FORM_CONFIG: FormPageConfig = {
@@ -264,37 +281,49 @@ export const ADDRESS_FORM_CONFIG: FormPageConfig = {
       name: 'street',
       label: 'Straßenname',
       type: 'text',
-      required: true
+      required: true,
+      nominatim_param: 'street',
+      nominatim_field: 'road'
     },
     {
       name: 'building_number',
       label: 'Hausnummer',
       type: 'text',
-      required: false
+      required: false,
+      nominatim_param: 'street',
+      nominatim_field: 'house_number'
     },
     {
       name: 'town',
       label: 'Stadt',
       type: 'text',
-      required: true
+      required: true,
+      nominatim_param: 'city',
+      nominatim_field: 'town'
     },
     {
       name: 'postal_code',
       label: 'PLZ',
       type: 'text',
-      required: true
+      required: true,
+      nominatim_param: 'postalcode',
+      nominatim_field: 'postcode'
     },
     {
       name: 'county',
       label: 'Region',
       type: 'text',
-      required: false
+      required: false,
+      nominatim_param: 'county',
+      nominatim_field: 'county'
     },
     {
       name: 'country',
       label: 'Land',
       type: 'text',
-      required: false
+      required: false,
+      nominatim_param: 'country',
+      nominatim_field: 'country'
     },
     {
       name: 'comment',
@@ -327,7 +356,9 @@ export const SUPPLIER_FORM_CONFIG: FormPageConfig = {
       name: 'name',
       label: 'Name',
       type: 'text',
-      required: true
+      required: true,
+      nominatim_param: 'q', // Cannot be paired with any other address param!!!
+      nominatim_field: 'name'
     },
     {
       name: 'flag_preferred',

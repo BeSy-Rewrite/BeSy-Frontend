@@ -2,15 +2,12 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ItemRequestDTO } from './ItemRequestDTO';
-import type { QuotationRequestDTO } from './QuotationRequestDTO';
 export type OrderRequestDTO = {
-    primary_cost_center_id?: string;
-    booking_year?: string;
+    primary_cost_center_id: string;
+    booking_year: string;
     legacy_alias?: string;
-    owner_id?: string;
+    owner_id?: number;
     content_description?: string;
-    status?: OrderRequestDTO.status;
     currency_short?: string;
     comment?: string;
     comment_for_supplier?: string;
@@ -28,7 +25,6 @@ export type OrderRequestDTO = {
     percentage_discount?: number;
     cashback_percentage?: number;
     cashback_days?: number;
-    last_updated_time?: string;
     flag_decision_cheapest_offer?: boolean;
     flag_decision_sole_supplier?: boolean;
     flag_decision_contract_partner?: boolean;
@@ -41,16 +37,5 @@ export type OrderRequestDTO = {
     flag_investment_structural_measures?: boolean;
     flag_media_permission?: boolean;
     dfg_key?: string;
-    items?: Array<ItemRequestDTO>;
-    quotations?: Array<QuotationRequestDTO>;
 };
-export namespace OrderRequestDTO {
-    export enum status {
-        ABR = 'ABR',
-        ABS = 'ABS',
-        ARC = 'ARC',
-        DEL = 'DEL',
-        INB = 'INB',
-    }
-}
 

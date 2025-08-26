@@ -3,15 +3,15 @@
 /* tslint:disable */
 /* eslint-disable */
 export type PersonRequestDTO = {
-    name?: string;
-    surname?: string;
+    name: string;
+    surname: string;
     email?: string;
     fax?: string;
     phone?: string;
     title?: string;
     comment?: string;
     address_id?: number;
-    gender?: PersonRequestDTO.gender;
+    gender: PersonRequestDTO.gender;
 };
 export namespace PersonRequestDTO {
     export enum gender {

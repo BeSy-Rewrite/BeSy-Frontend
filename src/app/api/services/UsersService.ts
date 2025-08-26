@@ -18,18 +18,18 @@ export class UsersService {
         });
     }
     /**
-     * @param username
+     * @param id
      * @returns UserResponseDTO OK
      * @throws ApiError
      */
     public static getUser(
-        username: string,
+        id: string,
     ): CancelablePromise<UserResponseDTO> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/users/{username}',
+            url: '/users/{id}',
             path: {
-                'username': username,
+                'id': id,
             },
         });
     }

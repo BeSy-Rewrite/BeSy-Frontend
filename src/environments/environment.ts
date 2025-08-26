@@ -6,5 +6,6 @@ export const environment = {
     identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
     clientId: 'besy',
     requiredRole: "besy",
-    approveOrdersRole: "dekanat"
+    approveOrdersRole: "dekanat",
+    nominatimUrl: 'https://nominatim.openstreetmap.org/search'
 };

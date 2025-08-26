@@ -4,7 +4,6 @@
 /* eslint-disable */
 import type { VatResponseDTO } from './VatResponseDTO';
 export type ItemResponseDTO = {
-    order_id?: number;
     item_id?: number;
     name?: string;
     price_per_unit?: number;
@@ -12,7 +11,7 @@ export type ItemResponseDTO = {
     quantity_unit?: string;
     article_id?: string;
     comment?: string;
-    "Vat's"?: VatResponseDTO;
+    vat?: VatResponseDTO;
     preferred_list?: ItemResponseDTO.preferred_list;
     preferred_list_number?: string;
     vat_type?: ItemResponseDTO.vat_type;

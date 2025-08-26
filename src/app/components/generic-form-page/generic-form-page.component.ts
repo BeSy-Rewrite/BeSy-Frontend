@@ -20,21 +20,22 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
 import { ReactiveFormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { AddressesService } from '../../api2_0/services/AddressesService';
-import { SuppliersService } from '../../api2_0/services/SuppliersService';
-import { PersonsService } from '../../api2_0/services/PersonsService';
-import { OrdersService } from '../../api2_0/services/OrdersService';
-import type { ItemRequestDTO } from '../../api2_0/models/request-dtos/ItemRequestDTO';
-import type { QuotationRequestDTO } from '../../api2_0/models/request-dtos/QuotationRequestDTO';
-import { CostCentersService } from '../../api2_0/services/CostCentersService';
-import type { AddressRequestDTO } from '../../api2_0/models/request-dtos/AddressRequestDTO';
-import type { SupplierRequestDTO } from '../../api2_0/models/request-dtos/SupplierRequestDTO';
-import type { PersonRequestDTO } from '../../api2_0/models/request-dtos/PersonRequestDTO';
-import type { OrderRequestDTO } from '../../api2_0/models/request-dtos/OrderRequestDTO';
-import type { CostCenterRequestDTO } from '../../api2_0/models/request-dtos/CostCenterRequestDTO';
+import { SuppliersService } from '../../api/services/SuppliersService';
+import { PersonsService } from '../../api/services/PersonsService';
+import { OrdersService } from '../../api/services/OrdersService';
+import type { ItemRequestDTO } from '../../api/models/request-dtos/ItemRequestDTO';
+import type { QuotationRequestDTO } from '../../api/models/request-dtos/QuotationRequestDTO';
+import { CostCentersService } from '../../api/services/CostCentersService';
+import type { AddressRequestDTO } from '../../api/models/request-dtos/AddressRequestDTO';
+import type { AddressResponseDTO } from '../../api/models/response-dtos/AddressResponseDTO';
+import type { SupplierRequestDTO } from '../../api/models/request-dtos/SupplierRequestDTO';
+import type { PersonRequestDTO } from '../../api/models/request-dtos/PersonRequestDTO';
+import type { OrderRequestDTO } from '../../api/models/request-dtos/OrderRequestDTO';
+import type { CostCenterRequestDTO } from '../../api/models/request-dtos/CostCenterRequestDTO';
 import { MatDividerModule } from '@angular/material/divider';
 import { firstValueFrom } from 'rxjs';
 import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
 import { MatInputModule } from '@angular/material/input';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { CommonModule } from '@angular/common';
@@ -59,6 +60,8 @@ export interface FormFieldConfig {
   optionLabel?: string; // Property name for option display
   placeholder?: string;
   validators?: any[];
+  nominatim_param?: string; // Optional parameter for address autocomplete
+  nominatim_field?: string; // Optional field to populate from Nominatim result
 }
 
 // Form page configuration interface
@@ -87,6 +90,7 @@ export interface FormPageConfig {
     MatInputModule,
     MatSelectModule,
     MatCheckboxModule,
+    MatRadioModule,
     MatSnackBarModule,
     MatGridListModule,
     MatDialogModule,
@@ -97,6 +101,18 @@ export interface FormPageConfig {
   styleUrls: ['./generic-form-page.component.css'],
 })
 export class GenericFormPageComponent implements OnInit {
+  // Address selection state for persons and suppliers
+  addressesList: AddressResponseDTO[] = [];
+
+  // Convenience method to decide which fields to render from config
+  fieldsToRender(): FormFieldConfig[] {
+    const fields = this.config().fields || [];
+    if (this.config().apiEndpoint === 'persons') {
+      return fields.filter((f) => f.name !== 'address_id');
+    }
+    return fields;
+  }
+
   @ViewChild(FormGroupDirective) formGroupDirective!: FormGroupDirective;
 
   config = input.required<FormPageConfig>();
@@ -123,6 +139,7 @@ export class GenericFormPageComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    const endpoint = this.config().apiEndpoint;
     this.buildForm();
     this.loadDropdownData();
 
@@ -133,15 +150,53 @@ export class GenericFormPageComponent implements OnInit {
       this.patchFormValues(data);
     }
     this.setDefaultValues(); // Set default values based on entity type
+
+    // If persons or suppliers, load addresses for address selection section
+    if (endpoint === 'persons') {
+      PersonsService.getPersonsAddresses().then((list) => (this.addressesList = list || []));
+      // Controls for address selection/create
+      this.form.addControl('addressMode', new FormControl<'existing' | 'new'>('existing'));
+      this.form.addControl('existingAddressId', new FormControl<number | null>(null));
+
+      // Address form controls for new address
+      this.form.addControl('addr_building_name', new FormControl<string | null>(null));
+      this.form.addControl('addr_street', new FormControl<string | null>(null));
+      this.form.addControl('addr_building_number', new FormControl<string | null>(null));
+      this.form.addControl('addr_town', new FormControl<string | null>(null));
+      this.form.addControl('addr_postal_code', new FormControl<string | null>(null));
+      this.form.addControl('addr_county', new FormControl<string | null>(null));
+      this.form.addControl('addr_country', new FormControl<string | null>('Deutschland'));
+      this.form.addControl('addr_comment', new FormControl<string | null>(null));
+    } else if (endpoint === 'suppliers') {
+      SuppliersService.getSuppliersAddresses().then((list) => (this.addressesList = list || []));
+      this.form.addControl('addressMode', new FormControl<'existing' | 'new'>('existing'));
+      this.form.addControl('existingAddressId', new FormControl<number | null>(null));
+
+      // Address form controls for new address
+      this.form.addControl('addr_building_name', new FormControl<string | null>(null));
+      this.form.addControl('addr_street', new FormControl<string | null>(null));
+      this.form.addControl('addr_building_number', new FormControl<string | null>(null));
+      this.form.addControl('addr_town', new FormControl<string | null>(null));
+      this.form.addControl('addr_postal_code', new FormControl<string | null>(null));
+      this.form.addControl('addr_county', new FormControl<string | null>(null));
+      this.form.addControl('addr_country', new FormControl<string | null>('Deutschland'));
+      this.form.addControl('addr_comment', new FormControl<string | null>(null));
+    }
   }
 
   // Build the form controls based on the configuration
   // This method creates form controls dynamically based on the config provided
   // It sets up validators and initializes the form group
   private buildForm(): void {
+    const endpoint = this.config().apiEndpoint;
+
     const formControls: { [key: string]: FormControl } = {};
 
     this.config().fields.forEach((field) => {
+      // Skip address_id control in persons, we'll handle address separately
+      if (endpoint === 'persons' && field.name === 'address_id') {
+        return;
+      }
       const validators = [];
       if (field.required) {
         validators.push(Validators.required);
@@ -248,6 +303,7 @@ export class GenericFormPageComponent implements OnInit {
   }
 
   onSubmit(): void {
+    const endpoint = this.config().apiEndpoint;
     if (this.form.valid) {
       const headers = { 'content-type': 'application/json' };
       let formData = this.form.value;
@@ -289,12 +345,125 @@ export class GenericFormPageComponent implements OnInit {
       } else {
         // Create mode: route to api2_0 services
         const endpoint = this.config().apiEndpoint;
-        const requestBody = formData;
+        let requestBody = formData;
         let promise: Promise<any> | undefined;
 
-        switch (endpoint) {
+        // Special handling for persons and suppliers to support existing/new address selection
+        if (endpoint === 'persons') {
+          const mode = this.form.get('addressMode')?.value as 'existing' | 'new';
+          if (mode === 'existing') {
+            const selectedId = this.form.get('existingAddressId')?.value as number | null;
+            if (!selectedId) {
+              this._notifications.open('Bitte eine bestehende Adresse auswählen oder neue Adresse eingeben', undefined, { duration: 3000 });
+              return;
+            }
+            const personDto: PersonRequestDTO = {
+              name: requestBody.name,
+              surname: requestBody.surname,
+              email: requestBody.email,
+              fax: requestBody.fax,
+              phone: requestBody.phone,
+              title: requestBody.title,
+              comment: requestBody.comment,
+              address_id: selectedId,
+              gender: requestBody.gender,
+            };
+            promise = PersonsService.createPerson(personDto) as unknown as Promise<any>;
+          } else {
+            // Build AddressRequestDTO from form controls
+            const addressDto: AddressRequestDTO = {
+              building_name: this.form.get('addr_building_name')?.value || undefined,
+              street: this.form.get('addr_street')?.value || undefined,
+              building_number: this.form.get('addr_building_number')?.value || undefined,
+              town: this.form.get('addr_town')?.value || undefined,
+              postal_code: this.form.get('addr_postal_code')?.value || undefined,
+              county: this.form.get('addr_county')?.value || undefined,
+              country: this.form.get('addr_country')?.value || undefined,
+              comment: this.form.get('addr_comment')?.value || undefined,
+            };
+
+            // Basic validation for minimal address fields
+            if (!addressDto.street || !addressDto.town || !addressDto.postal_code) {
+              this._notifications.open('Bitte Straße, Stadt und PLZ für die neue Adresse ausfüllen', undefined, { duration: 3000 });
+              return;
+            }
+
+            promise = (PersonsService.createPersonAddress(addressDto) as unknown as Promise<AddressResponseDTO>)
+              .then((addr) => {
+                const personDto: PersonRequestDTO = {
+                  name: requestBody.name,
+                  surname: requestBody.surname,
+                  email: requestBody.email,
+                  fax: requestBody.fax,
+                  phone: requestBody.phone,
+                  title: requestBody.title,
+                  comment: requestBody.comment,
+                  address_id: addr.id!,
+                  gender: requestBody.gender,
+                };
+                return PersonsService.createPerson(personDto) as unknown as Promise<any>;
+              });
+          }
+        } else if (endpoint === 'suppliers') {
+          const mode = this.form.get('addressMode')?.value as 'existing' | 'new';
+          let addressDto: AddressRequestDTO | undefined;
+          if (mode === 'existing') {
+            const selectedId = this.form.get('existingAddressId')?.value as number | null;
+            if (!selectedId) {
+              this._notifications.open('Bitte eine bestehende Adresse auswählen oder neue Adresse eingeben', undefined, { duration: 3000 });
+              return;
+            }
+            const found = this.addressesList.find((a) => a.id === selectedId);
+            if (!found) {
+              this._notifications.open('Ausgewählte Adresse wurde nicht gefunden', undefined, { duration: 3000 });
+              return;
+            }
+            addressDto = {
+              building_name: found.building_name,
+              street: found.street,
+              building_number: found.building_number,
+              town: found.town || '',
+              postal_code: found.postal_code,
+              county: found.county,
+              country: found.country,
+              comment: found.comment,
+            };
+          } else {
+            addressDto = {
+              building_name: this.form.get('addr_building_name')?.value || undefined,
+              street: this.form.get('addr_street')?.value || undefined,
+              building_number: this.form.get('addr_building_number')?.value || undefined,
+              town: this.form.get('addr_town')?.value || undefined,
+              postal_code: this.form.get('addr_postal_code')?.value || undefined,
+              county: this.form.get('addr_county')?.value || undefined,
+              country: this.form.get('addr_country')?.value || undefined,
+              comment: this.form.get('addr_comment')?.value || undefined,
+            };
+
+            // Basic validation for minimal address fields
+            if (!addressDto.street || !addressDto.town || !addressDto.postal_code) {
+              this._notifications.open('Bitte Straße, Stadt und PLZ für die neue Adresse ausfüllen', undefined, { duration: 3000 });
+              return;
+            }
+          }
+          const supplierDto: SupplierRequestDTO = {
+            name: requestBody.name,
+            flag_preferred: requestBody.flag_preferred,
+            vat_id: requestBody.vat_id,
+            email: requestBody.email,
+            fax: requestBody.fax,
+            phone: requestBody.phone,
+            comment: requestBody.comment,
+            website: requestBody.website,
+            address: addressDto!,
+          };
+          promise = SuppliersService.createSupplier(supplierDto) as unknown as Promise<any>;
+        }
+
+        if (!promise) {
+          switch (endpoint) {
           case 'addresses':
-            promise = AddressesService.createAddress(requestBody as AddressRequestDTO) as unknown as Promise<any>;
+            // promise = AddressesService.createAddress(requestBody as AddressRequestDTO) as unknown as Promise<any>;
             break;
           case 'suppliers':
             promise = SuppliersService.createSupplier(requestBody as SupplierRequestDTO) as unknown as Promise<any>;
@@ -334,11 +503,13 @@ export class GenericFormPageComponent implements OnInit {
             );
         }
 
-        promise
-          ?.then(() => this.handleSubmitSuccess(formData, false))
-          .catch((error) => this.handleSubmitError(error));
+          promise
+            ?.then(() => this.handleSubmitSuccess(formData, false))
+            .catch((error) => this.handleSubmitError(error));
+        }
       }
-    } else {
+    }
+    else {
       this.form.markAllAsTouched();
       this._notifications.open('Benötigte Werte nicht komplett', undefined, { duration: 3000 });
       this.isShaking = true;

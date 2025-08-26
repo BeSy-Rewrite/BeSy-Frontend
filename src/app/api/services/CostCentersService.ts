@@ -31,6 +31,9 @@ export class CostCentersService {
             url: '/cost_centers',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                409: `Kostenstelle mit diesem Namen existiert bereits.`,
+            },
         });
     }
 }

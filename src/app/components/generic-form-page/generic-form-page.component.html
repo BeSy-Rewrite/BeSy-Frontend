@@ -12,7 +12,7 @@
 
     <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
       <table class="entity-container">
-        <tr *ngFor="let field of config().fields">
+        <tr *ngFor="let field of fieldsToRender()">
           <td class="entity-titles">{{ field.label }}</td>
           <td>
             <mat-form-field style="width: 80%;">
@@ -72,6 +72,105 @@
           </td>
         </tr>
       </table>
+
+      <!-- Address selection/creation section for persons and suppliers -->
+      <div *ngIf="config().apiEndpoint === 'persons' || config().apiEndpoint === 'suppliers'">
+        <h5>Adresse</h5>
+        <mat-radio-group formControlName="addressMode" aria-label="Address mode">
+          <mat-radio-button value="existing">Vorhandene Adresse auswählen</mat-radio-button>
+          <mat-radio-button value="new" style="margin-left: 16px;">Neue Adresse eingeben</mat-radio-button>
+        </mat-radio-group>
+
+        <!-- Existing address dropdown -->
+        <div *ngIf="form.get('addressMode')?.value === 'existing'" style="margin-top: 12px;">
+          <mat-form-field style="width: 80%;">
+            <mat-label>Adresse</mat-label>
+            <mat-select formControlName="existingAddressId">
+              <mat-option *ngFor="let addr of addressesList" [value]="addr.id">
+                {{ addr.street }} {{ addr.building_number }}, {{ addr.postal_code }} {{ addr.town }}
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+        <!-- New address form fields -->
+        <div *ngIf="form.get('addressMode')?.value === 'new'" style="margin-top: 12px;">
+          <table class="entity-container">
+            <tr>
+              <td class="entity-titles">Straßenname</td>
+              <td>
+                <mat-form-field style="width: 80%;">
+                  <mat-label>Straßenname</mat-label>
+                  <input matInput formControlName="addr_street" />
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td class="entity-titles">Hausnummer</td>
+              <td>
+                <mat-form-field style="width: 80%;">
+                  <mat-label>Hausnummer</mat-label>
+                  <input matInput formControlName="addr_building_number" />
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td class="entity-titles">Stadt</td>
+              <td>
+                <mat-form-field style="width: 80%;">
+                  <mat-label>Stadt</mat-label>
+                  <input matInput formControlName="addr_town" />
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td class="entity-titles">PLZ</td>
+              <td>
+                <mat-form-field style="width: 80%;">
+                  <mat-label>PLZ</mat-label>
+                  <input matInput formControlName="addr_postal_code" />
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td class="entity-titles">Land</td>
+              <td>
+                <mat-form-field style="width: 80%;">
+                  <mat-label>Land</mat-label>
+                  <input matInput formControlName="addr_country" />
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td class="entity-titles">Region</td>
+              <td>
+                <mat-form-field style="width: 80%;">
+                  <mat-label>Region</mat-label>
+                  <input matInput formControlName="addr_county" />
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td class="entity-titles">Gebäudename</td>
+              <td>
+                <mat-form-field style="width: 80%;">
+                  <mat-label>Gebäudename</mat-label>
+                  <input matInput formControlName="addr_building_name" />
+                </mat-form-field>
+              </td>
+            </tr>
+            <tr>
+              <td class="entity-titles">Kommentar</td>
+              <td>
+                <mat-form-field style="width: 80%;">
+                  <mat-label>Kommentar</mat-label>
+                  <input matInput formControlName="addr_comment" />
+                </mat-form-field>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
 
       <div class="buttons" style="justify-content: flex-end;">
         <button

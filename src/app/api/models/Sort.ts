@@ -2,10 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-export type UserResponseDTO = {
-    id?: string;
-    surname?: string;
-    name?: string;
-    email?: string;
+export type Sort = {
+    empty?: boolean;
+    sorted?: boolean;
+    unsorted?: boolean;
 };
 

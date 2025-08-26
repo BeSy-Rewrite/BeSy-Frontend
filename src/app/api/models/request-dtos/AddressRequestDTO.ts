@@ -3,14 +3,13 @@
 /* tslint:disable */
 /* eslint-disable */
 export type AddressRequestDTO = {
-    postal_code: string;
+    postal_code?: string;
     building_name?: string;
     building_number?: string;
     comment?: string;
     country?: string;
     county?: string;
-    name: string;
-    street: string;
+    street?: string;
     town: string;
 };
 

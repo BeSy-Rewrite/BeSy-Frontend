@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
-import { AddressesService, AddressResponseDTO } from '../../../api2_0';
+import { AddressResponseDTO } from '../../../api';
 
 @Component({
   selector: 'app-address-detail',
@@ -35,7 +35,7 @@ export class AddressDetailComponent implements OnInit {
 
     if (id) {
       try {
-        this.addressData = await AddressesService.getAddressById(parseInt(id));
+        //this.addressData = await AddressesService.getAddressById(parseInt(id));
         this.loading = false;
       } catch (error) {
         this.error = 'Failed to load address details';

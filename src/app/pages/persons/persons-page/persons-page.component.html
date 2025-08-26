@@ -1,3 +1,59 @@
-<p>
-  persons-page works!
-</p>
+<mat-tab-group
+  #tabGroup
+  (selectedTabChange)="tabChange($event)"
+  mat-stretch-tabs="true"
+  mat-align-tabs="start"
+>
+  <mat-tab label="Personen verwalten">
+    <mat-divider
+      style="background-color: darkgrey; color: darkgrey"
+    ></mat-divider>
+    <div class="pt-3">
+      <app-generic-table
+        [dataSource]="personsDataSource"
+        [columns]="personsTableColumns"
+        [actions]="actions"
+      ></app-generic-table>
+    </div>
+  </mat-tab>
+
+  <mat-tab label="Neue Person anlegen">
+    <mat-divider
+      style="background-color: darkgrey; color: darkgrey"
+    ></mat-divider>
+    <div class="add-person-page" style="justify-content: flex-end">
+      <div class="form-container flex space-x-5 pt-3">
+        <div class="person-data-container bg-white">
+          <app-form-component
+            [config]="personsFormConfig"
+            [formGroup]="personForm"
+            (valueChanged)="onFormValueChanged($event)"
+          ></app-form-component>
+          <p>AddressMode: {{ addressMode }}</p>
+        </div>
+        <div class="address-data-container bg-white">
+          <app-address-form
+            [config]="addressFormConfig"
+            [formGroup]="addressForm"
+            [tableDataSource]="addressTableDataSource"
+            [tableColumns]="addressTableColumns"
+            (valueChanged)="onAddressFormValueChanged($event)"
+            (addressSelected)="onAddressSelected($event)"
+          ></app-address-form>
+        </div>
+      </div>
+      <div class="buttons flex justify-end">
+        <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="onBack()"
+          aria-label="cancel"
+          style="margin-right: 16px;"
+        >
+          Verwerfen
+        </button>
+      </div>
+    </div>
+  </mat-tab>
+</mat-tab-group>

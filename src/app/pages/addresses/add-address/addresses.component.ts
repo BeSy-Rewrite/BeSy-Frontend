@@ -1,4 +1,4 @@
-import { AddressesService, AddressResponseDTO } from '../../../api2_0';
+import { AddressResponseDTO } from '../../../api';
 import { MatTableDataSource } from '@angular/material/table';
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
@@ -51,15 +51,10 @@ import { DomSanitizer } from '@angular/platform-browser';
 export class AddressesComponent {
   // Properties for managing view states
   constructor(
-      private AddressesService: AddressesService,
       private MatIconRegistry: MatIconRegistry,
       private sanitizer: DomSanitizer,
       private router: Router
   ) {
-    this.MatIconRegistry.addSvgIcon(
-      'add_button',
-      this.sanitizer.bypassSecurityTrustResourceUrl('assets/add_button.svg')
-    );
   }
 
 
@@ -101,8 +96,8 @@ export class AddressesComponent {
   async ngOnInit() : Promise<void> {
     // Initialize any necessary data or services here
     console.log('AddressesComponent initialized');
-    const addresses = await AddressesService.getAllAddresses();
-    this.datasource = new MatTableDataSource<AddressResponseDTO>(addresses);
+    // const addresses = await AddressesService.getAllAddresses();
+    // this.datasource = new MatTableDataSource<AddressResponseDTO>(addresses);
   }
 
   // Tab change handler

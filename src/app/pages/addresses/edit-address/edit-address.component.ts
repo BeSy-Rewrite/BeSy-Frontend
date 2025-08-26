@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
-import { AddressesService, AddressResponseDTO } from '../../../api2_0';
+import { AddressResponseDTO } from '../../../api';
 import { GenericFormPageComponent } from '../../../components/generic-form-page/generic-form-page.component';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/form-configs';
 
@@ -36,7 +36,7 @@ export class EditAddressComponent implements OnInit {
 
     if (id) {
       try {
-        this.addressData = await AddressesService.getAddressById(parseInt(id));
+        // this.addressData = await AddressesService.getAddressById(parseInt(id));
         this.loading = false;
       } catch (error) {
         this.error = 'Failed to load address details';
