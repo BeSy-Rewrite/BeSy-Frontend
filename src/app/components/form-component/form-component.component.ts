@@ -24,6 +24,8 @@ export interface FormField {
   options?: { label: string; value: any }[];
   validators?: any[];
   emitAsSignal?: boolean;
+  nominatim_param?: string;
+  nominatim_field?: string;
 }
 
 export interface FormConfig {

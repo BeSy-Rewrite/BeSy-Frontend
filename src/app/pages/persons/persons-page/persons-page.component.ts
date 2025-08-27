@@ -124,13 +124,6 @@ export class PersonsPageComponent implements OnInit {
     this.router.navigate(['/persons/', row.id, 'view']);
   }
 
-  tabChange(event: any) {
-    // Handle tab change events
-  }
-
-  onRowSelected(event: any) {
-    // Handle row selection
-  }
   // Signals to be handled coming from the person-form-component
   onFormValueChanged(event: { field: string; value: any }) {
     if (event.field === 'addressMode') {
@@ -215,10 +208,14 @@ export class PersonsPageComponent implements OnInit {
     }
   }
 
+  // Handle back navigation
+  // Change tab
   onBack() {
     this.tabGroup.selectedIndex = 0; // Switch to tab index for "Personenübersicht"
   }
 
+  // Catch emitted event from address-form-component
+  // Update selectedAddressId with the selected address ID
   onAddressSelected($event: number) {
     this.selectedAddressId = $event;
   }

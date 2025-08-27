@@ -1,3 +1,4 @@
+<div class="h-screen overflow-y-auto">
 <mat-tab-group
   #tabGroup
   mat-stretch-tabs="true"
@@ -9,27 +10,28 @@
     ></mat-divider>
     <div class="pt-3">
       <app-generic-table
-        [dataSource]="personsDataSource"
-        [columns]="personsTableColumns"
+        [dataSource]="suppliersDataSource"
+        [columns]="suppliersTableColumns"
         [actions]="actions"
       ></app-generic-table>
     </div>
   </mat-tab>
 
   <mat-tab label="Neue Person anlegen">
+    <div class="add-person-page h-auto overflow-visible">
     <mat-divider
       style="background-color: darkgrey; color: darkgrey"
     ></mat-divider>
-    <div class="add-person-page" style="justify-content: flex-end">
-      <div class="form-container flex space-x-5 pt-3">
-        <div class="person-data-container bg-white">
+    <div style="justify-content: flex-end overflow-visible">
+      <div class="form-container flex space-x-5 pt-3 overflow-visible">
+        <div class="person-data-container bg-white overflow-visible">
           <app-form-component
             [config]="personsFormConfig"
             [formGroup]="personForm"
             (valueChanged)="onFormValueChanged($event)"
           ></app-form-component>
         </div>
-        <div class="address-data-container bg-white">
+        <div class="address-data-container bg-white overflow-visible">
           <app-address-form
             [config]="addressFormConfig"
             [formGroup]="addressForm"
@@ -53,5 +55,7 @@
         </button>
       </div>
     </div>
+    </div>
   </mat-tab>
 </mat-tab-group>
+</div>

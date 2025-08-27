@@ -11,6 +11,7 @@ import { AddressesComponent } from './pages/addresses/add-address/addresses.comp
 import { EditAddressComponent } from './pages/addresses/edit-address/edit-address.component';
 import { AddressDetailComponent } from './pages/addresses/address-detail/address-detail.component';
 import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.component';
+import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
 
 export const routes: Routes = [
     {
@@ -62,6 +63,11 @@ export const routes: Routes = [
       title: 'Persons',
       path: 'persons',
       component: PersonsPageComponent
+    },
+    {
+      title: 'Suppliers',
+      path: 'suppliers',
+      component: SuppliersPageComponent
     },
     {
       title: 'Test Forms',
