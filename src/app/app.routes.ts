@@ -1,5 +1,4 @@
 import { Routes } from '@angular/router';
-import { TestFormsComponent } from './pages/test-forms/test-forms.component';
 import { ApproveOrdersGuard } from './guards/approve-orders.guard';
 import { DefaultGuard } from './guards/default.guard';
 import { FilterDemoComponent } from './mockups/filter-demo/filter-demo.component';
@@ -7,9 +6,6 @@ import { TableDemoComponent } from './mockups/table-demo/table-demo.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
-import { AddressesComponent } from './pages/addresses/add-address/addresses.component';
-import { EditAddressComponent } from './pages/addresses/edit-address/edit-address.component';
-import { AddressDetailComponent } from './pages/addresses/address-detail/address-detail.component';
 import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.component';
 import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
 
@@ -45,21 +41,6 @@ export const routes: Routes = [
         ]
     },
     {
-      title: 'Addresses',
-      path: 'addresses',
-      component: AddressesComponent
-    },
-    {
-      title: 'Address Detail',
-      path: 'addresses/:id/detail',
-      component: AddressDetailComponent
-    },
-    {
-      title: 'Edit Address',
-      path: 'addresses/:id/edit',
-      component: EditAddressComponent
-    },
-    {
       title: 'Persons',
       path: 'persons',
       component: PersonsPageComponent
@@ -68,11 +49,6 @@ export const routes: Routes = [
       title: 'Suppliers',
       path: 'suppliers',
       component: SuppliersPageComponent
-    },
-    {
-      title: 'Test Forms',
-      path: 'test',
-      component: TestFormsComponent
     },
     {
         title: 'Unauthorisiert',

@@ -1,6 +1,6 @@
 import { MatDividerModule } from '@angular/material/divider';
 import { Router } from '@angular/router';
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import {
   AddressRequestDTO,
@@ -34,6 +34,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   ],
   templateUrl: './persons-page.component.html',
   styleUrls: ['./persons-page.component.css'],
+  encapsulation: ViewEncapsulation.None
 })
 export class PersonsPageComponent implements OnInit {
   constructor(private router: Router, private _notifications: MatSnackBar) {}

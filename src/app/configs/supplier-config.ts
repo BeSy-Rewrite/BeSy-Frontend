@@ -26,9 +26,12 @@ export const SUPPLIER_FORM_CONFIG: FormConfig = {
     },
     {
       name: 'vat_id',
-      label: 'VAT ID',
-      type: 'text',
-      required: false
+      label: 'Mehrwertsteuersatz',
+      type: 'select',
+      required: false,
+      options: [
+        {value: 'error_loading_from_api', label: 'Fehler beim Laden der Optionen'}
+      ]
     },
     {
       name: 'email',
@@ -59,7 +62,7 @@ export const SUPPLIER_FORM_CONFIG: FormConfig = {
       name: 'website',
       label: 'Website',
       type: 'text',
-      required: false
-    }
+      required: false,
+    },
   ]
 };

@@ -18,12 +18,13 @@ import { MatDividerModule } from "@angular/material/divider";
 export interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'radio' | 'select' | 'number' | 'checkbox' | 'date' | 'email' | 'tel';
+  type: 'text' | 'radio' | 'select' | 'number' | 'checkbox' | 'date' | 'email' | 'tel' | 'search';
   required: boolean;
   defaultValue?: any;
   options?: { label: string; value: any }[];
   validators?: any[];
   emitAsSignal?: boolean;
+  loadFromApi?: boolean;
   nominatim_param?: string;
   nominatim_field?: string;
 }

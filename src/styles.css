@@ -9,4 +9,9 @@
     --color-he-grey: #F0F0F0;
 }
 
+.mat-mdc-tab-body-content {
+  overflow: visible !important;
+  height: auto !important;
+}
+
 

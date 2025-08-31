@@ -1,3 +1,4 @@
+import { VatResponseDTO } from './../../../api/models/response-dtos/VatResponseDTO';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
@@ -11,14 +12,15 @@ import {
   SuppliersService,
 } from '../../../api';
 import { MatTableDataSource } from '@angular/material/table';
-import { SUPPLIER_FORM_CONFIG } from '../../../configs/form-configs';
-import { ADDRESS_FORM_CONFIG } from '../../../configs/form-configs';
+import { SUPPLIER_FORM_CONFIG } from '../../../configs/supplier-config';
+import { ADDRESS_FORM_CONFIG } from '../../../configs/address-config';
 import { FormGroup } from '@angular/forms';
 import { MatDivider } from '@angular/material/divider';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { AddressFormComponent } from '../../../components/address-form/address-form.component';
 import { MatButtonModule } from '@angular/material/button';
+import { VatSService } from '../../../api';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -86,28 +88,40 @@ export class SuppliersPageComponent implements OnInit {
   ];
 
   // Form configuration for the generic form component
-  personsFormConfig = SUPPLIER_FORM_CONFIG;
+  supplierFormConfig = SUPPLIER_FORM_CONFIG;
   addressFormConfig = ADDRESS_FORM_CONFIG;
   personForm = new FormGroup({});
   addressForm = new FormGroup({});
 
+  // * To track whether the user wants to use an existing address or create a new one
+  // * Used to decide which form to display & which API endpoint to call in which order
   addressMode: string | null = null;
 
   async ngOnInit(): Promise<void> {
+
+    // Load initial data for the supplier table
     const suppliers = await SuppliersService.getAllSuppliers();
     this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(
       suppliers
     );
+
+    // Load initial data for the address table
     const addresses = await SuppliersService.getSuppliersAddresses();
     this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(
       addresses
     );
+
+    // Load initial data for the VAT options field in the form
+    const vatOptions = await VatSService.getAllVats();
+    this.setDropdownOptions(vatOptions);
+
   }
 
   editSupplier(row: SupplierResponseDTO) {
     this.router.navigate(['/suppliers/', row.id, 'edit']);
   }
 
+  // ToDo: Implement delete logic here
   deleteSupplier(row: SupplierResponseDTO) {
     // Implement delete logic here
   }
@@ -131,7 +145,7 @@ export class SuppliersPageComponent implements OnInit {
     }
   }
 
-  // Handle form submission
+  // * Handle form submission
   async onSubmit() {
     // Check if both forms are valid
     if (this.personForm.valid && this.addressForm.valid) {
@@ -165,15 +179,22 @@ export class SuppliersPageComponent implements OnInit {
     }
   }
 
-  // Handle back navigation
-  // Change tab
+  // * Handle back navigation
   onBack() {
     this.tabGroup.selectedIndex = 0; // Switch to tab index for "Personenübersicht"
   }
 
-  // Catch emitted event from address-form-component
-  // Update selectedAddressId with the selected address ID
+  // * Catch emitted event from address-form-component
+  // * Update selectedAddressId with the selected address ID
   onAddressSelected($event: number) {
     this.selectedAddressId = $event;
+  }
+
+  // Set dropdown options for the form fields
+  setDropdownOptions(vatOptions: VatResponseDTO[]) {
+
+    // ToDo: Comment out when id-field is implemented
+    // set options for dropdown fields
+    //this.supplierFormConfig.fields.find(field => field.name === 'vat_id')!.options = vatOptions.map(vat => ({value: vat.id, label: `${vat.description} (${vat.value}%)`}));
   }
 }

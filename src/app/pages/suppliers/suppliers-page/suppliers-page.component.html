@@ -1,4 +1,4 @@
-<div class="h-screen overflow-y-auto">
+<div class="h-screen">
 <mat-tab-group
   #tabGroup
   mat-stretch-tabs="true"
@@ -13,6 +13,7 @@
         [dataSource]="suppliersDataSource"
         [columns]="suppliersTableColumns"
         [actions]="actions"
+        [pageSize]="50"
       ></app-generic-table>
     </div>
   </mat-tab>
@@ -26,7 +27,7 @@
       <div class="form-container flex space-x-5 pt-3 overflow-visible">
         <div class="person-data-container bg-white overflow-visible">
           <app-form-component
-            [config]="personsFormConfig"
+            [config]="supplierFormConfig"
             [formGroup]="personForm"
             (valueChanged)="onFormValueChanged($event)"
           ></app-form-component>

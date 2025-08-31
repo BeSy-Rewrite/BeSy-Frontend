@@ -1,5 +1,6 @@
 import {
   Component,
+  effect,
   EventEmitter,
   input,
   Output,
@@ -33,6 +34,19 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
   styleUrl: './generic-table.component.css',
 })
 export class GenericTableComponent<T> {
+  constructor() {
+
+    // Reacts to changes of the signal dataSource, and sets the sort and paginator.
+    effect(() => {
+      const ds = this.dataSource();
+      if (ds && this.sort && this.paginator) {
+        ds.sort = this.sort;
+        ds.paginator = this.paginator;
+        this.paginator._intl.itemsPerPageLabel = 'Einträge pro Seite';
+        this.paginator.pageSize = this.pageSize();
+      }
+    });
+  }
   /**
    * The data source for the table, required to be provided.
    */
