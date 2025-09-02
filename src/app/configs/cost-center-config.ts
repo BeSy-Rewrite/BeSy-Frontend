@@ -4,6 +4,12 @@ export const COST_CENTER_FORM_CONFIG: FormConfig = {
   title: 'Neue Kostenstelle hinzufügen',
   fields: [
     {
+      name: 'id',
+      label: 'ID',
+      type: 'text',
+      required: true
+    },
+    {
       name: 'name',
       label: 'Kostenstellenname',
       type: 'text',
