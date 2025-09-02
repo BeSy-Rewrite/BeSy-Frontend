@@ -10,6 +10,7 @@ import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.
 import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
 import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
 import { EditSuppliersPageComponent} from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
+import { CostCentersPageComponent } from './pages/cost-center/cost-center-component/cost-center-page.component';
 
 export const routes: Routes = [
     {
@@ -61,6 +62,11 @@ export const routes: Routes = [
       title: 'Lieferant bearbeiten',
       path: 'suppliers/:id/edit',
       component: EditSuppliersPageComponent
+    },
+    {
+      title: 'Kostenstellen',
+      path: 'cost-centers',
+      component: CostCentersPageComponent
     },
     {
         title: 'Unauthorisiert',
