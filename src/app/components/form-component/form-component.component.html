@@ -2,7 +2,7 @@
   <h4 class="text-2xl font-medium mb-6 text-gray-800">
     {{ config.title }}
   </h4>
-  <h2> {{ config.subtitle }}</h2>
+  <h2>{{ config.subtitle }}</h2>
   <mat-divider class="my-4"></mat-divider>
   <form [formGroup]="formGroup" class="w-full bg-white">
     <table class="w-full mb-5">
@@ -19,6 +19,7 @@
               matInput
               [formControlName]="field.name"
               [required]="field.required"
+              matTooltip="{{ field.tooltip }}"
             />
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
@@ -31,7 +32,11 @@
           @case ('select') {
           <mat-form-field class="w-4/5">
             <mat-label>{{ field.label }}</mat-label>
-            <mat-select [formControlName]="field.name">
+            <mat-select
+              [formControlName]="field.name"
+              [required]="field.required"
+              matTooltip="{{ field.tooltip }}"
+            >
               @for (opt of field.options ?? []; track opt.value) {
               <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
               }
@@ -134,23 +139,28 @@
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
             }
           </mat-form-field>
-          }
-          @case ('search') {
-            <mat-form-field appearance="outline" class="w-4/5">
-              <mat-label>{{ field.label }}</mat-label>
-              <input
-                matInput
-                [formControlName]="field.name"
-                [required]="field.required"
-                type="search"
-              />
-              @if (formGroup.get(field.name)?.invalid &&
-              formGroup.get(field.name)?.touched) {
-              <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-              }
-            </mat-form-field>
-          }
-        }
+          } @case ('search') {
+          <mat-form-field appearance="outline" class="w-4/5">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              matInput
+              [formControlName]="field.name"
+              [required]="field.required"
+              type="search"
+            />
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+          </mat-form-field>
+          } @case ('table') {
+          <app-generic-table
+            [dataSource]="tableDataSource"
+            [columns]="tableColumns"
+            [pageSize]="5"
+          ></app-generic-table>
+          <mat-divider></mat-divider>
+          } }
         </td>
       </tr>
       }

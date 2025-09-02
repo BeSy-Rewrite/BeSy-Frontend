@@ -1,10 +1,8 @@
-import { FormPageConfig } from '../components/generic-form-page/generic-form-page.component';
+import { FormConfig } from "../components/form-component/form-component.component";
 
 // Order Configuration (matches OrderRequestDTO - simplified version)
-export const ORDER_FORM_CONFIG: FormPageConfig = {
+export const ORDER_FORM_CONFIG: FormConfig = {
   title: 'Neue Bestellung hinzufügen',
-  apiEndpoint: 'orders',
-  successMessage: 'Bestellung erfolgreich gespeichert',
   fields: [
     {
       name: 'content_description',

@@ -1,62 +1,76 @@
 <div class="h-screen">
-<mat-tab-group
-  #tabGroup
-  mat-stretch-tabs="true"
-  mat-align-tabs="start"
->
-  <mat-tab label="Personen verwalten">
-    <mat-divider
-      style="background-color: darkgrey; color: darkgrey"
-    ></mat-divider>
-    <div class="pt-3">
-      <app-generic-table
-        [dataSource]="suppliersDataSource"
-        [columns]="suppliersTableColumns"
-        [actions]="actions"
-        [pageSize]="50"
-      ></app-generic-table>
-    </div>
-  </mat-tab>
+  <mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start">
+    <mat-tab label="Lieferanten verwalten">
+      <mat-divider
+        style="background-color: darkgrey; color: darkgrey"
+      ></mat-divider>
+      <div class="pt-3">
+        <app-generic-table
+          [dataSource]="suppliersDataSource"
+          [columns]="suppliersTableColumns"
+          [actions]="actions"
+          [pageSize]="50"
+        ></app-generic-table>
+      </div>
+    </mat-tab>
 
-  <mat-tab label="Neue Person anlegen">
-    <div class="add-person-page h-auto overflow-visible">
-    <mat-divider
-      style="background-color: darkgrey; color: darkgrey"
-    ></mat-divider>
-    <div style="justify-content: flex-end overflow-visible">
-      <div class="form-container flex space-x-5 pt-3 overflow-visible">
-        <div class="person-data-container bg-white overflow-visible">
-          <app-form-component
-            [config]="supplierFormConfig"
-            [formGroup]="personForm"
-            (valueChanged)="onFormValueChanged($event)"
-          ></app-form-component>
-        </div>
-        <div class="address-data-container bg-white overflow-visible">
-          <app-address-form
-            [config]="addressFormConfig"
-            [formGroup]="addressForm"
-            [tableDataSource]="addressTableDataSource"
-            [tableColumns]="addressTableColumns"
-            (valueChanged)="onAddressFormValueChanged($event)"
-            (addressSelected)="onAddressSelected($event)"
-          ></app-address-form>
+    <mat-tab label="Neuen Lieferanten anlegen">
+      <div class="add-person-page h-auto overflow-visible">
+        <mat-divider
+          style="background-color: darkgrey; color: darkgrey"
+        ></mat-divider>
+        <div style="justify-content: flex-end overflow-visible">
+          <div class="form-container flex space-x-5 pt-3 overflow-visible">
+            <!-- Linke Spalte: Supplier + CustomerId -->
+            <div class="left-column flex flex-col flex-0-0-50 space-y-5">
+              <div class="person-data-container bg-white overflow-visible">
+                <app-form-component
+                  [config]="supplierFormConfig"
+                  [formGroup]="supplierForm"
+                  (valueChanged)="onFormValueChanged($event)"
+                ></app-form-component>
+              </div>
+
+              <div class="customer-data-container bg-white overflow-visible">
+                <app-form-component
+                  [config]="customerIdFormConfig"
+                  [formGroup]="customerIdForm"
+                  (valueChanged)="onFormValueChanged($event)"
+                ></app-form-component>
+              </div>
+            </div>
+
+            <!-- Rechte Spalte: Address -->
+            <div
+              class="address-data-container bg-white overflow-visible flex-1"
+            >
+              <app-address-form
+                [config]="addressFormConfig"
+                [formGroup]="addressForm"
+                [tableDataSource]="addressTableDataSource"
+                [tableColumns]="addressTableColumns"
+                (valueChanged)="onAddressFormValueChanged($event)"
+                (addressSelected)="onAddressSelected($event)"
+              ></app-address-form>
+            </div>
+          </div>
+
+          <div class="buttons flex justify-end">
+            <button mat-raised-button color="primary" (click)="onSubmit()">
+              Speichern
+            </button>
+            <button
+              mat-raised-button
+              color="warn"
+              (click)="onBack()"
+              aria-label="cancel"
+              style="margin-right: 16px"
+            >
+              Verwerfen
+            </button>
+          </div>
         </div>
       </div>
-      <div class="buttons flex justify-end">
-        <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
-        <button
-          mat-raised-button
-          color="warn"
-          (click)="onBack()"
-          aria-label="cancel"
-          style="margin-right: 16px;"
-        >
-          Verwerfen
-        </button>
-      </div>
-    </div>
-    </div>
-  </mat-tab>
-</mat-tab-group>
+    </mat-tab>
+  </mat-tab-group>
 </div>

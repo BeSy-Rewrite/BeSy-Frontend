@@ -14,6 +14,5 @@ export type SupplierResponseDTO = {
     phone?: string;
     comment?: string;
     website?: string;
-    address?: AddressResponseDTO;
 };
 

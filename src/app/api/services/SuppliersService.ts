@@ -36,6 +36,9 @@ export class SuppliersService {
             mediaType: 'application/json',
             errors: {
                 400: `Ungültige Eingabe(n).`,
+                409: `Konflikt – Die angegebene Ressource existiert bereits.
+                Verweis auf eine nicht existierende Entität.
+                `,
                 500: `Interner Serverfehler.`,
             },
         });
@@ -55,6 +58,7 @@ export class SuppliersService {
                 'supplier-id': supplierId,
             },
             errors: {
+                400: `Ungültige Eingabe.`,
                 404: `Lieferant nicht gefunden.`,
             },
         });
@@ -130,6 +134,7 @@ export class SuppliersService {
                 'supplier-id': supplierId,
             },
             errors: {
+                400: `Ungültige Eingabe.`,
                 404: `Lieferant nicht gefunden. Dieser Lieferant besitzt keine Adresse.`,
             },
         });

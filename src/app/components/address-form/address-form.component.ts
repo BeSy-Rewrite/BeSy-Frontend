@@ -32,6 +32,7 @@ export interface AddressField {
   nominatim_field?: string;
   validators?: any[];
   emitAsSignal?: boolean;
+  editable?: boolean;
 }
 
 export interface AddressConfig {
@@ -73,13 +74,14 @@ export class AddressFormComponent implements OnInit {
 
   // Columns to be displayed in the address table
   @Input() tableColumns: { id: string; label: string }[] = [];
+  @Input() editMode?: boolean;
 
   // Emits value changes from the form fields to the parent component
   valueChanged = output<{ field: string; value: any }>();
 
   addressSelected = output<number>();
 
-  selectedAddressId: number | null = null;
+  selectedAddressId: number | undefined = undefined;
 
   ngOnInit() {
 
@@ -122,6 +124,10 @@ export class AddressFormComponent implements OnInit {
         }
       });
     }
+
+    if (this.editMode) {
+      this.editModeDisableFields();
+    }
   }
 
   /**
@@ -132,6 +138,7 @@ export class AddressFormComponent implements OnInit {
     // Handle the row click event and patch the form with the selected row data
     this.formGroup.patchValue(event);
 
+    // Store the selected address ID and emit it
     this.selectedAddressId = event.id;
     this.addressSelected.emit(event.id);
   }
@@ -149,6 +156,14 @@ export class AddressFormComponent implements OnInit {
         } else {
           this.formGroup.get(key)?.enable();
         }
+      }
+    });
+  }
+
+  private editModeDisableFields() {
+    this.config.fields.forEach((field) => {
+      if (!field.editable) {
+        this.formGroup.get(field.name)?.disable();
       }
     });
   }

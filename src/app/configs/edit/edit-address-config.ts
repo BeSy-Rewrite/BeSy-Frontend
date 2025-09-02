@@ -1,36 +1,14 @@
-import { AddressConfig } from "../components/address-form/address-form.component";
+import { AddressConfig } from "../../components/address-form/address-form.component";
 
-export const ADDRESS_FORM_CONFIG: AddressConfig = {
-  title: '2. Präferierte Adresse festlegen',
-  editSubtitle: 'Bestehende Adresse auswählen',
-  newAddressSubtitle: 'Neue Adresse anlegen',
+export const EDIT_ADDRESS_FORM_CONFIG: AddressConfig = {
+  title: 'Bestehende Adressdaten',
   fields: [
-    {
-      // to be decided how this field will be handled
-      //
-      name: 'addressMode',
-      label: 'Adressmodus',
-      type: 'radio',
-      required: true,
-      options: [
-        { label: 'Existierende Addresse wählen', value: 'existing' },
-        { label: 'Neue Adresse anlegen', value: 'new' }
-      ],
-      defaultValue: 'existing',
-      emitAsSignal: true
-    },
-    {
-      label: 'Existierende Adressen',
-      type: 'table',
-      name: 'existingAddresses',
-      required: false
-    },
-
     {
       name: 'building_name',
       label: 'Gebäudename',
       type: 'text',
-      required: false
+      required: false,
+      editable: false
     },
     {
       name: 'street',
@@ -38,7 +16,8 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       type: 'text',
       required: true,
       nominatim_param: 'street',
-      nominatim_field: 'road'
+      nominatim_field: 'road',
+      editable: false
     },
     {
       name: 'building_number',
@@ -46,7 +25,8 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       type: 'text',
       required: false,
       nominatim_param: 'street',
-      nominatim_field: 'house_number'
+      nominatim_field: 'house_number',
+      editable: false
     },
     {
       name: 'town',
@@ -54,7 +34,8 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       type: 'text',
       required: true,
       nominatim_param: 'city',
-      nominatim_field: 'town'
+      nominatim_field: 'town',
+      editable: false
     },
     {
       name: 'postal_code',
@@ -62,7 +43,8 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       type: 'text',
       required: true,
       nominatim_param: 'postalcode',
-      nominatim_field: 'postcode'
+      nominatim_field: 'postcode',
+      editable: false
     },
     {
       name: 'county',
@@ -70,7 +52,8 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       type: 'text',
       required: false,
       nominatim_param: 'county',
-      nominatim_field: 'county'
+      nominatim_field: 'county',
+      editable: false
     },
     {
       name: 'country',
@@ -79,13 +62,15 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       required: true,
       defaultValue: 'Deutschland',
       nominatim_param: 'country',
-      nominatim_field: 'country'
+      nominatim_field: 'country',
+      editable: false
     },
     {
       name: 'comment',
       label: 'Kommentar',
       type: 'text',
-      required: false
+      required: false,
+      editable: false
     }
   ]
 };

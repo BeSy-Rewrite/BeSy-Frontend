@@ -13,7 +13,7 @@ import { MatTabGroup } from '@angular/material/tabs';
 import { MatTableDataSource } from '@angular/material/table';
 import { PersonsService } from '../../../api';
 import { MatTabsModule } from '@angular/material/tabs';
-import { ADDRESS_FORM_CONFIG } from '../../../configs/address-config';
+import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { PERSON_FORM_CONFIG } from '../../../configs/person-form';
 import { FormGroup } from '@angular/forms';
@@ -34,13 +34,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   ],
   templateUrl: './persons-page.component.html',
   styleUrls: ['./persons-page.component.css'],
-  encapsulation: ViewEncapsulation.None
+  encapsulation: ViewEncapsulation.None,
 })
 export class PersonsPageComponent implements OnInit {
   constructor(private router: Router, private _notifications: MatSnackBar) {}
 
   // Selected address ID in the address-form-table. Used to create a person with this address-id
-  selectedAddressId: number | null = null;
+  selectedAddressId: number | undefined = undefined;
 
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
 
@@ -102,7 +102,7 @@ export class PersonsPageComponent implements OnInit {
   personForm = new FormGroup({});
   addressForm = new FormGroup({});
 
-  addressMode: string | null = null;
+  addressMode: string | undefined = undefined;
 
   async ngOnInit(): Promise<void> {
     const persons = await PersonsService.getAllPersons();
@@ -140,20 +140,27 @@ export class PersonsPageComponent implements OnInit {
     }
   }
 
-  // Handle form submission
+  // * Handle form submission
   async onSubmit() {
-
     // Check if both forms are valid
     if (this.personForm.valid && this.addressForm.valid) {
-      // Both forms are valid, check the address mode to determine whether to use an existing address or create a new one
+      // ! Both forms are valid, check the address mode to determine whether to use an existing address or create a new one
       if (this.addressMode === 'existing') {
         // Use the selected rows id to create a person
         if (this.selectedAddressId) {
           const formValue = this.personForm.value as PersonRequestDTO;
           try {
+
+            console.log({
+              ...formValue,
+              address_id: this.selectedAddressId,
+            });
             const response = await PersonsService.createPerson({
               ...formValue,
               address_id: this.selectedAddressId,
+            });
+            this._notifications.open('Person erfolgreich erstellt', undefined, {
+              duration: 3000,
             });
           } catch (error) {
             this._notifications.open(
@@ -162,16 +169,17 @@ export class PersonsPageComponent implements OnInit {
               { duration: 3000 }
             );
           }
-          this._notifications.open('Person erfolgreich erstellt', undefined, {
-            duration: 3000,
-          });
         } else {
-          this._notifications.open('Die ausgewählte Adresse ist ungültig. Bitte wählen Sie eine gültige Adresse aus.', undefined, {
-            duration: 3000,
-          });
+          this._notifications.open(
+            'Die ausgewählte Adresse ist ungültig. Bitte wählen Sie eine gültige Adresse aus.',
+            undefined,
+            {
+              duration: 3000,
+            }
+          );
         }
 
-      // Handle person creation with a new address. First, create the address. Then, create the person.
+        // Handle person creation with a new address. First, create the address. Then, create the person.
       } else {
         try {
           // Adresse erstellen

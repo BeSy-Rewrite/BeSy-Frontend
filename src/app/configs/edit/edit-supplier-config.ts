@@ -1,10 +1,9 @@
 import { Validators } from "@angular/forms";
-import { FormConfig } from "../components/form-component/form-component.component";
+import { FormConfig } from "../../components/form-component/form-component.component";
 
 // Supplier Configuration (matches SupplierRequestDTO)
-export const SUPPLIER_FORM_CONFIG: FormConfig = {
-  title: 'Neuen Lieferanten hinzufügen',
-  subtitle: 'Lieferantendaten eingeben',
+export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
+  title: 'Bestehende Lieferantendaten',
   fields: [
     {
       name: 'name',
@@ -31,7 +30,8 @@ export const SUPPLIER_FORM_CONFIG: FormConfig = {
       required: false,
       options: [
         {value: 'error_loading_from_api', label: 'Fehler beim Laden der Optionen'}
-      ]
+      ],
+      tooltip: 'Bitte wählen Sie den Mehrwertsteuersatz aus.'
     },
     {
       name: 'email',
@@ -64,5 +64,13 @@ export const SUPPLIER_FORM_CONFIG: FormConfig = {
       type: 'text',
       required: false,
     },
+
+    {
+      name: 'customer_id',
+      label: 'Kundennummer',
+      type: 'text',
+      required: false,
+      tooltip: 'Interne oder vom Lieferanten vergebene Kundennummer. Diese wird später zum Erstellen einer Bestellungen benötigt. Falls möglich bitte angeben.'
+    }
   ]
 };

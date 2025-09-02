@@ -1,0 +1,51 @@
+<div class="add-person-page h-auto overflow-visible">
+  <mat-divider
+    style="background-color: darkgrey; color: darkgrey"
+  ></mat-divider>
+  <div style="justify-content: flex-end overflow-visible">
+    <div class="form-container flex space-x-5 pt-3 overflow-visible">
+      <!-- Linke Spalte: Supplier + CustomerId -->
+      <div class="left-column flex flex-col basis-1/2 space-y-5">
+        <div class="customer-data-container bg-white overflow-visible">
+          <app-form-component
+            [config]="customerIdFormConfig"
+            [formGroup]="customerIdForm"
+            [tableDataSource]="customerIdTableDataSource"
+            [tableColumns]="customerIdTableColumns"
+          ></app-form-component>
+        </div>
+        <div class="person-data-container bg-white overflow-visible">
+          <app-form-component
+            [config]="supplierFormConfig"
+            [formGroup]="supplierForm"
+            [editMode]="true"
+          ></app-form-component>
+        </div>
+      </div>
+
+      <!-- Rechte Spalte: Address -->
+      <div class="address-data-container bg-white overflow-visible flex-1">
+        <app-address-form
+          [config]="addressFormConfig"
+          [formGroup]="addressForm"
+          [editMode]="true"
+        ></app-address-form>
+      </div>
+    </div>
+
+    <div class="buttons flex justify-end">
+      <button mat-raised-button color="primary" (click)="onSubmit()">
+        Speichern
+      </button>
+      <button
+        mat-raised-button
+        color="warn"
+        (click)="onBack()"
+        aria-label="cancel"
+        style="margin-right: 16px"
+      >
+        Verwerfen
+      </button>
+    </div>
+  </div>
+</div>
