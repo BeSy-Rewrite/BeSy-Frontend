@@ -136,7 +136,6 @@ export class EditSuppliersPageComponent implements OnInit {
       });
     } catch (error) {
       // Handle error in API call
-      console.error('Fehler beim Erstellen der Kundennummer:', error);
       this._notifications.open(
         'Fehler beim Erstellen der Kundennummer',
         undefined,

@@ -11,7 +11,7 @@ describe('PersonsPageComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ PersonsPageComponent ]
+      imports: [ PersonsPageComponent ]
     })
     .compileComponents();
   }));

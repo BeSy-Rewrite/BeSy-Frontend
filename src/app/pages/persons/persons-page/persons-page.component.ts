@@ -150,11 +150,6 @@ export class PersonsPageComponent implements OnInit {
         if (this.selectedAddressId) {
           const formValue = this.personForm.value as PersonRequestDTO;
           try {
-
-            console.log({
-              ...formValue,
-              address_id: this.selectedAddressId,
-            });
             const response = await PersonsService.createPerson({
               ...formValue,
               address_id: this.selectedAddressId,
@@ -202,7 +197,6 @@ export class PersonsPageComponent implements OnInit {
           this._notifications.open('Fehler beim Erstellen', undefined, {
             duration: 3000,
           });
-          console.error(error);
         }
       }
     } else {
