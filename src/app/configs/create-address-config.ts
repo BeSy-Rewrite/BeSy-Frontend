@@ -85,7 +85,6 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       label: 'Land',
       type: 'text',
       required: true,
-      defaultValue: 'Deutschland',
       nominatim_param: 'country',
       nominatim_field: 'country',
       editable: false
