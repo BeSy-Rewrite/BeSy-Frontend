@@ -187,8 +187,8 @@ export class SuppliersPageComponent implements OnInit {
           address: addressFormValue as AddressRequestDTO,
         });
 
-        // create Customer-Id
-        if (response.id !== undefined) {
+        // create Customer-Id if customer_id field is not empty and supplier-create response is valid
+        if (customerIdValue.customer_id?.trim() && response.id !== undefined) {
           try {
             await SuppliersService.createSupplierCustomerId(response.id, {
               ...customerIdValue,
