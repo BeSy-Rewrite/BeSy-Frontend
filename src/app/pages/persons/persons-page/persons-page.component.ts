@@ -148,6 +148,9 @@ export class PersonsPageComponent implements OnInit {
           this.addressForm.get(field)?.reset();
         }
       });
+
+      // Reset selected address ID
+      this.selectedAddressId = undefined;
     }
   }
 
