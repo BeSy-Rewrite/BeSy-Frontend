@@ -1,0 +1,13 @@
+.person-data-container {
+  flex: 0 0 50%; /* genau 50% */
+}
+
+.address-data-container {
+  flex: 1; /* nimmt den restlichen Platz */
+}
+
+:host ::ng-deep .mat-mdc-tab-body-content {
+  overflow: visible !important;
+  height: auto !important;
+}
+

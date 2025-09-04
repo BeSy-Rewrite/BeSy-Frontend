@@ -1,0 +1,25 @@
+<div class="progress-container">
+  @for (step of steps; track i; let i = $index) {
+    <div
+      class="step"
+      [ngClass]="{
+        'completed': i < currentStepIndex,
+        'active': i === currentStepIndex,
+        'pending': i > currentStepIndex
+      }"
+    >
+      <div
+        class="step-circle"
+        matTooltip="{{ step.tooltip }}"
+        matTooltipPosition="above"
+      >
+        @if (step.icon) {
+          <mat-icon>{{ step.icon }}</mat-icon>
+        } @else {
+          {{ i + 1 }}
+        }
+      </div>
+      <div class="step-label">{{ step.label }}</div>
+    </div>
+  }
+</div>

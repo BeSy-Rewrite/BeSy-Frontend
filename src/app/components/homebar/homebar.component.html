@@ -3,8 +3,8 @@
 >
   <div class="homebar__logo">
   <img
-    class="h-16 mx-4 w-auto object-contain cursor-pointer"
-    src="assets/logo_hochschule_esslingen_negativ_de.png"
+    class="h-16 mx-8 w-auto object-contain cursor-pointer"
+    src="assets/pics/logo_hochschule_esslingen_negativ_de.png"
     alt="Logo"
     (click)="navigateToHome()"
   />
@@ -19,26 +19,21 @@
     <app-navbar-button
       label="Bestellungen"
       routerLink="/orders"
-      [isExact]="true"
+      [isExact]="false"
     ></app-navbar-button>
     <app-navbar-button
       label="Lieferanten"
       routerLink="/suppliers"
-      [isExact]="true"
-    ></app-navbar-button>
-    <app-navbar-button
-      label="Adressen"
-      routerLink="/addresses"
-      [isExact]="true"
+      [isExact]="false"
     ></app-navbar-button>
     <app-navbar-button
       label="Personen"
       routerLink="/persons"
-      [isExact]="true"
+      [isExact]="false"
     ></app-navbar-button>
   </nav>
 
-  <div class="homebar__user ml-auto">
+  <div class="homebar__user ml-auto mr-8">
     @if (authService.hasValidToken()) {
     <button mat-flat-button color="accent" (click)="authService.logout()">
       Logout

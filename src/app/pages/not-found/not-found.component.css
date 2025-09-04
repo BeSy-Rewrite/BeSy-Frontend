@@ -1,0 +1,35 @@
+.scared-btn {
+  position: absolute;
+  left: 0;
+  top: 0;
+  /* No default translate here; we will control exact position via left/top */
+  padding: 12px 18px;
+  font-weight: 600;
+  background: #22d3ee !important;
+  color: #0b1225 !important;
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0 10px 24px rgba(34,211,238,.2);
+  cursor: pointer;
+  transform-origin: center;
+  transition: left .12s linear, top .12s linear, transform .12s ease;
+  z-index: 1000;
+}
+.scared-btn.no-anim {
+  transition: none !important;
+}
+
+.scared-btn.wiggle {
+  transform: translate(-50%, -50%) rotate(-1.5deg) scale(1.02);
+}
+
+
+.scared-btn.edge-pop {
+  animation: pop .28s ease;
+}
+
+@keyframes pop {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.06); }
+  100% { transform: scale(1); }
+}

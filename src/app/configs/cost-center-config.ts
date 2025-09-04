@@ -1,0 +1,31 @@
+import { FormConfig } from "../components/form-component/form-component.component";
+
+export const COST_CENTER_FORM_CONFIG: FormConfig = {
+  title: 'Neue Kostenstelle hinzufügen',
+  fields: [
+    {
+      name: 'name',
+      label: 'Kostenstellenname',
+      type: 'text',
+      required: true
+    },
+    {
+      name: 'begin_date',
+      label: 'Gültig ab',
+      type: 'date',
+      required: false
+    },
+    {
+      name: 'end_date',
+      label: 'Gültig bis',
+      type: 'date',
+      required: false
+    },
+    {
+      name: 'comment',
+      label: 'Kommentar',
+      type: 'text',
+      required: false
+    }
+  ]
+};

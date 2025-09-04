@@ -1,0 +1,159 @@
+<div class="form-header p-8">
+  <h4 class="text-2xl font-medium mb-6 text-gray-800">
+    {{ config.title }}
+  </h4>
+
+  <h2>
+  {{ formGroup.get('addressMode')?.value === 'existing' ? config.editSubtitle : config.newAddressSubtitle }}
+</h2>
+  <mat-divider class="my-4"></mat-divider>
+  <form [formGroup]="formGroup" class="w-full bg-white">
+    <table class="w-full mb-5">
+      @for (field of config.fields; track field.name) {
+      <tr class="align-top">
+        <td class="py-2">
+          @switch (field.type) {
+
+          <!-- Textfeld -->
+          @case ('text') {
+          <mat-form-field class="w-4/5">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              matInput
+              [formControlName]="field.name"
+              [required]="field.required"
+            />
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+          </mat-form-field>
+          }
+
+          <!-- Select -->
+          @case ('select') {
+          <mat-form-field class="w-4/5">
+            <mat-select [formControlName]="field.name">
+              @for (opt of field.options ?? []; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-select>
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültigen Wert auswählen!</mat-error>
+            }
+          </mat-form-field>
+          }
+
+          <!-- Radio -->
+          @case ('radio') {
+          <div class="w-4/5">
+            <mat-radio-group [formControlName]="field.name" class="radio-group">
+              @for (opt of field.options ?? []; track opt.value) {
+              <mat-radio-button [value]="opt.value">{{
+                opt.label
+              }}</mat-radio-button>
+              }
+            </mat-radio-group>
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültige Auswahl treffen!</mat-error>
+            }
+          </div>
+          }
+
+          <!-- Checkbox -->
+          @case ('checkbox') {
+          <div class="w-4/5">
+            <mat-checkbox [formControlName]="field.name"></mat-checkbox>
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültige Auswahl treffen!</mat-error>
+            }
+          </div>
+          }
+
+          <!-- Number -->
+          @case ('number') {
+          <mat-form-field class="w-4/5">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              matInput
+              [formControlName]="field.name"
+              [required]="field.required"
+              type="number"
+            />
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+          </mat-form-field>
+          }
+
+          <!-- Date -->
+          @case ('date') {
+          <mat-form-field class="w-4/5">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              matInput
+              [formControlName]="field.name"
+              [required]="field.required"
+              type="date"
+            />
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+          </mat-form-field>
+          }
+
+          <!-- Email -->
+          @case ('email') {
+          <mat-form-field class="w-4/5">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              matInput
+              [formControlName]="field.name"
+              [required]="field.required"
+              type="email"
+            />
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+          </mat-form-field>
+          } @case ('tel') {
+          <mat-form-field class="w-4/5">
+            <mat-label>{{ field.label }}</mat-label>
+            <input
+              matInput
+              [formControlName]="field.name"
+              [required]="field.required"
+              type="tel"
+            />
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+          </mat-form-field>
+          }
+
+          @case ('table') {
+            @if (formGroup.get('addressMode')?.value === 'existing') {
+            <p>Bitte wählen Sie eine Adresse aus der Tabelle aus. Überprüfen sie die Auswahl in den Eingabefeldern unterhalb.</p>
+            <app-generic-table
+              [dataSource]="tableDataSource"
+              [columns]="tableColumns"
+              [pageSize]="5"
+              (rowClicked)="onRowClickedPatchForm($event)"
+            ></app-generic-table>
+            <mat-divider></mat-divider>
+            }
+          }
+        }
+        </td>
+      </tr>
+      }
+    </table>
+  </form>
+</div>

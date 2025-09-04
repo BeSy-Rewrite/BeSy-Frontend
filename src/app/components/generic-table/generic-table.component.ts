@@ -1,4 +1,12 @@
-import { Component, input, signal, ViewChild } from '@angular/core';
+import {
+  Component,
+  effect,
+  EventEmitter,
+  input,
+  Output,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
@@ -21,17 +29,24 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
  */
 @Component({
   selector: 'app-generic-table',
-  imports: [
-    MatTableModule,
-    MatButtonModule,
-    MatSortModule,
-    MatPaginatorModule
-  ],
+  imports: [MatTableModule, MatButtonModule, MatSortModule, MatPaginatorModule],
   templateUrl: './generic-table.component.html',
-  styleUrl: './generic-table.component.css'
+  styleUrl: './generic-table.component.css',
 })
 export class GenericTableComponent<T> {
+  constructor() {
 
+    // Reacts to changes of the signal dataSource, and sets the sort and paginator.
+    effect(() => {
+      const ds = this.dataSource();
+      if (ds && this.sort && this.paginator) {
+        ds.sort = this.sort;
+        ds.paginator = this.paginator;
+        this.paginator._intl.itemsPerPageLabel = 'Einträge pro Seite';
+        this.paginator.pageSize = this.pageSize();
+      }
+    });
+  }
   /**
    * The data source for the table, required to be provided.
    */
@@ -50,6 +65,12 @@ export class GenericTableComponent<T> {
   actions = input<TableActionButton[]>([]);
 
   /**
+   * The number of items to display per page.
+   * Defaults to 10 if not provided.
+   */
+  pageSize = input<number>(10);
+
+  /**
    * Internal representation of the columns.
    */
   internalColumns = signal<TableColumn[]>([]);
@@ -58,6 +79,13 @@ export class GenericTableComponent<T> {
    * Internal representation of the displayed column IDs.
    */
   displayedColumnIds = signal<string[]>([]);
+
+  /**
+   * Tracks the currently selected row internally.
+   */
+  selectedRow: T | null = null;
+
+  @Output() rowClicked = new EventEmitter<T>();
 
   /**
    * Reference to the MatSort directive for enabling sorting functionality.
@@ -91,6 +119,9 @@ export class GenericTableComponent<T> {
     this.dataSource().sort = this.sort;
     this.dataSource().paginator = this.paginator;
     this.paginator._intl.itemsPerPageLabel = 'Einträge pro Seite';
+
+    // Set the initial page size
+    this.paginator.pageSize = this.pageSize();
   }
 
   /**
@@ -99,7 +130,9 @@ export class GenericTableComponent<T> {
    * @param {T} row - The data row associated with the button click.
    */
   handleAction(button: TableActionButton, row: T) {
-    button.action ? button.action(row) : console.warn(`No action defined for button: ${button.label}`);
+    button.action
+      ? button.action(row)
+      : console.warn(`No action defined for button: ${button.label}`);
   }
 
   /**
@@ -109,9 +142,11 @@ export class GenericTableComponent<T> {
    * @private
    */
   private _setupInternals() {
-    this.displayedColumnIds.set(this.columns()
-      .filter(c => !c.isInvisible)
-      .map(c => c.id));
+    this.displayedColumnIds.set(
+      this.columns()
+        .filter((c) => !c.isInvisible)
+        .map((c) => c.id)
+    );
     this.internalColumns.set(this.columns());
   }
 
@@ -122,9 +157,21 @@ export class GenericTableComponent<T> {
    */
   private _setupActions() {
     if (this.actions().length > 0) {
-      this.displayedColumnIds.update(ids => [...ids, 'actions']);
-      this.internalColumns.update(cols => [...cols, { id: 'actions', label: 'Actions', isUnsortable: true }]);
+      this.displayedColumnIds.update((ids) => [...ids, 'actions']);
+      this.internalColumns.update((cols) => [
+        ...cols,
+        { id: 'actions', label: 'Actions', isUnsortable: true },
+      ]);
     }
   }
 
+  /**
+   * Handles the row click event.
+   * Sets the selected row and emits the rowClicked event.
+   * @param {T} row - The data row that was clicked.
+   */
+  onRowClick(row: T) {
+    this.selectedRow = row;
+    this.rowClicked.emit(row);
+  }
 }
