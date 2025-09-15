@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { CostCenterRequestDTO } from '../models/CostCenterRequestDTO';
-import type { CostCenterResponseDTO } from '../models/CostCenterResponseDTO';
+import type { CostCenterRequestDTO } from '../models/request-dtos/CostCenterRequestDTO';
+import type { CostCenterResponseDTO } from '../models/response-dtos/CostCenterResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -31,6 +31,9 @@ export class CostCentersService {
             url: '/cost_centers',
             body: requestBody,
             mediaType: 'application/json',
+            errors: {
+                409: `Kostenstelle mit diesem Namen existiert bereits.`,
+            },
         });
     }
 }

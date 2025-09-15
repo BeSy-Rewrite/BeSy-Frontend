@@ -36,7 +36,7 @@
         }
 
         <tr mat-header-row *matHeaderRowDef="displayedColumnIds()" sticky></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumnIds();"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumnIds();" (click)="onRowClick(row)" [class.selected]="selectedRow === row"></tr>
 
     </table>
 </div>

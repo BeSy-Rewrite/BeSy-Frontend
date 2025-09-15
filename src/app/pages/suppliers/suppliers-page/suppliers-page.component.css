@@ -1,0 +1,21 @@
+.form-container {
+  display: flex;
+}
+
+.left-column {
+  display: flex;
+  flex-direction: column;
+  flex: 0 0 50%; /* genau 50% Breite */
+}
+
+.person-data-container {
+  flex: 0 0 auto; /* nur so hoch wie nötig */
+}
+
+.customer-data-container {
+  flex: 0 0 auto; /* auch nur so hoch wie nötig */
+}
+
+.address-data-container {
+  flex: 1; /* nimmt die rechte Hälfte komplett ein */
+}

@@ -5,7 +5,11 @@ import { FilterDemoComponent } from './mockups/filter-demo/filter-demo.component
 import { TableDemoComponent } from './mockups/table-demo/table-demo.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
+import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
 import { OrdersTableComponent } from './pages/orders-table/orders-table.component';
+import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.component';
+import { EditSuppliersPageComponent } from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
+import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 
 export const routes: Routes = [
@@ -46,9 +50,34 @@ export const routes: Routes = [
         canActivate: [DefaultGuard]
     },
     {
+        title: 'Bestellung erstellen',
+        path: 'orders/create',
+        component: CreateOrderPageComponent
+    },
+    {
+        title: 'Personen',
+        path: 'persons',
+        component: PersonsPageComponent
+    },
+    {
+        title: 'Lieferanten',
+        path: 'suppliers',
+        component: SuppliersPageComponent
+    },
+    {
+        title: 'Lieferant bearbeiten',
+        path: 'suppliers/:id/edit',
+        component: EditSuppliersPageComponent
+    },
+    {
         title: 'Unauthorisiert',
         path: 'unauthorized',
         component: UnauthorizedComponent
+    },
+    {
+        title: '404 Not Found',
+        path: 'not-found',
+        component: NotFoundComponent
     },
     {
         title: '404 Not Found',

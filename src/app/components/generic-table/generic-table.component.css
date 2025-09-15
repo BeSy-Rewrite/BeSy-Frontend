@@ -23,3 +23,11 @@ table {
     width: 1%;
     white-space: nowrap;
 }
+
+tr.selected {
+  background-color: rgba(25, 118, 210, 0.1); /* leichtes Blau */
+}
+
+tr.selected:hover {
+  background-color: rgba(25, 118, 210, 0.2);
+}
