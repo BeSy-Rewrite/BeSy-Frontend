@@ -94,7 +94,7 @@ export class CreateOrderPageComponent implements OnInit {
   infoText = '';
   selectedPerson?: PersonResponseDTO;
 
-  personControl = new FormControl();
+  personControl = new FormControl<PersonResponseDTO | string>('');
   persons: PersonResponseDTO[] = [];
   filteredPersons$!: Observable<PersonResponseDTO[]>;
 
@@ -143,9 +143,9 @@ export class CreateOrderPageComponent implements OnInit {
 
     this.persons = await PersonsService.getAllPersons();
     this.filteredPersons$ = this.personControl.valueChanges.pipe(
-      startWith(''),
-      map((value) => this._filter(value || ''))
-    );
+    startWith(''),
+    map(value => this._filter(value))
+  );
   }
 
   onAddItem() {
@@ -176,16 +176,18 @@ export class CreateOrderPageComponent implements OnInit {
   }
 
   // Filter returned PersonResponseDTO
-  private _filter(value: string | PersonResponseDTO): PersonResponseDTO[] {
-    const filterValue =
-      typeof value === 'string'
-        ? value.toLowerCase()
-        : `${value.name} ${value.surname}`.toLowerCase();
+  private _filter(value: string | PersonResponseDTO | null): PersonResponseDTO[] {
+  const filterValue =
+    typeof value === 'string'
+      ? value.toLowerCase()
+      : value
+      ? `${value.name} ${value.surname}`.toLowerCase()
+      : '';
 
-    return this.persons.filter((person) =>
-      `${person.name} ${person.surname}`.toLowerCase().includes(filterValue)
-    );
-  }
+  return this.persons.filter(person =>
+    `${person.name} ${person.surname}`.toLowerCase().includes(filterValue)
+  );
+}
 
   // Controls how the person is displayed in the autocomplete input
   displayPerson(person: PersonResponseDTO): string {

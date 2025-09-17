@@ -47,7 +47,8 @@ export const PERSON_FORM_CONFIG: FormConfig = {
         { value: 'f', label: 'Weiblich' },
         { value: 'd', label: 'Divers' }
       ],
-      defaultValue: 'd'
+      defaultValue: 'd',
+      tooltip: 'Bitte wählen Sie das Geschlecht der Person aus.'
     },
     {
       name: 'title',

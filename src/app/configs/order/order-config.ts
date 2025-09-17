@@ -99,7 +99,7 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
       type: 'number',
       required: true,
       editable: true,
-      validators: [Validators.pattern('^\\d+,\\d{2}$')]
+      //validators: [Validators.pattern('^\\d+,\\d{2}$')]
     },
     {
       name: 'company_name',
