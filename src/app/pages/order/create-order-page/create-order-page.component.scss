@@ -1,0 +1,18 @@
+.create-order-page {
+
+  /* Falls du willst, dass die Page immer mindestens die volle Höhe hat */
+  min-height: 100vh;
+}
+
+.form-container {
+  /* Bild setzen */
+  background-image: url('/assets/pics/5426.jpg'); /* Pfad zum Bild anpassen */
+
+  /* Bild anpassen */
+  background-size: cover;     /* Bild skaliert, um die ganze Fläche zu füllen */
+  background-position: center; /* Bild zentrieren */
+  //background-repeat: no-repeat; /* Wiederholung verhindern */
+
+  min-height: 100vh;
+
+}

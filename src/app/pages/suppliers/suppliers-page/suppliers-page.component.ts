@@ -36,7 +36,7 @@ import { CUSTOMER_ID_FORM_CONFIG } from '../../../configs/create-customer-id-con
     MatButtonModule,
   ],
   templateUrl: './suppliers-page.component.html',
-  styleUrl: './suppliers-page.component.css',
+  styleUrl: './suppliers-page.component.scss',
 })
 export class SuppliersPageComponent implements OnInit {
   constructor(private router: Router, private _notifications: MatSnackBar) {}

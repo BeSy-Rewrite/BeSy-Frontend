@@ -1,12 +1,277 @@
+import { AddressResponseDTO } from './../../../api/models/response-dtos/AddressResponseDTO';
 import { Component } from '@angular/core';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
+import { MatDivider } from '@angular/material/divider';
+import { FormComponent } from '../../../components/form-component/form-component.component';
+import { OnInit } from '@angular/core';
+import { FormConfig } from '../../../components/form-component/form-component.component';
+import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
+import { FormControl, FormGroup } from '@angular/forms';
+import { MatButton } from '@angular/material/button';
+import { ItemRequestDTO } from '../../../api/models/request-dtos/ItemRequestDTO';
+import { MatTableDataSource } from '@angular/material/table';
+import {
+  ButtonColor,
+  TableActionButton,
+  TableColumn,
+} from '../../../models/generic-table';
+import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import {
+  PersonResponseDTO,
+  QuotationRequestDTO,
+  VatResponseDTO,
+  VatSService,
+} from '../../../api';
+import {
+  ORDER_ADDRESS_FORM_CONFIG,
+  ORDER_QUOTATION_FORM_CONFIG,
+} from '../../../configs/order/order-config';
+import { PersonsService } from '../../../api';
+import { map, Observable, startWith } from 'rxjs';
+import { MatInputModule } from '@angular/material/input';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatOptionModule } from '@angular/material/core';
+import { CommonModule } from '@angular/common';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import {
+  MatButtonToggle,
+  MatButtonToggleGroup,
+} from '@angular/material/button-toggle';
+import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
 
 @Component({
   selector: 'app-create-order-page',
-  imports: [ProgressBarComponent],
+  imports: [
+    ProgressBarComponent,
+    MatDivider,
+    FormComponent,
+    MatButton,
+    GenericTableComponent,
+    MatInputModule,
+    MatAutocompleteModule,
+    MatOptionModule,
+    CommonModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MatButtonToggle,
+    MatButtonToggleGroup,
+    MatRadioButton,
+    MatRadioModule
+  ],
   templateUrl: './create-order-page.component.html',
-  styleUrl: './create-order-page.component.css'
+  styleUrl: './create-order-page.component.scss',
 })
-export class CreateOrderPageComponent {
+export class CreateOrderPageComponent implements OnInit {
+  constructor() {}
 
+  items: ItemRequestDTO[] = []; // Zwischenspeicher für die Artikel
+  itemTableDataSource = new MatTableDataSource<ItemRequestDTO>(this.items);
+
+  orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
+  orderItemFormGroup = new FormGroup({});
+
+  recipientAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
+  recipientAddressFormGroup = new FormGroup({});
+  invoiceAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
+  invoiceAddressFormGroup = new FormGroup({});
+  addressTableDataSource: MatTableDataSource<AddressResponseDTO> =
+    new MatTableDataSource<AddressResponseDTO>([]);
+  addressTableColumns = [
+    { id: 'id', label: 'ID' },
+    { id: 'street', label: 'Straße' },
+    { id: 'town', label: 'Stadt' },
+    { id: 'postal_code', label: 'Postleitzahl' },
+    { id: 'country', label: 'Land' },
+  ];
+  // State flags
+  hasPreferredAddress = false;
+  sameAsRecipient: boolean = true;
+  // Standard: preferred address
+  addressOption: 'preferred' | 'existing' | 'new' = 'preferred';
+  infoText = '';
+  selectedPerson?: PersonResponseDTO;
+
+  personControl = new FormControl();
+  persons: PersonResponseDTO[] = [];
+  filteredPersons$!: Observable<PersonResponseDTO[]>;
+
+  quotationFormConfig = ORDER_QUOTATION_FORM_CONFIG;
+  quotationFormGroup = new FormGroup({});
+  quotations: QuotationRequestDTO[] = [];
+  quotationTableDataSource = new MatTableDataSource<QuotationRequestDTO>(
+    this.quotations
+  );
+  orderQuotationColumns: TableColumn<QuotationRequestDTO>[] = [
+    { id: 'index', label: 'Nummer' },
+    { id: 'price', label: 'Preis' },
+    { id: 'company_name', label: 'Anbieter' },
+    { id: 'company_city', label: 'Ort' },
+  ];
+  orderQuotationTableActions: TableActionButton[] = [
+    {
+      id: 'delete',
+      label: 'Delete',
+      buttonType: 'filled',
+      color: ButtonColor.WARN,
+      action: (row: QuotationRequestDTO) => this.deleteQuotation(row),
+    },
+  ];
+
+  orderItemColumns: TableColumn<ItemRequestDTO>[] = [
+    { id: 'name', label: 'Artikelbezeichnung' },
+    { id: 'quantity', label: 'Anzahl' },
+    { id: 'price_per_unit', label: 'Stückpreis' }, // This column is sortable by default
+    { id: 'comment', label: 'Kommentar' }, // This column is not displayed
+  ];
+  orderItemTableActions: TableActionButton[] = [
+    {
+      id: 'delete',
+      label: 'Delete',
+      buttonType: 'filled',
+      color: ButtonColor.WARN,
+      action: (row: ItemRequestDTO) => this.deleteItem(row),
+    },
+  ];
+
+  async ngOnInit(): Promise<void> {
+    // Load initial data for the VAT options field in the form
+    const vatOptions = await VatSService.getAllVats();
+    this.setDropdownOptions(vatOptions);
+
+    this.persons = await PersonsService.getAllPersons();
+    this.filteredPersons$ = this.personControl.valueChanges.pipe(
+      startWith(''),
+      map((value) => this._filter(value || ''))
+    );
+  }
+
+  onAddItem() {
+    if (this.orderItemFormGroup.valid) {
+      const newItem = this.orderItemFormGroup.value as ItemRequestDTO;
+      this.items.push(newItem);
+      this.itemTableDataSource.data = this.items; // Aktualisiere die Datenquelle der Tabelle
+      this.orderItemFormGroup.reset(); // Formular zurücksetzen
+    } else {
+      this.orderItemFormGroup.markAllAsTouched(); // Markiere alle Felder als berührt, um Validierungsfehler anzuzeigen
+    }
+  }
+
+  deleteItem(item: ItemRequestDTO) {
+    this.items = this.items.filter((i) => i !== item);
+    this.itemTableDataSource.data = this.items; // Aktualisiere die Datenquelle der Tabelle
+  }
+
+  // Set dropdown options for the form fields
+  private setDropdownOptions(vatOptions: VatResponseDTO[]) {
+    // set options for dropdown fields
+    this.orderItemFormConfig.fields.find(
+      (field) => field.name === 'vat_value'
+    )!.options = vatOptions.map((vat) => ({
+      value: vat.value,
+      label: `${vat.description} (${vat.value}%)`,
+    }));
+  }
+
+  // Filter returned PersonResponseDTO
+  private _filter(value: string | PersonResponseDTO): PersonResponseDTO[] {
+    const filterValue =
+      typeof value === 'string'
+        ? value.toLowerCase()
+        : `${value.name} ${value.surname}`.toLowerCase();
+
+    return this.persons.filter((person) =>
+      `${person.name} ${person.surname}`.toLowerCase().includes(filterValue)
+    );
+  }
+
+  // Controls how the person is displayed in the autocomplete input
+  displayPerson(person: PersonResponseDTO): string {
+    return person ? `${person.name} ${person.surname}` : '';
+  }
+
+  // Handle selection of a person from the autocomplete options
+  async onPersonSelected(person: PersonResponseDTO) {
+    this.selectedPerson = person;
+
+    // Check if the selected person has a preferred address
+    if (person.address_id) {
+      this.hasPreferredAddress = true;
+      this.addressOption = 'preferred';
+      this.infoText =
+        'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
+
+      const preferredAddress: AddressResponseDTO =
+        await PersonsService.getPersonsAddress(person.id!);
+      this.recipientAddressFormGroup.patchValue(preferredAddress);
+      this.recipientAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+    } else {
+      // Person has no preferred address
+      // Automatically switch to "existing address" option and let user select an address from table
+      this.hasPreferredAddress = false;
+      this.addressOption = 'existing';
+      this.infoText =
+        'Die Person hat keine bevorzugte Adresse. Bitte wählen Sie eine bestehende Adresse aus der Tabelle aus.';
+      this.recipientAddressFormConfig.title = 'Bestehende Adresse überprüfen';
+      this.recipientAddressFormGroup.reset();
+    }
+    this.recipientAddressFormGroup.disable();
+    // Load available addresses for the selected person
+    this.addressTableDataSource.data =
+      await PersonsService.getPersonsAddresses();
+  }
+
+  onAddQuotation() {
+    if (this.quotationFormGroup.valid) {
+      const newQuotation = this.quotationFormGroup.value as QuotationRequestDTO;
+      this.quotations.push(newQuotation);
+      this.quotationFormGroup.reset(); // Reset the form
+    } else {
+      this.quotationFormGroup.markAllAsTouched(); // Mark all fields as touched to show validation errors
+    }
+  }
+
+  deleteQuotation(quotation: QuotationRequestDTO) {
+    this.quotations = this.quotations.filter((q) => q !== quotation);
+    this.quotationTableDataSource.data = this.quotations; // Update the table data source
+  }
+
+  onAddressSelected(address: AddressResponseDTO) {
+    // Wird aufgerufen, wenn in der Adress-Tabelle eine Zeile ausgewählt wird
+    this.recipientAddressFormGroup.patchValue(address);
+  }
+
+  // Handle change of address option (preferred, existing, new)
+  onAddressOptionChange(option: string) {
+    this.addressOption = option as any;
+
+    if (option === 'preferred' && this.selectedPerson?.address_id) {
+      PersonsService.getPersonsAddress(this.selectedPerson.id!).then((addr) =>
+        this.recipientAddressFormGroup.patchValue(addr)
+      );
+      this.infoText =
+        'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
+      this.recipientAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+      this.recipientAddressFormGroup.disable();
+    } else if (option === 'existing') {
+      this.recipientAddressFormGroup.reset();
+      this.recipientAddressFormGroup.disable();
+      this.recipientAddressFormConfig.title = 'Bestehende Adresse überprüfen';
+      this.infoText = 'Adressdaten überprüfen';
+    } else if (option === 'new') {
+      this.recipientAddressFormGroup.reset();
+      this.recipientAddressFormGroup.enable();
+      this.recipientAddressFormConfig.title = 'Neue Adresse erstellen';
+      this.infoText = 'Neue Adresse erstellen: bitte Formular ausfüllen.';
+    }
+  }
+
+  onSameAsRecipientChange() {
+    if (this.sameAsRecipient) {
+      // If the checkbox is checked, copy recipient address to delivery address
+    }
+    console.log(this.sameAsRecipient);
+  }
 }

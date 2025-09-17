@@ -10,6 +10,15 @@
       "url": "http://localhost:4200/"
     },
     {
+      "name": "ng serve (Firefox)",
+      "type": "firefox",
+      "request": "launch",
+      "reAttach": true,
+      "preLaunchTask": "npm: start",
+      "url": "http://localhost:4200/",
+      "webRoot": "${workspaceFolder}"
+    },
+    {
       "name": "ng test",
       "type": "chrome",
       "request": "launch",

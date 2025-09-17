@@ -10,7 +10,7 @@ import { NgClass } from '@angular/common';
     RouterLinkActive,
     NgClass
   ],
-  styleUrls: ['./navbar-button.component.css']
+  styleUrls: ['./navbar-button.component.scss']
 })
 export class NavbarButtonComponent {
   @Input() label!: string;

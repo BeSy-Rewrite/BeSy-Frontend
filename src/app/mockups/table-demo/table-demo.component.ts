@@ -22,7 +22,7 @@ interface DemoRow {
     MatButtonModule
   ],
   templateUrl: './table-demo.component.html',
-  styleUrl: './table-demo.component.css'
+  styleUrl: './table-demo.component.scss'
 })
 
 export class TableDemoComponent {

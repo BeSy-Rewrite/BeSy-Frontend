@@ -80,7 +80,7 @@ export const PERSON_FORM_CONFIG: FormConfig = {
     {
       name: 'comment',
       label: 'Kommentar',
-      type: 'text',
+      type: 'textarea',
       required: false,
       validators: [Validators.maxLength(255)]
     },

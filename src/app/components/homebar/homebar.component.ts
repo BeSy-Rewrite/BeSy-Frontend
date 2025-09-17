@@ -10,7 +10,7 @@ import { Router } from '@angular/router';
     MatButtonModule
   ],
   templateUrl: './homebar.component.html',
-  styleUrls: ['./homebar.component.css'],
+  styleUrls: ['./homebar.component.scss'],
 })
 export class HomebarComponent {
   constructor(public readonly authService: AuthenticationService, private router: Router) { }

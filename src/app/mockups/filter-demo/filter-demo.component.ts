@@ -18,7 +18,7 @@ import { FilterRange } from '../../models/filter-range';
     MatButtonModule
   ],
   templateUrl: './filter-demo.component.html',
-  styleUrl: './filter-demo.component.css'
+  styleUrl: './filter-demo.component.scss'
 })
 export class FilterDemoComponent {
 

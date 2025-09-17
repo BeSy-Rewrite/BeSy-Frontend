@@ -4,7 +4,7 @@
   </h4>
   <h2>{{ config.subtitle }}</h2>
   <mat-divider class="my-4"></mat-divider>
-  <form [formGroup]="formGroup" class="w-full bg-white">
+  <form [formGroup]="formGroup" class="w-full">
     <table class="w-full mb-5">
       @for (field of config.fields; track field.name) {
       <tr class="align-top">
@@ -19,11 +19,23 @@
               matInput
               [formControlName]="field.name"
               [required]="field.required"
-              matTooltip="{{ field.tooltip }}"
             />
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            } @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon style="color: rgb(58, 126, 229);">help</mat-icon>
+            </button>
             }
           </mat-form-field>
           }
@@ -35,7 +47,6 @@
             <mat-select
               [formControlName]="field.name"
               [required]="field.required"
-              matTooltip="{{ field.tooltip }}"
             >
               @for (opt of field.options ?? []; track opt.value) {
               <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
@@ -45,13 +56,31 @@
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert auswählen!</mat-error>
             }
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon style="color: rgb(58, 126, 229);">help</mat-icon>
+            </button>
+            }
           </mat-form-field>
           }
 
           <!-- Radio -->
           @case ('radio') {
           <div class="w-4/5">
-            <mat-radio-group [formControlName]="field.name" class="radio-group">
+            <mat-radio-group
+              [formControlName]="field.name"
+              [required]="field.required"
+              class="radio-group"
+            >
               @for (opt of field.options ?? []; track opt.value) {
               <mat-radio-button [value]="opt.value">{{
                 opt.label
@@ -90,6 +119,20 @@
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
             }
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon style="color: rgb(58, 126, 229);">help</mat-icon>
+            </button>
+            }
           </mat-form-field>
           }
 
@@ -106,6 +149,20 @@
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon style="color: rgb(58, 126, 229);">help</mat-icon>
+            </button>
             }
           </mat-form-field>
           }
@@ -124,8 +181,24 @@
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
             }
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon style="color: rgb(58, 126, 229);">help</mat-icon>
+            </button>
+            }
           </mat-form-field>
-          } @case ('tel') {
+          }
+
+          @case ('tel') {
           <mat-form-field class="w-4/5">
             <mat-label>{{ field.label }}</mat-label>
             <input
@@ -139,7 +212,9 @@
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
             }
           </mat-form-field>
-          } @case ('search') {
+          }
+
+          @case ('search') {
           <mat-form-field appearance="outline" class="w-4/5">
             <mat-label>{{ field.label }}</mat-label>
             <input
@@ -159,7 +234,37 @@
             [columns]="tableColumns"
             [pageSize]="5"
           ></app-generic-table>
-          <mat-divider></mat-divider>
+          <mat-divider
+            class="bg-he-lightblue"
+            style="border-top-width: 2px"
+          ></mat-divider>
+          } @case ('textarea') {
+          <mat-form-field class="w-4/5">
+            <mat-label>{{ field.label }}</mat-label>
+            <textarea
+              matInput
+              [formControlName]="field.name"
+              [required]="field.required"
+            ></textarea>
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon style="color: rgb(58, 126, 229);">help</mat-icon>
+            </button>
+            }
+          </mat-form-field>
           } }
         </td>
       </tr>

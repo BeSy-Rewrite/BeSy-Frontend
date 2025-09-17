@@ -15,7 +15,7 @@ import { AuthenticationService } from './services/authentication.service';
     HomebarComponent
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.scss'
 })
 export class AppComponent {
   title = 'besy-frontend';

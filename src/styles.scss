@@ -1,0 +1,33 @@
+/* You can add global styles to this file, and also import other style files */
+@use '@angular/material' as mat;
+@use 'tailwindcss';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.mat-mdc-tab-body-content {
+  overflow: visible !important;
+  height: auto !important;
+}
+
+@theme {
+  --color-he-darkblue: #193058;
+  --color-he-red: #B6163D;
+  --color-he-lightblue: #00AADC;
+  --color-he-grey: #F0F0F0;
+}
+
+
+
+// Customize the entire app. Change :root to your selector if you want to scope the styles.
+:root {
+  @include mat.form-field-overrides((filled-container-color: rgb(255, 255, 255),
+      filled-container-shape: rounded));
+
+
+  // HS Esslingen Colorschema
+  --color-he-darkblue: #193058;
+  --color-he-red: #B6163D;
+  --color-he-lightblue: #00AADC;
+  --color-he-grey: #F0F0F0;
+}

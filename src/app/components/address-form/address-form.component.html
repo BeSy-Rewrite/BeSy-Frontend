@@ -3,11 +3,15 @@
     {{ config.title }}
   </h4>
 
-  <h2>
-  {{ formGroup.get('addressMode')?.value === 'existing' ? config.editSubtitle : config.newAddressSubtitle }}
-</h2>
+  <h2 class="text-lg font-medium mb-2 text-gray-700">
+    {{
+      formGroup.get("addressMode")?.value === "existing"
+        ? config.editSubtitle
+        : config.newAddressSubtitle
+    }}
+  </h2>
   <mat-divider class="my-4"></mat-divider>
-  <form [formGroup]="formGroup" class="w-full bg-white">
+  <form [formGroup]="formGroup" class="w-full">
     <table class="w-full mb-5">
       @for (field of config.fields; track field.name) {
       <tr class="align-top">
@@ -26,6 +30,19 @@
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            } @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon>help_outline</mat-icon>
+            </button>
             }
           </mat-form-field>
           }
@@ -41,6 +58,20 @@
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert auswählen!</mat-error>
+            }
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon>help_outline</mat-icon>
+            </button>
             }
           </mat-form-field>
           }
@@ -58,6 +89,20 @@
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültige Auswahl treffen!</mat-error>
+            }
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon>help_outline</mat-icon>
+            </button>
             }
           </div>
           }
@@ -87,6 +132,20 @@
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
             }
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon>help_outline</mat-icon>
+            </button>
+            }
           </mat-form-field>
           }
 
@@ -103,6 +162,20 @@
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon>help_outline</mat-icon>
+            </button>
             }
           </mat-form-field>
           }
@@ -135,22 +208,35 @@
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>
             }
-          </mat-form-field>
-          }
-
-          @case ('table') {
-            @if (formGroup.get('addressMode')?.value === 'existing') {
-            <p>Bitte wählen Sie eine Adresse aus der Tabelle aus. Überprüfen sie die Auswahl in den Eingabefeldern unterhalb.</p>
-            <app-generic-table
-              [dataSource]="tableDataSource"
-              [columns]="tableColumns"
-              [pageSize]="5"
-              (rowClicked)="onRowClickedPatchForm($event)"
-            ></app-generic-table>
-            <mat-divider></mat-divider>
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon>help_outline</mat-icon>
+            </button>
             }
-          }
-        }
+          </mat-form-field>
+          } @case ('table') { @if (formGroup.get('addressMode')?.value ===
+          'existing') {
+          <p class="mb-2 text-lg text-gray-600">
+            Bitte wählen Sie eine Adresse aus der Tabelle aus. Überprüfen sie
+            die Auswahl in den Eingabefeldern unterhalb.
+          </p>
+          <app-generic-table
+            [dataSource]="tableDataSource"
+            [columns]="tableColumns"
+            [pageSize]="5"
+            (rowClicked)="onRowClickedPatchForm($event)"
+          ></app-generic-table>
+          <mat-divider></mat-divider>
+          } } }
         </td>
       </tr>
       }

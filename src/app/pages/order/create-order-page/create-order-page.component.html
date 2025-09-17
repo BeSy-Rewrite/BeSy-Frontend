@@ -1,9 +1,181 @@
-<app-progress-bar
-  [steps]="[
-    { label: 'Bestellung erstellen', tooltip: 'Beschreibung für Step 1' },
-    { label: 'Bestellung erstellt', tooltip: 'Beschreibung für Step 2' },
-    { label: 'Zustimmungen erteilt', tooltip: 'Beschreibung für Step 3' },
-    { label: 'Dekan Zustimmung erteilt', tooltip: 'Beschreibung für Step 4' }
-  ]"
-  [currentStepIndex]="2"
-></app-progress-bar>
+<div class="create-order-page h-auto overflow-visible bg">
+  <div class="progress-bar-container">
+    <app-progress-bar
+      [steps]="[
+        { label: 'Bestellung erstellen', tooltip: 'Beschreibung für Step 1' },
+        { label: 'Bestellung erstellt', tooltip: 'Beschreibung für Step 2' },
+        { label: 'Zustimmungen erteilt', tooltip: 'Beschreibung für Step 3' },
+        {
+          label: 'Dekan Zustimmung erteilt',
+          tooltip: 'Beschreibung für Step 4'
+        }
+      ]"
+      [currentStepIndex]="0"
+    ></app-progress-bar>
+  </div>
+  <mat-divider></mat-divider>
+  <div class="form-container">
+    <!-- Add Item -->
+    <div class="item-container">
+      <div class="text-2xl font-bold mb-4 mt-4">
+        Bestellpositionen
+        <app-form-component
+          [config]="orderItemFormConfig"
+          [formGroup]="orderItemFormGroup"
+        ></app-form-component>
+        <button
+          mat-raised-button
+          class="ml-8 mb-4 w-31/40"
+          color="primary"
+          (click)="onAddItem()"
+        >
+          Position hinzufügen
+        </button>
+      </div>
+      <div class="table-container w-31/40 ml-8">
+        @if (itemTableDataSource.data.length > 0) {
+        <app-generic-table
+          [dataSource]="itemTableDataSource"
+          [columns]="orderItemColumns"
+          [actions]="orderItemTableActions"
+        ></app-generic-table>
+        }
+      </div>
+    </div>
+    <div class="spacing-container h-8"></div>
+    <div class="quotation-container">
+      <div class="text-2xl font-bold mb-4 mt-4 ml-8">
+        Vergleichsangebot
+        <app-form-component
+          [config]="quotationFormConfig"
+          [formGroup]="quotationFormGroup"
+        ></app-form-component>
+        <button
+          mat-raised-button
+          class="ml-8 mb-4 w-31/40"
+          color="primary"
+          (click)="onAddQuotation()"
+        >
+          Vergleichsangebot hinzufügen
+        </button>
+      </div>
+      <div class="table-container w-31/40 ml-8">
+        @if (quotationTableDataSource.data.length > 0) {
+        <app-generic-table
+          [dataSource]="quotationTableDataSource"
+          [columns]="orderQuotationColumns"
+          [actions]="orderQuotationTableActions"
+        ></app-generic-table>
+        }
+      </div>
+    </div>
+    <div class="spacing-container h-8"></div>
+    <div class="address-container">
+      <div class="text-2xl font-bold mb-4 mt-4 ml-8">
+        Adressdaten
+        <div class="recipient-container flex flex-col mb-4">
+          <mat-form-field class="w-full" appearance="fill">
+            <mat-label>Sendungsempfänger auswählen</mat-label>
+            <input
+              type="text"
+              matInput
+              [formControl]="personControl"
+              [matAutocomplete]="auto"
+              [required]="true"
+            />
+
+            <mat-autocomplete
+              requireSelection
+              #auto="matAutocomplete"
+              (optionSelected)="onPersonSelected($event.option.value)"
+              [displayWith]="displayPerson"
+            >
+              @for (person of filteredPersons$ | async; track person.id) {
+              <mat-option [value]="person">
+                {{ person.name }} {{ person.surname }}
+              </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <!-- Info Text -->
+          <p class="mt-2 mb-2 text-sm text-red-700">{{ infoText }}</p>
+
+          @if (selectedPerson) {
+          <mat-button-toggle-group
+            name="addressOption"
+            [(ngModel)]="addressOption"
+            (change)="onAddressOptionChange($event.value)"
+            aria-label="Adresse auswählen"
+          >
+            <mat-button-toggle
+              value="preferred"
+              [disabled]="!hasPreferredAddress"
+            >
+              Bevorzugte Adresse
+            </mat-button-toggle>
+            <mat-button-toggle value="existing">
+              Bestehende Adresse auswählen
+            </mat-button-toggle>
+            <mat-button-toggle value="new">
+              Neue Adresse erstellen
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+          }
+          <!-- Tabelle für bestehende Adressen – nur wenn Toggle = false -->
+          @if (addressOption === 'existing' && selectedPerson) {
+          <div class="table-container w-31/40 mt-4">
+            @if (addressTableDataSource.data.length > 0) {
+            <app-generic-table
+              [dataSource]="addressTableDataSource"
+              [columns]="addressTableColumns"
+              (rowClicked)="onAddressSelected($event)"
+            ></app-generic-table>
+            } @else {
+            <p class="mt-2 mb-2 text-sm text-gray-700">
+              Fehler beim Laden der Adressen. Bitte versuchen Sie es später
+              erneut.
+            </p>
+            }
+          </div>
+          } @if (selectedPerson) {
+          <app-form-component
+            [config]="recipientAddressFormConfig"
+            [formGroup]="recipientAddressFormGroup"
+          ></app-form-component>
+
+          }
+        </div>
+        @if (selectedPerson) {
+        <!-- component.html -->
+        <div class="flex flex-col">
+          <label class="block mb-2 text-sm font-semibold text-gray-700">
+            Entspricht Empfänger und Lieferadresse dem Rechnungsempfänger und
+            der Rechnungsadresse?
+          </label>
+          <mat-radio-group
+            [(ngModel)]="sameAsRecipient"
+            (change)="onSameAsRecipientChange()"
+            class="flex space-x-4"
+          >
+            <mat-radio-button [value]="true">Ja</mat-radio-button>
+            <mat-radio-button [value]="false">Nein</mat-radio-button>
+          </mat-radio-group>
+        </div>
+
+        } @if(!sameAsRecipient && selectedPerson) {
+        <div class="invoice-address-container mt-4">
+          <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
+          <app-form-component
+            [config]="invoiceAddressFormConfig"
+            [formGroup]="invoiceAddressFormGroup"
+          ></app-form-component>
+        </div>
+        }
+      </div>
+      <div class="flex justify-end mt-4">
+        <button mat-raised-button color="primary">Bestellung speichern</button>
+      </div>
+    </div>
+  </div>
+</div>

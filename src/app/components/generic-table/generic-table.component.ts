@@ -13,6 +13,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { TableActionButton, TableColumn } from '../../models/generic-table';
+import { MatDivider } from "@angular/material/divider";
 
 /**
  * A generic table component for displaying tabular data with optional action buttons.
@@ -30,9 +31,9 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
  */
 @Component({
   selector: 'app-generic-table',
-  imports: [MatTableModule, MatButtonModule, MatSortModule, MatPaginatorModule],
+  imports: [MatTableModule, MatButtonModule, MatSortModule, MatPaginatorModule, MatDivider],
   templateUrl: './generic-table.component.html',
-  styleUrl: './generic-table.component.css',
+  styleUrl: './generic-table.component.scss',
 })
 export class GenericTableComponent<T> {
   constructor() {
@@ -101,7 +102,7 @@ export class GenericTableComponent<T> {
   /**
    * Tracks the currently selected row internally.
    */
-  selectedRow: T | null = null;
+  selectedRow: T | null = null; // Undefined is not possible here, because then the event emitter doesn't emit anything. null works somehow
 
   @Output() rowClicked = new EventEmitter<T>();
 
@@ -193,6 +194,12 @@ export class GenericTableComponent<T> {
    * @param {T} row - The data row that was clicked.
    */
   onRowClick(row: T) {
+    // If the same row is clicked again, deselect it
+    if (this.selectedRow === row) {
+      this.selectedRow = null;
+      this.rowClicked.emit(null as any);
+      return;
+    }
     this.selectedRow = row;
     this.rowClicked.emit(row);
   }

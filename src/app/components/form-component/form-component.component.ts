@@ -1,9 +1,5 @@
 import { Component, Input, OnInit, output, Signal } from '@angular/core';
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInput, MatInputModule } from '@angular/material/input';
@@ -11,18 +7,28 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from "@angular/material/divider";
+import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltip } from '@angular/material/tooltip';
 import { MatTableDataSource } from '@angular/material/table';
 import { CustomerIdResponseDTO } from '../../api';
-import { GenericTableComponent } from "../generic-table/generic-table.component";
-
-
+import { GenericTableComponent } from '../generic-table/generic-table.component';
+import { MatIconModule } from '@angular/material/icon';
 
 export interface FormField {
   name: string;
   label: string;
-  type: 'text' | 'radio' | 'select' | 'number' | 'checkbox' | 'date' | 'email' | 'tel' | 'search' | 'table';
+  type:
+    | 'text'
+    | 'radio'
+    | 'select'
+    | 'number'
+    | 'checkbox'
+    | 'date'
+    | 'email'
+    | 'tel'
+    | 'search'
+    | 'table'
+    | 'textarea';
   required: boolean;
   defaultValue?: any;
   options?: { label: string; value: any }[];
@@ -43,9 +49,22 @@ export interface FormConfig {
 
 @Component({
   selector: 'app-form-component',
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatRadioModule, MatSelectModule, MatButtonModule, MatCardModule, MatInput, MatDividerModule, MatTooltip, GenericTableComponent],
+  imports: [
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatRadioModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatCardModule,
+    MatInput,
+    MatDividerModule,
+    MatTooltip,
+    GenericTableComponent,
+    MatIconModule,
+  ],
   templateUrl: './form-component.component.html',
-  styleUrls: ['./form-component.component.css'],
+  styleUrls: ['./form-component.component.scss'],
 })
 export class FormComponent implements OnInit {
   constructor(private fb: FormBuilder) {}
@@ -58,7 +77,7 @@ export class FormComponent implements OnInit {
   @Input() tableDataSource: MatTableDataSource<CustomerIdResponseDTO> =
     new MatTableDataSource<CustomerIdResponseDTO>([]);
 
-    // Columns to be displayed in the address table
+  // Columns to be displayed in the address table
   @Input() tableColumns: { id: string; label: string }[] = [];
 
   valueChanged = output<{ field: string; value: any }>();
@@ -77,7 +96,9 @@ export class FormComponent implements OnInit {
       }
     });
 
-    if (this.editMode) { this.editModeDisableFields(); }
+    if (this.editMode) {
+      this.editModeDisableFields();
+    }
   }
 
   private editModeDisableFields() {

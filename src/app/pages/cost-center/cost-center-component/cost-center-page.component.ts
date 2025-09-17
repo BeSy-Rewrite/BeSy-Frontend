@@ -28,7 +28,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatButtonModule,
   ],
   templateUrl: './cost-center-page.component.html',
-  styleUrl: './cost-center-page.component.css',
+  styleUrl: './cost-center-page.component.scss',
 })
 export class CostCentersPageComponent implements OnInit {
   constructor(private _notifications: MatSnackBar) {}

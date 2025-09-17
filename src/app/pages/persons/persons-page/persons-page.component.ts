@@ -33,7 +33,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatButtonModule,
   ],
   templateUrl: './persons-page.component.html',
-  styleUrls: ['./persons-page.component.css'],
+  styleUrls: ['./persons-page.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
 export class PersonsPageComponent implements OnInit {
@@ -170,7 +170,7 @@ export class PersonsPageComponent implements OnInit {
 
     // Case 1: an existing address is used to create a person
     if (this.addressMode === 'existing') {
-      if (this.selectedAddressId) {
+      if (this.selectedAddressId && this.selectedAddressId !== null) {
         try {
           await PersonsService.createPerson({
             ...personData,
@@ -190,9 +190,9 @@ export class PersonsPageComponent implements OnInit {
       // No address selected in existing addresses
       // Create person without address
       else {
-        try{
+        try {
           await PersonsService.createPerson({
-            ...personData
+            ...personData,
           });
           this._notifications.open('Person erfolgreich erstellt', undefined, {
             duration: 3000,
@@ -283,5 +283,14 @@ export class PersonsPageComponent implements OnInit {
   // Update selectedAddressId with the selected address ID
   onAddressSelected($event: number) {
     this.selectedAddressId = $event;
+    if (this.selectedAddressId == null) {
+      // selectedAddressId is null when the same row is clicked again (unselected)
+      // Reset address form fields, but not the table or addressMode
+      const fieldsToReset = ['building_name', 'street', 'building_number', 'town', 'postal_code', 'county', 'country', 'comment'];
+
+      fieldsToReset.forEach((field) => {
+        this.addressForm.get(field)?.reset();
+      });
+    }
   }
 }

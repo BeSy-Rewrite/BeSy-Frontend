@@ -30,7 +30,7 @@ import { FilterChipData } from '../../models/filter-chip-data';
     MatIconModule
   ],
   templateUrl: './chip-selection.component.html',
-  styleUrl: './chip-selection.component.css'
+  styleUrl: './chip-selection.component.scss'
 })
 export class ChipSelectionComponent implements OnInit, OnChanges {
 
