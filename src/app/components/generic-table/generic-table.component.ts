@@ -1,5 +1,6 @@
 import {
   Component,
+  computed,
   effect,
   EventEmitter,
   input,
@@ -71,6 +72,23 @@ export class GenericTableComponent<T> {
   pageSize = input<number>(10);
 
   /**
+   * The options for the number of items to display per page.
+   * Defaults to [5, 10, 25, 100] if not provided.
+   */
+  pageSizeOptions = input<number[]>([5, 10, 25, 100]);
+
+  /**
+   * Internal representation of the page size options, ensuring the current page size is included.
+   */
+  internalPageSizeOptions = computed(() => {
+    const options = this.pageSizeOptions();
+    if (!options.includes(this.pageSize())) {
+      return [...options, this.pageSize()].sort((a, b) => a - b);
+    }
+    return options;
+  });
+
+  /**
    * Internal representation of the columns.
    */
   internalColumns = signal<TableColumn[]>([]);
@@ -93,6 +111,10 @@ export class GenericTableComponent<T> {
   @ViewChild(MatSort) sort!: MatSort;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
+
+  showFooter = computed(() =>
+    this.internalColumns().some((col) => col.footerContent !== undefined)
+  );
 
   /**
    * Lifecycle hook that is called after the component has been initialized.
