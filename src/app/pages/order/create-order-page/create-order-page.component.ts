@@ -210,12 +210,12 @@ export class CreateOrderPageComponent implements OnInit {
 
     // Check if the selected person has a preferred address
     if (person.address_id) {
-      this.recipientHasPreferredAddress = true;
 
       const preferredAddress: AddressResponseDTO =
         await PersonsService.getPersonsAddress(person.id!);
 
       if (isRecipient) {
+        this.recipientHasPreferredAddress = true;
         this.recipientAddressOption = 'preferred';
         this.recipientAddressFormGroup.patchValue(preferredAddress);
         this.recipientAddressFormConfig.title =
@@ -224,6 +224,7 @@ export class CreateOrderPageComponent implements OnInit {
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
         this.recipientAddressFormGroup.disable();
       } else {
+        this.invoiceHasPreferredAddress = true;
         this.invoiceAddressOption = 'preferred';
         this.invoiceAddressFormGroup.patchValue(preferredAddress);
         this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
