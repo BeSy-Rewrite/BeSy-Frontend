@@ -87,7 +87,7 @@
             <mat-autocomplete
               requireSelection
               #auto="matAutocomplete"
-              (optionSelected)="onPersonSelected($event.option.value)"
+              (optionSelected)="onPersonSelected($event.option.value, true)"
               [displayWith]="displayPerson"
             >
               @for (person of filteredPersons$ | async; track person.id) {
@@ -99,18 +99,18 @@
           </mat-form-field>
 
           <!-- Info Text -->
-          <p class="mt-2 mb-2 text-sm text-red-700">{{ infoText }}</p>
+          <p class="mt-2 mb-2 text-sm text-red-700">{{ recipientInfoText }}</p>
 
-          @if (selectedPerson) {
+          @if (selectedRecipientPerson) {
           <mat-button-toggle-group
-            name="addressOption"
-            [(ngModel)]="addressOption"
-            (change)="onAddressOptionChange($event.value)"
+            name="recipientAddressOption"
+            [(ngModel)]="recipientAddressOption"
+            (change)="onAddressOptionChange($event.value, true)"
             aria-label="Adresse auswählen"
           >
             <mat-button-toggle
               value="preferred"
-              [disabled]="!hasPreferredAddress"
+              [disabled]="!recipientHasPreferredAddress"
             >
               Bevorzugte Adresse
             </mat-button-toggle>
@@ -123,7 +123,7 @@
           </mat-button-toggle-group>
           }
           <!-- Tabelle für bestehende Adressen – nur wenn Toggle = false -->
-          @if (addressOption === 'existing' && selectedPerson) {
+          @if (recipientAddressOption === 'existing' && selectedRecipientPerson) {
           <div class="table-container w-31/40 mt-4">
             @if (addressTableDataSource.data.length > 0) {
             <app-generic-table
@@ -138,7 +138,7 @@
             </p>
             }
           </div>
-          } @if (selectedPerson) {
+          } @if (selectedRecipientPerson) {
           <app-form-component
             [config]="recipientAddressFormConfig"
             [formGroup]="recipientAddressFormGroup"
@@ -146,7 +146,7 @@
 
           }
         </div>
-        @if (selectedPerson) {
+        @if (selectedRecipientPerson) {
         <!-- component.html -->
         <div class="flex flex-col">
           <label class="block mb-2 text-sm font-semibold text-gray-700">
@@ -155,7 +155,6 @@
           </label>
           <mat-radio-group
             [(ngModel)]="sameAsRecipient"
-            (change)="onSameAsRecipientChange()"
             class="flex space-x-4"
           >
             <mat-radio-button [value]="true">Ja</mat-radio-button>
@@ -163,9 +162,58 @@
           </mat-radio-group>
         </div>
 
-        } @if(!sameAsRecipient && selectedPerson) {
+        } @if(!sameAsRecipient && selectedRecipientPerson) {
         <div class="invoice-address-container mt-4">
           <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
+          <mat-form-field class="w-full" appearance="fill">
+            <mat-label>Sendungsempfänger auswählen</mat-label>
+            <input
+              type="text"
+              matInput
+              [formControl]="personControl"
+              [matAutocomplete]="auto"
+              [required]="true"
+            />
+
+            <mat-autocomplete
+              requireSelection
+              #auto="matAutocomplete"
+              (optionSelected)="onPersonSelected($event.option.value, false)"
+              [displayWith]="displayPerson"
+            >
+              @for (person of filteredPersons$ | async; track person.id) {
+              <mat-option [value]="person">
+                {{ person.name }} {{ person.surname }}
+              </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+
+          <!-- Info Text -->
+          <p class="mt-2 mb-2 text-sm text-red-700">
+            {{ invoiceInfoText }}
+          </p>
+           @if (selectedInvoicePerson) {
+          <mat-button-toggle-group
+            name="invoiceAddressOption"
+            [(ngModel)]="invoiceAddressOption"
+            (change)="onAddressOptionChange($event.value, false)"
+            aria-label="Adresse auswählen"
+          >
+            <mat-button-toggle
+              value="preferred"
+              [disabled]="!invoiceHasPreferredAddress"
+            >
+              Bevorzugte Adresse
+            </mat-button-toggle>
+            <mat-button-toggle value="existing">
+              Bestehende Adresse auswählen
+            </mat-button-toggle>
+            <mat-button-toggle value="new">
+              Neue Adresse erstellen
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+          }
           <app-form-component
             [config]="invoiceAddressFormConfig"
             [formGroup]="invoiceAddressFormGroup"

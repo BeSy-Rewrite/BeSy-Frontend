@@ -59,7 +59,7 @@ import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
     MatButtonToggle,
     MatButtonToggleGroup,
     MatRadioButton,
-    MatRadioModule
+    MatRadioModule,
   ],
   templateUrl: './create-order-page.component.html',
   styleUrl: './create-order-page.component.scss',
@@ -87,12 +87,16 @@ export class CreateOrderPageComponent implements OnInit {
     { id: 'country', label: 'Land' },
   ];
   // State flags
-  hasPreferredAddress = false;
+  recipientHasPreferredAddress = false;
+  invoiceHasPreferredAddress = false;
   sameAsRecipient: boolean = true;
   // Standard: preferred address
-  addressOption: 'preferred' | 'existing' | 'new' = 'preferred';
-  infoText = '';
-  selectedPerson?: PersonResponseDTO;
+  recipientAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
+  invoiceAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
+  recipientInfoText = '';
+  invoiceInfoText = '';
+  selectedRecipientPerson?: PersonResponseDTO;
+  selectedInvoicePerson?: PersonResponseDTO;
 
   personControl = new FormControl<PersonResponseDTO | string>('');
   persons: PersonResponseDTO[] = [];
@@ -143,9 +147,9 @@ export class CreateOrderPageComponent implements OnInit {
 
     this.persons = await PersonsService.getAllPersons();
     this.filteredPersons$ = this.personControl.valueChanges.pipe(
-    startWith(''),
-    map(value => this._filter(value))
-  );
+      startWith(''),
+      map((value) => this._filter(value))
+    );
   }
 
   onAddItem() {
@@ -176,18 +180,20 @@ export class CreateOrderPageComponent implements OnInit {
   }
 
   // Filter returned PersonResponseDTO
-  private _filter(value: string | PersonResponseDTO | null): PersonResponseDTO[] {
-  const filterValue =
-    typeof value === 'string'
-      ? value.toLowerCase()
-      : value
-      ? `${value.name} ${value.surname}`.toLowerCase()
-      : '';
+  private _filter(
+    value: string | PersonResponseDTO | null
+  ): PersonResponseDTO[] {
+    const filterValue =
+      typeof value === 'string'
+        ? value.toLowerCase()
+        : value
+        ? `${value.name} ${value.surname}`.toLowerCase()
+        : '';
 
-  return this.persons.filter(person =>
-    `${person.name} ${person.surname}`.toLowerCase().includes(filterValue)
-  );
-}
+    return this.persons.filter((person) =>
+      `${person.name} ${person.surname}`.toLowerCase().includes(filterValue)
+    );
+  }
 
   // Controls how the person is displayed in the autocomplete input
   displayPerson(person: PersonResponseDTO): string {
@@ -195,34 +201,39 @@ export class CreateOrderPageComponent implements OnInit {
   }
 
   // Handle selection of a person from the autocomplete options
-  async onPersonSelected(person: PersonResponseDTO) {
-    this.selectedPerson = person;
+  async onPersonSelected(person: PersonResponseDTO, isRecipient: boolean) {
+    if (isRecipient) {
+      this.selectedRecipientPerson = person;
+    } else {
+      this.selectedInvoicePerson = person;
+    }
 
     // Check if the selected person has a preferred address
     if (person.address_id) {
-      this.hasPreferredAddress = true;
-      this.addressOption = 'preferred';
-      this.infoText =
-        'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
+      this.recipientHasPreferredAddress = true;
 
       const preferredAddress: AddressResponseDTO =
         await PersonsService.getPersonsAddress(person.id!);
-      this.recipientAddressFormGroup.patchValue(preferredAddress);
-      this.recipientAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
-    } else {
-      // Person has no preferred address
-      // Automatically switch to "existing address" option and let user select an address from table
-      this.hasPreferredAddress = false;
-      this.addressOption = 'existing';
-      this.infoText =
-        'Die Person hat keine bevorzugte Adresse. Bitte wählen Sie eine bestehende Adresse aus der Tabelle aus.';
-      this.recipientAddressFormConfig.title = 'Bestehende Adresse überprüfen';
-      this.recipientAddressFormGroup.reset();
+
+      if (isRecipient) {
+        this.recipientAddressOption = 'preferred';
+        this.recipientAddressFormGroup.patchValue(preferredAddress);
+        this.recipientAddressFormConfig.title =
+          'Hinterlegte bevorzugte Adresse';
+        this.recipientInfoText =
+          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
+        this.recipientAddressFormGroup.disable();
+      } else {
+        this.invoiceAddressOption = 'preferred';
+        this.invoiceAddressFormGroup.patchValue(preferredAddress);
+        this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+        this.invoiceInfoText =
+          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
+        this.invoiceAddressFormGroup.disable();
+      }
+      this.addressTableDataSource.data =
+        await PersonsService.getPersonsAddresses();
     }
-    this.recipientAddressFormGroup.disable();
-    // Load available addresses for the selected person
-    this.addressTableDataSource.data =
-      await PersonsService.getPersonsAddresses();
   }
 
   onAddQuotation() {
@@ -246,34 +257,54 @@ export class CreateOrderPageComponent implements OnInit {
   }
 
   // Handle change of address option (preferred, existing, new)
-  onAddressOptionChange(option: string) {
-    this.addressOption = option as any;
+  onAddressOptionChange(option: string, isRecipient: boolean) {
+    if (isRecipient) {
+      this.recipientAddressOption = option as any;
 
-    if (option === 'preferred' && this.selectedPerson?.address_id) {
-      PersonsService.getPersonsAddress(this.selectedPerson.id!).then((addr) =>
-        this.recipientAddressFormGroup.patchValue(addr)
-      );
-      this.infoText =
-        'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
-      this.recipientAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
-      this.recipientAddressFormGroup.disable();
-    } else if (option === 'existing') {
-      this.recipientAddressFormGroup.reset();
-      this.recipientAddressFormGroup.disable();
-      this.recipientAddressFormConfig.title = 'Bestehende Adresse überprüfen';
-      this.infoText = 'Adressdaten überprüfen';
-    } else if (option === 'new') {
-      this.recipientAddressFormGroup.reset();
-      this.recipientAddressFormGroup.enable();
-      this.recipientAddressFormConfig.title = 'Neue Adresse erstellen';
-      this.infoText = 'Neue Adresse erstellen: bitte Formular ausfüllen.';
-    }
-  }
+      if (option === 'preferred' && this.selectedRecipientPerson?.address_id) {
+        PersonsService.getPersonsAddress(this.selectedRecipientPerson.id!).then(
+          (addr) => this.recipientAddressFormGroup.patchValue(addr)
+        );
+        this.recipientInfoText =
+          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
+        this.recipientAddressFormConfig.title =
+          'Hinterlegte bevorzugte Adresse';
+        this.recipientAddressFormGroup.disable();
+      } else if (option === 'existing') {
+        this.recipientAddressFormGroup.reset();
+        this.recipientAddressFormGroup.disable();
+        this.recipientAddressFormConfig.title = 'Bestehende Adresse überprüfen';
+        this.recipientInfoText = 'Adressdaten überprüfen';
+      } else if (option === 'new') {
+        this.recipientAddressFormGroup.reset();
+        this.recipientAddressFormGroup.enable();
+        this.recipientAddressFormConfig.title = 'Neue Adresse erstellen';
+        this.recipientInfoText =
+          'Neue Adresse erstellen: bitte Formular ausfüllen.';
+      }
+    } else {
+      this.invoiceAddressOption = option as any;
 
-  onSameAsRecipientChange() {
-    if (this.sameAsRecipient) {
-      // If the checkbox is checked, copy recipient address to delivery address
+      if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
+        PersonsService.getPersonsAddress(this.selectedInvoicePerson.id!).then(
+          (addr) => this.invoiceAddressFormGroup.patchValue(addr)
+        );
+        this.invoiceInfoText =
+          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
+        this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+        this.invoiceAddressFormGroup.disable();
+      } else if (option === 'existing') {
+        this.invoiceAddressFormGroup.reset();
+        this.invoiceAddressFormGroup.disable();
+        this.invoiceAddressFormConfig.title = 'Bestehende Adresse überprüfen';
+        this.invoiceInfoText = 'Adressdaten überprüfen';
+      } else if (option === 'new') {
+        this.invoiceAddressFormGroup.reset();
+        this.invoiceAddressFormGroup.enable();
+        this.invoiceAddressFormConfig.title = 'Neue Adresse erstellen';
+        this.invoiceInfoText =
+          'Neue Adresse erstellen: bitte Formular ausfüllen.';
+      }
     }
-    console.log(this.sameAsRecipient);
   }
 }
