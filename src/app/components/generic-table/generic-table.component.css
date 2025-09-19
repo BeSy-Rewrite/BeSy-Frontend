@@ -31,3 +31,11 @@ tr.selected {
 tr.selected:hover {
   background-color: rgba(25, 118, 210, 0.2);
 }
+
+tr.mat-mdc-footer-row td {
+  font-weight: bold;
+}
+
+tr.mat-mdc-header-row th {
+  font-weight: bold;
+}

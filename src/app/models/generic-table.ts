@@ -1,3 +1,4 @@
+import { Signal } from "@angular/core";
 import { MatButtonAppearance } from "@angular/material/button";
 
 
@@ -7,6 +8,7 @@ export interface TableColumn<T = any> {
     isInvisible?: boolean; // When true, column is hidden from display
     isUnsortable?: boolean; // Optional property to make the column unsortable
     action?: (row: T) => void; // Optional action for the column
+    footerContent?: Signal<string | number>; // Optional footer content for the column
 }
 
 export interface TableActionButton {
