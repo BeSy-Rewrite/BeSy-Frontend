@@ -32,13 +32,20 @@
 
             </td>
             }
+
+            <td mat-footer-cell *matFooterCellDef>
+                {{ column.footerContent ? column.footerContent() : '' }}
+            </td>
         </ng-container>
         }
 
         <tr mat-header-row *matHeaderRowDef="displayedColumnIds()" sticky></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumnIds();" (click)="onRowClick(row)" [class.selected]="selectedRow === row"></tr>
+        @if (showFooter()) {
+        <tr mat-footer-row *matFooterRowDef="displayedColumnIds()"></tr>
+        }
 
     </table>
 </div>
 
-<mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons aria-label="Wähle Seite der Liste" />
+<mat-paginator [pageSizeOptions]="internalPageSizeOptions()" showFirstLastButtons aria-label="Wähle Seite der Liste" />
