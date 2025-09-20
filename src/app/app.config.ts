@@ -1,4 +1,5 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideRouter } from '@angular/router';
 
 import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
@@ -23,7 +24,8 @@ export const appConfig: ApplicationConfig = {
         allowedUrls: [environment.apiUrl],
         sendAccessToken: true
       },
-    })
+    }),
+    provideAnimations()
   ]
 };
 

@@ -6,7 +6,7 @@ import { TableDemoComponent } from './mockups/table-demo/table-demo.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
-import { OrdersTableComponent } from './pages/orders-table/orders-table.component';
+import { OrdersPageComponent } from './pages/order/orders-page/orders-page.component';
 import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.component';
 import { EditSuppliersPageComponent } from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
 import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
@@ -46,8 +46,7 @@ export const routes: Routes = [
     {
         title: 'Bestellungen',
         path: 'orders',
-        component: OrdersTableComponent,
-        canActivate: [DefaultGuard]
+        component: OrdersPageComponent
     },
     {
         title: 'Bestellung erstellen',
