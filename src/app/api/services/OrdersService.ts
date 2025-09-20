@@ -2,15 +2,15 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ItemResponseDTO } from '../models/response-dtos/ItemResponseDTO';
-import type { OrderRequestDTO } from '../models/request-dtos/OrderRequestDTO';
-import type { OrderResponseDTO } from '../models/response-dtos/OrderResponseDTO';
-import type { OrderStatus } from '../models/OrderStatus';
-import type { PagedOrderResponseDTO } from '../models/response-dtos/PagedOrderResponseDTO';
-import type { QuotationResponseDTO } from '../models/response-dtos/QuotationResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
+import type { OrderStatus } from '../models/OrderStatus';
+import type { OrderRequestDTO } from '../models/request-dtos/OrderRequestDTO';
+import type { ItemResponseDTO } from '../models/response-dtos/ItemResponseDTO';
+import type { OrderResponseDTO } from '../models/response-dtos/OrderResponseDTO';
+import type { PagedOrderResponseDTO } from '../models/response-dtos/PagedOrderResponseDTO';
+import type { QuotationResponseDTO } from '../models/response-dtos/QuotationResponseDTO';
 export class OrdersService {
     /**
      * @param page Seitenzahl für die Paginierung (beginnend bei 0).
@@ -56,7 +56,7 @@ export class OrdersService {
         secondaryCostCenters?: Array<string>,
         lastUpdatedTimeAfter?: string,
         lastUpdatedTimeBefore?: string,
-    ): CancelablePromise<Array<PagedOrderResponseDTO>> {
+    ): CancelablePromise<PagedOrderResponseDTO> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/orders',
