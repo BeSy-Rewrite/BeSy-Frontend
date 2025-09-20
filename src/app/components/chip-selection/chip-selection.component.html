@@ -4,7 +4,8 @@
     <mat-chip-grid #chipGrid>
 
         @for (item of selectedItems; track $index) {
-        <mat-chip-row [style]="item.color ? 'background-color: ' + item.color + ';' : ''" (removed)="remove(item)">
+        <mat-chip-row [matTooltip]="item.tooltip" [style]="item.color ? 'background-color: ' + item.color + ';' : ''"
+            (removed)="remove(item)">
             {{item.label}}
             <button matChipRemove>
                 <mat-icon svgIcon="cancel" class="!p-0"></mat-icon>

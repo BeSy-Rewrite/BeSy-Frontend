@@ -6,6 +6,7 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { FilterChipData } from '../../models/filter-chip-data';
 
 /**
@@ -27,7 +28,8 @@ import { FilterChipData } from '../../models/filter-chip-data';
     MatAutocompleteModule,
     ReactiveFormsModule,
     CommonModule,
-    MatIconModule
+    MatIconModule,
+    MatTooltipModule
   ],
   templateUrl: './chip-selection.component.html',
   styleUrl: './chip-selection.component.css'
@@ -52,7 +54,7 @@ export class ChipSelectionComponent implements OnInit, OnChanges {
   /**
    * Output event emitter for changes in the selected items.
    */
-  onChanges = output<FilterChipData>();
+  selectionChanged = output<FilterChipData>();
 
   /**
    * The items that match the current text input and are not selected.
@@ -130,9 +132,9 @@ export class ChipSelectionComponent implements OnInit, OnChanges {
    */
   private applyChanges(item: FilterChipData) {
     this.items.update(items => items.map(
-      i => i === item ? { ...i, isSelected: !i.isSelected } : { ...i }
+      i => i.label === item.label ? { ...i, isSelected: !i.isSelected } : { ...i }
     ));
-    this.onChanges.emit(this.getItemByName(item.label)!);
+    this.selectionChanged.emit(this.getItemByName(item.label)!);
   }
 
   /**

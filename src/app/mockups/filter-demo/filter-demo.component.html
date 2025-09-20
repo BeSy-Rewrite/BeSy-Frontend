@@ -9,7 +9,7 @@
             <p class="mb-4">You can select a date range using the date range picker below.</p>
 
             <app-date-range-picker [dateRange]="dateRange()"
-                (onChanges)="onDateRangeChange($event)"></app-date-range-picker>
+                (dateRangeChanged)="onDateRangeChange($event)"></app-date-range-picker>
             <button mat-flat-button color="primary" (click)="changeDate()"
                 class="!min-w-fit">change&nbsp;date&nbsp;range</button>
 
@@ -24,7 +24,7 @@
             <p>This component demonstrates the usage of the range selection slider.</p>
             <p class="mb-4">You can select a range of values using the slider below.</p>
 
-            <app-range-selection-slider [(selectedRange)]="range" (onChanges)="onRangeChange($event)" />
+            <app-range-selection-slider [(selectedRange)]="range" (rangeChanged)="onRangeChange($event)" />
             <button mat-flat-button color="primary" (click)="changeRange()">
                 change&nbsp;range
             </button>
@@ -40,7 +40,7 @@
             <p>This component demonstrates the usage of the chip selection component.</p>
             <p class="mb-4">You can select multiple items using the chips below.</p>
 
-            <app-chip-selection [(items)]="items" (onChanges)="onChipChange($event)" />
+            <app-chip-selection [(items)]="items" (selectionChanged)="onChipChange($event)" />
             <button mat-flat-button color="primary" (click)="useCustomChipData()">
                 use&nbsp;custom&nbsp;chip&nbsp;data
             </button>
