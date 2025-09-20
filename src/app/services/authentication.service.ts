@@ -9,7 +9,7 @@ import { authCodeFlowConfig } from '../app.config';
 })
 export class AuthenticationService {
 
-  constructor(private oAuthService: OAuthService,
+  constructor(private readonly oAuthService: OAuthService,
     private readonly router: Router) {
     this.oAuthService.configure(authCodeFlowConfig);
     this.oAuthService.setStorage(localStorage);
@@ -71,7 +71,7 @@ export class AuthenticationService {
    * @returns {boolean} True if the user has the specified role, false otherwise.
    */
   isAuthorizedFor(role: string): boolean {
-    return this.getRoles().includes(role);
+    return this.getRoles().includes(role) && this.hasValidToken();
   }
 
   /**
