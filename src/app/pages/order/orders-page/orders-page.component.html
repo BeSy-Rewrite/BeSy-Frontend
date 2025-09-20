@@ -10,12 +10,12 @@
             <mat-divider class="bg-gray-500"></mat-divider>
             <div class="pt-3 flex flex-row">
 
-                <app-filter-menu [@slide]="showFilters ? 'true' : 'false'" class="w-96"
+                <app-filter-menu [class.open]="showFilters" [class.closed]="!showFilters" class="w-96"
                     (filtersChanged)="onFiltersChanged($event)"></app-filter-menu>
 
-                <app-generic-table [@expand]="!showFilters ? 'true' : 'false'" class="-ml-96 w-full overflow-auto"
-                    [dataSource]="ordersDataSource" [columns]="ordersTableColumns" [actions]="actions"
-                    [pageSize]="25"></app-generic-table>
+                <app-generic-table [class.expanded]="!showFilters" [class.collapsed]="showFilters"
+                    class="-ml-96 w-full overflow-auto" [dataSource]="ordersDataSource" [columns]="ordersTableColumns"
+                    [actions]="actions" [pageSize]="25"></app-generic-table>
 
             </div>
 

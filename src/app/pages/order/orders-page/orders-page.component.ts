@@ -1,4 +1,3 @@
-import { animate, state, style, transition, trigger } from '@angular/animations';
 import { Component, inject } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
@@ -24,18 +23,6 @@ import { OrdersDataSourceService } from '../../../services/orders-data-source.se
     GenericTableComponent,
     FilterMenuComponent,
   ],
-  animations: [
-    trigger('slide', [
-      state('true', style({ transform: 'translateX(0)' })),
-      state('false', style({ transform: 'translateX(-25rem)' })),
-      transition('* => *', animate("200ms ease-in-out"))
-    ]),
-    trigger('expand', [
-      state('true', style({ transform: 'translateX(0)' })),
-      state('false', style({ transform: 'translateX(25rem)', width: 'calc(100% - 25rem)' })),
-      transition('* => *', animate("200ms ease-in-out"))
-    ])
-  ],
   templateUrl: './orders-page.component.html',
   styleUrl: './orders-page.component.css'
 })
@@ -55,7 +42,7 @@ export class OrdersPageComponent {
     { id: 'edit', label: 'Bearbeiten', buttonType: 'outlined', color: ButtonColor.PRIMARY, action: (row) => this.onEditOrder(row) },
     { id: 'view', label: 'Ansehen', buttonType: 'filled', color: ButtonColor.PRIMARY, action: (row) => this.onViewOrder(row) }
 
-  ]; // Placeholder for order action buttons
+  ];
 
   showFilters = false;
 
@@ -66,9 +53,6 @@ export class OrdersPageComponent {
   }
 
   onFiltersChanged(filters: ActiveFilters) {
-    console.log('Filters changed in OrdersPageComponent:', filters);
-    // Here you can implement logic to filter the ordersDataSource based on the received filters
-    // For example, you could fetch new data or filter the existing data based on the filters
     this.ordersDataSource.filter = filters;
   }
 
