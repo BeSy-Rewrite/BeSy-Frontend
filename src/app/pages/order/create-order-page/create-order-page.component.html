@@ -76,21 +76,20 @@
         <div class="recipient-container flex flex-col mb-4">
           <mat-form-field class="w-full" appearance="fill">
             <mat-label>Sendungsempfänger auswählen</mat-label>
-            <input
+            <input #inputPerson
               type="text"
               matInput
-              [formControl]="personControl"
+              [formControl]="personControlRecipient"
               [matAutocomplete]="auto"
               [required]="true"
-            />
+            >
 
             <mat-autocomplete
-              requireSelection
               #auto="matAutocomplete"
               (optionSelected)="onPersonSelected($event.option.value, true)"
               [displayWith]="displayPerson"
             >
-              @for (person of filteredPersons$ | async; track person.id) {
+              @for (person of filteredPersonsRecipient | async; track person.id) {
               <mat-option [value]="person">
                 {{ person.name }} {{ person.surname }}
               </mat-option>
@@ -122,14 +121,15 @@
             </mat-button-toggle>
           </mat-button-toggle-group>
           }
-          <!-- Tabelle für bestehende Adressen – nur wenn Toggle = false -->
-          @if (recipientAddressOption === 'existing' && selectedRecipientPerson) {
+          <!-- Table for existing addresses -->
+          @if (recipientAddressOption === 'existing' && selectedRecipientPerson)
+          {
           <div class="table-container w-31/40 mt-4">
             @if (addressTableDataSource.data.length > 0) {
             <app-generic-table
               [dataSource]="addressTableDataSource"
               [columns]="addressTableColumns"
-              (rowClicked)="onAddressSelected($event)"
+              (rowClicked)="onAddressSelected($event, true)"
             ></app-generic-table>
             } @else {
             <p class="mt-2 mb-2 text-sm text-gray-700">
@@ -147,41 +147,38 @@
           }
         </div>
         @if (selectedRecipientPerson) {
-        <!-- component.html -->
         <div class="flex flex-col">
           <label class="block mb-2 text-sm font-semibold text-gray-700">
             Entspricht Empfänger und Lieferadresse dem Rechnungsempfänger und
             der Rechnungsadresse?
           </label>
-          <mat-radio-group
-            [(ngModel)]="sameAsRecipient"
-            class="flex space-x-4"
-          >
+          <mat-radio-group [(ngModel)]="sameAsRecipient" class="flex space-x-4">
             <mat-radio-button [value]="true">Ja</mat-radio-button>
             <mat-radio-button [value]="false">Nein</mat-radio-button>
           </mat-radio-group>
         </div>
 
+        <!-- Rechnungsadresse -->
         } @if(!sameAsRecipient && selectedRecipientPerson) {
         <div class="invoice-address-container mt-4">
           <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
+
           <mat-form-field class="w-full" appearance="fill">
             <mat-label>Sendungsempfänger auswählen</mat-label>
             <input
               type="text"
               matInput
-              [formControl]="personControl"
+              [formControl]="personControlInvoice"
               [matAutocomplete]="auto"
               [required]="true"
             />
 
             <mat-autocomplete
-              requireSelection
               #auto="matAutocomplete"
               (optionSelected)="onPersonSelected($event.option.value, false)"
               [displayWith]="displayPerson"
             >
-              @for (person of filteredPersons$ | async; track person.id) {
+              @for (person of filteredPersonsInvoice | async; track person.id) {
               <mat-option [value]="person">
                 {{ person.name }} {{ person.surname }}
               </mat-option>
@@ -189,11 +186,12 @@
             </mat-autocomplete>
           </mat-form-field>
 
+
           <!-- Info Text -->
           <p class="mt-2 mb-2 text-sm text-red-700">
             {{ invoiceInfoText }}
           </p>
-           @if (selectedInvoicePerson) {
+          @if (selectedInvoicePerson) {
           <mat-button-toggle-group
             name="invoiceAddressOption"
             [(ngModel)]="invoiceAddressOption"
@@ -213,12 +211,41 @@
               Neue Adresse erstellen
             </mat-button-toggle>
           </mat-button-toggle-group>
+
+          <!-- Table for existing addresses -->
+          @if (invoiceAddressOption === 'existing')
+          {
+          <div class="table-container w-31/40 mt-4">
+            @if (addressTableDataSource.data.length > 0) {
+            <app-generic-table
+              [dataSource]="addressTableDataSource"
+              [columns]="addressTableColumns"
+              (rowClicked)="onAddressSelected($event, false)"
+            ></app-generic-table>
+            } @else {
+            <p class="mt-2 mb-2 text-sm text-gray-700">
+              Fehler beim Laden der Adressen. Bitte versuchen Sie es später
+              erneut.
+            </p>
+            }
+          </div>
           }
+
           <app-form-component
             [config]="invoiceAddressFormConfig"
             [formGroup]="invoiceAddressFormGroup"
           ></app-form-component>
+        }
         </div>
+        } @if (selectedRecipientPerson) {
+        <button
+          mat-raised-button
+          class="ml-8 mb-4 mt-4 w-31/40"
+          color="primary"
+          (click)="locallySaveAddressFormInput()"
+        >
+          Adressdaten speichern
+        </button>
         }
       </div>
       <div class="flex justify-end mt-4">

@@ -3,11 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 export type OrderRequestDTO = {
-    primary_cost_center_id: string;
-    booking_year: string;
+
+    primary_cost_center_id?: string;
+    booking_year?: string;
     legacy_alias?: string;
     owner_id?: number;
-    content_description?: string;
+    content_description: string;
     currency_short?: string;
     comment?: string;
     comment_for_supplier?: string;
@@ -37,5 +38,7 @@ export type OrderRequestDTO = {
     flag_investment_structural_measures?: boolean;
     flag_media_permission?: boolean;
     dfg_key?: string;
+    delivery_address_id?: number;
+    invoice_address_id?: number;
 };
 

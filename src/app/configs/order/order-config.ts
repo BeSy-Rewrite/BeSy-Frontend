@@ -21,7 +21,8 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
       required: false,
       nominatim_param: 'street',
       nominatim_field: 'house_number',
-      editable: false
+      editable: false,
+      validators: [Validators.pattern('^[0-9]+$')] // Only allow numbers
     },
     {
       name: 'building_name',
@@ -46,7 +47,8 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
       required: true,
       nominatim_param: 'postalcode',
       nominatim_field: 'postcode',
-      editable: false
+      editable: false,
+      validators: [Validators.pattern('^[0-9]+$')] // Only allow numbers
     },
     {
       name: 'county',
