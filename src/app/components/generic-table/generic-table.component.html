@@ -58,6 +58,9 @@
       (click)="onRowClick(row)"
       [class.selected]="selectedRow === row"
     ></tr>
+    @if (showFooter()) {
+        <tr mat-footer-row *matFooterRowDef="displayedColumnIds()"></tr>
+    }
   </table>
 </div>
 <mat-divider
