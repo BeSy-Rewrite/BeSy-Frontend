@@ -33,13 +33,11 @@
         </button>
       </div>
       <div class="table-container w-31/40 ml-8">
-        @if (itemTableDataSource.data.length > 0) {
         <app-generic-table
           [dataSource]="itemTableDataSource"
           [columns]="orderItemColumns"
           [actions]="orderItemTableActions"
         ></app-generic-table>
-        }
       </div>
     </div>
     <div class="spacing-container h-8"></div>
@@ -60,13 +58,11 @@
         </button>
       </div>
       <div class="table-container w-31/40 ml-8">
-        @if (quotationTableDataSource.data.length > 0) {
         <app-generic-table
           [dataSource]="quotationTableDataSource"
           [columns]="orderQuotationColumns"
           [actions]="orderQuotationTableActions"
         ></app-generic-table>
-        }
       </div>
     </div>
     <div class="spacing-container h-8"></div>
@@ -76,20 +72,22 @@
         <div class="recipient-container flex flex-col mb-4">
           <mat-form-field class="w-full" appearance="fill">
             <mat-label>Sendungsempfänger auswählen</mat-label>
-            <input #inputPerson
+            <input
+              #inputPerson
               type="text"
               matInput
               [formControl]="personControlRecipient"
               [matAutocomplete]="auto"
               [required]="true"
-            >
+            />
 
             <mat-autocomplete
               #auto="matAutocomplete"
               (optionSelected)="onPersonSelected($event.option.value, true)"
               [displayWith]="displayPerson"
             >
-              @for (person of filteredPersonsRecipient | async; track person.id) {
+              @for (person of filteredPersonsRecipient | async; track person.id)
+              {
               <mat-option [value]="person">
                 {{ person.name }} {{ person.surname }}
               </mat-option>
@@ -186,7 +184,6 @@
             </mat-autocomplete>
           </mat-form-field>
 
-
           <!-- Info Text -->
           <p class="mt-2 mb-2 text-sm text-red-700">
             {{ invoiceInfoText }}
@@ -213,8 +210,7 @@
           </mat-button-toggle-group>
 
           <!-- Table for existing addresses -->
-          @if (invoiceAddressOption === 'existing')
-          {
+          @if (invoiceAddressOption === 'existing') {
           <div class="table-container w-31/40 mt-4">
             @if (addressTableDataSource.data.length > 0) {
             <app-generic-table
@@ -235,7 +231,7 @@
             [config]="invoiceAddressFormConfig"
             [formGroup]="invoiceAddressFormGroup"
           ></app-form-component>
-        }
+          }
         </div>
         } @if (selectedRecipientPerson) {
         <button

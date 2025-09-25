@@ -98,9 +98,8 @@ export class CreateOrderPageComponent implements OnInit {
   orderItemColumns: TableColumn<ItemRequestDTO>[] = [
     { id: 'name', label: 'Artikelbezeichnung' },
     { id: 'quantity', label: 'Anzahl' },
-    { id: 'price_per_unit', label: 'Stückpreis' },
     { id: 'comment', label: 'Kommentar' },
-    { id: 'test', label: 'Test', footerContent: this.footerContent },
+    { id: 'price_per_unit', label: 'Stückpreis', footerContent: this.footerContent }
   ];
   orderItemTableActions: TableActionButton[] = [
     {
