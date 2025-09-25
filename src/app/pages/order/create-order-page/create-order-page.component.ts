@@ -1,5 +1,12 @@
 import { AddressResponseDTO } from './../../../api/models/response-dtos/AddressResponseDTO';
-import { Component, ElementRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  ViewChild,
+  Signal,
+  signal,
+  computed,
+} from '@angular/core';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import { MatDivider } from '@angular/material/divider';
 import { FormComponent } from '../../../components/form-component/form-component.component';
@@ -74,15 +81,26 @@ export class CreateOrderPageComponent implements OnInit {
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 
   // Item variables
-  items: ItemRequestDTO[] = []; // Temporary storage for items
-  itemTableDataSource = new MatTableDataSource<ItemRequestDTO>(this.items);
+  items = signal<ItemRequestDTO[]>([]);
+  itemTableDataSource = new MatTableDataSource<ItemRequestDTO>([]);
   orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
   orderItemFormGroup = new FormGroup({});
+
+  footerContent = computed(() => {
+    const sum = this.items().reduce(
+      (total, item) =>
+        total + (item.price_per_unit || 0) * (item.quantity || 0),
+      0
+    );
+    console.log('Summe:', sum);
+    return `Gesamt: ${sum.toFixed(2)} €`;
+  });
   orderItemColumns: TableColumn<ItemRequestDTO>[] = [
     { id: 'name', label: 'Artikelbezeichnung' },
     { id: 'quantity', label: 'Anzahl' },
     { id: 'price_per_unit', label: 'Stückpreis' },
     { id: 'comment', label: 'Kommentar' },
+    { id: 'test', label: 'Test', footerContent: this.footerContent },
   ];
   orderItemTableActions: TableActionButton[] = [
     {
@@ -199,8 +217,9 @@ export class CreateOrderPageComponent implements OnInit {
   onAddItem() {
     if (this.orderItemFormGroup.valid) {
       const newItem = this.orderItemFormGroup.value as ItemRequestDTO;
-      this.items.push(newItem);
-      this.itemTableDataSource.data = this.items; // Update the table data source
+      this.items.update((curr) => [...curr, newItem]);
+      console.log(this.items());
+      this.itemTableDataSource.data = this.items(); // Update the table data source
       this.orderItemFormGroup.reset(); // Formular zurücksetzen
     } else {
       this.orderItemFormGroup.markAllAsTouched(); // Markiere alle Felder als berührt, um Validierungsfehler anzuzeigen
@@ -212,8 +231,8 @@ export class CreateOrderPageComponent implements OnInit {
    * @param item The item to be deleted from the items list
    */
   deleteItem(item: ItemRequestDTO) {
-    this.items = this.items.filter((i) => i !== item);
-    this.itemTableDataSource.data = this.items; // Aktualisiere die Datenquelle der Tabelle
+    this.items.update((curr) => curr.filter((i) => i !== item));
+    this.itemTableDataSource.data = this.items(); // Aktualisiere die Datenquelle der Tabelle
   }
 
   /**
@@ -490,60 +509,59 @@ export class CreateOrderPageComponent implements OnInit {
       }
     }
 
-
-      // Invoice address
-      if (this.sameAsRecipient) {
-        this.postOrderDTO.invoice_address_id =
-          this.postOrderDTO.delivery_address_id;
-      } else {
-        if (this.invoiceAddressOption === 'new') {
-          this.invoiceAddressFormGroup.markAllAsTouched();
-          if (this.invoiceAddressFormGroup.valid) {
-            // If the form is valid, create a new address via the API and store the returned ID
-            const newAddress: AddressRequestDTO = this.invoiceAddressFormGroup
-              .value as AddressRequestDTO;
-            try {
-              const createdAddress: AddressResponseDTO =
-                await PersonsService.createPersonAddress(newAddress);
-              this.postOrderDTO.invoice_address_id = createdAddress.id;
-            } catch (error) {
-              this._notifications.open(
-                'Fehler beim Speichern der Adresse. Bitte versuchen sie es später erneut.',
-                undefined,
-                { duration: 3000 }
-              );
-            }
-          } else {
+    // Invoice address
+    if (this.sameAsRecipient) {
+      this.postOrderDTO.invoice_address_id =
+        this.postOrderDTO.delivery_address_id;
+    } else {
+      if (this.invoiceAddressOption === 'new') {
+        this.invoiceAddressFormGroup.markAllAsTouched();
+        if (this.invoiceAddressFormGroup.valid) {
+          // If the form is valid, create a new address via the API and store the returned ID
+          const newAddress: AddressRequestDTO = this.invoiceAddressFormGroup
+            .value as AddressRequestDTO;
+          try {
+            const createdAddress: AddressResponseDTO =
+              await PersonsService.createPersonAddress(newAddress);
+            this.postOrderDTO.invoice_address_id = createdAddress.id;
+          } catch (error) {
             this._notifications.open(
-              'Bitte überprüfen Sie die Eingaben in dem Adressfeld.',
+              'Fehler beim Speichern der Adresse. Bitte versuchen sie es später erneut.',
               undefined,
               { duration: 3000 }
             );
-          }
-        } else if (this.invoiceAddressOption === 'preferred') {
-          if (this.selectedInvoicePerson?.address_id) {
-            this.postOrderDTO.invoice_address_id =
-              this.selectedInvoicePerson.address_id;
-          } else {
-            this._notifications.open(
-              'Fehler beim Laden der bevorzugten Adresse. Die präferierte Adresse konnte nicht gefunden werden. Bitte versuchen sie es später erneut',
-              undefined,
-              { duration: 3000 }
-            );
-            return;
           }
         } else {
-          if (this.invoiceAddressId) {
-            this.postOrderDTO.invoice_address_id = this.invoiceAddressId;
-          } else {
-            this._notifications.open(
-              'Bitte wählen Sie eine Adresse aus der Tabelle aus.',
-              undefined,
-              { duration: 3000 }
-            );
-            return;
-          }
+          this._notifications.open(
+            'Bitte überprüfen Sie die Eingaben in dem Adressfeld.',
+            undefined,
+            { duration: 3000 }
+          );
+        }
+      } else if (this.invoiceAddressOption === 'preferred') {
+        if (this.selectedInvoicePerson?.address_id) {
+          this.postOrderDTO.invoice_address_id =
+            this.selectedInvoicePerson.address_id;
+        } else {
+          this._notifications.open(
+            'Fehler beim Laden der bevorzugten Adresse. Die präferierte Adresse konnte nicht gefunden werden. Bitte versuchen sie es später erneut',
+            undefined,
+            { duration: 3000 }
+          );
+          return;
+        }
+      } else {
+        if (this.invoiceAddressId) {
+          this.postOrderDTO.invoice_address_id = this.invoiceAddressId;
+        } else {
+          this._notifications.open(
+            'Bitte wählen Sie eine Adresse aus der Tabelle aus.',
+            undefined,
+            { duration: 3000 }
+          );
+          return;
         }
       }
     }
   }
+}
