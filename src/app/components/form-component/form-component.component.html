@@ -91,7 +91,8 @@
                 <mat-icon
                   class="text-gray-500 text-base"
                   style="color: rgb(58, 126, 229)"
-                >help</mat-icon>
+                  >help</mat-icon
+                >
               </button>
               }
             </div>
@@ -119,8 +120,30 @@
 
           <!-- Checkbox -->
           @case ('checkbox') {
-          <div class="w-4/5">
-            <mat-checkbox [formControlName]="field.name"></mat-checkbox>
+          <div class="w-4/5 flex items-center gap-2">
+            <!-- Checkbox -->
+            <mat-checkbox [formControlName]="field.name">
+              {{ field.label }}
+            </mat-checkbox>
+
+            <!-- Tooltip-Button -->
+            @if (field.tooltip) {
+            <button
+              mat-icon-button
+              matTooltip="{{ field.tooltip }}"
+              class="!h-6 !w-6 !p-0"
+              type="button"
+            >
+              <mat-icon
+                class="text-gray-500 text-base"
+                style="color: rgb(58, 126, 229)"
+              >
+                help
+              </mat-icon>
+            </button>
+            }
+
+            <!-- Fehleranzeige -->
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültige Auswahl treffen!</mat-error>

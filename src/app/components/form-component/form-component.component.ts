@@ -13,6 +13,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { CustomerIdResponseDTO } from '../../api';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
 import { MatIconModule } from '@angular/material/icon';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 export interface FormField {
   name: string;
@@ -62,6 +63,7 @@ export interface FormConfig {
     MatTooltip,
     GenericTableComponent,
     MatIconModule,
+    MatCheckboxModule,
   ],
   templateUrl: './form-component.component.html',
   styleUrls: ['./form-component.component.scss'],

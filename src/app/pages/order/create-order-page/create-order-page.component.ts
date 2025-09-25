@@ -1,3 +1,4 @@
+import { ApprovalRequestDTO } from './../../../api/models/request-dtos/ApprovalRequestDTO';
 import { AddressResponseDTO } from './../../../api/models/response-dtos/AddressResponseDTO';
 import {
   Component,
@@ -35,6 +36,7 @@ import {
 } from '../../../api';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
+  ORDER_APPROVAL_FORM_CONFIG,
   ORDER_QUOTATION_FORM_CONFIG,
 } from '../../../configs/order/order-config';
 import { PersonsService } from '../../../api';
@@ -99,7 +101,11 @@ export class CreateOrderPageComponent implements OnInit {
     { id: 'name', label: 'Artikelbezeichnung' },
     { id: 'quantity', label: 'Anzahl' },
     { id: 'comment', label: 'Kommentar' },
-    { id: 'price_per_unit', label: 'Stückpreis', footerContent: this.footerContent }
+    {
+      id: 'price_per_unit',
+      label: 'Stückpreis',
+      footerContent: this.footerContent,
+    },
   ];
   orderItemTableActions: TableActionButton[] = [
     {
@@ -176,6 +182,11 @@ export class CreateOrderPageComponent implements OnInit {
       action: (row: QuotationRequestDTO) => this.deleteQuotation(row),
     },
   ];
+
+  // Approval variables
+  approvalFormConfig = ORDER_APPROVAL_FORM_CONFIG;
+  approvalFormGroup = new FormGroup({});
+  postApprovalDTO: ApprovalRequestDTO = {} as ApprovalRequestDTO;
 
   async ngOnInit(): Promise<void> {
     // Load initial data for the VAT options field in the form
@@ -562,5 +573,29 @@ export class CreateOrderPageComponent implements OnInit {
         }
       }
     }
+  }
+
+  /** Save the approval form inputs locally in the postApprovalDTO object
+   */
+  locallySaveApprovalFormInput() {
+    // Get raw form values and normalize undefined (unchecked) to false.
+    // This prevents having to check whether a property has changed or not
+    // when editing an order with existing approval flags.
+    // E.g. if flagEdvPermission was true and the user unchecks it, the property
+    // would be undefined in the form value and thus not included in the postApprovalDTO.
+    // By normalizing undefined to false, we ensure that all flags are explicitly set.
+    const raw = this.approvalFormGroup.value;
+    const normalized = Object.fromEntries(
+      Object.entries(raw).map(([k, v]) => [k, v ?? false])
+    );
+
+    this.postApprovalDTO = normalized as ApprovalRequestDTO;
+
+    console.log(this.postApprovalDTO);
+    this._notifications.open(
+      'Zustimmungen wurden zwischengespeichert.',
+      undefined,
+      { duration: 3000 }
+    );
   }
 }

@@ -3,7 +3,7 @@ import { Validators } from '@angular/forms';
 
 
 export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
-  title: '2. Präferierte Adresse festlegen',
+  title: 'Adresse festlegen',
   fields: [
     {
       name: 'street',
@@ -118,4 +118,58 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
       editable: true
     }
   ]
-}
+};
+
+export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
+  title: 'Zustimmung(en) hinzufügen',
+  fields: [
+    {
+      name: 'flagEdvPermission',
+      label: 'Beschaffung von Soft-/Hardware mit Rechenzentrum abgeklärt',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false,
+      tooltip: 'Für Hardware und Software, die in der Vorzugsliste des Rechenzentrums - RZ nicht enthalten ist, ist die Beschaffung mit dem RZ geklärt und liegt dieser Bestellung bei'
+    },
+    {
+      name: 'flagFurniturePermission',
+      label: 'Beschaffung von Möbeln mit Gebäudemanagement abgeklärt',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false,
+      tooltip: 'Für Möbel, die in der Vorzugsliste des Facility Managements nicht enthalten sind, ist die Beschaffung mit dem Facility Management geklärt und liegt dieser Bestellung bei'
+    },
+    {
+      name: 'flagFurnitureRoom',
+      label: 'Erforderlicher Raum für die Möbel steht zur Verfügung',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false,
+      tooltip: 'Der erforderliche Raum für die Aufnahme der Möbel steht zur Verfügung'
+    },
+    {
+      name: 'flagInvestmentRoom',
+      label: 'Erforderlicher Raum für die Geräte steht zur Verfügung',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false,
+      tooltip: 'Der erforderliche Raum für die Aufnahme der Geräte steht zur Verfügung'
+    },
+    {
+      name: 'flagInvestmentStructuralMeasures',
+      label: 'Erforderliche bauliche Maßnahmen sind beauftragt',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false,
+      tooltip: 'Für Gegenstände, die in der Vorzugsliste des Facility Managements nicht enthalten sind, ist die Beschaffung mit dem FM geklärt und liegt dieser Bestellung bei.'
+    },
+    {
+      name: 'flagMediaPermission',
+      label: 'Beschaffung mit Medientechnik abgesprochen',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false,
+      tooltip: 'Für die Beschaffung ist die Zustimmung der Medientechnik erforderlich. Die Zustimmung der Medientechnik liegt dieser Bestellung bei.'
+    }
+  ]
+};

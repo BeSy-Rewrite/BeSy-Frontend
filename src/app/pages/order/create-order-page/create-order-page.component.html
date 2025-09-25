@@ -244,6 +244,24 @@
         </button>
         }
       </div>
+      <div class="spacing-container h-8"></div>
+      <div class="approval-container">
+        <div class="text-2xl font-bold mb-4 mt-4 ml-8">
+          Zustimmungen
+          <app-form-component
+            [config]="approvalFormConfig"
+            [formGroup]="approvalFormGroup"
+          ></app-form-component>
+        </div>
+        <button
+          mat-raised-button
+          class="ml-8 mb-4 mt-4 w-31/40"
+          color="primary"
+          (click)="locallySaveApprovalFormInput()"
+        >
+          Zustimmungen zwischenspeichern
+        </button>
+      </div>
       <div class="flex justify-end mt-4">
         <button mat-raised-button color="primary">Bestellung speichern</button>
       </div>
