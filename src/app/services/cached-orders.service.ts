@@ -2,6 +2,12 @@ import { Injectable } from '@angular/core';
 import { from, of, tap } from 'rxjs';
 import { OrdersService, PagedOrderResponseDTO } from '../api';
 import { FilterRequestParams } from '../models/filter-request-params';
+import { environment } from '../../environments/environment';
+
+type CacheEntry = {
+  response: PagedOrderResponseDTO;
+  createdAt: Date;
+};
 
 @Injectable({
   providedIn: 'root'
@@ -14,44 +20,40 @@ import { FilterRequestParams } from '../models/filter-request-params';
  */
 export class CachedOrdersService {
 
-  private currentFilters: FilterRequestParams | undefined;
   private totalElements: number = 0;
-  private cacheCreatedAt: Date = new Date();
-  private readonly cacheDurationMs: number = 5 * 60 * 1000; // 5 Minuten
+  private readonly cacheDurationMs: number = environment.cacheDurationMs || 5 * 60 * 1000; // 5 minutes default
 
-  private readonly cache: Map<string, PagedOrderResponseDTO> = new Map();
+  private readonly cache: Map<string, CacheEntry> = new Map();
 
   /**
    * Fetch orders from the API and cache the result.
+   * If the requested data is in the cache and still valid, it returns the cached response.
    * @param page Number of the page to fetch (0-indexed)
    * @param size Number of items per page
    * @param sort Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
    * @param filters Filter parameters to apply
+   * @param searchTerm Search term to filter results
    * @returns An observable of the paged order response
    */
   getAllOrders(
     page: number = 0,
     size: number = 20,
     sort: Array<string> = [],
-    filters: FilterRequestParams = {} as FilterRequestParams
+    filters: FilterRequestParams = {} as FilterRequestParams,
+    searchTerm: string = ''
   ) {
-    if (JSON.stringify(this.currentFilters) !== JSON.stringify(filters)) {
-      this.currentFilters = filters;
-      this.cache.clear();
+    this.cleanCache();
 
-      return this.fetchOrders(page, size, sort, filters);
-    }
-
-    const cacheKey = this.getCacheKey(page, size, sort);
+    const cacheKey = this.getCacheKey(page, size, sort, filters, searchTerm);
     if (this.cache.has(cacheKey)) {
-      return of(this.cache.get(cacheKey)!);
+      return of(this.cache.get(cacheKey)!.response);
     }
 
-    return this.fetchOrders(page, size, sort, filters);
+    return this.fetchOrders(page, size, sort, filters, searchTerm);
   }
 
   /**
-   * Clear the cache.
+   * Clear the cache and reset total elements count.
    */
   clearCache() {
     this.cache.clear();
@@ -60,17 +62,20 @@ export class CachedOrdersService {
 
   /**
    * Fetch orders from the API.
+   * This method handles the API call and caches the response.
    * @param page Number of the page to fetch (0-indexed)
    * @param size Number of items per page
    * @param sort Sorting criteria in the format: property(,asc|desc). Default sort order is ascending. Multiple sort criteria are supported.
    * @param filters Filter parameters to apply
+   * @param searchTerm Search term to filter results
    * @returns An observable of the paged order response
    */
   private fetchOrders(
     page: number,
     size: number,
     sort: Array<string>,
-    filters: FilterRequestParams
+    filters: FilterRequestParams,
+    searchTerm: string = ''
   ) {
     return from(OrdersService.getAllOrders(
       page,
@@ -100,33 +105,40 @@ export class CachedOrdersService {
           this.cache.clear();
           this.totalElements = pageResponse.total_elements;
         }
-        if (!this.isCacheValid()) {
-          this.cache.clear();
-          this.cacheCreatedAt = new Date();
-        }
 
-        this.cache.set(this.getCacheKey(page, size, sort), pageResponse);
+        this.cache.set(this.getCacheKey(page, size, sort, filters, searchTerm),
+          { response: pageResponse, createdAt: new Date() }
+        );
       })
     );
   }
 
-  /** Check if the cache is still valid based on its age.
-   * @return True if the cache is valid, false otherwise.
+  /** 
+   * Check if the cache is still valid based on its age.
+   * This method removes stale cache entries based on the defined cache duration.
    */
-  private isCacheValid(): boolean {
-    const cacheAge = new Date().getTime() - this.cacheCreatedAt.getTime();
-    return cacheAge < this.cacheDurationMs;
+  private cleanCache(): void {
+    this.cache.forEach((entry, key) => {
+      const cacheAge = new Date().getTime() - entry.createdAt.getTime();
+      if (cacheAge > this.cacheDurationMs) {
+        this.cache.delete(key);
+      }
+    });
   }
 
-  /** Generate a cache key based on page, size, and sort parameters.
+  /** 
+   * Generate a cache key based on page, size, sort parameters, filters, and search term.
    * @param page Page number
    * @param size Page size
    * @param sort Sort parameters
+   * @param filters Filter parameters
+   * @param searchTerm Search term to filter results
    * @returns A unique cache key
    */
-  private getCacheKey(page: number, size: number, sort: Array<string>): string {
+  private getCacheKey(page: number, size: number, sort: Array<string>, filters: FilterRequestParams, searchTerm: string): string {
     const sortKey = sort ? sort.join(',') : '';
-    return `${page}-${size}-${sortKey}`;
+    const filtersKey = JSON.stringify(filters);
+    return `${page}-${size}-${sortKey}-${filtersKey}-${searchTerm}`;
   }
 
 }

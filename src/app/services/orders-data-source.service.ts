@@ -164,8 +164,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * @param searchTerm The new search term.
    */
   set searchTerm(searchTerm: string) {
-    this._searchTerm = searchTerm;
-    // Handle search term change if necessary
+    this._searchTerm = searchTerm.toLowerCase().trim();
     this._fetchData();
   }
 
