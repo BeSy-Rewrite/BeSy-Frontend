@@ -10,26 +10,6 @@ import { FilterRequestParams } from '../models/filter-request-params';
 import { CachedOrdersService } from './cached-orders.service';
 
 
-class PageCache {
-  content: Map<number, OrderResponseDTO[]> = new Map();
-  totalElements: number = 0;
-  pageSize: number = 0;
-  filter: Map<string, any> | undefined;
-  searchTerm: string | undefined;
-  sorting: string[] = [];
-
-  clear() {
-    this.content.clear();
-    this.totalElements = 0;
-    this.pageSize = 0;
-    this.filter = undefined;
-    this.searchTerm = undefined;
-  }
-  isEmpty() {
-    return this.content.size === 0;
-  }
-}
-
 @Injectable({
   providedIn: 'root'
 })
