@@ -93,9 +93,7 @@ export class FilterMenuComponent implements OnInit {
     this.setupUsers();
     this.setupPersons();
     this.setupStatuses();
-    // ToDo: Separate API endpoint needed to fetch customer IDs
-    // Currently disabled to reduce number of API calls (one call per supplier)
-    //this.setupSuppliers();
+    this.setupSuppliers();
     this.setupBookingYears();
   }
 
@@ -156,7 +154,11 @@ export class FilterMenuComponent implements OnInit {
   setupSuppliers() {
     from(SuppliersService.getAllSuppliers()).subscribe((suppliers: SupplierResponseDTO[]) => {
       suppliers.filter(s => s.id !== undefined).forEach(supplier => {
-        this.setupCustomerIds(supplier);
+        
+    // Separate API endpoint needed to fetch customer IDs
+    // Currently disabled to reduce number of API calls (one call per supplier)
+    // CustomerIds will not be used for filters
+        //this.setupCustomerIds(supplier);
       });
       this.chips['supplier_id'].set(
         suppliers.map(supplier => ({
