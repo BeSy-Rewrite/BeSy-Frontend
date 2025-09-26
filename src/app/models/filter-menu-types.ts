@@ -18,7 +18,6 @@ export interface ActiveFilters {
     delivery_person_id: FilterChipData[];
     invoice_person_id: FilterChipData[];
     queries_person_id: FilterChipData[];
-    customer_id: FilterChipData[];
     supplier_id: FilterChipData[];
     created_date: FilterDateRange;
     last_updated_time: FilterDateRange;

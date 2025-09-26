@@ -187,7 +187,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       deliveryPersonIds: this._filter?.delivery_person_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
       invoicePersonIds: this._filter?.invoice_person_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
       queriesPersonIds: this._filter?.queries_person_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
-      customerIds: this._filter?.customer_id?.map(f => f.id?.toString() ?? ''),
+      customerIds: undefined,
       supplierIds: this._filter?.supplier_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
       secondaryCostCenters: this._filter?.secondary_cost_center_id?.map(f => f.id?.toString() ?? ''),
       lastUpdatedTimeAfter: this._filter?.last_updated_time.start?.toISOString(),

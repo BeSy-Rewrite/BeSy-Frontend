@@ -13,12 +13,6 @@ import { ChipSelectionComponent } from '../chip-selection/chip-selection.compone
 import { DateRangePickerComponent } from '../date-range-picker/date-range-picker.component';
 import { RangeSelectionSliderComponent } from '../range-selection-slider/range-selection-slider.component';
 
-enum FilterType {
-  DATE_RANGE = 'date-range',
-  SELECT = 'select',
-  RANGE = 'range',
-  BOOLEAN = 'boolean',
-}
 
 @Component({
   selector: 'app-filter-menu',
@@ -45,7 +39,6 @@ export class FilterMenuComponent implements OnInit {
       delivery_person_id: this.chips['delivery_person_id']().filter(chip => chip.isSelected),
       invoice_person_id: this.chips['invoice_person_id']().filter(chip => chip.isSelected),
       queries_person_id: this.chips['queries_person_id']().filter(chip => chip.isSelected),
-      customer_id: this.chips['customer_id']().filter(chip => chip.isSelected),
       supplier_id: this.chips['supplier_id']().filter(chip => chip.isSelected),
       created_date: this.dateRanges['created_date'](),
       last_updated_time: this.dateRanges['last_updated_time'](),
@@ -64,7 +57,6 @@ export class FilterMenuComponent implements OnInit {
     'delivery_person_id': signal<FilterChipData[]>([]),
     'invoice_person_id': signal<FilterChipData[]>([]),
     'queries_person_id': signal<FilterChipData[]>([]),
-    'customer_id': signal<FilterChipData[]>([]),
     'supplier_id': signal<FilterChipData[]>([]),
     'booking_year': signal<FilterChipData[]>([])
   };
@@ -153,13 +145,6 @@ export class FilterMenuComponent implements OnInit {
 
   setupSuppliers() {
     from(SuppliersService.getAllSuppliers()).subscribe((suppliers: SupplierResponseDTO[]) => {
-      suppliers.filter(s => s.id !== undefined).forEach(supplier => {
-        
-    // Separate API endpoint needed to fetch customer IDs
-    // Currently disabled to reduce number of API calls (one call per supplier)
-    // CustomerIds will not be used for filters
-        //this.setupCustomerIds(supplier);
-      });
       this.chips['supplier_id'].set(
         suppliers.map(supplier => ({
           id: supplier.id,
@@ -167,20 +152,6 @@ export class FilterMenuComponent implements OnInit {
           tooltip: supplier.comment
         }))
       );
-    });
-  }
-
-  // ToDo: Seperate API endpoint needed to fetch customer IDs
-  setupCustomerIds(supplier: SupplierResponseDTO) {
-    SuppliersService.getCustomerIdsOfOrder(supplier.id!).then((customerIds: CustomerIdResponseDTO[]) => {
-      this.chips['customer_id'].update(currentChips => {
-        const newChips = customerIds.map(id => ({
-          id: id.customer_id,
-          label: supplier.name + ' - ' + id.customer_id,
-          tooltip: id.comment
-        }));
-        return [...currentChips, ...newChips];
-      });
     });
   }
 

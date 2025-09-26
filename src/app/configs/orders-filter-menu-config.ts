@@ -80,7 +80,7 @@ export const ORDERS_FILTER_MENU_CONFIG: FilterConfig[] = [
     },
     {
         key: 'invoice_person_id',
-        title: 'invoicePerson',
+        title: 'Rechnungsempfänger:in',
         type: FilterType.SELECT,
         data: {
             inputLabel: 'Person auswählen',
@@ -89,19 +89,10 @@ export const ORDERS_FILTER_MENU_CONFIG: FilterConfig[] = [
     },
     {
         key: 'queries_person_id',
-        title: 'queriesPerson',
+        title: 'Ansprechperson',
         type: FilterType.SELECT,
         data: {
             inputLabel: 'Person auswählen',
-            inputPlaceholder: 'Suchbegriff eingeben'
-        }
-    },
-    {
-        key: 'customer_id',
-        title: 'Kundennummer',
-        type: FilterType.SELECT,
-        data: {
-            inputLabel: 'Kundennummer auswählen',
             inputPlaceholder: 'Suchbegriff eingeben'
         }
     },
