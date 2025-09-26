@@ -77,12 +77,12 @@
               type="text"
               matInput
               [formControl]="personControlRecipient"
-              [matAutocomplete]="auto"
+              [matAutocomplete]="autoRecipientPerson"
               [required]="true"
             />
 
             <mat-autocomplete
-              #auto="matAutocomplete"
+              #autoRecipientPerson="matAutocomplete"
               (optionSelected)="onPersonSelected($event.option.value, true)"
               [displayWith]="displayPerson"
             >
@@ -162,17 +162,17 @@
           <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
 
           <mat-form-field class="w-full" appearance="fill">
-            <mat-label>Sendungsempfänger auswählen</mat-label>
+            <mat-label>Rechnungsempfänger auswählen</mat-label>
             <input
               type="text"
               matInput
               [formControl]="personControlInvoice"
-              [matAutocomplete]="auto"
+              [matAutocomplete]="autoInvoicePerson"
               [required]="true"
             />
 
             <mat-autocomplete
-              #auto="matAutocomplete"
+              #autoInvoicePerson="matAutocomplete"
               (optionSelected)="onPersonSelected($event.option.value, false)"
               [displayWith]="displayPerson"
             >
@@ -262,8 +262,60 @@
           Zustimmungen zwischenspeichern
         </button>
       </div>
+
+      <!-- Cost Center Container -->
+      <div class="cost-center-container w-31/40 ml-8 mt-8 mb-8">
+        <div class="text-2xl font-bold mb-4 mt-4">Kostenstelle</div>
+        <mat-form-field class="w-full" appearance="fill">
+          <mat-label>Primäre Kostenstelle auswählen</mat-label>
+          <input
+            type="text"
+            matInput
+            [formControl]="primaryCostCenterControl"
+            [matAutocomplete]="autoPrimaryCostCenter"
+            [required]="true"
+          />
+
+          <mat-autocomplete
+            #autoPrimaryCostCenter="matAutocomplete"
+            (optionSelected)="onCostCenterSelected($event.option.value, true)"
+            [displayWith]="displayCostCenter"
+          >
+            @for (costCenter of filteredPrimaryCostCenters | async; track
+            costCenter.id) {
+            <mat-option [value]="costCenter">
+              {{ costCenter.name }}
+            </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field class="w-full" appearance="fill">
+          <mat-label>Sekundäre Kostenstelle auswählen</mat-label>
+          <input
+            type="text"
+            matInput
+            [formControl]="secondaryCostCenterControl"
+            [matAutocomplete]="autoSecondaryCostCenter"
+            [required]="true"
+          />
+
+          <mat-autocomplete
+            #autoSecondaryCostCenter="matAutocomplete"
+            (optionSelected)="onCostCenterSelected($event.option.value, false)"
+            [displayWith]="displayCostCenter"
+          >
+            @for (costCenter of filteredSecondaryCostCenters | async; track
+            costCenter.id) {
+            <mat-option [value]="costCenter">
+              {{ costCenter.name }}
+            </mat-option>
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+      </div>
       <div class="flex justify-end mt-4">
-        <button mat-raised-button color="primary">Bestellung speichern</button>
+        <button mat-raised-button color="primary" (click)="saveOrder()">Bestellung speichern</button>
       </div>
     </div>
   </div>

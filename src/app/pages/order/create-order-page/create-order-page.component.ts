@@ -28,7 +28,10 @@ import { GenericTableComponent } from '../../../components/generic-table/generic
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   AddressRequestDTO,
+  CostCenterResponseDTO,
+  CostCentersService,
   OrderRequestDTO,
+  OrdersService,
   PersonResponseDTO,
   QuotationRequestDTO,
   VatResponseDTO,
@@ -37,6 +40,7 @@ import {
 import {
   ORDER_ADDRESS_FORM_CONFIG,
   ORDER_APPROVAL_FORM_CONFIG,
+  ORDER_COST_CENTER_FORM_CONFIG,
   ORDER_QUOTATION_FORM_CONFIG,
 } from '../../../configs/order/order-config';
 import { PersonsService } from '../../../api';
@@ -188,6 +192,28 @@ export class CreateOrderPageComponent implements OnInit {
   approvalFormGroup = new FormGroup({});
   postApprovalDTO: ApprovalRequestDTO = {} as ApprovalRequestDTO;
 
+  // Cost center variables
+  costCenters: CostCenterResponseDTO[] = [];
+  primaryCostCenterControl = new FormControl<CostCenterResponseDTO | string>(
+    '',
+    {
+      nonNullable: false,
+      updateOn: 'change',
+      validators: [this.validateCostCentersSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
+    }
+  );
+  filteredPrimaryCostCenters!: Observable<CostCenterResponseDTO[]>;
+
+  secondaryCostCenterControl = new FormControl<CostCenterResponseDTO | string>(
+    '',
+    {
+      nonNullable: false,
+      updateOn: 'change',
+      validators: [this.validateCostCentersSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
+    }
+  );
+  filteredSecondaryCostCenters!: Observable<CostCenterResponseDTO[]>;
+
   async ngOnInit(): Promise<void> {
     // Load initial data for the VAT options field in the form
     const vatOptions = await VatSService.getAllVats();
@@ -219,6 +245,33 @@ export class CreateOrderPageComponent implements OnInit {
         return this._filter(searchText || '');
       })
     );
+
+    this.costCenters = await CostCentersService.getCostCenters();
+    this.filteredPrimaryCostCenters =
+      this.primaryCostCenterControl.valueChanges.pipe(
+        startWith(''),
+        map((value) => {
+          const searchText =
+            typeof value === 'string'
+              ? value
+              : this.displayCostCenter(value as CostCenterResponseDTO);
+
+          return this._filterCostCenters(searchText || '');
+        })
+      );
+    console.log('Gefilterte Kostenstellen:', this.filteredPrimaryCostCenters);
+    this.filteredSecondaryCostCenters =
+      this.secondaryCostCenterControl.valueChanges.pipe(
+        startWith(''),
+        map((value) => {
+          const searchText =
+            typeof value === 'string'
+              ? value
+              : this.displayCostCenter(value as CostCenterResponseDTO);
+
+          return this._filterCostCenters(searchText || '');
+        })
+      );
   }
 
   /**
@@ -228,7 +281,6 @@ export class CreateOrderPageComponent implements OnInit {
     if (this.orderItemFormGroup.valid) {
       const newItem = this.orderItemFormGroup.value as ItemRequestDTO;
       this.items.update((curr) => [...curr, newItem]);
-      console.log(this.items());
       this.itemTableDataSource.data = this.items(); // Update the table data source
       this.orderItemFormGroup.reset(); // Formular zurücksetzen
     } else {
@@ -597,5 +649,61 @@ export class CreateOrderPageComponent implements OnInit {
       undefined,
       { duration: 3000 }
     );
+  }
+
+  onCostCenterSelected(costCenter: CostCenterResponseDTO, isPrimary: boolean) {
+    if (isPrimary) {
+      this.primaryCostCenterControl.setValue(costCenter);
+      this.postOrderDTO.primary_cost_center_id = costCenter.id;
+    } else {
+      this.secondaryCostCenterControl.setValue(costCenter);
+      this.postOrderDTO.secondary_cost_center_id = costCenter.id;
+    }
+  }
+
+  private _filterCostCenters(search: string): CostCenterResponseDTO[] {
+    const filterValue = search.toLowerCase();
+    console.log('FilterValue:', filterValue);
+    console.log('CostCenters:', this.costCenters);
+    return this.costCenters.filter((cc) =>
+      `${cc.name}`.toLowerCase().includes(filterValue)
+    );
+  }
+
+  displayCostCenter(costCenter: CostCenterResponseDTO | string): string {
+    if (!costCenter) return '';
+    return typeof costCenter === 'string' ? costCenter : `${costCenter.name}`;
+  }
+
+  validateCostCentersSelection(
+    control: AbstractControl
+  ): ValidationErrors | null {
+    const value = control.value;
+    // Check if the value is an object and has an 'id' property
+    if (value && typeof value === 'object' && 'id' in value) {
+      return null; // ok
+    }
+    return { invalidCostCenter: true }; // No valid cost center selected
+  }
+
+  saveOrder() {
+    console.log('PostOrderDTO vor dem Speichern:', this.postOrderDTO);
+    OrdersService.createOrder(this.postOrderDTO)
+      .then((order) => {
+        this._notifications.open(
+          'Bestellung erfolgreich erstellt.',
+          undefined,
+          { duration: 3000 }
+        );
+        this.router.navigate(['/orders', order.id]);
+      })
+      .catch((error) => {
+        console.error('Fehler beim Erstellen der Bestellung:', error);
+        this._notifications.open(
+          'Fehler beim Erstellen der Bestellung. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.',
+          undefined,
+          { duration: 5000 }
+        );
+      });
   }
 }
