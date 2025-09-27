@@ -35,7 +35,6 @@ import {
   PersonResponseDTO,
   QuotationRequestDTO,
   VatResponseDTO,
-  VatSService,
 } from '../../../api';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
@@ -57,6 +56,7 @@ import {
 } from '@angular/material/button-toggle';
 import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
 import { Router } from '@angular/router';
+import { VatWrapperService } from '../../../services/wrapper-services/vat-wrapper.service';
 
 @Component({
   selector: 'app-create-order-page',
@@ -82,7 +82,7 @@ import { Router } from '@angular/router';
   styleUrl: './create-order-page.component.scss',
 })
 export class CreateOrderPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar) {}
+  constructor(private router: Router, private _notifications: MatSnackBar, private vatWrapperService: VatWrapperService) {}
 
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 
@@ -216,7 +216,7 @@ export class CreateOrderPageComponent implements OnInit {
 
   async ngOnInit(): Promise<void> {
     // Load initial data for the VAT options field in the form
-    const vatOptions = await VatSService.getAllVats();
+    const vatOptions = await this.vatWrapperService.getAllVats();
     this.setDropdownVatOptions(vatOptions);
 
     // Initialize the person dropdown in the address form with data from the api
