@@ -2,7 +2,6 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { AddressResponseDTO } from './AddressResponseDTO';
 export type SupplierResponseDTO = {
     id?: number;
     name?: string;

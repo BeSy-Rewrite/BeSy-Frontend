@@ -2,12 +2,13 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { VatResponseDTO } from '../models/response-dtos/VatResponseDTO';
+import type { VatResponseDTO } from '../models/VatResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
 export class VatSService {
     /**
+     * Der `value` einer VAT ist zugleich dessen ID.
      * @returns VatResponseDTO OK
      * @throws ApiError
      */

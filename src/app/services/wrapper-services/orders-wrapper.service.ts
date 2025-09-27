@@ -6,8 +6,30 @@ import { ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, Orde
 })
 export class OrdersWrapperService {
 
-  constructor() {}
-
+  /**
+     * @param page Seitenzahl für die Paginierung (beginnend bei 0).
+     * @param size Anzahl der Elemente pro Seite.
+     * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.  `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend), dann nach `id` (aufsteigend).
+     *
+     * @param primaryCostCenters Filtert nach IDs der primären Kostenstellen.
+     * @param bookingYears Filtert nach den letzten zwei Ziffern der Jahreszahl der Buchung. Achtung, diese muss ein String sein, z.B. "25".
+     * @param createdAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt erstellt wurden.
+     * @param createdBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt erstellt wurden.
+     * @param ownerIds Filtert nach IDs der Ersteller der Bestellung. Beinh
+     * @param statuses Filtert nach dem Bestellstatus. Beinhaltet default-mäßig alle Bestellstatus.
+     * @param quotePriceMin Filtert nach quotePriceMin.
+     * @param quotePriceMax Filtert nach quotePriceMax.
+     * @param deliveryPersonIds Filtert nach IDs der Besteller.
+     * @param invoicePersonIds Filtert nach IDs invoicePersonIds.
+     * @param queriesPersonIds Filtert nach IDs queriesPersonIds.
+     * @param customerIds Filter nach Kundennummern.
+     * @param supplierIds Filtert nach IDs der Lieferanten.
+     * @param secondaryCostCenters Filtert nach IDs der sekundären Kostenstellen.
+     * @param lastUpdatedTimeAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt bearbeitet wurden.
+     * @param lastUpdatedTimeBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt bearbeitet wurden.
+     * @returns PagedOrderResponseDTO OK
+     * @throws ApiError
+     */
   async getAllOrders(
     page?: number,
     size: number = 20,

@@ -1,4 +1,4 @@
-import { VatResponseDTO } from './../../../api/models/response-dtos/VatResponseDTO';
+import { VatResponseDTO } from './../../../api/models/VatResponseDTO';
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
@@ -21,8 +21,8 @@ import { GenericTableComponent } from '../../../components/generic-table/generic
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { AddressFormComponent } from '../../../components/address-form/address-form.component';
 import { MatButtonModule } from '@angular/material/button';
-import { VatSService } from '../../../api';
 import { CUSTOMER_ID_FORM_CONFIG } from '../../../configs/create-customer-id-config';
+import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -125,7 +125,7 @@ export class SuppliersPageComponent implements OnInit {
     );
 
     // Load initial data for the VAT options field in the form
-    const vatOptions = await VatSService.getAllVats();
+    const vatOptions = await VatWrapperService.getAllVats();
     this.setDropdownOptions(vatOptions);
   }
 

@@ -15,7 +15,7 @@ import { COST_CENTER_FORM_CONFIG } from '../../../configs/cost-center-config';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-center-wrapper.service';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 
 @Component({
   selector: 'app-cost-center-component',

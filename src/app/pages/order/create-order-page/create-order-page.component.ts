@@ -1,5 +1,5 @@
-import { ApprovalRequestDTO } from './../../../api/models/request-dtos/ApprovalRequestDTO';
-import { AddressResponseDTO } from './../../../api/models/response-dtos/AddressResponseDTO';
+import { PersonsWrapperService } from './../../../services/wrapper-services/persons-wrapper.service';
+import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 import {
   Component,
   ElementRef,
@@ -16,7 +16,6 @@ import { FormConfig } from '../../../components/form-component/form-component.co
 import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
-import { ItemRequestDTO } from '../../../api/models/request-dtos/ItemRequestDTO';
 import { MatTableDataSource } from '@angular/material/table';
 import {
   ButtonColor,
@@ -28,8 +27,11 @@ import { GenericTableComponent } from '../../../components/generic-table/generic
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
   AddressRequestDTO,
+  AddressResponseDTO,
+  ApprovalRequestDTO,
   CostCenterResponseDTO,
   CostCentersService,
+  ItemRequestDTO,
   OrderRequestDTO,
   OrdersService,
   PersonResponseDTO,
@@ -42,7 +44,6 @@ import {
   ORDER_COST_CENTER_FORM_CONFIG,
   ORDER_QUOTATION_FORM_CONFIG,
 } from '../../../configs/order/order-config';
-import { PersonsService } from '../../../api';
 import { map, Observable, of, startWith } from 'rxjs';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -56,7 +57,6 @@ import {
 } from '@angular/material/button-toggle';
 import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
 import { Router } from '@angular/router';
-import { VatWrapperService } from '../../../services/wrapper-services/vat-wrapper.service';
 
 @Component({
   selector: 'app-create-order-page',
@@ -82,7 +82,7 @@ import { VatWrapperService } from '../../../services/wrapper-services/vat-wrappe
   styleUrl: './create-order-page.component.scss',
 })
 export class CreateOrderPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar, private vatWrapperService: VatWrapperService) {}
+  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) {}
 
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 
@@ -214,14 +214,16 @@ export class CreateOrderPageComponent implements OnInit {
   );
   filteredSecondaryCostCenters!: Observable<CostCenterResponseDTO[]>;
 
+  // Currency and VAT variables
+
   async ngOnInit(): Promise<void> {
     // Load initial data for the VAT options field in the form
-    const vatOptions = await this.vatWrapperService.getAllVats();
+    const vatOptions = await VatWrapperService.getAllVats();
     this.setDropdownVatOptions(vatOptions);
 
     // Initialize the person dropdown in the address form with data from the api
     // and set up filtering for the autocomplete inputs
-    this.persons = await PersonsService.getAllPersons();
+    this.persons = await this.personsWrapperService.getAllPersons();
     this.filteredPersonsRecipient =
       this.personControlRecipient.valueChanges.pipe(
         startWith(''),
@@ -367,7 +369,7 @@ export class CreateOrderPageComponent implements OnInit {
 
     if (person.address_id) {
       const preferredAddress: AddressResponseDTO =
-        await PersonsService.getPersonsAddress(person.id!);
+        await this.personsWrapperService.getPersonAddressesById(person.id!);
 
       if (isRecipient) {
         this.recipientHasPreferredAddress = true;
@@ -389,8 +391,9 @@ export class CreateOrderPageComponent implements OnInit {
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
         this.invoiceAddressFormGroup.disable();
       }
+      // Load all addresses of any person into the address table for selection
       this.addressTableDataSource.data =
-        await PersonsService.getPersonsAddresses();
+        await this.personsWrapperService.getAllPersonsAddresses();
     }
   }
 
@@ -442,7 +445,7 @@ export class CreateOrderPageComponent implements OnInit {
       this.recipientAddressOption = option as any;
 
       if (option === 'preferred' && this.selectedRecipientPerson?.address_id) {
-        PersonsService.getPersonsAddress(this.selectedRecipientPerson.id!).then(
+        this.personsWrapperService.getPersonAddressesById(this.selectedRecipientPerson.id!).then(
           (addr) => this.recipientAddressFormGroup.patchValue(addr)
         );
         this.recipientInfoText =
@@ -468,7 +471,7 @@ export class CreateOrderPageComponent implements OnInit {
       this.invoiceAddressOption = option as any;
 
       if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
-        PersonsService.getPersonsAddress(this.selectedInvoicePerson.id!).then(
+        this.personsWrapperService.getPersonAddressesById(this.selectedInvoicePerson.id!).then(
           (addr) => this.invoiceAddressFormGroup.patchValue(addr)
         );
         this.invoiceInfoText =
@@ -528,7 +531,7 @@ export class CreateOrderPageComponent implements OnInit {
           .value as AddressRequestDTO;
         try {
           const createdAddress: AddressResponseDTO =
-            await PersonsService.createPersonAddress(newAddress);
+            await this.personsWrapperService.createPersonAddress(newAddress);
           this.postOrderDTO.delivery_address_id = createdAddress.id;
         } catch (error) {
           this._notifications.open(
@@ -584,7 +587,7 @@ export class CreateOrderPageComponent implements OnInit {
             .value as AddressRequestDTO;
           try {
             const createdAddress: AddressResponseDTO =
-              await PersonsService.createPersonAddress(newAddress);
+              await this.personsWrapperService.createPersonAddress(newAddress);
             this.postOrderDTO.invoice_address_id = createdAddress.id;
           } catch (error) {
             this._notifications.open(

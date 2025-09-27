@@ -10,5 +10,6 @@ export type InvoiceResponseDTO = {
     date?: string;
     comment?: string;
     created_date?: string;
+    paperless_id?: number;
 };
 

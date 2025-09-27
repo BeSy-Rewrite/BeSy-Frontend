@@ -2,12 +2,16 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { ItemResponseDTO } from '../models/response-dtos/ItemResponseDTO';
-import type { OrderRequestDTO } from '../models/request-dtos/OrderRequestDTO';
-import type { OrderResponseDTO } from '../models/response-dtos/OrderResponseDTO';
+import type { ApprovalRequestDTO } from '../models/ApprovalRequestDTO';
+import type { ApprovalResponseDTO } from '../models/ApprovalResponseDTO';
+import type { InvoiceResponseDTO } from '../models/InvoiceResponseDTO';
+import type { ItemResponseDTO } from '../models/ItemResponseDTO';
+import type { OrderRequestDTO } from '../models/OrderRequestDTO';
+import type { OrderResponseDTO } from '../models/OrderResponseDTO';
 import type { OrderStatus } from '../models/OrderStatus';
-import type { PagedOrderResponseDTO } from '../models/response-dtos/PagedOrderResponseDTO';
-import type { QuotationResponseDTO } from '../models/response-dtos/QuotationResponseDTO';
+import type { OrderStatusHistoryResponseDTO } from '../models/OrderStatusHistoryResponseDTO';
+import type { PagedOrderResponseDTO } from '../models/PagedOrderResponseDTO';
+import type { QuotationResponseDTO } from '../models/QuotationResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -21,8 +25,8 @@ export class OrdersService {
      * @param bookingYears Filtert nach den letzten zwei Ziffern der Jahreszahl der Buchung. Achtung, diese muss ein String sein, z.B. "25".
      * @param createdAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt erstellt wurden.
      * @param createdBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt erstellt wurden.
-     * @param ownerIds Filtert nach IDs der Ersteller der Bestellung.
-     * @param statuses Filtert nach dem Bestellstatus.
+     * @param ownerIds Filtert nach IDs der Ersteller der Bestellung. Beinh
+     * @param statuses Filtert nach dem Bestellstatus. Beinhaltet default-mäßig alle Bestellstatus.
      * @param quotePriceMin Filtert nach quotePriceMin.
      * @param quotePriceMax Filtert nach quotePriceMax.
      * @param deliveryPersonIds Filtert nach IDs der Besteller.
@@ -84,7 +88,7 @@ export class OrdersService {
         });
     }
     /**
-     * Erstellt eine neue Bestellung und setzt den `status` auf "In Bearbeitung". `booking_year` & `primary_cost_center_id` sind verpflichtend, um eine neue Bestellung anlegen zu können.
+     * Erstellt eine neue Bestellung und setzt den Bestellstatus (`status`) auf "In Bearbeitung" (`IN_PROGRESS`). Nur in diesem Bestellstatus ist das Bearbeiten einer Bestellung möglich.
      *
      * @param requestBody
      * @returns OrderResponseDTO OK
@@ -124,7 +128,34 @@ export class OrdersService {
         });
     }
     /**
-     * Löscht eine bestehende Bestellung anhand der `order-id` (Soft Delete). Setzt den Status der Bestellung auf `DEL` (gelöscht). Es sind nur Bestellungen löschbar, deren status != `DEL` ist.
+     * Aktualisiert eine Bestellung. Nur nicht-leere Felder im Request-Body werden übernommen. Nur möglich, wenn sich die Bestellung im Bestellstatus (`status`) "In Bearbeitung" (`IN_PROGRESS`) befindet.
+     * @param orderId Die eindeutige ID der Bestellung, die verändert werden soll.
+     * @param requestBody
+     * @returns OrderResponseDTO Bestellung erfolgreich aktualisiert.
+     * @throws ApiError
+     */
+    public static updateOrder(
+        orderId: number,
+        requestBody: OrderRequestDTO,
+    ): CancelablePromise<OrderResponseDTO> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/orders/{order-id}',
+            path: {
+                'order-id': orderId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bestellstatus befindet sich nicht in Bearbeitung (\`IN_PROGRESS\`)!`,
+                404: `Bestellung nicht gefunden.`,
+                409: `Verweis auf eine nicht existierende Entität.`,
+                500: `Interner Serverfehler.`,
+            },
+        });
+    }
+    /**
+     * Löscht eine bestehende Bestellung anhand der `order-id` (Soft Delete). Setzt den Bestelltatus (`order_status`) auf gelöscht (`DELETED`).
      *
      * @param orderId ID der zu löschenden Bestellung.
      * @returns void
@@ -140,6 +171,7 @@ export class OrdersService {
                 'order-id': orderId,
             },
             errors: {
+                400: `Bestellstatus befindet sich nicht in gültigem Bestellstatus!`,
                 404: `Bestellung mit der angegebenen ID nicht gefunden.`,
                 500: `Interner Serverfehler.`,
             },
@@ -185,6 +217,7 @@ export class OrdersService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
+                400: `Bestellstatus befindet sich nicht in Bearbeitung (\`IN_PROGRESS\`)!`,
                 404: `Bestellung nicht gefunden.`,
                 409: `Zugehöriger Artikel mit Artikelnummer \`article_id\` existiert bereits.`,
             },
@@ -210,6 +243,7 @@ export class OrdersService {
                 'item-id': itemId,
             },
             errors: {
+                400: `Bestellstatus befindet sich nicht in Bearbeitung (\`IN_PROGRESS\`)!`,
                 404: `Bestellung nicht gefunden. Artikel nicht gefunden.`,
                 500: `Interner Serverfehler.`,
             },
@@ -255,6 +289,7 @@ export class OrdersService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
+                400: `Bestellstatus befindet sich nicht in Bearbeitung (\`IN_PROGRESS\`)!`,
                 404: `Bestellung nicht gefunden.`,
                 409: `Zugehöriges Vergleichsangebot mit dem Index \`index\` existiert bereits.`,
             },
@@ -280,8 +315,186 @@ export class OrdersService {
                 'quotation-id': quotationId,
             },
             errors: {
+                400: `Bestellstatus befindet sich nicht in Bearbeitung (\`IN_PROGRESS\`)!`,
                 404: `Bestellung nicht gefunden. Vergleichsartikel nicht gefunden.`,
                 500: `Interner Serverfehler.`,
+            },
+        });
+    }
+    /**
+     * Gibt das vollständige PDF-Dokument zur angegebenen Rechnung zurück.
+     * @param invoiceId ID der Rechnung, für die das PDF heruntergeladen wird.
+     * @returns binary PDF erfolgreich zurückgegeben
+     * @throws ApiError
+     */
+    public static getOrdersInvoiceDocument(
+        invoiceId: string,
+    ): CancelablePromise<Blob> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/orders/invoice/{invoice-id}/document',
+            path: {
+                'invoice-id': invoiceId,
+            },
+            errors: {
+                404: `Rechnung nicht gefunden.`,
+                500: `Interner Serverfehler.`,
+            },
+        });
+    }
+    /**
+     * Lädt eine PDF-Datei hoch und verknüpft sie nach der Verarbeitung mit der angegebenen Rechnung. Jede Rechnung kann ausschließlich mit einem PDF-Dokument verküpft werden.
+     *
+     * @param invoiceId Die ID der Rechnung, mit der das Dokument verknüpft werden soll
+     * @param formData
+     * @returns InvoiceResponseDTO Dokument erfolgreich hochgeladen und mit der Rechnung verknüpft
+     * @throws ApiError
+     */
+    public static uploadInvoiceDocument(
+        invoiceId: string,
+        formData: {
+            /**
+             * Die hochzuladende PDF-Datei
+             */
+            file?: Blob;
+        },
+    ): CancelablePromise<InvoiceResponseDTO> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/orders/invoice/{invoice-id}/document',
+            path: {
+                'invoice-id': invoiceId,
+            },
+            formData: formData,
+            mediaType: 'multipart/form-data',
+            errors: {
+                400: `Diese Rechnung besitzt bereits ein verknüpftes Dokument mit der id \`paperless_id\`.`,
+                404: `Rechnung nicht gefunden.`,
+                500: `Fehler beim Hochladen des Dokumentes. Interner Serverfehler.`,
+            },
+        });
+    }
+    /**
+     * Gibt eine Vorschau des PDF-Dokuments als IMG-Datei zur angegebenen Rechnung zurück.
+     * @param invoiceId ID der Rechnung, für die die PDF-Vorschau abgerufen wird.
+     * @returns binary PDF-Vorschau erfolgreich zurückgegeben
+     * @throws ApiError
+     */
+    public static getOrdersInvoiceDocumentPreview(
+        invoiceId: string,
+    ): CancelablePromise<Blob> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/orders/invoice/{invoice-id}/document/preview',
+            path: {
+                'invoice-id': invoiceId,
+            },
+            errors: {
+                404: `Rechnung nicht gefunden.`,
+                500: `Interner Serverfehler.`,
+            },
+        });
+    }
+    /**
+     * Gibt die Zustimmungen für die angegebene Bestellung zurück.
+     * @param orderId ID der Bestellung, deren Zustimmungen abgerufen wird.
+     * @returns ApprovalResponseDTO Zustimmungen erfolgreich abgerufen.
+     * @throws ApiError
+     */
+    public static getOrdersApproval(
+        orderId: number,
+    ): CancelablePromise<ApprovalResponseDTO> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/orders/{order-id}/approval',
+            path: {
+                'order-id': orderId,
+            },
+            errors: {
+                404: `Bestellung nicht gefunden.`,
+                500: `Interner Serverfehler.`,
+            },
+        });
+    }
+    /**
+     * Aktualisiert Felder der Zustimmungen für die angegebene Bestellung. Nur nicht-leere Felder im Request-Body werden übernommen.
+     * @param orderId ID der Bestellung, deren Zustimmungen aktualisiert wird.
+     * @param requestBody
+     * @returns ApprovalResponseDTO Approval successfully updated
+     * @throws ApiError
+     */
+    public static patchOrdersApproval(
+        orderId: number,
+        requestBody: ApprovalRequestDTO,
+    ): CancelablePromise<ApprovalResponseDTO> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/orders/{order-id}/approval',
+            path: {
+                'order-id': orderId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Bestellstatus befindet sich nicht auf fertiggestellt (\`COMPLETED\`)!`,
+                404: `Bestellung nicht gefunden.`,
+                500: `Interner Serverfehler.`,
+            },
+        });
+    }
+    /**
+     * Gibt eine Map zurück, die jedem OrderStatus die erlaubten nächsten OrderStatus-Werte zuordnet.
+     * @returns OrderStatus Erfolgreiche Abfrage der Order-Status-Matrix.
+     * @throws ApiError
+     */
+    public static getOrdersStatuses(): CancelablePromise<Record<string, Array<OrderStatus>>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/orders/statuses',
+        });
+    }
+    /**
+     * Aktualisiert den Bestellstatus (`status`) mit der angegebenen `order-id`.   Wirft einen Fehler, wenn der neue Status `DELETED` ist — bitte stattdessen den DELETE-Endpunkt verwenden.
+     *
+     * @param orderId ID der Bestellung, deren Bestellstatus aktualisiert wird.
+     * @param requestBody
+     * @returns OrderStatus Bestellstatus erfolgreich aktualisiert.
+     * @throws ApiError
+     */
+    public static putOrdersStatus(
+        orderId: number,
+        requestBody: OrderStatus,
+    ): CancelablePromise<OrderStatus> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/orders/{order-id}/status',
+            path: {
+                'order-id': orderId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                400: `Löschen nicht erlaubt, nutze DELETE endpoint! Ungültiger Statusübergang von \`old_status\` zu \`new_status\`. primary_cost_center_id darf nicht null sein.`,
+            },
+        });
+    }
+    /**
+     * Gibt eine Liste des Verlaufes des Bestellstatus einer Bestellung zurück.
+     * @param orderId ID der Bestellung, deren Bestellstatus-Historie abgerufen werden soll.
+     * @returns OrderStatusHistoryResponseDTO Liste des Statusverlaufs erfolgreich abgerufen
+     * @throws ApiError
+     */
+    public static getOrdersStatusHistory(
+        orderId: number,
+    ): CancelablePromise<Array<OrderStatusHistoryResponseDTO>> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/orders/{order-id}/status/history',
+            path: {
+                'order-id': orderId,
+            },
+            errors: {
+                404: `Bestellung nicht gefunden.`,
             },
         });
     }

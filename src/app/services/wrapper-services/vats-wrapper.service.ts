@@ -6,7 +6,7 @@ import { VatSService } from '../../api';
 })
 export class VatWrapperService {
 
-  async getAllVats() {
+  static async getAllVats() {
     const vats = await VatSService.getAllVats();
     return vats;
   }
