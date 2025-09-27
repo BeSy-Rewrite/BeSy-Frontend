@@ -16,14 +16,14 @@
     <mat-divider
       style="background-color: darkgrey; color: darkgrey"
     ></mat-divider>
-    <div class="add-person-page" style="justify-content: flex-end overflow-visible">
-    <div class="person-data-container bg-white overflow-visible">
+    <div class="add-person-page justify-end overflow-visible">
+    <div class="person-data-container bg-white overflow-visible ">
       <app-form-component
         [config]="costCenterFormConfig"
         [formGroup]="costCenterForm"
       ></app-form-component>
     </div>
-    <div class="buttons flex justify-end overflow-visible">
+    <div class="buttons flex justify-end overflow-visible w-3/4 mt-4">
         <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
         <button
           mat-raised-button

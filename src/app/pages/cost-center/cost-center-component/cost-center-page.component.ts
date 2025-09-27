@@ -5,7 +5,6 @@ import {
   CostCenterResponseDTO,
   SupplierResponseDTO,
 } from '../../../api';
-import { CostCentersService } from '../../../api';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { MatTabGroup } from '@angular/material/tabs';
 import { MatTab } from '@angular/material/tabs';
@@ -16,6 +15,7 @@ import { COST_CENTER_FORM_CONFIG } from '../../../configs/cost-center-config';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-center-wrapper.service';
 
 @Component({
   selector: 'app-cost-center-component',
@@ -31,7 +31,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   styleUrl: './cost-center-page.component.scss',
 })
 export class CostCentersPageComponent implements OnInit {
-  constructor(private _notifications: MatSnackBar) {}
+  constructor(private _notifications: MatSnackBar, private costCenterWrapperService: CostCenterWrapperService) {}
 
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
   // Data source to be displayed in the cost-center-table component
@@ -62,7 +62,7 @@ export class CostCentersPageComponent implements OnInit {
     // Initialization logic here
     this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(
       // Format cost center date from ISO format yyyy-MM-dd to dd.MM.yyyy
-      (await CostCentersService.getCostCenters()).map((cc) => ({
+      (await this.costCenterWrapperService.getAllCostCenters()).map((cc) => ({
         ...cc,
         begin_date: cc.begin_date ? this.formatDate(cc.begin_date) : undefined,
         end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
@@ -78,7 +78,7 @@ export class CostCentersPageComponent implements OnInit {
     if (this.costCenterForm.valid) {
       const costCenterData = this.costCenterForm.value as CostCenterRequestDTO;
       try {
-        await CostCentersService.createCostCenter(costCenterData);
+        await this.costCenterWrapperService.createCostCenter(costCenterData);
         this._notifications.open(
           'Kostenstelle erfolgreich erstellt',
           'Schließen',
@@ -90,7 +90,7 @@ export class CostCentersPageComponent implements OnInit {
         // Refresh the data source to include the newly created cost center
         this.costCentersDataSource =
           new MatTableDataSource<CostCenterResponseDTO>(
-            (await CostCentersService.getCostCenters()).map((cc) => ({
+            (await this.costCenterWrapperService.getAllCostCenters()).map((cc) => ({
               ...cc,
               begin_date: cc.begin_date
                 ? this.formatDate(cc.begin_date)
