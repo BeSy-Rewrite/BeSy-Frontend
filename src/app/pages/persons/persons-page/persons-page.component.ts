@@ -11,7 +11,6 @@ import {
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { MatTabGroup } from '@angular/material/tabs';
 import { MatTableDataSource } from '@angular/material/table';
-import { PersonsService } from '../../../api';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
 import { FormComponent } from '../../../components/form-component/form-component.component';
@@ -20,6 +19,7 @@ import { FormGroup } from '@angular/forms';
 import { AddressFormComponent } from '../../../components/address-form/address-form.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PersonsWrapperService } from '../../../services/wrapper-services/persons-wrapper.service';
 
 @Component({
   selector: 'app-persons-page',
@@ -37,7 +37,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   encapsulation: ViewEncapsulation.None,
 })
 export class PersonsPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar) {}
+  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) {}
 
   // Selected address ID in the address-form-table. Used to create a person with this address-id
   selectedAddressId: number | undefined = undefined;
@@ -105,9 +105,9 @@ export class PersonsPageComponent implements OnInit {
   addressMode: string | undefined = undefined;
 
   async ngOnInit(): Promise<void> {
-    const persons = await PersonsService.getAllPersons();
+    const persons = await this.personsWrapperService.getAllPersons();
     this.personsDataSource = new MatTableDataSource<PersonResponseDTO>(persons);
-    const addresses = await PersonsService.getPersonsAddresses();
+    const addresses = await this.personsWrapperService.getAllPersonsAddresses();
     this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(
       addresses
     );
@@ -172,7 +172,7 @@ export class PersonsPageComponent implements OnInit {
     if (this.addressMode === 'existing') {
       if (this.selectedAddressId && this.selectedAddressId !== null) {
         try {
-          await PersonsService.createPerson({
+          await this.personsWrapperService.createPerson({
             ...personData,
             address_id: this.selectedAddressId,
           });
@@ -191,7 +191,7 @@ export class PersonsPageComponent implements OnInit {
       // Create person without address
       else {
         try {
-          await PersonsService.createPerson({
+          await this.personsWrapperService.createPerson({
             ...personData,
           });
           this._notifications.open('Person erfolgreich erstellt', undefined, {
@@ -224,7 +224,7 @@ export class PersonsPageComponent implements OnInit {
     if (!addressFilled) {
       // Person ohne Adresse erstellen
       try {
-        await PersonsService.createPerson(personData);
+        await this.personsWrapperService.createPerson(personData);
         this._notifications.open(
           'Person erfolgreich erstellt (ohne Adresse)',
           undefined,
@@ -252,12 +252,12 @@ export class PersonsPageComponent implements OnInit {
       }
 
       try {
-        const addressResponse = await PersonsService.createPersonAddress(
+        const addressResponse = await this.personsWrapperService.createPersonAddress(
           addressData
         );
         const addressId = addressResponse.id;
 
-        await PersonsService.createPerson({
+        await this.personsWrapperService.createPerson({
           ...personData,
           address_id: addressId,
         });
