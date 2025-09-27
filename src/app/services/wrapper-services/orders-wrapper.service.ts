@@ -50,7 +50,7 @@ export class OrdersWrapperService {
     secondaryCostCenters?: Array<string>,
     lastUpdatedTimeAfter?: string,
     lastUpdatedTimeBefore?: string
-  ): Promise<PagedOrderResponseDTO[]> {
+  ): Promise<PagedOrderResponseDTO> {
     return await OrdersService.getAllOrders(
       page,
       size,

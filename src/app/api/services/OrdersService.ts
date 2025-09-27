@@ -60,7 +60,7 @@ export class OrdersService {
         secondaryCostCenters?: Array<string>,
         lastUpdatedTimeAfter?: string,
         lastUpdatedTimeBefore?: string,
-    ): CancelablePromise<Array<PagedOrderResponseDTO>> {
+    ): CancelablePromise<PagedOrderResponseDTO> {
         return __request(OpenAPI, {
             method: 'GET',
             url: '/orders',
