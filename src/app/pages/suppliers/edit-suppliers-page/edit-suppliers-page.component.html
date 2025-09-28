@@ -1,20 +1,19 @@
 <div class="add-person-page h-auto overflow-visible">
-  <mat-divider
-    style="background-color: darkgrey; color: darkgrey"
-  ></mat-divider>
+  <mat-divider style="background-color: purple"></mat-divider>
   <div style="justify-content: flex-end overflow-visible">
     <div class="form-container flex space-x-5 pt-3 overflow-visible">
       <!-- Linke Spalte: Supplier + CustomerId -->
       <div class="left-column flex flex-col basis-1/2 space-y-5">
-        <div class="customer-data-container bg-white overflow-visible">
+        <div class="customer-data-container overflow-visible">
           <app-form-component
+            class=""
             [config]="customerIdFormConfig"
             [formGroup]="customerIdForm"
             [tableDataSource]="customerIdTableDataSource"
             [tableColumns]="customerIdTableColumns"
           ></app-form-component>
         </div>
-        <div class="person-data-container bg-white overflow-visible">
+        <div class="person-data-container overflow-visible">
           <app-form-component
             [config]="supplierFormConfig"
             [formGroup]="supplierForm"
@@ -22,9 +21,13 @@
           ></app-form-component>
         </div>
       </div>
+      <mat-divider
+        [vertical]="true"
+        style="border-right-width: 4px; background-color: purple"
+      ></mat-divider>
 
       <!-- Rechte Spalte: Address -->
-      <div class="address-data-container bg-white overflow-visible flex-1">
+      <div class="address-data-container overflow-visible flex-1">
         <app-address-form
           [config]="addressFormConfig"
           [formGroup]="addressForm"

@@ -1,3 +1,4 @@
+import { Validators } from "@angular/forms";
 import { AddressConfig } from "../components/address-form/address-form.component";
 
 export const ADDRESS_FORM_CONFIG: AddressConfig = {
@@ -85,7 +86,6 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       label: 'Land',
       type: 'text',
       required: true,
-      defaultValue: 'Deutschland',
       nominatim_param: 'country',
       nominatim_field: 'country',
       editable: false
@@ -93,9 +93,10 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
     {
       name: 'comment',
       label: 'Kommentar',
-      type: 'text',
+      type: 'textarea',
       required: false,
-      editable: false
+      editable: false,
+      validators: [Validators.maxLength(255)]
     }
   ]
 };

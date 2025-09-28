@@ -1,3 +1,4 @@
+import { Validators } from "@angular/forms";
 import { FormConfig } from "../components/form-component/form-component.component";
 
 // Order Configuration (matches OrderRequestDTO - simplified version)
@@ -37,14 +38,16 @@ export const ORDER_FORM_CONFIG: FormConfig = {
     {
       name: 'comment',
       label: 'Kommentar',
-      type: 'text',
-      required: false
+      type: 'textarea',
+      required: false,
+      validators: [Validators.maxLength(255)]
     },
     {
       name: 'comment_for_supplier',
       label: 'Kommentar für Lieferant',
-      type: 'text',
-      required: false
+      type: 'textarea',
+      required: false,
+      validators: [Validators.maxLength(255)]
     },
     {
       name: 'supplier_id',

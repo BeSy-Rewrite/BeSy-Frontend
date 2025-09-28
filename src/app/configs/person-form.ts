@@ -47,7 +47,8 @@ export const PERSON_FORM_CONFIG: FormConfig = {
         { value: 'f', label: 'Weiblich' },
         { value: 'd', label: 'Divers' }
       ],
-      defaultValue: 'd'
+      defaultValue: 'd',
+      tooltip: 'Bitte wählen Sie das Geschlecht der Person aus.'
     },
     {
       name: 'title',
@@ -80,7 +81,7 @@ export const PERSON_FORM_CONFIG: FormConfig = {
     {
       name: 'comment',
       label: 'Kommentar',
-      type: 'text',
+      type: 'textarea',
       required: false,
       validators: [Validators.maxLength(255)]
     },

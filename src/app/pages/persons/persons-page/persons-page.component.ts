@@ -11,7 +11,6 @@ import {
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { MatTabGroup } from '@angular/material/tabs';
 import { MatTableDataSource } from '@angular/material/table';
-import { PersonsService } from '../../../api';
 import { MatTabsModule } from '@angular/material/tabs';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
 import { FormComponent } from '../../../components/form-component/form-component.component';
@@ -20,6 +19,7 @@ import { FormGroup } from '@angular/forms';
 import { AddressFormComponent } from '../../../components/address-form/address-form.component';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PersonsWrapperService } from '../../../services/wrapper-services/persons-wrapper.service';
 
 @Component({
   selector: 'app-persons-page',
@@ -33,11 +33,11 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatButtonModule,
   ],
   templateUrl: './persons-page.component.html',
-  styleUrls: ['./persons-page.component.css'],
+  styleUrls: ['./persons-page.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
 export class PersonsPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar) {}
+  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) {}
 
   // Selected address ID in the address-form-table. Used to create a person with this address-id
   selectedAddressId: number | undefined = undefined;
@@ -105,9 +105,9 @@ export class PersonsPageComponent implements OnInit {
   addressMode: string | undefined = undefined;
 
   async ngOnInit(): Promise<void> {
-    const persons = await PersonsService.getAllPersons();
+    const persons = await this.personsWrapperService.getAllPersons();
     this.personsDataSource = new MatTableDataSource<PersonResponseDTO>(persons);
-    const addresses = await PersonsService.getPersonsAddresses();
+    const addresses = await this.personsWrapperService.getAllPersonsAddresses();
     this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(
       addresses
     );
@@ -125,89 +125,151 @@ export class PersonsPageComponent implements OnInit {
     this.router.navigate(['/persons/', row.id, 'view']);
   }
 
-  // Signals to be handled coming from the person-form-component
-  onFormValueChanged(event: { field: string; value: any }) {
-    if (event.field === 'addressMode') {
-      this.addressMode = event.value;
-    }
-  }
-
   // Signals to be handled coming from the address-form-component
   onAddressFormValueChanged(event: { field: string; value: any }) {
     // Handle address form value changes if needed
     if (event.field === 'addressMode') {
       this.addressMode = event.value;
+
+      // Reset address form fields, but not the table or addressMode
+      const fieldsToReset = [
+        'building_name',
+        'street',
+        'building_number',
+        'town',
+        'postal_code',
+        'county',
+        'country',
+        'comment',
+      ];
+
+      fieldsToReset.forEach((field) => {
+        if (this.addressForm.get(field)) {
+          this.addressForm.get(field)?.reset();
+        }
+      });
+
+      // Reset selected address ID
+      this.selectedAddressId = undefined;
     }
   }
 
   // * Handle form submission
   async onSubmit() {
-    // Check if both forms are valid
-    if (this.personForm.valid && this.addressForm.valid) {
-      // ! Both forms are valid, check the address mode to determine whether to use an existing address or create a new one
-      if (this.addressMode === 'existing') {
-        // Use the selected rows id to create a person
-        if (this.selectedAddressId) {
-          const formValue = this.personForm.value as PersonRequestDTO;
-          try {
-            const response = await PersonsService.createPerson({
-              ...formValue,
-              address_id: this.selectedAddressId,
-            });
-            this._notifications.open('Person erfolgreich erstellt', undefined, {
-              duration: 3000,
-            });
-          } catch (error) {
-            this._notifications.open(
-              'Fehler beim Erstellen der Person',
-              undefined,
-              { duration: 3000 }
-            );
-          }
-        } else {
-          this._notifications.open(
-            'Die ausgewählte Adresse ist ungültig. Bitte wählen Sie eine gültige Adresse aus.',
-            undefined,
-            {
-              duration: 3000,
-            }
-          );
-        }
+    // Check if the person form has all required fields set
+    if (!this.personForm.valid) {
+      this.personForm.markAllAsTouched();
+      this._notifications.open('Bitte Personendaten prüfen.', undefined, {
+        duration: 3000,
+      });
+      return;
+    }
 
-        // Handle person creation with a new address. First, create the address. Then, create the person.
-      } else {
+    // Get person form data
+    const personData = this.personForm.value as PersonRequestDTO;
+
+    // Case 1: an existing address is used to create a person
+    if (this.addressMode === 'existing') {
+      if (this.selectedAddressId && this.selectedAddressId !== null) {
         try {
-          // Adresse erstellen
-          const addressResponse = await PersonsService.createPersonAddress(
-            this.addressForm.value as AddressRequestDTO
-          );
-          const addressId = addressResponse.id;
-
-          // Person mit der neuen Adresse erstellen
-          const personResponse = await PersonsService.createPerson({
-            ...(this.personForm.value as PersonRequestDTO),
-            address_id: addressId,
+          await this.personsWrapperService.createPerson({
+            ...personData,
+            address_id: this.selectedAddressId,
           });
-
           this._notifications.open('Person erfolgreich erstellt', undefined, {
             duration: 3000,
           });
         } catch (error) {
-          // Fehler für Adresse oder Person
-          this._notifications.open('Fehler beim Erstellen', undefined, {
-            duration: 3000,
-          });
+          this._notifications.open(
+            'Fehler beim Erstellen der Person',
+            undefined,
+            { duration: 3000 }
+          );
         }
       }
+      // No address selected in existing addresses
+      // Create person without address
+      else {
+        try {
+          await this.personsWrapperService.createPerson({
+            ...personData,
+          });
+          this._notifications.open('Person erfolgreich erstellt', undefined, {
+            duration: 3000,
+          });
+        } catch (error) {
+          this._notifications.open(
+            'Fehler beim Erstellen der Person',
+            undefined,
+            { duration: 3000 }
+          );
+        }
+      }
+
+      return;
+    }
+
+    // Case 2: a new address is created
+    const addressData = this.addressForm.value as AddressRequestDTO;
+
+    // Check if any address field is filled besides the addressMode radio button
+    const addressFilled = Object.entries(addressData).some(
+      ([key, val]) =>
+        key !== 'addressMode' &&
+        val !== null &&
+        val !== undefined &&
+        String(val).trim() !== ''
+    );
+
+    if (!addressFilled) {
+      // Person ohne Adresse erstellen
+      try {
+        await this.personsWrapperService.createPerson(personData);
+        this._notifications.open(
+          'Person erfolgreich erstellt (ohne Adresse)',
+          undefined,
+          {
+            duration: 3000,
+          }
+        );
+      } catch (error) {
+        this._notifications.open(
+          'Fehler beim Erstellen der Person',
+          undefined,
+          {
+            duration: 3000,
+          }
+        );
+      }
     } else {
-      // Handle form errors
-      this.personForm.markAllAsTouched();
-      this.addressForm.markAllAsTouched();
-      this._notifications.open(
-        'Bitte überprüfen Sie die Eingaben im Formular',
-        undefined,
-        { duration: 3000 }
-      );
+      // Adresse ist teilweise/komplett ausgefüllt → Address-Form muss gültig sein
+      if (!this.addressForm.valid) {
+        this.addressForm.markAllAsTouched();
+        this._notifications.open('Bitte Adressdaten prüfen.', undefined, {
+          duration: 3000,
+        });
+        return;
+      }
+
+      try {
+        const addressResponse = await this.personsWrapperService.createPersonAddress(
+          addressData
+        );
+        const addressId = addressResponse.id;
+
+        await this.personsWrapperService.createPerson({
+          ...personData,
+          address_id: addressId,
+        });
+
+        this._notifications.open('Person erfolgreich erstellt', undefined, {
+          duration: 3000,
+        });
+      } catch (error) {
+        this._notifications.open('Fehler beim Erstellen', undefined, {
+          duration: 3000,
+        });
+      }
     }
   }
 
@@ -221,5 +283,14 @@ export class PersonsPageComponent implements OnInit {
   // Update selectedAddressId with the selected address ID
   onAddressSelected($event: number) {
     this.selectedAddressId = $event;
+    if (this.selectedAddressId == null) {
+      // selectedAddressId is null when the same row is clicked again (unselected)
+      // Reset address form fields, but not the table or addressMode
+      const fieldsToReset = ['building_name', 'street', 'building_number', 'town', 'postal_code', 'county', 'country', 'comment'];
+
+      fieldsToReset.forEach((field) => {
+        this.addressForm.get(field)?.reset();
+      });
+    }
   }
 }

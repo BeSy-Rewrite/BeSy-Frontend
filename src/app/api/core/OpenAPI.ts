@@ -2,8 +2,8 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import { environment } from '../../../environments/environment';
 import type { ApiRequestOptions } from './ApiRequestOptions';
+import { environment } from '../../../environments/environment';
 
 type Resolver<T> = (options: ApiRequestOptions) => Promise<T>;
 type Headers = Record<string, string>;
@@ -22,7 +22,7 @@ export type OpenAPIConfig = {
 
 export const OpenAPI: OpenAPIConfig = {
     BASE: environment.apiUrl,
-    VERSION: '1.3.0',
+    VERSION: '1.8.0',
     WITH_CREDENTIALS: false,
     CREDENTIALS: 'include',
     TOKEN: undefined,

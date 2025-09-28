@@ -5,7 +5,11 @@
   "projects": {
     "besy-frontend": {
       "projectType": "application",
-      "schematics": {},
+      "schematics": {
+				"@schematics/angular:component": {
+					"style": "scss"
+				}
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
@@ -26,7 +30,7 @@
             ],
             "styles": [
               "node_modules/@angular/material/prebuilt-themes/indigo-pink.css",
-              "src/styles.css"
+              "src/styles.scss"
             ],
             "scripts": []
           },
@@ -74,7 +78,7 @@
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
-                  "with": "src/environments/environments.test.ts"
+                  "with": "src/environments/environment.test.ts"
                 }
               ]
             }
@@ -114,7 +118,7 @@
               }
             ],
             "styles": [
-              "src/styles.css"
+              "src/styles.scss"
             ],
             "scripts": []
           }

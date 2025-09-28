@@ -3,7 +3,7 @@
 >
   <div class="homebar__logo">
   <img
-    class="h-16 mx-8 w-auto object-contain cursor-pointer"
+    class="h-18 mx-8 w-auto object-contain cursor-pointer"
     src="assets/pics/logo_hochschule_esslingen_negativ_de.png"
     alt="Logo"
     (click)="navigateToHome()"
@@ -29,6 +29,11 @@
     <app-navbar-button
       label="Personen"
       routerLink="/persons"
+      [isExact]="false"
+    ></app-navbar-button>
+    <app-navbar-button
+      label="Kostenstellen"
+      routerLink="/cost-centers"
       [isExact]="false"
     ></app-navbar-button>
   </nav>

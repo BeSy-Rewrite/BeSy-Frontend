@@ -1,5 +1,5 @@
-import { SuppliersService } from '../../../api/services/SuppliersService';
-import { SupplierResponseDTO } from '../../../api/models/response-dtos/SupplierResponseDTO';
+import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
+import { SupplierResponseDTO } from '../../../api/models/SupplierResponseDTO';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -21,13 +21,14 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   selector: 'app-edit-suppliers-page',
   imports: [MatDivider, FormComponent, AddressFormComponent, MatButtonModule],
   templateUrl: './edit-suppliers-page.component.html',
-  styleUrl: './edit-suppliers-page.component.css',
+  styleUrl: './edit-suppliers-page.component.scss',
 })
 export class EditSuppliersPageComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private _notifications: MatSnackBar
+    private _notifications: MatSnackBar,
+    private suppliersWrapperService: SuppliersWrapperService
   ) {}
 
   supplierId!: number | unknown; // ID of the supplier being edited
@@ -70,18 +71,18 @@ export class EditSuppliersPageComponent implements OnInit {
     try {
       // Load supplier data
       const supplier: SupplierResponseDTO =
-        await SuppliersService.getSupplierById(id);
+        await this.suppliersWrapperService.getSupplierById(id);
 
       // Patch supplier form with loaded data
       this.supplierForm.patchValue(supplier);
 
       // Load address data
       const address: AddressResponseDTO =
-        await SuppliersService.getSuppliersAddress(id);
+        await this.suppliersWrapperService.getSupplierAddress(id);
       this.addressForm.patchValue(address);
 
       // Load customer ID data and patch it into the table
-      const customer_ids = await SuppliersService.getCustomerIdsOfOrder(id);
+      const customer_ids = await this.suppliersWrapperService.getCustomersIdBySupplier(id);
       this.customerIdTableDataSource =
         new MatTableDataSource<CustomerIdResponseDTO>(customer_ids);
 
@@ -127,7 +128,7 @@ export class EditSuppliersPageComponent implements OnInit {
 
     try {
       // Create supplier customer ID
-      await SuppliersService.createSupplierCustomerId(
+      await this.suppliersWrapperService.createSupplierCustomerId(
         this.supplierId as number,
         formData
       );
