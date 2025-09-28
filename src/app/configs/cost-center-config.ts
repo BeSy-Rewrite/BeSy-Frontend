@@ -1,3 +1,4 @@
+import { Validators } from "@angular/forms";
 import { FormConfig } from "../components/form-component/form-component.component";
 
 export const COST_CENTER_FORM_CONFIG: FormConfig = {
@@ -30,8 +31,9 @@ export const COST_CENTER_FORM_CONFIG: FormConfig = {
     {
       name: 'comment',
       label: 'Kommentar',
-      type: 'text',
-      required: false
+      type: 'textarea',
+      required: false,
+      validators: [Validators.maxLength(255)]
     }
   ]
 };

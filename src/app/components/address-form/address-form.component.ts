@@ -26,7 +26,8 @@ export interface AddressField {
     | 'date'
     | 'email'
     | 'tel'
-    | 'table';
+    | 'table'
+    | 'textarea';
   required: boolean;
   defaultValue?: any;
   options?: { label: string; value: any }[];

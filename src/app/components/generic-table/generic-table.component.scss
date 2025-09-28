@@ -3,7 +3,7 @@ tr:nth-child(2n) {
 }
 
 tr:hover {
-    background-color: #bfbfbf;
+    background-color: #c1b8b8;
 }
 
 td,
@@ -25,24 +25,20 @@ table {
 }
 
 tr.selected {
-  background-color: rgba(25, 118, 210, 0.1); /* leichtes Blau */
-}
-
-tr.selected:hover {
-  background-color: rgba(25, 118, 210, 0.2);
+  background-color: rgb(0, 0, 0); /* leichtes Blau */
 }
 
 // Container mit lila Rahmen und runden Ecken
 .overflow-x-auto {
-  border: 2px solid #7b3fe4; // lila Rahmen
+  border: 2px solid #6aafef; // table frame color
   border-radius: 8px;
   overflow: hidden; // damit die Border nicht "durchscheint"
+  //background-image: linear-gradient(to bottom, #70b8fc, #7da0ed, #8d86d8);
 }
 
 
 .mat-mdc-header-cell {
-  color: #fff; // Weiße Schrift
-  font-family: 'Roboto', sans-serif;
+  color: rgba(255, 255, 255, 0.759); // Column header font color
   font-weight: 600;
   font-size: 0.875rem;
   letter-spacing: 0.05em;
@@ -56,12 +52,13 @@ tr.selected:hover {
   border-bottom: 1px solid #e0e0e0;
 
   &:hover {
-    background-color: #f5f5f5; // leichter Hover
+    background-color: #f5f5f5; // hover color
     cursor: pointer;
   }
 
   &.selected {
-    background-color: #ede7f6; // leicht lila für ausgewählte Row
+    // background-color: #ede7f6; // selected row color
+    background-color: rgb(182, 217, 255); // selected row color
   }
 }
 

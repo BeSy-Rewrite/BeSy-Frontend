@@ -71,9 +71,10 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
     {
       name: 'comment',
       label: 'Kommentar',
-      type: 'text',
+      type: 'textarea',
       required: false,
-      editable: false
+      editable: false,
+      validators: [Validators.maxLength(255)]
     }
   ]
 };

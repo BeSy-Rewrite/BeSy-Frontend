@@ -56,6 +56,7 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
       label: 'Kommentar',
       type: 'textarea',
       required: false,
+      validators: [Validators.maxLength(255)]
     },
   ],
 };
