@@ -55,8 +55,9 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
     {
       name: 'comment',
       label: 'Kommentar',
-      type: 'text',
-      required: false
+      type: 'textarea',
+      required: false,
+      validators: [Validators.maxLength(255)]
     },
     {
       name: 'website',

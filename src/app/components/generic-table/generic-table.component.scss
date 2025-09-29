@@ -1,35 +1,77 @@
 tr:nth-child(2n) {
-    background-color: #f0f0f0;
+  background-color: #f0f0f0;
 }
 
 tr:hover {
-    background-color: #bfbfbf;
+  background-color: #bfbfbf;
 }
 
-td,
-th {
-    white-space: normal;
-    word-wrap: break-word;
-    hyphens: auto;
-    padding-top: 8px;
-    padding-bottom: 8px;
+td {
+  white-space: normal;
+  word-wrap: break-word;
+  hyphens: auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 table {
-    width: 100%;
+  width: 100%;
 }
 
 .mat-column-actions {
-    width: 1%;
-    white-space: nowrap;
+  width: 1%;
+  white-space: nowrap;
 }
 
 tr.selected {
-  background-color: rgba(25, 118, 210, 0.1); /* leichtes Blau */
+  background-color: rgba(25, 118, 210, 0.1);
+  /* leichtes Blau */
 }
 
 tr.selected:hover {
   background-color: rgba(25, 118, 210, 0.2);
+}
+
+// Container mit lila Rahmen und runden Ecken
+.overflow-x-auto {
+  border: 2px solid #6aafef; // table frame color
+  border-radius: 8px;
+  overflow: hidden; // damit die Border nicht "durchscheint"
+  //background-image: linear-gradient(to bottom, #70b8fc, #7da0ed, #8d86d8);
+}
+
+
+.mat-mdc-header-cell {
+  color: rgba(255, 255, 255, 0.759); // Column header font color
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+  padding: 16px;
+}
+
+// Data-Zeilen
+.mat-mdc-row {
+  background-color: #ffffff;
+  height: 48px;
+  border-bottom: 1px solid #e0e0e0;
+
+  &:hover {
+    background-color: #c4c4c4; // row hover color
+    cursor: pointer;
+  }
+
+  &.selected {
+    // background-color: #ede7f6; // selected row color
+    background-color: rgba(199, 226, 255, 0.99); // selected row color
+  }
+}
+
+.mat-mdc-cell {
+  color: #333;
+  font-family: 'Roboto', sans-serif;
+  font-weight: 400;
+  font-size: 0.875rem;
+  padding: 16px;
 }
 
 tr.mat-mdc-footer-row td {

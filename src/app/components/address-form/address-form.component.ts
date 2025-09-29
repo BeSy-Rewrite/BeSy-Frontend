@@ -11,6 +11,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatTableDataSource } from '@angular/material/table';
 import { AddressResponseDTO } from '../../api';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface AddressField {
   name: string;
@@ -24,7 +26,8 @@ export interface AddressField {
     | 'date'
     | 'email'
     | 'tel'
-    | 'table';
+    | 'table'
+    | 'textarea';
   required: boolean;
   defaultValue?: any;
   options?: { label: string; value: any }[];
@@ -33,6 +36,7 @@ export interface AddressField {
   validators?: any[];
   emitAsSignal?: boolean;
   editable?: boolean;
+  tooltip?: string;
 }
 
 export interface AddressConfig {
@@ -55,6 +59,8 @@ export interface AddressConfig {
     MatInput,
     MatDividerModule,
     GenericTableComponent,
+    MatIconModule,
+    MatTooltipModule,
   ],
   templateUrl: './address-form.component.html',
   styleUrl: './address-form.component.scss',
@@ -84,7 +90,6 @@ export class AddressFormComponent implements OnInit {
   selectedAddressId: number | undefined = undefined;
 
   ngOnInit() {
-
     // Initialize form controls based on the config
     this.config.fields.forEach((field) => {
       this.formGroup.addControl(
@@ -105,7 +110,6 @@ export class AddressFormComponent implements OnInit {
     const addressModeControl = this.formGroup.get('addressMode');
 
     if (addressModeControl) {
-
       // Emit initial value to the component above
       this.valueChanged.emit({
         field: 'addressMode',
@@ -136,6 +140,13 @@ export class AddressFormComponent implements OnInit {
    */
   onRowClickedPatchForm(event: any) {
     // Handle the row click event and patch the form with the selected row data
+    if (!event) {
+      // Row was unselected
+      this.selectedAddressId = null as any;
+
+      this.addressSelected.emit(null as any);
+      return;
+    }
     this.formGroup.patchValue(event);
 
     // Store the selected address ID and emit it

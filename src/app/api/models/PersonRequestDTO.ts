@@ -17,6 +17,7 @@ export namespace PersonRequestDTO {
     export enum gender {
         M = 'm',
         F = 'f',
+        D = 'd',
     }
 }
 

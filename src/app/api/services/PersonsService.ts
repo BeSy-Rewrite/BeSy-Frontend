@@ -2,10 +2,10 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { AddressRequestDTO } from '../models/request-dtos/AddressRequestDTO';
-import type { AddressResponseDTO } from '../models/response-dtos/AddressResponseDTO';
-import type { PersonRequestDTO } from '../models/request-dtos/PersonRequestDTO';
-import type { PersonResponseDTO } from '../models/response-dtos/PersonResponseDTO';
+import type { AddressRequestDTO } from '../models/AddressRequestDTO';
+import type { AddressResponseDTO } from '../models/AddressResponseDTO';
+import type { PersonRequestDTO } from '../models/PersonRequestDTO';
+import type { PersonResponseDTO } from '../models/PersonResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -34,8 +34,6 @@ export class PersonsService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
-                400: `Ungültige Eingabe.`,
-                409: `Konflikt – Die angegebene Ressource existiert bereits.`,
                 500: `Interner Serverfehler.`,
             },
         });
@@ -53,6 +51,34 @@ export class PersonsService {
             url: '/persons/{id}',
             path: {
                 'id': id,
+            },
+            errors: {
+                404: `Person nicht gefunden.`,
+                500: `Interner Serverfehler.`,
+            },
+        });
+    }
+    /**
+     * @param id
+     * @param requestBody
+     * @returns PersonResponseDTO OK
+     * @throws ApiError
+     */
+    public static updatePersonById(
+        id: number,
+        requestBody?: PersonRequestDTO,
+    ): CancelablePromise<PersonResponseDTO> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/persons/{id}',
+            path: {
+                'id': id,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                409: `Verweis auf eine nicht existierende Entität.`,
+                500: `Interner Serverfehler.`,
             },
         });
     }

@@ -3,11 +3,11 @@
 /* tslint:disable */
 /* eslint-disable */
 export type OrderRequestDTO = {
-    primary_cost_center_id: string;
-    booking_year: string;
+    primary_cost_center_id?: string;
+    booking_year?: string;
     legacy_alias?: string;
     owner_id?: number;
-    content_description?: string;
+    content_description: string;
     currency_short?: string;
     comment?: string;
     comment_for_supplier?: string;
@@ -26,16 +26,14 @@ export type OrderRequestDTO = {
     cashback_percentage?: number;
     cashback_days?: number;
     flag_decision_cheapest_offer?: boolean;
+    flag_decision_most_economical_offer?: boolean;
     flag_decision_sole_supplier?: boolean;
     flag_decision_contract_partner?: boolean;
+    flag_decision_preferred_supplier_list?: boolean;
     flag_decision_other_reasons?: boolean;
     decision_other_reasons_description?: string;
-    flag_edv_permission?: boolean;
-    flag_furniture_permission?: boolean;
-    flag_furniture_room?: boolean;
-    flag_investment_room?: boolean;
-    flag_investment_structural_measures?: boolean;
-    flag_media_permission?: boolean;
     dfg_key?: string;
+    delivery_address_id?: number;
+    invoice_address_id?: number;
 };
 

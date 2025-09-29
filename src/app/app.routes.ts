@@ -3,6 +3,7 @@ import { ApproveOrdersGuard } from './guards/approve-orders.guard';
 import { DefaultGuard } from './guards/default.guard';
 import { FilterDemoComponent } from './mockups/filter-demo/filter-demo.component';
 import { TableDemoComponent } from './mockups/table-demo/table-demo.component';
+import { CostCentersPageComponent } from './pages/cost-center/cost-center-component/cost-center-page.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
@@ -67,6 +68,11 @@ export const routes: Routes = [
         title: 'Lieferant bearbeiten',
         path: 'suppliers/:id/edit',
         component: EditSuppliersPageComponent
+    },
+    {
+        title: 'Kostenstellen',
+        path: 'cost-centers',
+        component: CostCentersPageComponent
     },
     {
         title: 'Unauthorisiert',

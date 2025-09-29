@@ -1,3 +1,4 @@
+import { Validators } from "@angular/forms";
 import { FormConfig } from "../../components/form-component/form-component.component";
 
 export const EDIT_CUSTOMER_ID_FORM_CONFIG: FormConfig = {
@@ -22,10 +23,11 @@ export const EDIT_CUSTOMER_ID_FORM_CONFIG: FormConfig = {
     {
       name: 'comment',
       label: 'Kommentar',
-      type: 'text',
+      type: 'textarea',
       required: false,
       editable: true,
-      tooltip: 'Geben Sie hier etwas nützliches ein, das andere Besteller bei der Auswahl der Kundennummer unterstützen könnte.'
+      tooltip: 'Geben Sie hier etwas nützliches ein, das andere Besteller bei der Auswahl der Kundennummer unterstützen könnte.',
+      validators: [Validators.maxLength(255)]
     }
   ]
 };

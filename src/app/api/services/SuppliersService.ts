@@ -2,11 +2,11 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
-import type { AddressResponseDTO } from '../models/response-dtos/AddressResponseDTO';
-import type { CustomerIdRequestDTO } from '../models/request-dtos/CustomerIdRequestDTO';
-import type { CustomerIdResponseDTO } from '../models/response-dtos/CustomerIdResponseDTO';
-import type { SupplierRequestDTO } from '../models/request-dtos/SupplierRequestDTO';
-import type { SupplierResponseDTO } from '../models/response-dtos/SupplierResponseDTO';
+import type { AddressResponseDTO } from '../models/AddressResponseDTO';
+import type { CustomerIdRequestDTO } from '../models/CustomerIdRequestDTO';
+import type { CustomerIdResponseDTO } from '../models/CustomerIdResponseDTO';
+import type { SupplierRequestDTO } from '../models/SupplierRequestDTO';
+import type { SupplierResponseDTO } from '../models/SupplierResponseDTO';
 import type { CancelablePromise } from '../core/CancelablePromise';
 import { OpenAPI } from '../core/OpenAPI';
 import { request as __request } from '../core/request';
@@ -36,9 +36,6 @@ export class SuppliersService {
             mediaType: 'application/json',
             errors: {
                 400: `Ungültige Eingabe(n).`,
-                409: `Konflikt – Die angegebene Ressource existiert bereits.
-                Verweis auf eine nicht existierende Entität.
-                `,
                 500: `Interner Serverfehler.`,
             },
         });
@@ -58,8 +55,31 @@ export class SuppliersService {
                 'supplier-id': supplierId,
             },
             errors: {
-                400: `Ungültige Eingabe.`,
                 404: `Lieferant nicht gefunden.`,
+            },
+        });
+    }
+    /**
+     * @param supplierId Die eindeutige ID des Lieferanten, welcher aktualisiert werden soll.
+     * @param requestBody
+     * @returns SupplierResponseDTO Lieferant gefunden.
+     * @throws ApiError
+     */
+    public static updateSupplierById(
+        supplierId: number,
+        requestBody: SupplierRequestDTO,
+    ): CancelablePromise<SupplierResponseDTO> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/suppliers/{supplier-id}',
+            path: {
+                'supplier-id': supplierId,
+            },
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                404: `Lieferant nicht gefunden.`,
+                500: `Interner Serverfehler.`,
             },
         });
     }
@@ -110,6 +130,7 @@ export class SuppliersService {
         });
     }
     /**
+     * @deprecated
      * @returns AddressResponseDTO Liste aller Adressen.
      * @throws ApiError
      */
@@ -134,7 +155,6 @@ export class SuppliersService {
                 'supplier-id': supplierId,
             },
             errors: {
-                400: `Ungültige Eingabe.`,
                 404: `Lieferant nicht gefunden. Dieser Lieferant besitzt keine Adresse.`,
             },
         });

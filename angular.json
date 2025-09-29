@@ -63,6 +63,27 @@
 									"with": "src/environments/environment.development.ts"
 								}
 							]
+						},
+						"test": {
+							"budgets": [
+								{
+									"type": "initial",
+									"maximumWarning": "2MB",
+									"maximumError": "5MB"
+								},
+								{
+									"type": "anyComponentStyle",
+									"maximumWarning": "4kB",
+									"maximumError": "8kB"
+								}
+							],
+							"outputHashing": "all",
+							"fileReplacements": [
+								{
+									"replace": "src/environments/environment.ts",
+									"with": "src/environments/environment.test.ts"
+								}
+							]
 						}
 					},
 					"defaultConfiguration": "production"
@@ -75,6 +96,9 @@
 						},
 						"development": {
 							"buildTarget": "besy-frontend:build:development"
+						},
+						"test": {
+							"buildTarget": "besy-frontend:build:test"
 						}
 					},
 					"defaultConfiguration": "development"

@@ -3,7 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { OrderResponseDTO } from './OrderResponseDTO';
-import type { Sort } from '../Sort';
+import type { Sort } from './Sort';
 export type PagedOrderResponseDTO = {
     content?: Array<OrderResponseDTO>;
     pageable?: {

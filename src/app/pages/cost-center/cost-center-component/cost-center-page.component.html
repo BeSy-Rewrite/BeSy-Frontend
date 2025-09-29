@@ -1,0 +1,40 @@
+<mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start">
+  <mat-tab label="Kostenstellen verwalten">
+    <mat-divider
+      style="background-color: darkgrey; color: darkgrey"
+    ></mat-divider>
+    <div class="pt-3">
+      <app-generic-table
+        [dataSource]="costCentersDataSource"
+        [columns]="costCentersTableColumns"
+        [actions]="actions"
+        [pageSize]="50"
+      ></app-generic-table>
+    </div>
+  </mat-tab>
+  <mat-tab label="Kostenstellen erstellen">
+    <mat-divider
+      style="background-color: darkgrey; color: darkgrey"
+    ></mat-divider>
+    <div class="add-person-page justify-end overflow-visible">
+    <div class="person-data-container bg-white overflow-visible ">
+      <app-form-component
+        [config]="costCenterFormConfig"
+        [formGroup]="costCenterForm"
+      ></app-form-component>
+    </div>
+    <div class="buttons flex justify-end overflow-visible w-3/4 mt-4">
+        <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="onBack()"
+          aria-label="cancel"
+          style="margin-right: 16px;"
+        >
+          Verwerfen
+        </button>
+      </div>
+  </div>
+  </mat-tab>
+</mat-tab-group>
