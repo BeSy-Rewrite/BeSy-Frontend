@@ -57,7 +57,7 @@ export interface AddressConfig {
     GenericTableComponent,
   ],
   templateUrl: './address-form.component.html',
-  styleUrl: './address-form.component.css',
+  styleUrl: './address-form.component.scss',
 })
 export class AddressFormComponent implements OnInit {
   constructor(private fb: FormBuilder) {}

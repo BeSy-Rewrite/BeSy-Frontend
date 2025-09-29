@@ -15,7 +15,7 @@ import { FilterRange } from '../../models/filter-range';
     MatInputModule
   ],
   templateUrl: './range-selection-slider.component.html',
-  styleUrl: './range-selection-slider.component.css'
+  styleUrl: './range-selection-slider.component.scss'
 })
 export class RangeSelectionSliderComponent implements OnInit, OnChanges {
 

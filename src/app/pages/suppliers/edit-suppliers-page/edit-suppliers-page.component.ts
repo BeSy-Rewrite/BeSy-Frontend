@@ -21,7 +21,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
   selector: 'app-edit-suppliers-page',
   imports: [MatDivider, FormComponent, AddressFormComponent, MatButtonModule],
   templateUrl: './edit-suppliers-page.component.html',
-  styleUrl: './edit-suppliers-page.component.css',
+  styleUrl: './edit-suppliers-page.component.scss',
 })
 export class EditSuppliersPageComponent implements OnInit {
   constructor(

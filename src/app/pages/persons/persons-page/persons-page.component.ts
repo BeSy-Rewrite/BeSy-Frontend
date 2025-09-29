@@ -33,7 +33,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
     MatButtonModule,
   ],
   templateUrl: './persons-page.component.html',
-  styleUrls: ['./persons-page.component.css'],
+  styleUrls: ['./persons-page.component.scss'],
   encapsulation: ViewEncapsulation.None,
 })
 export class PersonsPageComponent implements OnInit {

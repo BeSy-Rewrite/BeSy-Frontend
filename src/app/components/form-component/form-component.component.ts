@@ -45,7 +45,7 @@ export interface FormConfig {
   selector: 'app-form-component',
   imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatRadioModule, MatSelectModule, MatButtonModule, MatCardModule, MatInput, MatDividerModule, MatTooltip, GenericTableComponent],
   templateUrl: './form-component.component.html',
-  styleUrls: ['./form-component.component.css'],
+  styleUrls: ['./form-component.component.scss'],
 })
 export class FormComponent implements OnInit {
   constructor(private fb: FormBuilder) {}

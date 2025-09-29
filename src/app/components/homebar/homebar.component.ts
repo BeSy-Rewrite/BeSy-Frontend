@@ -13,7 +13,7 @@ import { NavbarButtonComponent } from '../navbar-button/navbar-button.component'
     LoginComponent
   ],
   templateUrl: './homebar.component.html',
-  styleUrls: ['./homebar.component.css'],
+  styleUrls: ['./homebar.component.scss'],
 })
 export class HomebarComponent {
   constructor(public readonly authService: AuthenticationService, private readonly router: Router) { }

@@ -25,7 +25,7 @@ import { OrdersDataSourceService } from '../../../services/orders-data-source.se
     FilterMenuComponent,
   ],
   templateUrl: './orders-page.component.html',
-  styleUrl: './orders-page.component.css'
+  styleUrl: './orders-page.component.scss'
 })
 export class OrdersPageComponent {
   ordersTableColumns = [...ordersTableConfig];

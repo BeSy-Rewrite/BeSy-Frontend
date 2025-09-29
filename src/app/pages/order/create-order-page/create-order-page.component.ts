@@ -5,7 +5,7 @@ import { ProgressBarComponent } from '../../../components/progress-bar/progress-
   selector: 'app-create-order-page',
   imports: [ProgressBarComponent],
   templateUrl: './create-order-page.component.html',
-  styleUrl: './create-order-page.component.css'
+  styleUrl: './create-order-page.component.scss'
 })
 export class CreateOrderPageComponent {
 

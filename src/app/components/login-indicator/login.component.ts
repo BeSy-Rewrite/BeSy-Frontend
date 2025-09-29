@@ -11,7 +11,7 @@ import { AuthenticationService } from '../../services/authentication.service';
     MatButtonModule
   ],
   templateUrl: './login.component.html',
-  styleUrl: './login.component.css'
+  styleUrl: './login.component.scss'
 })
 export class LoginComponent {
   constructor(readonly authService: AuthenticationService, private readonly router: Router) { }

@@ -13,7 +13,7 @@ export interface Step {
   selector: 'app-progress-bar',
   standalone: true,
   templateUrl: './progress-bar.component.html',
-  styleUrls: ['./progress-bar.component.css'],
+  styleUrls: ['./progress-bar.component.scss'],
   imports: [MatIconModule, MatTooltipModule, CommonModule]
 })
 export class ProgressBarComponent {

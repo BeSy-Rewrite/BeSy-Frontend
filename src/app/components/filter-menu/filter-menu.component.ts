@@ -24,7 +24,7 @@ import { RangeSelectionSliderComponent } from '../range-selection-slider/range-s
     MatExpansionModule
   ],
   templateUrl: './filter-menu.component.html',
-  styleUrl: './filter-menu.component.css'
+  styleUrl: './filter-menu.component.scss'
 })
 export class FilterMenuComponent implements OnInit {
 

@@ -34,7 +34,7 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
   selector: 'app-generic-table',
   imports: [MatTableModule, MatButtonModule, MatSortModule, MatPaginatorModule],
   templateUrl: './generic-table.component.html',
-  styleUrl: './generic-table.component.css',
+  styleUrl: './generic-table.component.scss',
 })
 export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewInit {
 

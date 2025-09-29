@@ -4,7 +4,7 @@ import { Component } from '@angular/core';
   selector: 'app-unauthorized',
   imports: [],
   templateUrl: './unauthorized.component.html',
-  styleUrl: './unauthorized.component.css'
+  styleUrl: './unauthorized.component.scss'
 })
 export class UnauthorizedComponent {
 

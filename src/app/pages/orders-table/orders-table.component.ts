@@ -10,7 +10,7 @@ import { TableColumn } from '../../models/generic-table';
   selector: 'app-orders-table',
   imports: [GenericTableComponent],
   templateUrl: './orders-table.component.html',
-  styleUrl: './orders-table.component.css'
+  styleUrl: './orders-table.component.scss'
 })
 export class OrdersTableComponent implements OnInit {
 
