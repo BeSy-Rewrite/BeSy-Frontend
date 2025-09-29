@@ -1,22 +1,25 @@
 import { Component } from '@angular/core';
-import { NavbarButtonComponent } from '../navbar-button/navbar-button.component';
-import { AuthenticationService } from '../../services/authentication.service';
 import { MatButtonModule } from '@angular/material/button';
 import { Router } from '@angular/router';
+import { AuthenticationService } from '../../services/authentication.service';
+import { LoginComponent } from "../login-indicator/login.component";
+import { NavbarButtonComponent } from '../navbar-button/navbar-button.component';
 
 @Component({
   selector: 'app-homebar',
-  imports: [NavbarButtonComponent,
-    MatButtonModule
+  imports: [
+    NavbarButtonComponent,
+    MatButtonModule,
+    LoginComponent
   ],
   templateUrl: './homebar.component.html',
   styleUrls: ['./homebar.component.scss'],
 })
 export class HomebarComponent {
-  constructor(public readonly authService: AuthenticationService, private router: Router) { }
+  constructor(public readonly authService: AuthenticationService, private readonly router: Router) { }
 
-navigateToHome() {
-  this.router.navigate(['/']);
-}
+  navigateToHome() {
+    this.router.navigate(['/']);
+  }
 
 }

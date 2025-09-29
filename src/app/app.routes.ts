@@ -11,6 +11,7 @@ import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/supplie
 import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
 import { EditSuppliersPageComponent} from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
 import { CostCentersPageComponent } from './pages/cost-center/cost-center-component/cost-center-page.component';
+import { OrdersPageComponent } from './pages/order/orders-page/orders-page.component';
 import { ViewOrderPageComponent } from './pages/order/view-order-page/view-order-page.component';
 import { OrderResolver } from './resolver/order.resolver';
 
@@ -54,24 +55,29 @@ export const routes: Routes = [
       }
     },
     {
-      title: 'Bestellung erstellen',
-      path: 'orders/create',
-      component: CreateOrderPageComponent
+        title: 'Bestellungen',
+        path: 'orders',
+        component: OrdersPageComponent
     },
     {
-      title: 'Personen',
-      path: 'persons',
-      component: PersonsPageComponent
+        title: 'Bestellung erstellen',
+        path: 'orders/create',
+        component: CreateOrderPageComponent
     },
     {
-      title: 'Lieferanten',
-      path: 'suppliers',
-      component: SuppliersPageComponent
+        title: 'Personen',
+        path: 'persons',
+        component: PersonsPageComponent
     },
     {
-      title: 'Lieferant bearbeiten',
-      path: 'suppliers/:id/edit',
-      component: EditSuppliersPageComponent
+        title: 'Lieferanten',
+        path: 'suppliers',
+        component: SuppliersPageComponent
+    },
+    {
+        title: 'Lieferant bearbeiten',
+        path: 'suppliers/:id/edit',
+        component: EditSuppliersPageComponent
     },
     {
       title: 'Kostenstellen',

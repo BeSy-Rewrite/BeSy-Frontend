@@ -1,6 +1,4 @@
-<div
-  class="homebar fixed top-0 left-0 w-full h-20 z-50 bg-he-darkblue flex items-center"
->
+<div class="homebar fixed top-0 left-0 w-full h-20 z-50 bg-he-darkblue flex items-center">
   <div class="homebar__logo">
   <img
     class="h-18 mx-8 w-auto object-contain cursor-pointer"
@@ -38,6 +36,7 @@
     ></app-navbar-button>
   </nav>
 
+  <!--
   <div class="homebar__user ml-auto mr-8">
     @if (authService.hasValidToken()) {
     <button mat-flat-button color="accent" (click)="authService.logout()">
@@ -49,4 +48,6 @@
     </button>
     }
   </div>
+  -->
+  <app-login class="mr-8 ml-auto"></app-login>
 </div>

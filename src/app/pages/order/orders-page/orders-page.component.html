@@ -1,0 +1,34 @@
+<div class="h-fit">
+    <mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start">
+
+        <mat-tab label="Bestellungen verwalten">
+            <button class="!fixed top-22.5 left-2.5 z-10" matFab extended color="primary" (click)="toggleShowFilters()">
+                <mat-icon>filter_list</mat-icon>
+                Filter
+            </button>
+
+            <mat-divider class="bg-gray-500"></mat-divider>
+            <div class="pt-3 flex flex-row">
+
+                <app-filter-menu [class.open]="showFilters" [class.closed]="!showFilters" class="w-96"
+                    (filtersChanged)="onFiltersChanged($event)"></app-filter-menu>
+
+                <app-generic-table [class.expanded]="!showFilters" [class.collapsed]="showFilters"
+                    class="-ml-96 w-full overflow-auto" [dataSource]="ordersDataSource" [columns]="ordersTableColumns"
+                    [actions]="actions" [pageSize]="25"></app-generic-table>
+
+            </div>
+
+        </mat-tab>
+
+        <mat-tab label="Neue Bestellung anlegen">
+            <mat-divider class="bg-gray-500"></mat-divider>
+
+            <div class="text-center justify-center pt-3 h-100">
+                Placeholder for order creation component
+            </div>
+
+        </mat-tab>
+
+    </mat-tab-group>
+</div>

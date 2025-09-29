@@ -44,7 +44,7 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
   /**
    * Output event emitter for changes in the selected range.
    */
-  onChanges = output<FilterRange>();
+  rangeChanged = output<FilterRange>();
 
   /**
    * FormGroup for managing input fields and the slider.
@@ -93,7 +93,7 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
     ).subscribe(value => {
       this.skipChangeDetection = true;
       this.selectedRange.set(value.input);
-      this.onChanges.emit(value.input);
+      this.rangeChanged.emit(value.input);
     });
   }
 

@@ -1,17 +1,19 @@
+import { DataSource } from '@angular/cdk/table';
 import {
+  AfterViewInit,
   Component,
   computed,
-  effect,
-  EventEmitter,
   input,
-  Output,
+  OnChanges,
+  OnInit,
+  output,
   signal,
-  ViewChild,
+  ViewChild
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
-import { MatTableDataSource, MatTableModule } from '@angular/material/table';
+import { MatTableModule } from '@angular/material/table';
 import { TableActionButton, TableColumn } from '../../models/generic-table';
 import { MatDivider } from "@angular/material/divider";
 
@@ -35,24 +37,12 @@ import { MatDivider } from "@angular/material/divider";
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.scss',
 })
-export class GenericTableComponent<T> {
-  constructor() {
+export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewInit {
 
-    // Reacts to changes of the signal dataSource, and sets the sort and paginator.
-    effect(() => {
-      const ds = this.dataSource();
-      if (ds && this.sort && this.paginator) {
-        ds.sort = this.sort;
-        ds.paginator = this.paginator;
-        this.paginator._intl.itemsPerPageLabel = 'Einträge pro Seite';
-        this.paginator.pageSize = this.pageSize();
-      }
-    });
-  }
   /**
    * The data source for the table, required to be provided.
    */
-  dataSource = input.required<MatTableDataSource<T>>();
+  dataSource = input.required<DataSource<T>>();
 
   /**
    * The columns to be displayed in the table, required to be provided.
@@ -76,7 +66,7 @@ export class GenericTableComponent<T> {
    * The options for the number of items to display per page.
    * Defaults to [5, 10, 25, 100] if not provided.
    */
-  pageSizeOptions = input<number[]>([5, 10, 25, 100]);
+  pageSizeOptions = input<number[]>([5, 10, 25, 50, 100]);
 
   /**
    * Internal representation of the page size options, ensuring the current page size is included.
@@ -104,7 +94,7 @@ export class GenericTableComponent<T> {
    */
   selectedRow: T | null = null; // Undefined is not possible here, because then the event emitter doesn't emit anything. null works somehow
 
-  @Output() rowClicked = new EventEmitter<T>();
+  rowClicked = output<T>();
 
   /**
    * Reference to the MatSort directive for enabling sorting functionality.
@@ -132,6 +122,7 @@ export class GenericTableComponent<T> {
   ngOnChanges() {
     this._setupInternals();
     this._setupActions();
+    this._setupDataSource();
   }
 
   /**
@@ -139,12 +130,7 @@ export class GenericTableComponent<T> {
    * It sets the sort property of the data source to enable sorting functionality.
    */
   ngAfterViewInit() {
-    this.dataSource().sort = this.sort;
-    this.dataSource().paginator = this.paginator;
-    this.paginator._intl.itemsPerPageLabel = 'Einträge pro Seite';
-
-    // Set the initial page size
-    this.paginator.pageSize = this.pageSize();
+    this._setupDataSource();
   }
 
   /**
@@ -185,6 +171,28 @@ export class GenericTableComponent<T> {
         ...cols,
         { id: 'actions', label: 'Actions', isUnsortable: true },
       ]);
+    }
+  }
+
+  /**
+   * Sets up the data source for the table.
+   * Assigns the MatSort and MatPaginator directives to the data source.
+   * @private
+   */
+  private _setupDataSource() {
+    const ds = this.dataSource();
+    // Only assign sort and paginator if ds is a MatTableDataSource
+    if (ds && this.sort && this.paginator && 'sort' in ds && 'paginator' in ds) {
+      (ds as any).sort = this.sort;
+      (ds as any).paginator = this.paginator;
+      this.paginator._intl.itemsPerPageLabel = 'Einträge pro Seite';
+      this.paginator._intl.getRangeLabel = (page: number, pageSize: number, length: number) => {
+        if (length === 0 || pageSize === 0) {
+          return `0 von ${length}`;
+        }
+        return `${page * pageSize + 1} - ${Math.min((page + 1) * pageSize, length)} von ${length}`;
+      };
+      this.paginator.pageSize = this.pageSize();
     }
   }
 

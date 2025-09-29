@@ -1,0 +1,15 @@
+<div class="flex items-center">
+    <button mat-button color="accent" (click)="handleLogInOut()">
+        @if (authService.hasValidToken()) {
+        Logout
+        } @else {
+        Login
+        }
+    </button>
+    @if (authService.hasValidToken()) {
+    <div class="flex items-center justify-center ml-4 px-1 pb-0.5 h-12 w-fit min-w-12 rounded-full bg-he-grey text-he-darkblue text-xl font-semibold"
+        [matTooltip]="'Angemeldet als \'' + authService.getUsername() + '\''">
+        {{getUserInitials()}}
+    </div>
+    }
+</div>

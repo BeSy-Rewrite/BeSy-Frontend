@@ -1,16 +1,3 @@
-<!-- Temporary Authorization Message -->
-<div class="fixed top-17 left-0 w-full p-4 text-center">
-  @if (authService.isAuthorizedFor(environment.approveOrdersRole)) {
-  <div class="text-green-600">Authorized for Approve Orders</div>
-  } @else if (authService.isAuthorized()) {
-  <div class="text-yellow-600">Authorized</div>
-  } @else if (authService.hasValidToken()) {
-  <div class="text-blue-600">Authenticated</div>
-  } @else {
-  <div class="text-red-600">Not Authenticated/Authorized</div>
-  }
-</div>
-
 <app-homebar />
 <!-- Offset wird anhand der Größe der Homebar gesetzt -->
 <main class="mt-20 px-4 py-6 sm:px-6 lg:px-8">
