@@ -6,6 +6,9 @@
     "besy-frontend": {
       "projectType": "application",
       "schematics": {},
+      "i18n": {
+        "sourceLocale": "de"
+      },
       "root": "",
       "sourceRoot": "src",
       "prefix": "app",
