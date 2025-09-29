@@ -11,6 +11,8 @@ import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/supplie
 import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
 import { EditSuppliersPageComponent} from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
 import { CostCentersPageComponent } from './pages/cost-center/cost-center-component/cost-center-page.component';
+import { ViewOrderPageComponent } from './pages/order/view-order-page/view-order-page.component';
+import { OrderResolver } from './resolver/order.resolver';
 
 export const routes: Routes = [
     {
@@ -42,6 +44,14 @@ export const routes: Routes = [
             DefaultGuard,
             ApproveOrdersGuard
         ]
+    },
+    {
+      title: 'Bestellungen',
+      path: 'orders/:id/view',
+      component: ViewOrderPageComponent,
+      resolve: {
+        order: OrderResolver
+      }
     },
     {
       title: 'Bestellung erstellen',
