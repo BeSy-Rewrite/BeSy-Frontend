@@ -2,9 +2,9 @@ import { Component, computed, effect, OnInit, output, signal, viewChild, Writabl
 import { MatButtonModule } from '@angular/material/button';
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { from } from 'rxjs';
-import { CostCenterResponseDTO, CostCentersService, CustomerIdResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../../api';
+import { CostCenterResponseDTO, CostCentersService, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../../api';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../configs/orders-filter-menu-config';
-import { statusDisplayNames } from '../../display-name-mappings/status-names';
+import { statusDisplayNames, statusIcons } from '../../display-name-mappings/status-names';
 import { FilterChipData } from '../../models/filter-chip-data';
 import { FilterDateRange } from '../../models/filter-date-range';
 import { ActiveFilters } from '../../models/filter-menu-types';
@@ -137,7 +137,7 @@ export class FilterMenuComponent implements OnInit {
     this.chips['status'].set(
       Array.from(statusDisplayNames.entries()).map(([id, label]) => ({
         id: id,
-        label: label,
+        label: statusIcons.get(id) + ' ' + label,
         tooltip: ''
       }))
     );
