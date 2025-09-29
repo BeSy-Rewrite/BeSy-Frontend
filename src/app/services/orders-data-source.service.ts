@@ -3,11 +3,13 @@ import { DataSource } from '@angular/cdk/table';
 import { Injectable } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
-import { BehaviorSubject, debounceTime, Observable } from 'rxjs';
+import { BehaviorSubject, debounceTime, forkJoin, Observable, of } from 'rxjs';
 import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api';
 import { ActiveFilters } from '../models/filter-menu-types';
 import { FilterRequestParams } from '../models/filter-request-params';
+import { OrderDisplayData } from '../models/order-display-data';
 import { CachedOrdersService } from './cached-orders.service';
+import { OrderSubresourceResolverService } from './order-subresource-resolver.service';
 
 
 @Injectable({
@@ -25,7 +27,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
 
   private readonly _sorting: string[] = [];
 
-  constructor(private readonly cacheService: CachedOrdersService) {
+  constructor(private readonly cacheService: CachedOrdersService, private readonly subresourceResolver: OrderSubresourceResolverService) {
     super();
     this._data = new BehaviorSubject<OrderResponseDTO[]>([]);
 
@@ -42,7 +44,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * This is a required property and must be set for the table to function.
    * @returns The current data array.
    */
-  get data(): OrderResponseDTO[] {
+  get data(): OrderDisplayData[] {
     return this._data.value;
   }
   /**
@@ -50,9 +52,24 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * Triggers an update to the table display.
    * @param data The new data array.
    */
-  set data(data: OrderResponseDTO[]) {
+  set data(data: OrderResponseDTO[] | OrderDisplayData[]) {
     data = Array.isArray(data) ? data : [];
-    this._data.next(data);
+    let displayData: Observable<OrderDisplayData>[] = [];
+    if (data.length === 0) {
+      this._data.next([]);
+      return;
+    }
+    data.forEach(order => {
+      // Only pass OrderResponseDTO objects to resolveOrderSubresources
+      if (order && typeof order.id === 'number') {
+        displayData.push(this.subresourceResolver.resolveOrderSubresources(order as OrderResponseDTO));
+      } else {
+        displayData.push(of(order as OrderDisplayData));
+      }
+    });
+    forkJoin(displayData).subscribe(resolvedData => {
+      this._data.next(resolvedData);
+    });
   }
 
   /**
