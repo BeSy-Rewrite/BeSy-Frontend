@@ -1,9 +1,13 @@
 import { Component, inject } from '@angular/core';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from "@angular/material/input";
+import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatTab, MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
+import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { FilterMenuComponent } from '../../../components/filter-menu/filter-menu.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
@@ -18,17 +22,22 @@ import { OrdersDataSourceService } from '../../../services/orders-data-source.se
     MatIconModule,
     MatSidenavModule,
     MatButtonModule,
-    MatTabGroup,
-    MatTab,
+    MatTabsModule,
+    MatInputModule,
+    MatSelectModule,
+    MatFormFieldModule,
+    FormsModule,
+    ReactiveFormsModule,
     MatDivider,
     GenericTableComponent,
-    FilterMenuComponent,
+    FilterMenuComponent
   ],
   templateUrl: './orders-page.component.html',
   styleUrl: './orders-page.component.scss'
 })
 export class OrdersPageComponent {
   ordersTableColumns = [...ordersTableConfig];
+  selectedColumnsControl = new FormControl(ordersTableConfig.filter(col => !col.isInvisible).map(col => col.id));
 
   ordersDataSource = inject(OrdersDataSourceService);
   actions: TableActionButton[] = [
@@ -41,6 +50,13 @@ export class OrdersPageComponent {
   constructor(private readonly router: Router) {
     ordersTableConfig.filter(col => ['id', 'besy_number'].includes(col.id))
       .forEach(col => col.action = (row) => this.onViewOrder(row));
+
+    this.selectedColumnsControl.valueChanges.subscribe(selected => {
+      this.ordersTableColumns = ordersTableConfig.map(col => ({
+        ...col,
+        isInvisible: !selected?.includes(col.id)
+      }));
+    });
   }
 
   toggleShowFilters() {

@@ -77,6 +77,7 @@ export class FilterMenuComponent implements OnInit {
   };
 
   // ToDO: Dynamically adjust default range values -> min/max from DB needed
+  // Manual input can increase the default max value beyond the initial maximum
   ranges: { [key: string]: WritableSignal<FilterRange> } = {
     'quote_price': signal<FilterRange>({ start: 0, end: 10000 })
   };
