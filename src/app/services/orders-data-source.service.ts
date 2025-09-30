@@ -174,8 +174,8 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
     return {
       primaryCostCenters: this._filter?.primary_cost_center_id?.map(f => f.id?.toString() ?? ''),
       bookingYears: this._filter?.booking_year?.map(f => f.id?.toString() ?? ''),
-      createdBefore: this._filter?.created_date.start?.toISOString(),
-      createdAfter: this._filter?.created_date.end?.toISOString(),
+      createdAfter: this._filter?.created_date.start?.toISOString(),
+      createdBefore: this._filter?.created_date.end?.toISOString(),
       ownerIds: this._filter?.owner_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
       statuses: this._filter?.status?.map(f => f.id).filter(f => f !== undefined) as OrderStatus[] | undefined,
       quotePriceMin: this._filter?.quote_price?.start,
