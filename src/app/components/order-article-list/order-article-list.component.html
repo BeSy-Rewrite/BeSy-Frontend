@@ -1,0 +1,8 @@
+<div class="grid grid-cols-[max-content_1fr] gap-x-16 gap-y-2 mb-4">
+    @for (key of additionalInfoKeys; track $index) {
+    <h3 class="font-semibold">{{orderFieldLabels[key]}}:</h3>
+    <p>{{order().orderDisplay[key]}}</p>
+    }
+</div>
+
+<app-generic-table [dataSource]="items" [columns]="displayedColumns"></app-generic-table>
