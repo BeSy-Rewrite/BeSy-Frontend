@@ -9,7 +9,7 @@
         </th>
 
         @if (column.id !== 'actions') {
-        <td mat-cell *matCellDef="let element">
+        <td mat-cell [matTooltip]="element.tooltips?.[column.id]" *matCellDef="let element">
           @if (column.action === undefined) {
           {{ element[column.id] }}
           } @else {
