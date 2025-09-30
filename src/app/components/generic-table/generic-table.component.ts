@@ -37,7 +37,7 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
  * interface DataWithTooltip {
  *   someKey: any;
  *   someOtherKey: any;
- *   tooltips: { [k in keyof Omit<DataWithTooltip, 'tooltips'>]: string };
+ *   tooltips: { [k in keyof Partial<Omit<DataWithTooltip, 'tooltips'>>]: string };
  * }
  *
  * See DisplayItem.ts
