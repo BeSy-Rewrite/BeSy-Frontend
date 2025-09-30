@@ -1,3 +1,5 @@
+import { AddressResponseDTO } from "../api";
+
 export type OrderDisplayData = {
     id: string;
     besy_number: string;
@@ -28,9 +30,13 @@ export type OrderDisplayData = {
     cashback_days: string;
     last_updated_time: string;
     flag_decision_cheapest_offer: string;
+    flag_decision_most_economical_offer?: string;
     flag_decision_sole_supplier: string;
     flag_decision_contract_partner: string;
+    flag_decision_preferred_supplier_list?: string;
     flag_decision_other_reasons: string;
     decision_other_reasons_description: string;
     dfg_key: string;
+    delivery_address_id?: AddressResponseDTO;
+    invoice_address_id?: AddressResponseDTO;
 }
