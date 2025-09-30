@@ -37,9 +37,9 @@ export const ordersTableConfig: OrdersTableConfig = [
     // Part of FilterRequestParams -> invisible/sortable by default
     { id: 'booking_year', label: 'Buchungsjahr', isInvisible: true },
     { id: 'created_date', label: 'Erstellt am', isInvisible: true },
-    { id: 'owner_id', label: 'Erstellt von', isInvisible: true },
+    { id: 'owner_id', label: 'Erstellt\u00A0von', isInvisible: true },
     { id: 'quote_price', label: 'Preis', isInvisible: true },
-    { id: 'delivery_person_id', label: 'Bestellt für', isInvisible: true },
+    { id: 'delivery_person_id', label: 'Bestellt\u00A0für', isInvisible: true },
     { id: 'invoice_person_id', label: 'Rechnungsempfänger:in', isInvisible: true },
     { id: 'queries_person_id', label: 'Ansprechperson', isInvisible: true },
     { id: 'customer_id', label: 'Kundennummer', isInvisible: true },
