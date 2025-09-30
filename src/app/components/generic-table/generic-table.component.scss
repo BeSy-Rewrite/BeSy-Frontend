@@ -36,7 +36,7 @@ tr.selected:hover {
 .overflow-x-auto {
   border: 2px solid #6aafef; // table frame color
   border-radius: 8px;
-  overflow: hidden; // damit die Border nicht "durchscheint"
+  // overflow: hidden; // damit die Border nicht "durchscheint" <-- sideway scrolling not possible if this is active
   //background-image: linear-gradient(to bottom, #70b8fc, #7da0ed, #8d86d8);
 }
 
