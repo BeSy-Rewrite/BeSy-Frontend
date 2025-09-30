@@ -273,4 +273,28 @@ export class OrderSubresourceResolverService {
   formatCostCenter = (center: CostCenterResponseDTO) => {
     return `${center.id} - ${center.name}`;
   }
+
+  /**
+   * Calculates the net price from a gross price and VAT percentage.
+   * If VAT is zero or negative, returns the gross price unchanged.
+   * @param grossPrice The gross price including VAT.
+   * @param vatPercent The VAT percentage to apply. E.g., 19 for 19% VAT.
+   * @returns The calculated net price.
+   */
+  calculateNetPrice(grossPrice: number, vatPercent: number): number {
+    if (vatPercent <= 0) return grossPrice;
+    return grossPrice / (1 + vatPercent / 100);
+  }
+
+  /**
+   * Calculates the gross price from a net price and VAT percentage.
+   * If VAT is zero or negative, returns the net price unchanged.
+   * @param netPrice The net price excluding VAT.
+   * @param vatPercent The VAT percentage to apply. E.g., 19 for 19% VAT.
+   * @returns The calculated gross price.
+   */
+  calculateGrossPrice(netPrice: number, vatPercent: number): number {
+    if (vatPercent <= 0) return netPrice;
+    return netPrice * (1 + vatPercent / 100);
+  }
 }
