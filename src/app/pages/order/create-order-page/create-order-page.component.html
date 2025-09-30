@@ -15,6 +15,30 @@
   </div>
   <mat-divider></mat-divider>
   <div class="form-container">
+    <!-- Hauptangebot -->
+    <div class="main-offer-container">
+      <div class="text-2xl font-bold mb-4 mt-4">
+        Hauptangebot
+        <app-form-component
+          [config]="mainOfferFormConfig"
+          [formGroup]="mainOfferFormGroup"
+          (valueChanged)="onSupplierSelected($event)"
+        ></app-form-component>
+      </div>
+    </div>
+    <div class="spacing-container h-8"></div>
+    <!-- Supplier Decision Reason -->
+    <div class="supplier-decision-reason-container">
+      <div class="text-2xl font-bold mb-4 mt-4">
+        Begründung der Lieferantenauswahl
+        <app-form-component
+          [config]="supplierDecisionReasonFormConfig"
+          [formGroup]="supplierDecisionReasonFormGroup"
+          (valueChanged)="onSupplierDecisionReasonChanged($event)"
+        ></app-form-component>
+      </div>
+    </div>
+    <div class="spacing-container h-8"></div>
     <!-- Add Item -->
     <div class="item-container">
       <div class="text-2xl font-bold mb-4 mt-4">
@@ -73,24 +97,22 @@
           <mat-form-field class="w-full" appearance="fill">
             <mat-label>Sendungsempfänger auswählen</mat-label>
             <input
-              #inputPerson
-              type="text"
+              #inputRecipient
               matInput
-              [formControl]="personControlRecipient"
-              [matAutocomplete]="autoRecipientPerson"
-              [required]="true"
+              [matAutocomplete]="autoRecipient"
+              required
+              (input)="filterPersons(true)"
+              (focus)="filterPersons(true)"
             />
 
             <mat-autocomplete
-              #autoRecipientPerson="matAutocomplete"
-              (optionSelected)="onPersonSelected($event.option.value, true)"
+              #autoRecipient="matAutocomplete"
+              [requireSelection]="true"
               [displayWith]="displayPerson"
+              (optionSelected)="onPersonSelected($event.option.value, true)"
             >
-              @for (person of filteredPersonsRecipient | async; track person.id)
-              {
-              <mat-option [value]="person">
-                {{ person.name }} {{ person.surname }}
-              </mat-option>
+              @for (person of filteredPersonsRecipient; track person.id) {
+              <mat-option [value]="person">{{ person.fullName }}</mat-option>
               }
             </mat-autocomplete>
           </mat-form-field>
@@ -162,24 +184,24 @@
           <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
 
           <mat-form-field class="w-full" appearance="fill">
-            <mat-label>Rechnungsempfänger auswählen</mat-label>
+            <mat-label>Sendungsempfänger auswählen</mat-label>
             <input
-              type="text"
+              #inputInvoice
               matInput
-              [formControl]="personControlInvoice"
-              [matAutocomplete]="autoInvoicePerson"
-              [required]="true"
+              [matAutocomplete]="autoInvoice"
+              required
+              (input)="filterPersons(false)"
+              (focus)="filterPersons(false)"
             />
 
             <mat-autocomplete
-              #autoInvoicePerson="matAutocomplete"
-              (optionSelected)="onPersonSelected($event.option.value, false)"
+              #autoInvoice="matAutocomplete"
+              [requireSelection]="true"
               [displayWith]="displayPerson"
+              (optionSelected)="onPersonSelected($event.option.value, false)"
             >
-              @for (person of filteredPersonsInvoice | async; track person.id) {
-              <mat-option [value]="person">
-                {{ person.name }} {{ person.surname }}
-              </mat-option>
+              @for (person of filteredPersonsInvoice; track person.id) {
+              <mat-option [value]="person">{{ person.fullName }}</mat-option>
               }
             </mat-autocomplete>
           </mat-form-field>
@@ -315,7 +337,9 @@
         </mat-form-field>
       </div>
       <div class="flex justify-end mt-4">
-        <button mat-raised-button color="primary" (click)="saveOrder()">Bestellung speichern</button>
+        <button mat-raised-button color="primary" (click)="saveOrder()">
+          Bestellung speichern
+        </button>
       </div>
     </div>
   </div>

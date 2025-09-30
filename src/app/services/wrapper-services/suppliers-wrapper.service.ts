@@ -33,9 +33,9 @@ export class SuppliersWrapperService {
      * @returns CustomerIdResponseDTO List of customer IDs for a supplier.
      * @throws ApiError
      */
-  async getCustomersIdBySupplier(supplierId: number) {
-    const customerId = await SuppliersService.getCustomerIdsOfOrder(supplierId);
-    return customerId;
+  async getCustomersIdsBySupplierId(supplierId: number) {
+    const customerIds = await SuppliersService.getCustomerIdsOfOrder(supplierId);
+    return customerIds;
   }
 
   async createSupplierCustomerId(supplierId: number, customerId: any) {

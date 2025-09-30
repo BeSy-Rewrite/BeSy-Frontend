@@ -79,6 +79,127 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
   ]
 };
 
+export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
+  title: 'Hauptangebot festlegen',
+  fields: [
+    {
+      name: 'quote_number',
+      label: 'Bestellnummer',
+      type: 'text',
+      required: false,
+      editable: true,
+      validators: [Validators.maxLength(100)]
+    },
+    {
+      name: 'supplier_id',
+      label: 'Lieferant',
+      type: 'autocomplete',
+      requireSelection: true,
+      required: false,
+      filterable: true,
+      // Will be loaded from suppliers api
+      options: [],
+      editable: true,
+      emitAsSignal: true,
+      tooltip: 'Der Lieferant ist das Unternehmen, bei dem die Bestellung aufgegeben wird.'
+    },
+    {
+      name: 'customer_id',
+      label: 'Kundennummer',
+      type: 'select',
+      required: false,
+      // Will be loaded from API: customersId
+      options: [{ label: 'Bitte wählen sie zuerst einen Lieferanten aus.', value: null }],
+      editable: true,
+      tooltip: 'Die Kundennummer wird vom Lieferanten vergeben und dient der eindeutigen Identifikation Ihres Unternehmens bei diesem Lieferanten.'
+    },
+    {
+      name: 'quote_price',
+      label: 'Preis des Hauptangebots',
+      type: 'number',
+      required: false,
+      editable: true,
+      //validators: [Validators.pattern('^\\d+,\\d{2}$')]
+    },
+    {
+      name: 'currency_short',
+      label: 'Währung',
+      type: 'autocomplete',
+      requireSelection: true,
+      required: false,
+      filterable: true,
+      // Will be loaded from currencies api
+      options: [{ label: 'Fehler beim Laden der Währungen', value: null }],
+      editable: true,
+      tooltip: 'Die Währung, in der der Preis des Hauptangebots angegeben ist.'
+    },
+    {
+      name: 'quote_date',
+      label: 'Datum des Hauptangebots',
+      type: 'date',
+      required: false,
+      editable: true
+    },
+    {
+      name: 'comment_for_supplier',
+      label: 'Kommentar',
+      type: 'textarea',
+      required: false,
+      editable: true,
+      validators: [Validators.maxLength(255)]
+    }
+  ]
+};
+
+export const ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG: FormConfig = {
+  title: 'Lieferantenauswahl begründen',
+  fields: [
+    {
+      name: 'flag_decision_cheapest_offer',
+      label: 'Günstigstes Angebot',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false
+    },
+    {
+      name: 'flag_decision_most_economical_offer',
+      label: 'Günstigstes Angebot',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false
+    },
+    {
+      name: 'flag_decision_sole_supplier',
+      label: 'Einziger Lieferant',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false
+    },
+    {
+      name: 'flag_decision_contract_partner',
+      label: 'Vertragspartner',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false
+    },
+    {
+      name: 'flag_decision_preffered_supplier_list',
+      label: 'Lieferant aus der Vorzugsliste',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false
+    },
+    {
+      name: 'flag_decision_other_reasons',
+      label: 'Sonstiger Grund',
+      type: 'checkbox',
+      required: false,
+      defaultValue: false,
+      emitAsSignal: true
+    }
+  ]
+};
+
 export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
   title: 'Vergleichsangebot hinzufügen',
   fields: [

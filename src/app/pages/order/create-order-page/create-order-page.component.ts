@@ -13,7 +13,10 @@ import {
 } from '@angular/core';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import { MatDivider } from '@angular/material/divider';
-import { FormComponent } from '../../../components/form-component/form-component.component';
+import {
+  FormComponent,
+  FormField,
+} from '../../../components/form-component/form-component.component';
 import { OnInit } from '@angular/core';
 import { FormConfig } from '../../../components/form-component/form-component.component';
 import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
@@ -41,12 +44,16 @@ import {
   PersonResponseDTO,
   QuotationRequestDTO,
   VatResponseDTO,
+  SupplierResponseDTO,
+  CustomerIdResponseDTO,
 } from '../../../api';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
   ORDER_APPROVAL_FORM_CONFIG,
   ORDER_COST_CENTER_FORM_CONFIG,
+  ORDER_MAIN_OFFER_FORM_CONFIG,
   ORDER_QUOTATION_FORM_CONFIG,
+  ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
 } from '../../../configs/order/order-config';
 import { map, Observable, of, startWith } from 'rxjs';
 import { MatInputModule } from '@angular/material/input';
@@ -65,6 +72,7 @@ import {
   CurrenciesWrapperService,
   CurrencyWithDisplayName,
 } from '../../../services/wrapper-services/currencies-wrapper.service';
+import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 
 @Component({
   selector: 'app-create-order-page',
@@ -94,7 +102,8 @@ export class CreateOrderPageComponent implements OnInit {
     private router: Router,
     private _notifications: MatSnackBar,
     private personsWrapperService: PersonsWrapperService,
-    private currenciesWrapperService: CurrenciesWrapperService
+    private currenciesWrapperService: CurrenciesWrapperService,
+    private suppliersWrapperService: SuppliersWrapperService
   ) {}
 
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
@@ -107,27 +116,26 @@ export class CreateOrderPageComponent implements OnInit {
 
   // Compute the footer content for the items table, showing the total sum of all items
   footerContent = computed(() => {
-  const sum = this.items().reduce((total, item) => {
-    const price = item.price_per_unit ?? 0;
-    const quantity = item.quantity ?? 0;
+    const sum = this.items().reduce((total, item) => {
+      const price = item.price_per_unit ?? 0;
+      const quantity = item.quantity ?? 0;
 
-    const vat = Number(item.vat_value) || 0;
+      const vat = Number(item.vat_value) || 0;
 
-    // If the price type is 'netto', add the selected VAT to the price
-    const vatMultiplier = item.vat_type === 'netto' ? 1 + vat / 100 : 1;
+      // If the price type is 'netto', add the selected VAT to the price
+      const vatMultiplier = item.vat_type === 'netto' ? 1 + vat / 100 : 1;
 
-    return total + price * quantity * vatMultiplier;
-  }, 0);
+      return total + price * quantity * vatMultiplier;
+    }, 0);
 
-  const formatted = new Intl.NumberFormat('de-DE', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(sum);
+    const formatted = new Intl.NumberFormat('de-DE', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(sum);
 
-  console.log('Summe:', sum);
-  return `Gesamt: ${formatted} (brutto)`;
-});
-
+    console.log('Summe:', sum);
+    return `Gesamt: ${formatted} (brutto)`;
+  });
 
   orderItemColumns: TableColumn<ItemRequestDTO>[] = [
     { id: 'name', label: 'Artikelbezeichnung' },
@@ -158,12 +166,9 @@ export class CreateOrderPageComponent implements OnInit {
   recipientInfoText = '';
   selectedRecipientPerson?: PersonWithFullName;
   selectedInvoicePerson?: PersonWithFullName;
-  personControlRecipient = new FormControl<PersonWithFullName | string>('', {
-    nonNullable: false,
-    updateOn: 'change',
-    validators: [this.validatePersonSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
-  });
-  filteredPersonsRecipient!: Observable<PersonWithFullName[]>;
+  filteredPersonsRecipient: PersonWithFullName[] = [];
+  @ViewChild('inputRecipient', { static: false })
+inputRecipient!: ElementRef<HTMLInputElement>;
 
   // Invoice address variables
   invoiceAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
@@ -172,12 +177,8 @@ export class CreateOrderPageComponent implements OnInit {
   invoiceHasPreferredAddress = false;
   invoiceAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
   invoiceInfoText = '';
-  personControlInvoice = new FormControl<PersonWithFullName | string>('', {
-    nonNullable: false,
-    updateOn: 'change',
-    validators: [this.validatePersonSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
-  });
-  filteredPersonsInvoice!: Observable<PersonWithFullName[]>;
+  filteredPersonsInvoice: PersonWithFullName[] = [];
+  @ViewChild('inputInvoice', { static: false }) inputInvoice!: ElementRef<HTMLInputElement>;
 
   // Shared recipient/invoice address variables
   persons: PersonWithFullName[] = []; // Store all persons locally for the autocomplete input
@@ -245,6 +246,16 @@ export class CreateOrderPageComponent implements OnInit {
   // Currency variables
   currencies: Array<CurrencyWithDisplayName> = [];
 
+  // Main offer variables
+  mainOfferFormConfig = ORDER_MAIN_OFFER_FORM_CONFIG;
+  mainOfferFormGroup = new FormGroup({});
+  suppliers: Array<SupplierResponseDTO> = []; // Will be loaded from API
+  customerIds: Array<CustomerIdResponseDTO> = []; // Will be loaded from API
+
+  // Supplier decision reason variables
+  supplierDecisionReasonFormConfig = ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG;
+  supplierDecisionReasonFormGroup = new FormGroup({});
+
   async ngOnInit(): Promise<void> {
     // Load initial data for the VAT options field in the form
     const vatOptions = await VatWrapperService.getAllVats();
@@ -254,6 +265,9 @@ export class CreateOrderPageComponent implements OnInit {
     // and set up filtering for the autocomplete inputs
     this.loadPersons();
 
+    this.loadSuppliers();
+
+    // Initialize the cost center form with data from the api
     this.costCenters = await CostCentersService.getCostCenters();
     this.filteredPrimaryCostCenters =
       this.primaryCostCenterControl.valueChanges.pipe(
@@ -284,6 +298,10 @@ export class CreateOrderPageComponent implements OnInit {
     this.currencies =
       await this.currenciesWrapperService.getAllCurrenciesWithSymbol();
     this.setCurrenciesDropdownOptions(this.currencies);
+    console.log(
+      'filteredPersonsReciptient in ngOnInit:',
+      this.filteredPersonsRecipient
+    );
   }
 
   /**
@@ -325,26 +343,13 @@ export class CreateOrderPageComponent implements OnInit {
   }
 
   private async loadPersons() {
+    console.log('Loading persons...');
     this.persons = await this.personsWrapperService.getAllPersonsWithFullName();
+    console.log('Geladene Personen:', this.persons);
 
-    this.filteredPersonsRecipient =
-      this.personControlRecipient.valueChanges.pipe(
-        startWith(''),
-        map((value) => {
-          const searchText =
-            typeof value === 'string' ? value : value?.fullName;
-          return this._filter(searchText || '');
-        })
-      );
-
-    this.filteredPersonsInvoice = this.personControlInvoice.valueChanges.pipe(
-      startWith(''),
-      map((value) => {
-        const searchText = typeof value === 'string' ? value : value?.fullName;
-
-        return this._filter(searchText || '');
-      })
-    );
+    // initial alle anzeigen
+    this.filteredPersonsRecipient = this.persons.slice();
+    this.filteredPersonsInvoice = this.persons.slice();
   }
 
   /**
@@ -369,20 +374,6 @@ export class CreateOrderPageComponent implements OnInit {
     return typeof person === 'string' ? person : person.fullName;
   }
 
-  /**
-   * Validates that the selected value is a valid PersonWithFullName object with an id property
-   * @param control The form control to validate
-   * @returns A validation error object if invalid, or null if valid
-   */
-  validatePersonSelection(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    // Check if the value is an object and has an 'id' property
-    if (value && typeof value === 'object' && 'id' in value) {
-      return null; // ok
-    }
-    return { invalidPerson: true }; // No valid person selected
-  }
-
   /** Handle selection of a person from the autocomplete options
    * @param person The selected person from the autocomplete dropdown
    * @param isRecipient Boolean flag indicating if the selected person is the recipient (true) or the invoice party (false)
@@ -391,10 +382,8 @@ export class CreateOrderPageComponent implements OnInit {
     // Locally track the selected person based on the context (recipient or invoice)
     if (isRecipient) {
       this.selectedRecipientPerson = person;
-      this.personControlRecipient.setValue(person);
     } else {
       this.selectedInvoicePerson = person;
-      this.personControlInvoice.setValue(person);
     }
 
     // Check if the selected person has a preferred address
@@ -529,7 +518,7 @@ export class CreateOrderPageComponent implements OnInit {
    * Save the address form inputs locally in the postOrderDTO object
    * @returns A promise that resolves when the operation is complete
    */
-  async locallySaveAddressFormInput() {
+   async locallySaveAddressFormInput() {
     // Set recipient and invoice person
     if (this.selectedRecipientPerson) {
       this.postOrderDTO.delivery_person_id = this.selectedRecipientPerson.id;
@@ -660,6 +649,9 @@ export class CreateOrderPageComponent implements OnInit {
         }
       }
     }
+    console.log('Recipient Address ID:', this.recipientAddressId);
+    console.log('Invoice Address ID:', this.invoiceAddressId);
+    console.log('PostOrderDTO:', this.postOrderDTO);
   }
 
   /** Save the approval form inputs locally in the postApprovalDTO object
@@ -753,5 +745,90 @@ export class CreateOrderPageComponent implements OnInit {
       label: c.displayName ?? '', // Falls displayName undefined -> leere Zeichenkette
       value: c.code ?? '', // Falls code undefined -> leere Zeichenkette
     }));
+
+    const mainOfferField = this.mainOfferFormConfig.fields.find(
+      (f) => f.name === 'currency_short'
+    );
+    if (!mainOfferField) return;
+
+    mainOfferField.options = currencies.map((c) => ({
+      label: c.displayName ?? '', // Falls displayName undefined -> leere Zeichenkette
+      value: c.code ?? '', // Falls code undefined -> leere Zeichenkette
+    }));
+  }
+
+  private async loadSuppliers() {
+    this.suppliers = await this.suppliersWrapperService.getAllSuppliers();
+    const field = this.mainOfferFormConfig.fields.find(
+      (f) => f.name === 'supplier_id'
+    );
+    if (!field) return;
+
+    field.options = this.suppliers.map((s) => ({
+      label: s.name ?? '', // Falls name undefined -> leere Zeichenkette
+      value: s.id ?? 0, // Falls id undefined -> 0
+    }));
+  }
+
+  /**
+   * Handle selection of a supplier from the main offer form
+   * @param supplier The selected supplier with field name and value. Value can be either a number or null.
+   */
+  async onSupplierSelected(supplier: { field: string; value: any }) {
+    console.log('Selected supplier:', supplier);
+    if (supplier.field === 'supplier_id' && supplier.value) {
+      try {
+        // Fetch customer IDs for the selected supplier
+        this.customerIds = await this.loadCustomerIdsForSupplier(
+          supplier.value
+        );
+        const customerIdField = this.mainOfferFormConfig.fields.find(
+          (f) => f.name === 'customer_id'
+        );
+        if (customerIdField) {
+          customerIdField.options = this.customerIds.map((c) => ({
+            label: c.customer_id ?? '', // Falls customer_identifier undefined -> leere Zeichenkette
+            value: c.customer_id ?? 0, // Falls id undefined -> 0
+          }));
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden der Customer-IDs:', error);
+        this.customerIds = []; // Fallback, damit die UI nicht crasht
+      }
+    }
+  }
+
+  /** Load customer IDs for a given supplier ID
+   * @param supplierId The ID of the supplier to load customer IDs for
+   * @returns A promise that resolves to an array of CustomerIdResponseDTO
+   */
+  async loadCustomerIdsForSupplier(supplierId: number) {
+    const customerIds =
+      await this.suppliersWrapperService.getCustomersIdsBySupplierId(
+        supplierId
+      );
+    return customerIds;
+  }
+
+  onSupplierDecisionReasonChanged(field: { field: string; value: any }) {
+    console.log('Supplier decision reason changed:', field);
+  }
+
+  filterPersons(isRecipient: boolean): void {
+    const value = isRecipient
+      ? this.inputRecipient.nativeElement.value.toLowerCase()
+      : this.inputInvoice.nativeElement.value.toLowerCase();
+
+    const filtered = this.persons.filter((p) =>
+      p.fullName.toLowerCase().includes(value)
+    );
+
+    console.log('Filtered persons:', filtered, 'for', isRecipient ? 'recipient' : 'invoice');
+
+    if (isRecipient) {
+      this.filteredPersonsRecipient = filtered;
+    } else {
+      this.filteredPersonsInvoice = filtered;
+    }
   }
 }

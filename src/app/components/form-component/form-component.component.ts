@@ -145,7 +145,7 @@ export class FormComponent implements OnInit {
   }
 
   onAutocompleteInput(field: FormField, value: string) {
-    if (value == null) return
+    if (value == null) return;
     if (field.filterable) this.filterOptions(field, value);
   }
 

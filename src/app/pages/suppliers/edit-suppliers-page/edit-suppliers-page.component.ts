@@ -82,7 +82,7 @@ export class EditSuppliersPageComponent implements OnInit {
       this.addressForm.patchValue(address);
 
       // Load customer ID data and patch it into the table
-      const customer_ids = await this.suppliersWrapperService.getCustomersIdBySupplier(id);
+      const customer_ids = await this.suppliersWrapperService.getCustomersIdsBySupplierId(id);
       this.customerIdTableDataSource =
         new MatTableDataSource<CustomerIdResponseDTO>(customer_ids);
 
