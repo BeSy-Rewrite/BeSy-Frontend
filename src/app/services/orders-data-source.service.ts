@@ -209,7 +209,8 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       this._paginator?.pageIndex ?? 0,
       this._paginator?.pageSize ?? OrdersDataSourceService.DEFAULT_PAGE_SIZE,
       this._sorting,
-      this.getFilterRequestParams()
+      this.getFilterRequestParams(),
+      this._searchTerm ?? ''
     ).subscribe((page: PagedOrderResponseDTO) => {
       this.data = page.content ?? [];
 
