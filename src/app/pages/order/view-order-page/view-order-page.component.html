@@ -1,2 +1,49 @@
-<p>view-order-page works!</p>
-{{order() | json}}
+<div class="flex flex-col pl-4 pr-4 gap-4 m-2">
+    <!-- Header Section -->
+    <div class="flex justify-between">
+
+        <div class="flex flex-col items-start gap-2">
+            <h1 class="font-semibold text-2xl">{{order().orderDisplay.content_description}}</h1>
+            <h2>Bestellnummer:&nbsp;{{order().orderDisplay.besy_number}}</h2>
+            <h2>#&nbsp;{{order().order.id}}</h2>
+        </div>
+
+        <a mat-button color="primary" [routerLink]="['/orders', order().order.id, 'edit']">Bearbeiten</a>
+    </div>
+
+
+    <mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start">
+
+        <mat-tab label="Bestelldetails">
+            <mat-divider class="bg-gray-500" />
+
+            <div class="mt-2">
+                <app-order-details [orderData]="order()" />
+            </div>
+
+        </mat-tab>
+
+        <mat-tab label="Personen">
+            <mat-divider class="bg-gray-500" />
+
+            <div class="flex flex-wrap justify-evenly gap-16 mt-2">
+
+                @for (personId of personMappings.keys(); track $index) {
+                <div class="flex flex-row gap-4">
+
+                    <div class="flex flex-col gap-2 items-end">
+                        @for (role of personMappings.get(personId); track $index) {
+                        <h2 class="text-xl font-semibold">{{orderFieldNames[role]}}</h2>
+                        }
+                    </div>
+
+                    <app-person-details [personId]="personId"></app-person-details>
+                </div>
+                }
+
+            </div>
+        </mat-tab>
+
+    </mat-tab-group>
+
+</div>
