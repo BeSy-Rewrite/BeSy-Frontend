@@ -1,4 +1,3 @@
-import { formatCurrency } from '@angular/common';
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
 import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
@@ -178,7 +177,7 @@ export class OrderSubresourceResolverService {
     data.quote_number = order.quote_number ?? '';
     data.quote_sign = order.quote_sign ?? '';
     data.quote_date = this.formatDate(order.quote_date);
-    data.quote_price = formatCurrency(order.quote_price ?? 0, 'de-DE', '', order.currency?.code ?? 'EUR');
+    data.quote_price = this.formatPrice(order.quote_price ?? 0, order.currency?.code ?? 'EUR');
     data.delivery_person_id = '';
     data.invoice_person_id = '';
     data.queries_person_id = '';
