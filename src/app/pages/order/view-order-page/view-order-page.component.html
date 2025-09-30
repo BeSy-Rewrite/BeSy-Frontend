@@ -14,7 +14,7 @@
 
     <mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start">
 
-        <mat-tab label="Bestelldetails">
+        <mat-tab label="Allgemeine Informationen">
             <mat-divider class="bg-gray-500" />
 
             <div class="mt-2">
@@ -23,7 +23,7 @@
 
         </mat-tab>
 
-        <mat-tab label="Personen">
+        <mat-tab label="Beteiligte Personen">
             <mat-divider class="bg-gray-500" />
 
             <div class="flex flex-wrap justify-evenly gap-16 mt-2">
@@ -43,6 +43,15 @@
 
             </div>
         </mat-tab>
+
+        <mat-tab label="Hauptangebot">
+            <mat-divider class="bg-gray-500" />
+
+            <div class="mt-2">
+                <app-order-article-list [order]="order()" />
+            </div>
+
+        </mat-tab>"
 
     </mat-tab-group>
 

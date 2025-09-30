@@ -4,6 +4,7 @@ import { MatDividerModule } from "@angular/material/divider";
 import { MatTabsModule } from "@angular/material/tabs";
 import { RouterModule } from '@angular/router';
 import { OrderResponseDTO } from '../../../api';
+import { OrderArticleListComponent } from '../../../components/order-article-list/order-article-list.component';
 import { OrderDetailsComponent } from '../../../components/order-details/order-details.component';
 import { PersonDetailsComponent } from "../../../components/person-details/person-details.component";
 import { ORDER_FIELD_LABELS } from '../../../display-name-mappings/order-names';
@@ -17,7 +18,8 @@ import { DisplayableOrder } from '../../../models/displayable-order';
     MatButtonModule,
     MatTabsModule,
     OrderDetailsComponent,
-    PersonDetailsComponent
+    PersonDetailsComponent,
+    OrderArticleListComponent
   ],
   templateUrl: './view-order-page.component.html',
   styleUrl: './view-order-page.component.scss'
