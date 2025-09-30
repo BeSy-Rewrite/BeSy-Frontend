@@ -23,10 +23,11 @@
     "@openapitools/openapi-generator-cli": "^2.21.4",
     "@tailwindcss/postcss": "^4.1.11",
     "angular-oauth2-oidc": "^19.0.0",
+    "autoprefixer": "^10.4.21",
     "currencies-map": "^3.3.5",
     "postcss": "^8.5.6",
     "rxjs": "~7.8.0",
-    "tailwindcss": "^4.1.11",
+    "tailwindcss": "^4.1.13",
     "tslib": "^2.3.0",
     "zone.js": "~0.15.0"
   },
