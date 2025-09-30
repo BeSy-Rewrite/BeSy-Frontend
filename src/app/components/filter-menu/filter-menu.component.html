@@ -5,8 +5,21 @@
             <button matButton (click)="accordion().openAll()">Alles ausklappen</button>
             <button matButton (click)="accordion().closeAll()">Alles einklappen</button>
         </div>
-        <button matButton color="warn" (click)="clearAllFilters()">Reset</button>
+        <button matButton color="warn" (click)="onReset()">Reset</button>
     </div>
+
+    <mat-divider class="bg-gray-500"></mat-divider>
+
+    <div class="flex flex-row gap-2 justify-between">
+        <mat-chip-listbox #presets multiple>
+            @for (preset of filterPresets; track $index) {
+            <mat-chip-option (selectionChange)="applyPreset($event, preset)">
+                {{ preset.label }}
+            </mat-chip-option>
+            }
+        </mat-chip-listbox>
+    </div>
+
     <mat-accordion class="example-headers-align" multi>
 
         @for (filter of filters; track $index) {
