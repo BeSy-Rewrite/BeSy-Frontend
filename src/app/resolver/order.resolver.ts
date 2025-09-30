@@ -1,24 +1,33 @@
 import { Injectable } from '@angular/core';
 import {
-  Router, Resolve,
-  RouterStateSnapshot,
-  ActivatedRouteSnapshot
+  ActivatedRouteSnapshot,
+  Resolve,
+  RouterStateSnapshot
 } from '@angular/router';
-import { from, map, Observable, of, tap } from 'rxjs';
+import { from, map, Observable, switchMap } from 'rxjs';
 import { OrderResponseDTO } from '../api';
+import { OrderDisplayData } from '../models/order-display-data';
+import { OrderSubresourceResolverService } from '../services/order-subresource-resolver.service';
 import { OrdersWrapperService } from '../services/wrapper-services/orders-wrapper.service';
 
 @Injectable({
   providedIn: 'root'
 })
-// ToDo: Change orderDisplay to real type after merging order display feature
-export class OrderResolver implements Resolve<{order: OrderResponseDTO, orderDisplay: undefined}> {
-  constructor(private readonly ordersService: OrdersWrapperService) {}
+export class OrderResolver implements Resolve<{ order: OrderResponseDTO, orderDisplay: OrderDisplayData }> {
+  constructor(private readonly ordersService: OrdersWrapperService,
+    private readonly orderDisplayService: OrderSubresourceResolverService
+  ) { }
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<{order: OrderResponseDTO, orderDisplay: undefined}> {
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<{ order: OrderResponseDTO, orderDisplay: OrderDisplayData }> {
     const id = parseInt(route.paramMap.get('id')!);
     return from(this.ordersService.getOrderById(id)).pipe(
-      map(order => ({order, orderDisplay: undefined}))
+      switchMap(order =>
+        this.orderDisplayService.resolveOrderSubresources(order).pipe(
+          map(orderDisplay => {
+            return { order, orderDisplay };
+          })
+        )
+      )
     );
   }
 }
