@@ -26,6 +26,7 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
         { label: 'Netto', value: 'netto' },
         { label: 'Brutto', value: 'brutto' },
       ],
+      defaultValue: 'brutto',
     },
     {
       name: 'quantity',
@@ -38,9 +39,15 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
     {
       name: 'quantity_unit',
       label: 'Einheit',
-      type: 'text',
+      type: 'autocomplete',
+      requireSelection: true,
       required: false,
+      filterable: true,
+      // Will be loaded from currencies api
+      options:[],
+      defaultValue: 'Euro Member Countries'
     },
+
     {
       name: 'vat_value',
       label: 'Mehrwertsteuersatz',

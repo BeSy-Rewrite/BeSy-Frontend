@@ -1,5 +1,10 @@
 import { Injectable } from '@angular/core';
-import { PersonsService } from '../../api';
+import { PersonResponseDTO, PersonsService } from '../../api';
+
+// Interface for person with full name
+export interface PersonWithFullName extends PersonResponseDTO {
+  fullName: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +28,10 @@ export class PersonsWrapperService {
     return createdPerson;
   }
 
+  /**
+   * Fetch all persons with their full name
+   * @returns PersonWithFullName[] List of persons with full name
+   */
   async getAllPersonsWithFullName() {
     const persons = await PersonsService.getAllPersons();
     const personsWithFullName = persons.map((person) => {
@@ -31,7 +40,7 @@ export class PersonsWrapperService {
         fullName: `${person.name}` + " " + `${person.surname}` as string,
       };
     });
-    return personsWithFullName;
+    return personsWithFullName as PersonWithFullName[];
   }
 
   async getAllPersonsAddresses() {

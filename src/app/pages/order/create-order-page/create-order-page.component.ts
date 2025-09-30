@@ -1,4 +1,7 @@
-import { PersonsWrapperService } from './../../../services/wrapper-services/persons-wrapper.service';
+import {
+  PersonsWrapperService,
+  PersonWithFullName,
+} from './../../../services/wrapper-services/persons-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 import {
   Component,
@@ -32,6 +35,7 @@ import {
   CostCenterResponseDTO,
   CostCentersService,
   ItemRequestDTO,
+  CurrencyResponseDTO,
   OrderRequestDTO,
   OrdersService,
   PersonResponseDTO,
@@ -57,6 +61,10 @@ import {
 } from '@angular/material/button-toggle';
 import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
 import { Router } from '@angular/router';
+import {
+  CurrenciesWrapperService,
+  CurrencyWithDisplayName,
+} from '../../../services/wrapper-services/currencies-wrapper.service';
 
 @Component({
   selector: 'app-create-order-page',
@@ -82,7 +90,12 @@ import { Router } from '@angular/router';
   styleUrl: './create-order-page.component.scss',
 })
 export class CreateOrderPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) {}
+  constructor(
+    private router: Router,
+    private _notifications: MatSnackBar,
+    private personsWrapperService: PersonsWrapperService,
+    private currenciesWrapperService: CurrenciesWrapperService
+  ) {}
 
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 
@@ -92,15 +105,30 @@ export class CreateOrderPageComponent implements OnInit {
   orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
   orderItemFormGroup = new FormGroup({});
 
+  // Compute the footer content for the items table, showing the total sum of all items
   footerContent = computed(() => {
-    const sum = this.items().reduce(
-      (total, item) =>
-        total + (item.price_per_unit || 0) * (item.quantity || 0),
-      0
-    );
-    console.log('Summe:', sum);
-    return `Gesamt: ${sum.toFixed(2)} €`;
-  });
+  const sum = this.items().reduce((total, item) => {
+    const price = item.price_per_unit ?? 0;
+    const quantity = item.quantity ?? 0;
+
+    const vat = Number(item.vat_value) || 0;
+
+    // If the price type is 'netto', add the selected VAT to the price
+    const vatMultiplier = item.vat_type === 'netto' ? 1 + vat / 100 : 1;
+
+    return total + price * quantity * vatMultiplier;
+  }, 0);
+
+  const formatted = new Intl.NumberFormat('de-DE', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(sum);
+
+  console.log('Summe:', sum);
+  return `Gesamt: ${formatted} (brutto)`;
+});
+
+
   orderItemColumns: TableColumn<ItemRequestDTO>[] = [
     { id: 'name', label: 'Artikelbezeichnung' },
     { id: 'quantity', label: 'Anzahl' },
@@ -128,14 +156,14 @@ export class CreateOrderPageComponent implements OnInit {
   recipientHasPreferredAddress = false;
   recipientAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
   recipientInfoText = '';
-  selectedRecipientPerson?: PersonResponseDTO;
-  selectedInvoicePerson?: PersonResponseDTO;
-  personControlRecipient = new FormControl<PersonResponseDTO | string>('', {
+  selectedRecipientPerson?: PersonWithFullName;
+  selectedInvoicePerson?: PersonWithFullName;
+  personControlRecipient = new FormControl<PersonWithFullName | string>('', {
     nonNullable: false,
     updateOn: 'change',
     validators: [this.validatePersonSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
   });
-  filteredPersonsRecipient!: Observable<PersonResponseDTO[]>;
+  filteredPersonsRecipient!: Observable<PersonWithFullName[]>;
 
   // Invoice address variables
   invoiceAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
@@ -144,15 +172,15 @@ export class CreateOrderPageComponent implements OnInit {
   invoiceHasPreferredAddress = false;
   invoiceAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
   invoiceInfoText = '';
-  personControlInvoice = new FormControl<PersonResponseDTO | string>('', {
+  personControlInvoice = new FormControl<PersonWithFullName | string>('', {
     nonNullable: false,
     updateOn: 'change',
     validators: [this.validatePersonSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
   });
-  filteredPersonsInvoice!: Observable<PersonResponseDTO[]>;
+  filteredPersonsInvoice!: Observable<PersonWithFullName[]>;
 
   // Shared recipient/invoice address variables
-  persons: PersonResponseDTO[] = []; // Store all persons locally for the autocomplete input
+  persons: PersonWithFullName[] = []; // Store all persons locally for the autocomplete input
   addressTableDataSource: MatTableDataSource<AddressResponseDTO> =
     new MatTableDataSource<AddressResponseDTO>([]);
   addressTableColumns = [
@@ -214,7 +242,8 @@ export class CreateOrderPageComponent implements OnInit {
   );
   filteredSecondaryCostCenters!: Observable<CostCenterResponseDTO[]>;
 
-  // Currency and VAT variables
+  // Currency variables
+  currencies: Array<CurrencyWithDisplayName> = [];
 
   async ngOnInit(): Promise<void> {
     // Load initial data for the VAT options field in the form
@@ -223,30 +252,7 @@ export class CreateOrderPageComponent implements OnInit {
 
     // Initialize the person dropdown in the address form with data from the api
     // and set up filtering for the autocomplete inputs
-    this.persons = await this.personsWrapperService.getAllPersons();
-    this.filteredPersonsRecipient =
-      this.personControlRecipient.valueChanges.pipe(
-        startWith(''),
-        map((value) => {
-          const searchText =
-            typeof value === 'string'
-              ? value
-              : this.displayPerson(value as PersonResponseDTO);
-
-          return this._filter(searchText || '');
-        })
-      );
-    this.filteredPersonsInvoice = this.personControlInvoice.valueChanges.pipe(
-      startWith(''),
-      map((value) => {
-        const searchText =
-          typeof value === 'string'
-            ? value
-            : this.displayPerson(value as PersonResponseDTO);
-
-        return this._filter(searchText || '');
-      })
-    );
+    this.loadPersons();
 
     this.costCenters = await CostCentersService.getCostCenters();
     this.filteredPrimaryCostCenters =
@@ -274,6 +280,10 @@ export class CreateOrderPageComponent implements OnInit {
           return this._filterCostCenters(searchText || '');
         })
       );
+    // Fetch currencies from api
+    this.currencies =
+      await this.currenciesWrapperService.getAllCurrenciesWithSymbol();
+    this.setCurrenciesDropdownOptions(this.currencies);
   }
 
   /**
@@ -282,6 +292,7 @@ export class CreateOrderPageComponent implements OnInit {
   onAddItem() {
     if (this.orderItemFormGroup.valid) {
       const newItem = this.orderItemFormGroup.value as ItemRequestDTO;
+      console.log('Neuer Artikel:', newItem);
       this.items.update((curr) => [...curr, newItem]);
       this.itemTableDataSource.data = this.items(); // Update the table data source
       this.orderItemFormGroup.reset(); // Formular zurücksetzen
@@ -313,13 +324,36 @@ export class CreateOrderPageComponent implements OnInit {
     }));
   }
 
+  private async loadPersons() {
+    this.persons = await this.personsWrapperService.getAllPersonsWithFullName();
+
+    this.filteredPersonsRecipient =
+      this.personControlRecipient.valueChanges.pipe(
+        startWith(''),
+        map((value) => {
+          const searchText =
+            typeof value === 'string' ? value : value?.fullName;
+          return this._filter(searchText || '');
+        })
+      );
+
+    this.filteredPersonsInvoice = this.personControlInvoice.valueChanges.pipe(
+      startWith(''),
+      map((value) => {
+        const searchText = typeof value === 'string' ? value : value?.fullName;
+
+        return this._filter(searchText || '');
+      })
+    );
+  }
+
   /**
    * Filters the list of persons based on the search string
    * @param search The search string to filter persons by
    * @returns The filtered list of persons
    */
-  private _filter(search: string): PersonResponseDTO[] {
-    const filterValue = search.toLowerCase();
+  private _filter(search: string): PersonWithFullName[] {
+    const filterValue = search.toLowerCase(); // input string in the input field to lower case
     return this.persons.filter((p) =>
       `${p.name} ${p.surname}`.toLowerCase().includes(filterValue)
     );
@@ -330,15 +364,13 @@ export class CreateOrderPageComponent implements OnInit {
    * @param person The person object or string to display
    * @returns The display string for the person
    */
-  displayPerson(person: PersonResponseDTO | string): string {
+  displayPerson(person: PersonWithFullName | string): string {
     if (!person) return '';
-    return typeof person === 'string'
-      ? person
-      : `${person.name} ${person.surname}`;
+    return typeof person === 'string' ? person : person.fullName;
   }
 
   /**
-   * Validates that the selected value is a valid PersonResponseDTO object with an id property
+   * Validates that the selected value is a valid PersonWithFullName object with an id property
    * @param control The form control to validate
    * @returns A validation error object if invalid, or null if valid
    */
@@ -355,7 +387,7 @@ export class CreateOrderPageComponent implements OnInit {
    * @param person The selected person from the autocomplete dropdown
    * @param isRecipient Boolean flag indicating if the selected person is the recipient (true) or the invoice party (false)
    */
-  async onPersonSelected(person: PersonResponseDTO, isRecipient: boolean) {
+  async onPersonSelected(person: PersonWithFullName, isRecipient: boolean) {
     // Locally track the selected person based on the context (recipient or invoice)
     if (isRecipient) {
       this.selectedRecipientPerson = person;
@@ -445,9 +477,9 @@ export class CreateOrderPageComponent implements OnInit {
       this.recipientAddressOption = option as any;
 
       if (option === 'preferred' && this.selectedRecipientPerson?.address_id) {
-        this.personsWrapperService.getPersonAddressesById(this.selectedRecipientPerson.id!).then(
-          (addr) => this.recipientAddressFormGroup.patchValue(addr)
-        );
+        this.personsWrapperService
+          .getPersonAddressesById(this.selectedRecipientPerson.id!)
+          .then((addr) => this.recipientAddressFormGroup.patchValue(addr));
         this.recipientInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
         this.recipientAddressFormConfig.title =
@@ -471,9 +503,9 @@ export class CreateOrderPageComponent implements OnInit {
       this.invoiceAddressOption = option as any;
 
       if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
-        this.personsWrapperService.getPersonAddressesById(this.selectedInvoicePerson.id!).then(
-          (addr) => this.invoiceAddressFormGroup.patchValue(addr)
-        );
+        this.personsWrapperService
+          .getPersonAddressesById(this.selectedInvoicePerson.id!)
+          .then((addr) => this.invoiceAddressFormGroup.patchValue(addr));
         this.invoiceInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
         this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
@@ -666,8 +698,6 @@ export class CreateOrderPageComponent implements OnInit {
 
   private _filterCostCenters(search: string): CostCenterResponseDTO[] {
     const filterValue = search.toLowerCase();
-    console.log('FilterValue:', filterValue);
-    console.log('CostCenters:', this.costCenters);
     return this.costCenters.filter((cc) =>
       `${cc.name}`.toLowerCase().includes(filterValue)
     );
@@ -708,5 +738,20 @@ export class CreateOrderPageComponent implements OnInit {
           { duration: 5000 }
         );
       });
+  }
+
+  private setCurrenciesDropdownOptions(
+    currencies: Array<CurrencyWithDisplayName>
+  ) {
+    const field = this.orderItemFormConfig.fields.find(
+      (f) => f.name === 'quantity_unit'
+    );
+    if (!field) return;
+
+    // Options setzen, Default-Werte bei undefined
+    field.options = currencies.map((c) => ({
+      label: c.displayName ?? '', // Falls displayName undefined -> leere Zeichenkette
+      value: c.code ?? '', // Falls code undefined -> leere Zeichenkette
+    }));
   }
 }

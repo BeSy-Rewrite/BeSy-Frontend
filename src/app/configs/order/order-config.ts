@@ -83,20 +83,6 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
   title: 'Vergleichsangebot hinzufügen',
   fields: [
     {
-      name: 'index',
-      label: 'Index',
-      type: 'number',
-      required: true,
-      editable: true
-    },
-    {
-      name: 'quote_date',
-      label: 'Datum des Vergleichsangebots',
-      type: 'date',
-      required: true,
-      editable: true
-    },
-    {
       name: 'price',
       label: 'Preis',
       type: 'number',
@@ -115,6 +101,13 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
       name: 'company_city',
       label: 'Unternehmensstadt',
       type: 'text',
+      required: true,
+      editable: true
+    },
+    {
+      name: 'quote_date',
+      label: 'Datum des Vergleichsangebots',
+      type: 'date',
       required: true,
       editable: true
     }

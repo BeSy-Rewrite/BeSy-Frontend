@@ -1,4 +1,13 @@
-import { Component, Input, OnInit, output, Signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  Input,
+  OnInit,
+  output,
+  QueryList,
+  Signal,
+  ViewChildren,
+} from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,6 +23,7 @@ import { CustomerIdResponseDTO } from '../../api';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
 import { MatIconModule } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 export interface FormField {
   name: string;
@@ -29,7 +39,9 @@ export interface FormField {
     | 'tel'
     | 'search'
     | 'table'
-    | 'textarea';
+    | 'textarea'
+    | 'autocomplete';
+
   required: boolean;
   defaultValue?: any;
   options?: { label: string; value: any }[];
@@ -40,6 +52,8 @@ export interface FormField {
   nominatim_field?: string;
   editable?: boolean;
   tooltip?: string;
+  filterable?: boolean; // For autocomplete fields: whether the options should be filterable based on user input
+  requireSelection?: boolean;
 }
 
 export interface FormConfig {
@@ -64,6 +78,7 @@ export interface FormConfig {
     GenericTableComponent,
     MatIconModule,
     MatCheckboxModule,
+    MatAutocompleteModule,
   ],
   templateUrl: './form-component.component.html',
   styleUrls: ['./form-component.component.scss'],
@@ -84,12 +99,30 @@ export class FormComponent implements OnInit {
 
   valueChanged = output<{ field: string; value: any }>();
 
+  filteredOptions: { [fieldName: string]: { label: string; value: any }[] } =
+    {};
+  @ViewChildren('autoInput') autoInputs!: QueryList<
+    ElementRef<HTMLInputElement>
+  >;
+
   ngOnInit() {
     this.config.fields.forEach((field) => {
       this.formGroup.addControl(
         field.name,
         this.fb.control(field.defaultValue, field.validators || [])
       );
+
+      // Initial Filter setzen
+      if (field.type === 'autocomplete' && field.options) {
+        this.filteredOptions[field.name] = field.options.slice();
+
+        // Wenn filterbar → bei ValueChanges neu filtern
+        if (field.filterable) {
+          this.formGroup.get(field.name)!.valueChanges.subscribe((val) => {
+            this.filterOptions(field, val);
+          });
+        }
+      }
       if (field.emitAsSignal) {
         const control = this.formGroup.get(field.name);
         control?.valueChanges.subscribe((val) => {
@@ -110,4 +143,28 @@ export class FormComponent implements OnInit {
       }
     });
   }
+
+  onAutocompleteInput(field: FormField, value: string) {
+    if (value == null) return
+    if (field.filterable) this.filterOptions(field, value);
+  }
+
+  private filterOptions(field: FormField, value: string) {
+    const filterValue = (value ?? '').toLowerCase();
+    this.filteredOptions[field.name] = (field.options ?? []).filter((opt) =>
+      opt.label.toLowerCase().includes(filterValue)
+    );
+  }
+
+  // displayWith: zeigt das Label für einen gespeicherten value an
+  displayFn = (val: any) => {
+    if (val == null) return '';
+    for (const f of this.config.fields) {
+      if (f.type === 'autocomplete' && f.options) {
+        const found = f.options.find((o) => o.value === val);
+        if (found) return found.label;
+      }
+    }
+    return val;
+  };
 }

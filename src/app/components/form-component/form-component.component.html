@@ -305,6 +305,36 @@
             </button>
             }
           </mat-form-field>
+          } @case ('autocomplete'){
+          <!-- Autocomplete Case inside your loop -->
+          <mat-form-field class="w-4/5">
+            <mat-label>{{ field.label }}</mat-label>
+
+            <input
+              #autoInput
+              matInput
+              [formControlName]="field.name"
+              [matAutocomplete]="auto"
+              [required]="field.required"
+              (input)="onAutocompleteInput(field, $any($event.target)?.value)"
+              (focus)="onAutocompleteInput(field, $any($event.target)?.value)"
+            />
+
+            <mat-autocomplete
+              #auto="matAutocomplete"
+              [requireSelection]="field.requireSelection"
+              [displayWith]="displayFn"
+            >
+              @for (opt of filteredOptions[field.name]; track opt.value) {
+              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+              }
+            </mat-autocomplete>
+
+            @if (formGroup.get(field.name)?.invalid &&
+            formGroup.get(field.name)?.touched) {
+            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+            }
+          </mat-form-field>
           } }
         </td>
       </tr>

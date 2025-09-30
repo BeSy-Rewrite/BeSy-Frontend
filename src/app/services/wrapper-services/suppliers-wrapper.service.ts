@@ -29,8 +29,8 @@ export class SuppliersWrapperService {
   }
 
   /**
-     * @param supplierId Die eindeutige ID des Lieferanten, für welchen die Kundennummern abgerufen werden sollen.
-     * @returns CustomerIdResponseDTO Liste der Kundennummern eines Lieferanten.
+     * @param supplierId The unique ID of the supplier for which to retrieve customer IDs.
+     * @returns CustomerIdResponseDTO List of customer IDs for a supplier.
      * @throws ApiError
      */
   async getCustomersIdBySupplier(supplierId: number) {
