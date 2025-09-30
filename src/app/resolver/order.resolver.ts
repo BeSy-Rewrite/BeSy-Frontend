@@ -5,20 +5,19 @@ import {
   RouterStateSnapshot
 } from '@angular/router';
 import { from, map, Observable, switchMap } from 'rxjs';
-import { OrderResponseDTO } from '../api';
-import { OrderDisplayData } from '../models/order-display-data';
+import { DisplayableOrder } from '../models/displayable-order';
 import { OrderSubresourceResolverService } from '../services/order-subresource-resolver.service';
 import { OrdersWrapperService } from '../services/wrapper-services/orders-wrapper.service';
 
 @Injectable({
   providedIn: 'root'
 })
-export class OrderResolver implements Resolve<{ order: OrderResponseDTO, orderDisplay: OrderDisplayData }> {
+export class OrderResolver implements Resolve<DisplayableOrder> {
   constructor(private readonly ordersService: OrdersWrapperService,
     private readonly orderDisplayService: OrderSubresourceResolverService
   ) { }
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<{ order: OrderResponseDTO, orderDisplay: OrderDisplayData }> {
+  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<DisplayableOrder> {
     const id = parseInt(route.paramMap.get('id')!);
     return from(this.ordersService.getOrderById(id)).pipe(
       switchMap(order =>

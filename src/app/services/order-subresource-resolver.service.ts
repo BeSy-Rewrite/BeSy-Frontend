@@ -95,6 +95,7 @@ export class OrderSubresourceResolverService {
   private readonly costCenterFormatter: ResourceFormatter<CostCenterResponseDTO>;
   /** Formats suppliers for display and caches them by id/code. */
   private readonly supplierFormatter: ResourceFormatter<SupplierResponseDTO>;
+  // ToDo: How to resolve addresses? private readonly addressFormatter: ResourceFormatter<AddressResponseDTO>;
 
   /**
    * Constructs the resolver and wires up the resource formatters.
@@ -190,11 +191,15 @@ export class OrderSubresourceResolverService {
     data.cashback_days = order.cashback_days?.toString() ?? '';
     data.last_updated_time = this.formatDate(order.last_updated_time);
     data.flag_decision_cheapest_offer = order.flag_decision_cheapest_offer ? 'Ja' : 'Nein';
+    data.flag_decision_most_economical_offer = order.flag_decision_most_economical_offer ? 'Ja' : 'Nein';
     data.flag_decision_sole_supplier = order.flag_decision_sole_supplier ? 'Ja' : 'Nein';
     data.flag_decision_contract_partner = order.flag_decision_contract_partner ? 'Ja' : 'Nein';
+    data.flag_decision_preferred_supplier_list = order.flag_decision_preferred_supplier_list ? 'Ja' : 'Nein';
     data.flag_decision_other_reasons = order.flag_decision_other_reasons ? 'Ja' : 'Nein';
     data.decision_other_reasons_description = order.decision_other_reasons_description ?? '';
     data.dfg_key = order.dfg_key ?? '';
+    data.delivery_address_id = { id: order.delivery_address_id };
+    data.invoice_address_id = { id: order.invoice_address_id };
 
     return data;
   }
