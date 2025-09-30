@@ -11,11 +11,12 @@ import {
   ViewChild
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from "@angular/material/divider";
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { TableActionButton, TableColumn } from '../../models/generic-table';
-import { MatDivider } from "@angular/material/divider";
 
 /**
  * A generic table component for displaying tabular data with optional action buttons.
@@ -30,10 +31,27 @@ import { MatDivider } from "@angular/material/divider";
  *  [columns]="columns"
  *  [actions]="actions">
  * </app-generic-table>
+ *
+ * If custom, per cell, tooltips are needed, the datasources elements must follow this structure:
+ *
+ * interface DataWithTooltip {
+ *   someKey: any;
+ *   someOtherKey: any;
+ *   tooltips: { [k in keyof Omit<DataWithTooltip, 'tooltips'>]: string };
+ * }
+ *
+ * See DisplayItem.ts
  */
 @Component({
   selector: 'app-generic-table',
-  imports: [MatTableModule, MatButtonModule, MatSortModule, MatPaginatorModule, MatDivider],
+  imports: [
+    MatTableModule,
+    MatButtonModule,
+    MatSortModule,
+    MatPaginatorModule,
+    MatDividerModule,
+    MatTooltipModule
+  ],
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.scss',
 })

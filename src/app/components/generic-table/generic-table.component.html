@@ -2,26 +2,17 @@
   <table mat-table [dataSource]="dataSource()" matSort>
     @for (column of internalColumns(); track $index) {
     <ng-container matColumnDef="{{ column.id }}">
-      <th
-        mat-header-cell
-        *matHeaderCellDef
-        mat-sort-header
-        [disabled]="column.isUnsortable"
-      >
+      <th mat-header-cell *matHeaderCellDef mat-sort-header [disabled]="column.isUnsortable">
         {{ column.label }}
       </th>
 
       @if (column.id !== 'actions') {
-      <td mat-cell *matCellDef="let element">
+      <td mat-cell [matTooltip]="element.tooltips?.[column.id]" *matCellDef="let element">
         @if (column.action === undefined) {
         {{ element[column.id] }}
         } @else {
-        <button
-          mat-stroked-button
-          color="primary"
-          [attr.aria-label]="'Perform action on ' + element[column.id]"
-          (click)="column.action(element)"
-        >
+        <button mat-stroked-button color="primary" [attr.aria-label]="'Perform action on ' + element[column.id]"
+          (click)="column.action(element)">
           {{ element[column.id] }}
         </button>
         }
@@ -31,13 +22,8 @@
       <td mat-cell *matCellDef="let element">
         <div class="flex flex-nowrap w-fit">
           @for (button of actions(); track $index) {
-          <button
-            class="mr-4"
-            mat-button
-            [color]="button.color ?? 'default'"
-            (click)="handleAction(button, element)"
-            [matButton]="button.buttonType ?? ''"
-          >
+          <button class="mr-4" mat-button [color]="button.color ?? 'default'" (click)="handleAction(button, element)"
+            [matButton]="button.buttonType ?? ''">
             {{ button.label }}
           </button>
           }
@@ -46,28 +32,18 @@
       }
 
       <td mat-footer-cell *matFooterCellDef>
-                {{ column.footerContent ? column.footerContent() : '' }}
-            </td>
+        {{ column.footerContent ? column.footerContent() : '' }}
+      </td>
     </ng-container>
     }
 
     <tr mat-header-row *matHeaderRowDef="displayedColumnIds()" sticky></tr>
-    <tr
-      mat-row
-      *matRowDef="let row; columns: displayedColumnIds()"
-      (click)="onRowClick(row)"
-      [class.selected]="selectedRow === row"
-    ></tr>
+    <tr mat-row *matRowDef="let row; columns: displayedColumnIds()" (click)="onRowClick(row)"
+      [class.selected]="selectedRow === row"></tr>
     @if (showFooter()) {
-        <tr mat-footer-row *matFooterRowDef="displayedColumnIds()"></tr>
+    <tr mat-footer-row *matFooterRowDef="displayedColumnIds()"></tr>
     }
   </table>
 </div>
-<mat-divider
-  style="background-color: gray; border-top-width: 2px"
-></mat-divider>
-<mat-paginator
-  [pageSizeOptions]="[10, 25, 50, 100]"
-  showFirstLastButtons
-  aria-label="Wähle Seite der Liste"
-/>
+<mat-divider style="background-color: gray; border-top-width: 2px"></mat-divider>
+<mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons aria-label="Wähle Seite der Liste" />

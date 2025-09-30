@@ -8,5 +8,5 @@ export type DisplayItem = {
     price_per_unit: string;
     quantity: string;
     price_total: string | number;
-    tooltips?: { [K in keyof DisplayItem]?: string };
+    tooltips?: { [K in keyof Omit<DisplayItem, 'tooltips'>]: string };
 }
