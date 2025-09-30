@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSidenavModule } from '@angular/material/sidenav';
-import { MatTab, MatTabGroup } from '@angular/material/tabs';
+import { MatTab, MatTabChangeEvent, MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import { FilterMenuComponent } from '../../../components/filter-menu/filter-menu.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
@@ -36,6 +36,7 @@ export class OrdersPageComponent {
   ];
 
   showFilters = false;
+  showFilterButton = true;
 
   constructor(private readonly router: Router) {
     ordersTableConfig.filter(col => ['id', 'besy_number'].includes(col.id))
@@ -50,8 +51,11 @@ export class OrdersPageComponent {
     this.ordersDataSource.filter = filters;
   }
 
+  onTabChanged($event: MatTabChangeEvent) {
+    this.showFilterButton = $event.index === 0;
+  }
+
   onViewOrder(order: any) {
-    console.log('Viewing order:', order);
     this.router.navigate(['/orders', order.id]);
   }
 }
