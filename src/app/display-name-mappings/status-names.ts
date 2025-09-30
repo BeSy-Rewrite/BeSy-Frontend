@@ -1,12 +1,25 @@
+import { OrderStatus as state } from '../api';
 
 export const statusDisplayNames = new Map<string, string>([
-    ['IN_PROGRESS', 'In Bearbeitung'],
-    ['COMPLETED', 'Abgeschlossen'],
-    ['APPROVALS_RECEIVED', 'Genehmigungen erhalten'],
-    ['APPROVED', 'Genehmigt'],
-    ['REJECTED', 'Abgelehnt'],
-    ['SENT', 'Gesendet'],
-    ['SETTLED', 'Geregelt'],
-    ['ARCHIVED', 'Archiviert'],
-    ['DELETED', 'Gelöscht']
+    [state.IN_PROGRESS, 'In Bearbeitung'],
+    [state.COMPLETED, 'Fertiggestellt'],
+    [state.APPROVALS_RECEIVED, 'Genehmigungen erhalten'],
+    [state.APPROVED, 'Genehmigt'],
+    [state.REJECTED, 'Abgelehnt'],
+    [state.SENT, 'Abgesendet'],
+    [state.SETTLED, 'Abgeschlossen'],
+    [state.ARCHIVED, 'Archiviert'],
+    [state.DELETED, 'Gelöscht']
+]);
+
+export const statusIcons = new Map<string, string>([
+    [state.IN_PROGRESS, '⏳'],
+    [state.COMPLETED, '✔️'],
+    [state.APPROVALS_RECEIVED, '🆗'],
+    [state.APPROVED, '👌'],
+    [state.REJECTED, '❌'],
+    [state.SENT, '📤'],
+    [state.SETTLED, '✅'],
+    [state.ARCHIVED, '📦'],
+    [state.DELETED, '🗑️']
 ]);

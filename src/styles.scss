@@ -1,8 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 @use '@angular/material' as mat;
 @use 'tailwindcss';
-@tailwind base;
-@tailwind components;
 @tailwind utilities;
 
 .mat-mdc-tab-body-content {
@@ -24,13 +22,12 @@
   @include mat.form-field-overrides((filled-container-color: rgba(0, 0, 0, 0.113),
       filled-container-shape: rounded));
 
-  @include mat.table-overrides((
-    //header-headline-color: rgb(0, 255, 42), // macht nix?
-    header-headline-line-height: 40px, // header height
-    header-headline-tracking: 0.05em,
-    background-color: #3a9bf5fa, // header background color,
-    row-item-outline-width: 1.5px, // row outline
-    row-item-outline-color: #00000019, // row outline color
+  @include mat.table-overrides(( //header-headline-color: rgb(0, 255, 42), // macht nix?
+      header-headline-line-height: 40px, // header height
+      header-headline-tracking: 0.05em,
+      background-color: #3a9bf5fa, // header background color,
+      row-item-outline-width: 1.5px, // row outline
+      row-item-outline-color: #00000019, // row outline color
     ));
 
   // HS Esslingen Colorschema
@@ -39,4 +36,3 @@
   --color-he-lightblue: #00AADC;
   --color-he-grey: #F0F0F0;
 }
-

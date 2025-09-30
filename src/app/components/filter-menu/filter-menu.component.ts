@@ -1,10 +1,14 @@
 import { Component, computed, effect, OnInit, output, signal, viewChild, WritableSignal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatChipListbox, MatChipSelectionChange, MatChipsModule } from "@angular/material/chips";
+import { MatDivider } from "@angular/material/divider";
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { from } from 'rxjs';
-import { CostCenterResponseDTO, CostCentersService, CustomerIdResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../../api';
+import { CostCenterResponseDTO, CostCentersService, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../../api';
+import { ORDERS_FILTER_PRESETS, OrdersFilterPreset } from '../../configs/order-filter-presets-config';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../configs/orders-filter-menu-config';
-import { statusDisplayNames } from '../../display-name-mappings/status-names';
+import { statusDisplayNames, statusIcons } from '../../display-name-mappings/status-names';
 import { FilterChipData } from '../../models/filter-chip-data';
 import { FilterDateRange } from '../../models/filter-date-range';
 import { ActiveFilters } from '../../models/filter-menu-types';
@@ -21,12 +25,17 @@ import { RangeSelectionSliderComponent } from '../range-selection-slider/range-s
     DateRangePickerComponent,
     ChipSelectionComponent,
     RangeSelectionSliderComponent,
-    MatExpansionModule
+    MatExpansionModule,
+    MatDivider,
+    MatButtonToggleModule,
+    MatChipsModule
   ],
   templateUrl: './filter-menu.component.html',
-  styleUrl: './filter-menu.component.css'
+  styleUrl: './filter-menu.component.scss'
 })
 export class FilterMenuComponent implements OnInit {
+  filterPresets = ORDERS_FILTER_PRESETS;
+  private activePresets: OrdersFilterPreset[] = [];
 
   filtersChanged = output<ActiveFilters>();
 
@@ -68,11 +77,13 @@ export class FilterMenuComponent implements OnInit {
   };
 
   // ToDO: Dynamically adjust default range values -> min/max from DB needed
+  // Manual input can increase the default max value beyond the initial maximum
   ranges: { [key: string]: WritableSignal<FilterRange> } = {
     'quote_price': signal<FilterRange>({ start: 0, end: 10000 })
   };
 
   accordion = viewChild.required(MatAccordion);
+  presets = viewChild.required<MatChipListbox>('presets');
 
   constructor() {
     effect(() => {
@@ -137,7 +148,7 @@ export class FilterMenuComponent implements OnInit {
     this.chips['status'].set(
       Array.from(statusDisplayNames.entries()).map(([id, label]) => ({
         id: id,
-        label: label,
+        label: statusIcons.get(id) + ' ' + label,
         tooltip: ''
       }))
     );
@@ -165,6 +176,17 @@ export class FilterMenuComponent implements OnInit {
     })));
   }
 
+  onReset() {
+    this.activePresets = [];
+    const selectedChips = this.presets().selected;
+    if (Array.isArray(selectedChips)) {
+      selectedChips.forEach(chip => chip.deselect());
+    } else if (selectedChips) {
+      selectedChips.deselect();
+    }
+    this.clearAllFilters();
+  }
+
   clearAllFilters() {
     Object.values(this.chips).forEach(chipSignal => {
       chipSignal.update(chips => chips.map(chip => (
@@ -179,6 +201,33 @@ export class FilterMenuComponent implements OnInit {
       const max = this.filters.find(f => f.key === key)?.data?.maxValue ?? 100;
       rangeSignal.set({ start: min, end: max });
     });
+  }
+
+  applyPreset(evt: MatChipSelectionChange, preset: OrdersFilterPreset) {
+    if (this.activePresets.includes(preset)) {
+      this.activePresets = this.activePresets.filter(p => p !== preset);
+    }
+    if (evt.selected) {
+      this.activePresets.push(preset);
+    }
+
+    this.clearAllFilters();
+
+    for (const preset of this.activePresets) {
+      for (const presetItem of preset.presets) {
+        if ('chipIds' in presetItem) {
+          this.chips[presetItem.id]?.update(currentChips =>
+            currentChips.map(chip =>
+              presetItem.chipIds.includes(chip.id ?? '') ? { ...chip, isSelected: true } : chip));
+        }
+        else if ('dateRange' in presetItem) {
+          this.dateRanges[presetItem.id].set(presetItem.dateRange);
+        }
+        else if ('range' in presetItem) {
+          this.ranges[presetItem.id].set(presetItem.range);
+        }
+      }
+    }
   }
 
   getCostCenterTooltip(center: CostCenterResponseDTO): string {

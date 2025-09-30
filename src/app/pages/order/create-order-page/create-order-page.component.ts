@@ -1,30 +1,26 @@
-import { PersonsWrapperService } from './../../../services/wrapper-services/persons-wrapper.service';
-import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { CommonModule } from '@angular/common';
 import {
   Component,
-  ElementRef,
-  ViewChild,
-  Signal,
-  signal,
   computed,
+  OnInit,
+  signal
 } from '@angular/core';
-import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
-import { MatDivider } from '@angular/material/divider';
-import { FormComponent } from '../../../components/form-component/form-component.component';
-import { OnInit } from '@angular/core';
-import { FormConfig } from '../../../components/form-component/form-component.component';
-import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
-import { FormControl, FormGroup } from '@angular/forms';
+import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButton } from '@angular/material/button';
-import { MatTableDataSource } from '@angular/material/table';
 import {
-  ButtonColor,
-  TableActionButton,
-  TableColumn,
-} from '../../../models/generic-table';
-import { AbstractControl, ValidationErrors } from '@angular/forms';
-import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+  MatButtonToggle,
+  MatButtonToggleGroup,
+} from '@angular/material/button-toggle';
+import { MatOptionModule } from '@angular/material/core';
+import { MatDivider } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
+import { Router } from '@angular/router';
+import { map, Observable, startWith } from 'rxjs';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
@@ -38,25 +34,22 @@ import {
   QuotationRequestDTO,
   VatResponseDTO,
 } from '../../../api';
+import { FormComponent, FormConfig } from '../../../components/form-component/form-component.component';
+import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
   ORDER_APPROVAL_FORM_CONFIG,
-  ORDER_COST_CENTER_FORM_CONFIG,
-  ORDER_QUOTATION_FORM_CONFIG,
+  ORDER_QUOTATION_FORM_CONFIG
 } from '../../../configs/order/order-config';
-import { map, Observable, of, startWith } from 'rxjs';
-import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatOptionModule } from '@angular/material/core';
-import { CommonModule } from '@angular/common';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
+import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
 import {
-  MatButtonToggle,
-  MatButtonToggleGroup,
-} from '@angular/material/button-toggle';
-import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
-import { Router } from '@angular/router';
+  ButtonColor,
+  TableActionButton,
+  TableColumn,
+} from '../../../models/generic-table';
+import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { PersonsWrapperService } from './../../../services/wrapper-services/persons-wrapper.service';
 
 @Component({
   selector: 'app-create-order-page',
@@ -82,7 +75,7 @@ import { Router } from '@angular/router';
   styleUrl: './create-order-page.component.scss',
 })
 export class CreateOrderPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) {}
+  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) { }
 
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 

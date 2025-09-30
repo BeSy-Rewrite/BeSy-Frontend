@@ -3,32 +3,14 @@ import { DataSource } from '@angular/cdk/table';
 import { Injectable } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
-import { BehaviorSubject, debounceTime, Observable } from 'rxjs';
+import { BehaviorSubject, debounceTime, forkJoin, Observable, of } from 'rxjs';
 import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api';
 import { ActiveFilters } from '../models/filter-menu-types';
 import { FilterRequestParams } from '../models/filter-request-params';
+import { OrderDisplayData } from '../models/order-display-data';
 import { CachedOrdersService } from './cached-orders.service';
+import { OrderSubresourceResolverService } from './order-subresource-resolver.service';
 
-
-class PageCache {
-  content: Map<number, OrderResponseDTO[]> = new Map();
-  totalElements: number = 0;
-  pageSize: number = 0;
-  filter: Map<string, any> | undefined;
-  searchTerm: string | undefined;
-  sorting: string[] = [];
-
-  clear() {
-    this.content.clear();
-    this.totalElements = 0;
-    this.pageSize = 0;
-    this.filter = undefined;
-    this.searchTerm = undefined;
-  }
-  isEmpty() {
-    return this.content.size === 0;
-  }
-}
 
 @Injectable({
   providedIn: 'root'
@@ -45,7 +27,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
 
   private readonly _sorting: string[] = [];
 
-  constructor(private readonly cacheService: CachedOrdersService) {
+  constructor(private readonly cacheService: CachedOrdersService, private readonly subresourceResolver: OrderSubresourceResolverService) {
     super();
     this._data = new BehaviorSubject<OrderResponseDTO[]>([]);
 
@@ -62,7 +44,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * This is a required property and must be set for the table to function.
    * @returns The current data array.
    */
-  get data(): OrderResponseDTO[] {
+  get data(): OrderDisplayData[] {
     return this._data.value;
   }
   /**
@@ -70,9 +52,24 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * Triggers an update to the table display.
    * @param data The new data array.
    */
-  set data(data: OrderResponseDTO[]) {
+  set data(data: OrderResponseDTO[] | OrderDisplayData[]) {
     data = Array.isArray(data) ? data : [];
-    this._data.next(data);
+    let displayData: Observable<OrderDisplayData>[] = [];
+    if (data.length === 0) {
+      this._data.next([]);
+      return;
+    }
+    data.forEach(order => {
+      // Only pass OrderResponseDTO objects to resolveOrderSubresources
+      if (order && typeof order.id === 'number') {
+        displayData.push(this.subresourceResolver.resolveOrderSubresources(order as OrderResponseDTO));
+      } else {
+        displayData.push(of(order as OrderDisplayData));
+      }
+    });
+    forkJoin(displayData).subscribe(resolvedData => {
+      this._data.next(resolvedData);
+    });
   }
 
   /**
@@ -177,8 +174,8 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
     return {
       primaryCostCenters: this._filter?.primary_cost_center_id?.map(f => f.id?.toString() ?? ''),
       bookingYears: this._filter?.booking_year?.map(f => f.id?.toString() ?? ''),
-      createdBefore: this._filter?.created_date.start?.toISOString(),
-      createdAfter: this._filter?.created_date.end?.toISOString(),
+      createdAfter: this._filter?.created_date.start?.toISOString(),
+      createdBefore: this._filter?.created_date.end?.toISOString(),
       ownerIds: this._filter?.owner_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
       statuses: this._filter?.status?.map(f => f.id).filter(f => f !== undefined) as OrderStatus[] | undefined,
       quotePriceMin: this._filter?.quote_price?.start,
@@ -212,7 +209,8 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       this._paginator?.pageIndex ?? 0,
       this._paginator?.pageSize ?? OrdersDataSourceService.DEFAULT_PAGE_SIZE,
       this._sorting,
-      this.getFilterRequestParams()
+      this.getFilterRequestParams(),
+      this._searchTerm ?? ''
     ).subscribe((page: PagedOrderResponseDTO) => {
       this.data = page.content ?? [];
 

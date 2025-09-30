@@ -71,7 +71,7 @@ export const ORDERS_FILTER_MENU_CONFIG: FilterConfig[] = [
     },
     {
         key: 'delivery_person_id',
-        title: 'Bestellt von',
+        title: 'Bestellt für',
         type: FilterType.SELECT,
         data: {
             inputLabel: 'Person auswählen',

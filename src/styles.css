@@ -1,0 +1,15 @@
+/*
+  This file is important for the VS Code Tailwind CSS extension to work properly.
+  It should not be deleted, it will not be used at runtime.
+  Use src/styles.scss for global styles instead.
+*/
+@use '@angular/material' as mat;
+@use 'tailwindcss';
+@tailwind utilities;
+
+@theme {
+  --color-he-darkblue: #193058;
+  --color-he-red: #B6163D;
+  --color-he-lightblue: #00AADC;
+  --color-he-grey: #F0F0F0;
+}

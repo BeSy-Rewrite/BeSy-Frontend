@@ -1,17 +1,31 @@
 <div class="h-fit">
-    <mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start">
+    <button class="!fixed top-22.5 left-2.5 z-10" [class.open]="showFilterButton" [class.closed]="!showFilterButton"
+        matFab extended color="primary" (click)="toggleShowFilters()">
+        <mat-icon>filter_list</mat-icon>
+        Filter
+    </button>
+
+    <mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start" (selectedTabChange)="onTabChanged($event)">
 
         <mat-tab label="Bestellungen verwalten">
-            <button class="!fixed top-22.5 left-2.5 z-10" matFab extended color="primary" (click)="toggleShowFilters()">
-                <mat-icon>filter_list</mat-icon>
-                Filter
-            </button>
 
             <mat-divider class="bg-gray-500"></mat-divider>
             <div class="pt-3 flex flex-row">
 
-                <app-filter-menu [class.open]="showFilters" [class.closed]="!showFilters" class="w-96"
-                    (filtersChanged)="onFiltersChanged($event)"></app-filter-menu>
+                <div [class.open]="showFilters" [class.closed]="!showFilters" class="w-96">
+
+                    <mat-form-field class="w-full mt-4">
+                        <mat-label>Spalten</mat-label>
+                        <mat-select [formControl]="selectedColumnsControl" multiple>
+                            @for (column of ordersTableColumns; track column) {
+                            <mat-option [value]="column.id">{{column.label}}</mat-option>
+                            }
+                        </mat-select>
+                    </mat-form-field>
+
+                    <app-filter-menu (filtersChanged)="onFiltersChanged($event)" class="mb-4" />
+
+                </div>
 
                 <app-generic-table [class.expanded]="!showFilters" [class.collapsed]="showFilters"
                     class="-ml-96 w-full overflow-auto" [dataSource]="ordersDataSource" [columns]="ordersTableColumns"
