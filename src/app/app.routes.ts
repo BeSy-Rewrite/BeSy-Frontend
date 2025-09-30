@@ -48,7 +48,7 @@ export const routes: Routes = [
     },
     {
       title: 'Bestellungen',
-      path: 'orders/:id/view',
+      path: 'orders/:id',
       component: ViewOrderPageComponent,
       resolve: {
         order: OrderResolver
