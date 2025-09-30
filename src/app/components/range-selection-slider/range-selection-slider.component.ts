@@ -1,4 +1,4 @@
-import { Component, input, model, OnChanges, OnInit, output } from '@angular/core';
+import { Component, input, model, OnChanges, OnInit, output, signal } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -30,6 +30,7 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
    * Default: 100
    */
   maxValue = input<number>(100);
+  internalMaxValue = signal<number>(100);
 
   /**
    * The currently selected value interval (start, end).
@@ -62,11 +63,11 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
     this.formGroup = this.formBuilder.group({
       input: this.formBuilder.group({
         start: this.minValue(),
-        end: this.maxValue()
+        end: Infinity
       }),
       slider: this.formBuilder.group({
         start: this.minValue(),
-        end: this.maxValue()
+        end: this.internalMaxValue()
       })
     });
   }
@@ -78,10 +79,15 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
    */
   ngOnInit() {
     for (const type of ['start', 'end']) {
+      // Update the slider max value if the input end value exceeds it
       // Synchronize values between Input and Slider controls
-      this.formGroup.get(`input.${type}`)?.valueChanges.subscribe(value =>
+      this.formGroup.get(`input.${type}`)?.valueChanges.subscribe(value => {
+        if (type === 'end') {
+          this.internalMaxValue.set(Math.max(value, this.maxValue()));
+        }
+        console.log('Input value changed:', type, value);
         this.formGroup.get(`slider.${type}`)?.setValue(value, { emitEvent: false })
-      );
+      });
       this.formGroup.get(`slider.${type}`)?.valueChanges.subscribe(value =>
         this.formGroup.get(`input.${type}`)?.setValue(value, { emitEvent: false })
       );
@@ -107,10 +113,12 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
       return;
     }
 
+    this.internalMaxValue.set(this.maxValue());
+
     let initialRange = this.selectedRange();
     initialRange ??= {
       start: this.minValue(),
-      end: this.maxValue()
+      end: this.internalMaxValue()
     };
 
     const newRange = this.clampRange(initialRange);
@@ -128,8 +136,8 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
    * @returns Range with valid values.
    */
   private clampRange(range: FilterRange): FilterRange {
-    const clampedStart = Math.max(this.minValue(), Math.min(range.start, this.maxValue()));
-    const clampedEnd = Math.max(clampedStart, Math.min(range.end, this.maxValue()));
+    const clampedStart = Math.max(this.minValue(), Math.min(range.start, this.internalMaxValue()));
+    const clampedEnd = Math.max(clampedStart, Math.min(range.end, this.internalMaxValue()));
     return { start: clampedStart, end: clampedEnd };
   }
 
