@@ -195,12 +195,6 @@ export class OrderSubresourceResolverService {
     data.flag_decision_contract_partner = order.flag_decision_contract_partner ? 'Ja' : 'Nein';
     data.flag_decision_other_reasons = order.flag_decision_other_reasons ? 'Ja' : 'Nein';
     data.decision_other_reasons_description = order.decision_other_reasons_description ?? '';
-    data.flag_edv_permission = order.flag_edv_permission ? 'Ja' : 'Nein';
-    data.flag_furniture_permission = order.flag_furniture_permission ? 'Ja' : 'Nein';
-    data.flag_furniture_room = order.flag_furniture_room ? 'Ja' : 'Nein';
-    data.flag_investment_room = order.flag_investment_room ? 'Ja' : 'Nein';
-    data.flag_investment_structural_measures = order.flag_investment_structural_measures ? 'Ja' : 'Nein';
-    data.flag_media_permission = order.flag_media_permission ? 'Ja' : 'Nein';
     data.dfg_key = order.dfg_key ?? '';
 
     return data;

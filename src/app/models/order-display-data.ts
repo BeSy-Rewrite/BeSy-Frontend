@@ -32,11 +32,5 @@ export type OrderDisplayData = {
     flag_decision_contract_partner: string;
     flag_decision_other_reasons: string;
     decision_other_reasons_description: string;
-    flag_edv_permission: string;
-    flag_furniture_permission: string;
-    flag_furniture_room: string;
-    flag_investment_room: string;
-    flag_investment_structural_measures: string;
-    flag_media_permission: string;
     dfg_key: string;
 }

@@ -4,8 +4,9 @@ import { TableColumn } from "../models/generic-table";
 export type OrdersTableConfig = TableColumn[];
 
 export const ordersTableConfig: OrdersTableConfig = [
+    // \u00A0 is a non-breaking space to prevent breaking in the middle of the label
     // Columns from old BeSy -> visible + sortable if supported by the backend
-    { id: 'id', label: 'BeSy ID' },
+    { id: 'id', label: 'BeSy\u00A0ID' },
     { id: 'besy_number', label: 'Bestellnummer', isUnsortable: true },
     { id: 'status', label: 'Status' },
     { id: 'content_description', label: 'Beschreibung', isUnsortable: true },
@@ -31,12 +32,6 @@ export const ordersTableConfig: OrdersTableConfig = [
     { id: 'flag_decision_contract_partner', label: 'Entscheidung: Vertragspartner', isInvisible: true, isUnsortable: true },
     { id: 'flag_decision_other_reasons', label: 'Entscheidung: Andere Gründe', isInvisible: true, isUnsortable: true },
     { id: 'decision_other_reasons_description', label: 'Begründung andere Gründe', isInvisible: true, isUnsortable: true },
-    { id: 'flag_edv_permission', label: 'RZ/EDV-Genehmigung', isInvisible: true, isUnsortable: true },
-    { id: 'flag_furniture_permission', label: 'FM/Möbel-Genehmigung', isInvisible: true, isUnsortable: true },
-    { id: 'flag_furniture_room', label: 'Möbel Platz vorhanden', isInvisible: true, isUnsortable: true },
-    { id: 'flag_investment_room', label: 'Geräte Platz vorhanden', isInvisible: true, isUnsortable: true },
-    { id: 'flag_investment_structural_measures', label: 'Investition: Bauliche Maßnahmen', isInvisible: true, isUnsortable: true },
-    { id: 'flag_media_permission', label: 'Medientechnik Genehmigung', isInvisible: true, isUnsortable: true },
     { id: 'dfg_key', label: 'DFG-Schlüssel', isInvisible: true, isUnsortable: true },
 
     // Part of FilterRequestParams -> invisible/sortable by default
