@@ -85,7 +85,6 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
         if (type === 'end') {
           this.internalMaxValue.set(Math.max(value, this.maxValue()));
         }
-        console.log('Input value changed:', type, value);
         this.formGroup.get(`slider.${type}`)?.setValue(value, { emitEvent: false })
       });
       this.formGroup.get(`slider.${type}`)?.valueChanges.subscribe(value =>
