@@ -46,4 +46,4 @@
   </table>
 </div>
 <mat-divider style="background-color: gray; border-top-width: 2px"></mat-divider>
-<mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons aria-label="Wähle Seite der Liste" />
+<mat-paginator [pageSizeOptions]="internalPageSizeOptions()" showFirstLastButtons aria-label="Wähle Seite der Liste" />
