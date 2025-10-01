@@ -20,6 +20,10 @@
       row-item-outline-color: #00000019, // row outline color
     ));
 
+  @include mat.paginator-overrides((container-text-color: var(--color-he-grey),
+      container-background-color: var(--color-he-lightblue),
+    ));
+
   // HS Esslingen Colorschema
   --color-he-darkblue: #193058;
   --color-he-red: #B6163D;
