@@ -76,7 +76,7 @@ class ResourceFormatter<T extends IdAble> {
     }
 
     return this.mapping.asObservable().pipe(
-      map(mapping => this.formatter(mapping.get(id) ?? {} as T))
+      map(mapping => mapping.has(id) ? this.formatter(mapping.get(id)!) : '')
     );
   }
 }
