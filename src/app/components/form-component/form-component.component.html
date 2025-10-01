@@ -330,6 +330,21 @@
               }
             </mat-autocomplete>
 
+            @if (field.tooltip) {
+            <!-- Help-Icon mit Tooltip im Suffix -->
+            <button
+              mat-icon-button
+              matSuffix
+              matTooltip="{{ field.tooltip }}"
+              matTooltipPosition="above"
+              type="button"
+              aria-label="Mehr Informationen"
+              class="tooltip-icon"
+            >
+              <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+            </button>
+            }
+
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>

@@ -3,6 +3,7 @@ import { CurrenciesService, CurrencyResponseDTO } from '../../api';
 
 
 export interface CurrencyWithDisplayName extends CurrencyResponseDTO {
+  symbol: string; // currency symbol, e.g. "€"
   displayName: string; // field combining name with the currency symbol, e.g. "Euro (€)"
 }
 
@@ -44,6 +45,7 @@ export class CurrenciesWrapperService {
 
       return {
         ...c,
+        symbol, // e.g. "€"
         displayName: `${name} (${symbol})`, // e.g. "Euro (€)"
       } as CurrencyWithDisplayName;
     });

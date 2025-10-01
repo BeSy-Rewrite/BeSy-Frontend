@@ -20,7 +20,7 @@ import {
 import { OnInit } from '@angular/core';
 import { FormConfig } from '../../../components/form-component/form-component.component';
 import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
-import { FormControl, FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, Validators } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatTableDataSource } from '@angular/material/table';
 import {
@@ -114,6 +114,8 @@ export class CreateOrderPageComponent implements OnInit {
   orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
   orderItemFormGroup = new FormGroup({});
 
+  // Track the currently selected currency for formatting the total sum in the items table footer
+  selectedCurrency = signal<{ code: string; symbol: string } | null>(null);
   // Compute the footer content for the items table, showing the total sum of all items
   footerContent = computed(() => {
     const sum = this.items().reduce((total, item) => {
@@ -121,20 +123,20 @@ export class CreateOrderPageComponent implements OnInit {
       const quantity = item.quantity ?? 0;
 
       const vat = Number(item.vat_value) || 0;
-
-      // If the price type is 'netto', add the selected VAT to the price
       const vatMultiplier = item.vat_type === 'netto' ? 1 + vat / 100 : 1;
 
       return total + price * quantity * vatMultiplier;
     }, 0);
 
+    // Fallback to EUR if no currency is selected
+    const currency = this.selectedCurrency()?.code ?? 'EUR';
+
     const formatted = new Intl.NumberFormat('de-DE', {
       style: 'currency',
-      currency: 'EUR',
+      currency,
     }).format(sum);
 
-    console.log('Summe:', sum);
-    return `Gesamt: ${formatted} (brutto)`;
+    return `Gesamt: ${formatted}`;
   });
 
   orderItemColumns: TableColumn<ItemRequestDTO>[] = [
@@ -168,7 +170,7 @@ export class CreateOrderPageComponent implements OnInit {
   selectedInvoicePerson?: PersonWithFullName;
   filteredPersonsRecipient: PersonWithFullName[] = [];
   @ViewChild('inputRecipient', { static: false })
-inputRecipient!: ElementRef<HTMLInputElement>;
+  inputRecipient!: ElementRef<HTMLInputElement>;
 
   // Invoice address variables
   invoiceAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
@@ -178,7 +180,8 @@ inputRecipient!: ElementRef<HTMLInputElement>;
   invoiceAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
   invoiceInfoText = '';
   filteredPersonsInvoice: PersonWithFullName[] = [];
-  @ViewChild('inputInvoice', { static: false }) inputInvoice!: ElementRef<HTMLInputElement>;
+  @ViewChild('inputInvoice', { static: false })
+  inputInvoice!: ElementRef<HTMLInputElement>;
 
   // Shared recipient/invoice address variables
   persons: PersonWithFullName[] = []; // Store all persons locally for the autocomplete input
@@ -518,7 +521,7 @@ inputRecipient!: ElementRef<HTMLInputElement>;
    * Save the address form inputs locally in the postOrderDTO object
    * @returns A promise that resolves when the operation is complete
    */
-   async locallySaveAddressFormInput() {
+  async locallySaveAddressFormInput() {
     // Set recipient and invoice person
     if (this.selectedRecipientPerson) {
       this.postOrderDTO.delivery_person_id = this.selectedRecipientPerson.id;
@@ -732,6 +735,11 @@ inputRecipient!: ElementRef<HTMLInputElement>;
       });
   }
 
+  /**
+   * Set the dropdown options for the currency fields in the form
+   * @param currencies
+   * @returns
+   */
   private setCurrenciesDropdownOptions(
     currencies: Array<CurrencyWithDisplayName>
   ) {
@@ -757,6 +765,10 @@ inputRecipient!: ElementRef<HTMLInputElement>;
     }));
   }
 
+  /**
+   * Load all suppliers and set the dropdown options for the supplier_id field in the mainOfferFormConfig
+   * @returns A promise that resolves when the suppliers have been loaded and the dropdown options set
+   */
   private async loadSuppliers() {
     this.suppliers = await this.suppliersWrapperService.getAllSuppliers();
     const field = this.mainOfferFormConfig.fields.find(
@@ -771,17 +783,16 @@ inputRecipient!: ElementRef<HTMLInputElement>;
   }
 
   /**
-   * Handle selection of a supplier from the main offer form
-   * @param supplier The selected supplier with field name and value. Value can be either a number or null.
+   * Handle changes in the main offer form group emited by the FormComponent
+   * @param field The selected supplier with field name and value. Value can be either a number or null.
    */
-  async onSupplierSelected(supplier: { field: string; value: any }) {
-    console.log('Selected supplier:', supplier);
-    if (supplier.field === 'supplier_id' && supplier.value) {
+  async onMainOfferFormGroupChanged(field: { field: string; value: any }) {
+    console.log('MainOfferFormGroup changed:', field);
+    // Check if the changed field is the supplier_id
+    if (field.field === 'supplier_id' && field.value) {
       try {
         // Fetch customer IDs for the selected supplier
-        this.customerIds = await this.loadCustomerIdsForSupplier(
-          supplier.value
-        );
+        this.customerIds = await this.loadCustomerIdsForSupplier(field.value);
         const customerIdField = this.mainOfferFormConfig.fields.find(
           (f) => f.name === 'customer_id'
         );
@@ -795,6 +806,20 @@ inputRecipient!: ElementRef<HTMLInputElement>;
         console.error('Fehler beim Laden der Customer-IDs:', error);
         this.customerIds = []; // Fallback, damit die UI nicht crasht
       }
+    }
+
+    // Check if the changed field is the currency_short
+    else if (field.field === 'currency_short' && field.value) {
+      // Set the selected currency signal based on the selected value
+
+      // Find the selected currency in the currencies array
+      const selected = this.currencies.find((c) => c.code === field.value);
+
+      // Update the selectedCurrency signal with the found currency or default to EUR
+      this.selectedCurrency.set({
+        code: selected?.code ?? 'EUR',
+        symbol: selected?.symbol ?? '€',
+      });
     }
   }
 
@@ -810,10 +835,58 @@ inputRecipient!: ElementRef<HTMLInputElement>;
     return customerIds;
   }
 
+  /**
+   * Dynamically adjust the supplier decision reason form config, based on the checked fields
+   * @param field the changed field in the supplierDecisionFormConfig. Currently only listens to the field flag_decision_other_reasons
+   * @returns
+   */
   onSupplierDecisionReasonChanged(field: { field: string; value: any }) {
-    console.log('Supplier decision reason changed:', field);
+    // Check if the changed field is the supplier_decision_reason
+    // If yes, either add it to the supplierDecisionReasonFormConfig or remove it
+    if (field.field !== 'flag_decision_other_reasons') return;
+    else {
+      if (field.value == true) {
+        // Add the decision_other_reason_description field if not already present
+        if (
+          !this.supplierDecisionReasonFormConfig.fields.find(
+            (f) => f.name === 'supplier_decision_reason'
+          )
+        ) {
+          this.supplierDecisionReasonFormConfig.fields.push({
+            name: 'supplier_decision_reason',
+            label: 'Begründung',
+            type: 'textarea',
+            required: true,
+            placeholder: 'Geben Sie die Begründung ein',
+          } as FormField);
+
+          this.supplierDecisionReasonFormGroup.addControl(
+            'supplier_decision_reason',
+            new FormControl('', Validators.required)
+          );
+        }
+      } else {
+        // Remove the decision_other_reason_description field if it exists
+        this.supplierDecisionReasonFormConfig.fields =
+          this.supplierDecisionReasonFormConfig.fields.filter(
+            (f) => f.name !== 'supplier_decision_reason'
+          );
+
+        if (
+          this.supplierDecisionReasonFormGroup.get('supplier_decision_reason')
+        ) {
+          this.supplierDecisionReasonFormGroup.removeControl(
+            'supplier_decision_reason'
+          );
+        }
+      }
+    }
   }
 
+  /**
+   * Filter persons for the recipient or invoice autocomplete input
+   * @param isRecipient boolean flag indicating if the filtering is for the recipient (true) or invoice (false)
+   */
   filterPersons(isRecipient: boolean): void {
     const value = isRecipient
       ? this.inputRecipient.nativeElement.value.toLowerCase()
@@ -823,7 +896,12 @@ inputRecipient!: ElementRef<HTMLInputElement>;
       p.fullName.toLowerCase().includes(value)
     );
 
-    console.log('Filtered persons:', filtered, 'for', isRecipient ? 'recipient' : 'invoice');
+    console.log(
+      'Filtered persons:',
+      filtered,
+      'for',
+      isRecipient ? 'recipient' : 'invoice'
+    );
 
     if (isRecipient) {
       this.filteredPersonsRecipient = filtered;

@@ -131,7 +131,8 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       // Will be loaded from currencies api
       options: [{ label: 'Fehler beim Laden der Währungen', value: null }],
       editable: true,
-      tooltip: 'Die Währung, in der der Preis des Hauptangebots angegeben ist.'
+      tooltip: 'Die Währung, in der der Preis des Hauptangebots angegeben ist.',
+      emitAsSignal: true
     },
     {
       name: 'quote_date',
@@ -163,7 +164,7 @@ export const ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG: FormConfig = {
     },
     {
       name: 'flag_decision_most_economical_offer',
-      label: 'Günstigstes Angebot',
+      label: 'Wirtschaftlichstes Angebot',
       type: 'checkbox',
       required: false,
       defaultValue: false
