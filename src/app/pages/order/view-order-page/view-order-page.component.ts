@@ -3,10 +3,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTabsModule } from "@angular/material/tabs";
 import { RouterModule } from '@angular/router';
-import { OrderResponseDTO } from '../../../api';
+import { OrderResponseDTO, OrderStatus } from '../../../api';
+import { ApprovalsComponent } from '../../../components/approvals/approvals.component';
 import { OrderArticleListComponent } from '../../../components/order-article-list/order-article-list.component';
 import { OrderDetailsComponent } from '../../../components/order-details/order-details.component';
 import { PersonDetailsComponent } from "../../../components/person-details/person-details.component";
+import { QuotationsListComponent } from '../../../components/quotations-list/quotations-list.component';
+import { StateControllerComponent } from "../../../components/state-controller/state-controller.component";
 import { ORDER_FIELD_LABELS } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
 
@@ -19,7 +22,10 @@ import { DisplayableOrder } from '../../../models/displayable-order';
     MatTabsModule,
     OrderDetailsComponent,
     PersonDetailsComponent,
-    OrderArticleListComponent
+    OrderArticleListComponent,
+    StateControllerComponent,
+    QuotationsListComponent,
+    ApprovalsComponent
   ],
   templateUrl: './view-order-page.component.html',
   styleUrl: './view-order-page.component.scss'
@@ -27,6 +33,7 @@ import { DisplayableOrder } from '../../../models/displayable-order';
 export class ViewOrderPageComponent implements OnInit {
   order = input.required<DisplayableOrder>();
   orderFieldNames = ORDER_FIELD_LABELS;
+  orderStates = OrderStatus;
 
   personKeys = ['owner_id', 'delivery_person_id', 'invoice_person_id', 'queries_person_id'];
   personMappings = new Map<number, string[]>();
