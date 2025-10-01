@@ -1,5 +1,6 @@
 import { DataSource } from '@angular/cdk/table';
 import { Component, computed, input, OnInit, signal } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatTableDataSource } from '@angular/material/table';
 import { ItemResponseDTO } from '../../api';
 import { ITEM_FIELD_LABELS } from '../../display-name-mappings/item-names';
@@ -16,7 +17,8 @@ import { GenericTableComponent } from '../generic-table/generic-table.component'
 @Component({
   selector: 'app-order-article-list',
   imports: [
-    GenericTableComponent
+    GenericTableComponent,
+    MatButtonModule
   ],
   templateUrl: './order-article-list.component.html',
   styleUrl: './order-article-list.component.scss'
@@ -24,18 +26,25 @@ import { GenericTableComponent } from '../generic-table/generic-table.component'
 export class OrderArticleListComponent implements OnInit {
   order = input.required<DisplayableOrder>();
   items!: DataSource<DisplayItem>;
+  fetchedItems = signal<ItemResponseDTO[]>([]);
 
-  private totalPrice = 0;
+  totalPrice = signal(0);
   private currencyCode = 'EUR';
 
   totalPriceFormatted = computed(() => {
-    const formatted = this.subresourceService.formatPrice(this.totalPrice, this.currencyCode);
+    const formatted = this.subresourceService.formatPrice(this.totalPrice(), this.currencyCode);
     return formatted + '\u00A0(brutto)';
   });
 
-  private totalQuantity = 0;
+  totalNetPriceFormatted = computed(() => {
+    const totalNetPrice = this.calculateTotalNetPrice();
+    const formatted = this.subresourceService.formatPrice(totalNetPrice, this.currencyCode);
+    return formatted + '\u00A0(netto)';
+  });
+
+  totalQuantity = signal(0);
   totalQuantityFormatted = computed(() => {
-    return this.totalQuantity + '\u00A0Stück';
+    return this.totalQuantity() + '\u00A0Stück';
   });
 
   orderFieldLabels = ORDER_FIELD_LABELS;
@@ -71,6 +80,7 @@ export class OrderArticleListComponent implements OnInit {
 
   private loadOrderItems(): void {
     this.ordersService.getOrderItems(this.order().order.id?.toString() ?? '').then(items => {
+      this.fetchedItems.set(items);
       this.items = new MatTableDataSource(items.map(item => this.createDisplayItem(item)));
     });
   }
@@ -83,7 +93,7 @@ export class OrderArticleListComponent implements OnInit {
       preferredList = 'TA';
     }
 
-    this.totalQuantity += item.quantity ?? 0;
+    this.totalQuantity.update(value => value + (item.quantity ?? 0));
     const quantity = item.quantity?.toString() + ' ' + (item.quantity_unit ?? '');
 
     this.currencyCode = this.order().order.currency?.code ?? 'EUR';
@@ -91,7 +101,7 @@ export class OrderArticleListComponent implements OnInit {
     if (item.vat_type === ItemResponseDTO.vat_type.NETTO) {
       articleTotalPrice = this.subresourceService.calculateGrossPrice(articleTotalPrice, item.vat?.value ?? 0);
     }
-    this.totalPrice += articleTotalPrice;
+    this.totalPrice.update(value => value + articleTotalPrice);
 
     return {
       name: item.name ?? '',
@@ -109,5 +119,30 @@ export class OrderArticleListComponent implements OnInit {
         price_total: `Gesamtbruttopreis für Menge: ${quantity.trim()}`
       }
     }
+  }
+
+  isQuotePriceProbablyBrutto(): boolean {
+    const quotePrice = this.order().order['quote_price'];
+    return Math.abs((quotePrice ?? 0) - this.totalPrice()) < 0.01;
+  }
+
+  isQuotePriceProbablyNetto(): boolean {
+    const quotePrice = this.order().order['quote_price'];
+    const totalPrice = this.calculateTotalNetPrice();
+    return Math.abs((quotePrice ?? 0) - totalPrice) < 0.01;
+  }
+
+  calculateTotalNetPrice(): number {
+    let totalNetPrice = 0;
+    for (const item of this.fetchedItems()) {
+      if (item.vat_type === ItemResponseDTO.vat_type.NETTO) {
+        totalNetPrice += (item.price_per_unit ?? 0) * (item.quantity ?? 0);
+      } else if (item.vat_type === ItemResponseDTO.vat_type.BRUTTO) {
+        const grossPrice = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
+        const netPrice = this.subresourceService.calculateNetPrice(grossPrice, item.vat?.value ?? 0);
+        totalNetPrice += netPrice;
+      }
+    }
+    return totalNetPrice;
   }
 }
