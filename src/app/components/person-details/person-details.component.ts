@@ -46,12 +46,12 @@ export class PersonDetailsComponent implements OnInit {
   }
 
   getFullName(): string {
-    const names = [this.person.title, this.person.name, this.person.surname];
+    const names = [this.person?.title, this.person?.name, this.person?.surname];
     return names.filter(name => !!name).join(' ');
   }
 
   getInitials(): string {
-    const name = this.person.name + ' ' + this.person.surname;
+    const name = this.person?.name + ' ' + this.person?.surname;
     return name.match(/\b(\w)/g)?.join('').toUpperCase() ?? '?';
   }
 
