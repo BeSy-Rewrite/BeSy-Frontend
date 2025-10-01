@@ -22,9 +22,7 @@ export class OrderResolver implements Resolve<DisplayableOrder> {
     return from(this.ordersService.getOrderById(id)).pipe(
       switchMap(order =>
         this.orderDisplayService.resolveOrderSubresources(order).pipe(
-          map(orderDisplay => {
-            return { order, orderDisplay };
-          })
+          map(orderDisplay => ({ order, orderDisplay }))
         )
       )
     );

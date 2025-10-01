@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { CurrencyResponseDTO } from './CurrencyResponseDTO';
+import { OrderStatus } from './OrderStatus';
 export type OrderResponseDTO = {
     id?: number;
     primary_cost_center_id?: string;
@@ -12,7 +13,7 @@ export type OrderResponseDTO = {
     legacy_alias?: string;
     owner_id?: number;
     content_description?: string;
-    status?: OrderResponseDTO.status;
+    status?: OrderStatus;
     currency?: CurrencyResponseDTO;
     comment?: string;
     comment_for_supplier?: string;
@@ -51,4 +52,3 @@ export namespace OrderResponseDTO {
         INB = 'INB',
     }
 }
-

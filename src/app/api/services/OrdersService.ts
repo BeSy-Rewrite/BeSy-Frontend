@@ -401,12 +401,12 @@ export class OrdersService {
      * @returns ApprovalResponseDTO Zustimmungen erfolgreich abgerufen.
      * @throws ApiError
      */
-    public static getOrdersApproval(
+    public static getOrdersApprovals(
         orderId: number,
     ): CancelablePromise<ApprovalResponseDTO> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/orders/{order-id}/approval',
+            url: '/orders/{order-id}/approvals',
             path: {
                 'order-id': orderId,
             },
