@@ -238,7 +238,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * @param collectionViewer The collection viewer to disconnect from.
    */
   override disconnect(collectionViewer: CollectionViewer): void {
-    console.log('Disconnecting data source');
+    // Method required by interface; no action needed.
   }
 
 }
