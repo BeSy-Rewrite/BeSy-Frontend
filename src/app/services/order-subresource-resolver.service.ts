@@ -24,7 +24,7 @@ type IdAble = { id?: number | string } | { code?: string };
  */
 class ResourceFormatter<T extends IdAble> {
   /** In-memory cache of fetched resources, keyed by id or code. */
-  private readonly mapping = new BehaviorSubject<Map<numberOrString, T>>(new Map());
+  private mapping = new BehaviorSubject<Map<numberOrString, T>>(new Map());
   /** Debounced fetch trigger used to batch network requests. */
   private readonly requestFetch = new BehaviorSubject<void>(undefined);
   private fetchInProgress = false;
@@ -52,6 +52,7 @@ class ResourceFormatter<T extends IdAble> {
           this.fetchInProgress = false;
           this.mapping.next(map);
           this.mapping.complete();
+          this.mapping = new BehaviorSubject<Map<numberOrString, T>>(map);
         })
       );
   }
