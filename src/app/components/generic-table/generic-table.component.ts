@@ -11,11 +11,11 @@ import {
   ViewChild
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDivider } from "@angular/material/divider";
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { TableActionButton, TableColumn } from '../../models/generic-table';
-import { MatDivider } from "@angular/material/divider";
 
 /**
  * A generic table component for displaying tabular data with optional action buttons.
@@ -183,8 +183,8 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
     const ds = this.dataSource();
     // Only assign sort and paginator if ds is a MatTableDataSource
     if (ds && this.sort && this.paginator && 'sort' in ds && 'paginator' in ds) {
-      (ds as any).sort = this.sort;
-      (ds as any).paginator = this.paginator;
+      ds.sort = this.sort;
+      ds.paginator = this.paginator;
       this.paginator._intl.itemsPerPageLabel = 'Einträge pro Seite';
       this.paginator._intl.getRangeLabel = (page: number, pageSize: number, length: number) => {
         if (length === 0 || pageSize === 0) {
