@@ -21,7 +21,7 @@ type CacheEntry = {
 export class CachedOrdersService {
 
   private totalElements: number = 0;
-  private readonly cacheDurationMs: number = environment.cacheDurationMs || 5 * 60 * 1000; // 5 minutes default
+  private readonly cacheDurationMs: number = environment.cacheDurationMs ?? 5 * 60 * 1000; // 5 minutes default
 
   private readonly cache: Map<string, CacheEntry> = new Map();
 

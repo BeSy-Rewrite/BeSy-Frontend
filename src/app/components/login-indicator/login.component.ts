@@ -23,7 +23,7 @@ export class LoginComponent {
    */
   handleLogInOut() {
     if (this.authService.hasValidToken()) {
-      this.authService.logout()
+      this.authService.logout();
       this.router.navigate(['/']);
     } else {
       this.authService.login();

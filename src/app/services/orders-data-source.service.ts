@@ -186,8 +186,8 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       customerIds: undefined,
       supplierIds: this._filter?.supplier_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
       secondaryCostCenters: this._filter?.secondary_cost_center_id?.map(f => f.id?.toString() ?? ''),
-      lastUpdatedTimeAfter: this._filter?.last_updated_time.start?.toISOString(),
-      lastUpdatedTimeBefore: this._filter?.last_updated_time.end?.toISOString(),
+      lastUpdatedTimeAfter: this._filter?.last_updated_time?.start?.toISOString(),
+      lastUpdatedTimeBefore: this._filter?.last_updated_time?.end?.toISOString(),
     }
   }
 
