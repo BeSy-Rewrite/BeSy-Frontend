@@ -9,9 +9,9 @@ import { OrderArticleListComponent } from '../../../components/order-article-lis
 import { OrderDetailsComponent } from '../../../components/order-details/order-details.component';
 import { PersonDetailsComponent } from "../../../components/person-details/person-details.component";
 import { QuotationsListComponent } from '../../../components/quotations-list/quotations-list.component';
-import { StateControllerComponent } from "../../../components/state-controller/state-controller.component";
 import { ORDER_FIELD_LABELS } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
+import { StateHistoryComponent } from "../../../components/state-history/state-history.component";
 
 @Component({
   selector: 'app-view-order-page',
@@ -23,10 +23,10 @@ import { DisplayableOrder } from '../../../models/displayable-order';
     OrderDetailsComponent,
     PersonDetailsComponent,
     OrderArticleListComponent,
-    StateControllerComponent,
     QuotationsListComponent,
-    ApprovalsComponent
-  ],
+    ApprovalsComponent,
+    StateHistoryComponent
+],
   templateUrl: './view-order-page.component.html',
   styleUrl: './view-order-page.component.scss'
 })
