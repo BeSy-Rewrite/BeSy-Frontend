@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { ApprovalResponseDTO, ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api';
+import { ApprovalResponseDTO, ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, OrderStatusHistoryResponseDTO, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api';
 
 @Injectable({
   providedIn: 'root'
@@ -116,5 +116,9 @@ export class OrdersWrapperService {
 
   async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
     return await OrdersService.getOrdersApprovals(orderId);
+  }
+
+  async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistoryResponseDTO[]> {
+    return await OrdersService.getOrdersStatusHistory(orderId);
   }
 }
