@@ -1,25 +1,41 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { Router } from '@angular/router';
-import { AuthenticationService } from '../../services/authentication.service';
+import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
+import { Router, RouterModule } from '@angular/router';
 import { LoginComponent } from "../login-indicator/login.component";
 import { NavbarButtonComponent } from '../navbar-button/navbar-button.component';
 
 @Component({
   selector: 'app-homebar',
   imports: [
-    NavbarButtonComponent,
     MatButtonModule,
-    LoginComponent
+    MatIconModule,
+    MatMenuModule,
+    RouterModule,
+    LoginComponent,
+    NavbarButtonComponent
   ],
   templateUrl: './homebar.component.html',
   styleUrls: ['./homebar.component.scss'],
 })
 export class HomebarComponent {
-  constructor(public readonly authService: AuthenticationService, private readonly router: Router) { }
+  isMobileMenuOpen = signal(false);
+  activeMenuItem = signal(0);
 
-  navigateToHome() {
-    this.router.navigate(['/']);
+  links = [
+    { name: 'Startseite', path: '/' },
+    { name: 'Bestellungen', path: '/orders' },
+    { name: 'Lieferanten', path: '/suppliers' },
+    { name: 'Personen', path: '/persons' },
+    { name: 'Kostenstellen', path: '/cost-centers' }
+  ];
+
+  constructor(public readonly router: Router) {
+    router.events.subscribe(() => {
+      const currentLinkIndex = this.links.findIndex(link => link.path === `/${router.url.split('/')[1]}`);
+      this.activeMenuItem.set(currentLinkIndex !== -1 ? currentLinkIndex : 0);
+    });
   }
 
 }

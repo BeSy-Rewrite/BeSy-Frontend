@@ -2,8 +2,8 @@
 
     <div class="flex flex-row justify-between">
         <div class="flex flex-row gap-2">
-            <button matButton (click)="accordion().openAll()">Alles ausklappen</button>
-            <button matButton (click)="accordion().closeAll()">Alles einklappen</button>
+            <button matButton (click)="accordion().openAll()">Alles&nbsp;ausklappen</button>
+            <button matButton (click)="accordion().closeAll()">Alles&nbsp;einklappen</button>
         </div>
         <button matButton color="warn" (click)="onReset()">Reset</button>
     </div>
@@ -20,7 +20,7 @@
         </mat-chip-listbox>
     </div>
 
-    <mat-accordion class="example-headers-align" multi>
+    <mat-accordion multi>
 
         @for (filter of filters; track $index) {
         <mat-expansion-panel>
@@ -31,17 +31,18 @@
             @switch (filter.type) {
             @case ('date-range') {
             <app-date-range-picker card-content [minDate]="filter.data?.minDate ?? null"
-                [maxDate]="filter.data?.maxDate ?? null" [(dateRange)]="dateRanges[filter.key]"></app-date-range-picker>
+                [maxDate]="filter.data?.maxDate ?? null" [(dateRange)]="dateRanges[filter.key]">
+            </app-date-range-picker>
             }
             @case ('select') {
             <app-chip-selection card-content [inputLabel]="filter.data?.inputLabel ?? filter.title"
-                [inputPlaceholder]="filter.data?.inputPlaceholder ?? ''"
-                [(items)]="chips[filter.key]"></app-chip-selection>
+                [inputPlaceholder]="filter.data?.inputPlaceholder ?? ''" [(items)]="chips[filter.key]">
+            </app-chip-selection>
             }
             @case ('range') {
             <app-range-selection-slider card-content [minValue]="filter.data?.minValue ?? 0"
-                [maxValue]="filter.data?.maxValue ?? 1"
-                [(selectedRange)]="ranges[filter.key]"></app-range-selection-slider>
+                [maxValue]="filter.data?.maxValue ?? 1" [(selectedRange)]="ranges[filter.key]">
+            </app-range-selection-slider>
             }
             }
 
