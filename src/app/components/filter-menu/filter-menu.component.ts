@@ -6,7 +6,7 @@ import { MatDivider } from "@angular/material/divider";
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { from } from 'rxjs';
 import { CostCenterResponseDTO, CostCentersService, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../../api';
-import { ORDERS_FILTER_PRESETS, OrdersFilterPreset } from '../../configs/order-filter-presets-config';
+import { ORDERS_FILTER_PRESETS } from '../../configs/order-filter-presets-config';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../configs/orders-filter-menu-config';
 import { statusDisplayNames, statusIcons } from '../../display-name-mappings/status-names';
 import { FilterChipData } from '../../models/filter-chip-data';
@@ -16,8 +16,12 @@ import { FilterRange } from '../../models/filter-range';
 import { ChipSelectionComponent } from '../chip-selection/chip-selection.component';
 import { DateRangePickerComponent } from '../date-range-picker/date-range-picker.component';
 import { RangeSelectionSliderComponent } from '../range-selection-slider/range-selection-slider.component';
+import { OrdersFilterPreset, ChipFilterPreset, DateRangeFilterPreset, RangeFilterPreset } from '../../models/filter-presets';
+import { UsersWrapperService } from '../../services/wrapper-services/users-wrapper.service';
 
-
+/**
+ * Component for displaying and managing the filter menu for orders.
+ */
 @Component({
   selector: 'app-filter-menu',
   imports: [
@@ -34,12 +38,16 @@ import { RangeSelectionSliderComponent } from '../range-selection-slider/range-s
   styleUrl: './filter-menu.component.scss'
 })
 export class FilterMenuComponent implements OnInit {
+  /** List of available filter presets. */
   filterPresets = ORDERS_FILTER_PRESETS;
+  /** Currently active filter presets. */
   private activePresets: OrdersFilterPreset[] = [];
-
+  /** Emits when filters have changed. */
   filtersChanged = output<ActiveFilters>();
-
-  activeFilter = computed(() => {
+  /**
+   * Computed signal representing the currently active filters.
+   */
+  activeFilter = computed<ActiveFilters>(() => {
     return {
       primary_cost_center_id: this.chips['primary_cost_center_id']().filter(chip => chip.isSelected),
       secondary_cost_center_id: this.chips['secondary_cost_center_id']().filter(chip => chip.isSelected),
@@ -53,12 +61,14 @@ export class FilterMenuComponent implements OnInit {
       last_updated_time: this.dateRanges['last_updated_time'](),
       quote_price: this.ranges['quote_price'](),
       booking_year: this.chips['booking_year']().filter(chip => chip.isSelected)
-    }
+    };
   });
-
+  /** Configuration for all available filters in the menu. */
   filters = ORDERS_FILTER_MENU_CONFIG;
-
-  chips: { [key: string]: WritableSignal<FilterChipData[]> } = {
+  /**
+   * Signals holding the chip data for each filter key.
+   */
+  chips: { [key: string]: WritableSignal<FilterChipData[]>; } = {
     'primary_cost_center_id': signal<FilterChipData[]>([]),
     'secondary_cost_center_id': signal<FilterChipData[]>([]),
     'owner_id': signal<FilterChipData[]>([]),
@@ -69,28 +79,44 @@ export class FilterMenuComponent implements OnInit {
     'supplier_id': signal<FilterChipData[]>([]),
     'booking_year': signal<FilterChipData[]>([])
   };
-
-  // Dynamic min/max date ranges could be implemented here as well
-  dateRanges: { [key: string]: WritableSignal<FilterDateRange> } = {
+  /**
+   * Signals holding the date range data for each filter key.
+   */
+  dateRanges: { [key: string]: WritableSignal<FilterDateRange>; } = {
     'created_date': signal<FilterDateRange>({ start: null, end: null }),
     'last_updated_time': signal<FilterDateRange>({ start: null, end: null })
   };
-
-  // ToDO: Dynamically adjust default range values -> min/max from DB needed
-  // Manual input can increase the default max value beyond the initial maximum
-  ranges: { [key: string]: WritableSignal<FilterRange> } = {
+  /**
+   * Signals holding the range data for each filter key.
+   */
+  ranges: { [key: string]: WritableSignal<FilterRange>; } = {
     'quote_price': signal<FilterRange>({ start: 0, end: 10000 })
   };
-
+  /** Reference to the accordion UI element. */
   accordion = viewChild.required(MatAccordion);
+  /** Reference to the chip listbox for presets. */
   presets = viewChild.required<MatChipListbox>('presets');
 
-  constructor() {
+  /**
+   * Creates an instance of FilterMenuComponent.
+   * @param usersService Service for accessing user data.
+   */
+  constructor(usersService: UsersWrapperService) {
     effect(() => {
       this.filtersChanged.emit(this.activeFilter());
     });
+
+    usersService.getCurrentUser().then(user => {
+      if (user) {
+        this.setCurrentUserInPresets(user.id || '-1');
+      }
+    });
   }
 
+  /**
+   * Angular lifecycle hook called on component initialization.
+   * Sets up all filter data sources.
+   */
   ngOnInit() {
     this.setupCostCenters();
     this.setupUsers();
@@ -100,6 +126,9 @@ export class FilterMenuComponent implements OnInit {
     this.setupBookingYears();
   }
 
+  /**
+   * Loads and sets up cost center chips.
+   */
   setupCostCenters() {
     from(CostCentersService.getCostCenters()).subscribe((costCenters: CostCenterResponseDTO[]) => {
       const costCenterChips = costCenters.map(
@@ -114,6 +143,9 @@ export class FilterMenuComponent implements OnInit {
     });
   }
 
+  /**
+   * Loads and sets up user chips.
+   */
   setupUsers() {
     from(UsersService.getAllUsers()).subscribe((users: UserResponseDTO[]) => {
       this.chips['owner_id'].set(users.map(user => ({
@@ -124,6 +156,9 @@ export class FilterMenuComponent implements OnInit {
     });
   }
 
+  /**
+   * Loads and sets up person chips.
+   */
   setupPersons() {
     from(PersonsService.getAllPersons()).subscribe((persons: PersonResponseDTO[]) => {
       const personChips = persons.map(person => {
@@ -144,6 +179,9 @@ export class FilterMenuComponent implements OnInit {
     });
   }
 
+  /**
+   * Sets up status chips using display names and icons.
+   */
   setupStatuses() {
     this.chips['status'].set(
       Array.from(statusDisplayNames.entries()).map(([id, label]) => ({
@@ -154,6 +192,9 @@ export class FilterMenuComponent implements OnInit {
     );
   }
 
+  /**
+   * Loads and sets up supplier chips.
+   */
   setupSuppliers() {
     from(SuppliersService.getAllSuppliers()).subscribe((suppliers: SupplierResponseDTO[]) => {
       this.chips['supplier_id'].set(
@@ -166,6 +207,9 @@ export class FilterMenuComponent implements OnInit {
     });
   }
 
+  /**
+   * Sets up booking year chips.
+   */
   setupBookingYears() {
     const currentYear = new Date().getFullYear();
     const bookingYears = Array.from({ length: currentYear - 1999 }, (_, i) => (currentYear - i));
@@ -176,6 +220,19 @@ export class FilterMenuComponent implements OnInit {
     })));
   }
 
+  /**
+   * Sets the current user in the "Meine Bestellungen" preset.
+   * @param userId The ID of the current user.
+   */
+  setCurrentUserInPresets(userId: string) {
+    this.filterPresets.find(presets => presets.label === 'Meine\u00A0Bestellungen')?.presets
+      .find((preset): preset is ChipFilterPreset => preset.id === 'owner_id')?.chipIds
+      .push(userId);
+  }
+
+  /**
+   * Resets all filters and deselects all presets.
+   */
   onReset() {
     this.activePresets = [];
     const selectedChips = this.presets().selected;
@@ -187,6 +244,9 @@ export class FilterMenuComponent implements OnInit {
     this.clearAllFilters();
   }
 
+  /**
+   * Clears all filters to their default state.
+   */
   clearAllFilters() {
     Object.values(this.chips).forEach(chipSignal => {
       chipSignal.update(chips => chips.map(chip => (
@@ -203,6 +263,11 @@ export class FilterMenuComponent implements OnInit {
     });
   }
 
+  /**
+   * Applies the selected preset to the filters.
+   * @param evt Chip selection change event.
+   * @param preset The filter preset to apply.
+   */
   applyPreset(evt: MatChipSelectionChange, preset: OrdersFilterPreset) {
     if (this.activePresets.includes(preset)) {
       this.activePresets = this.activePresets.filter(p => p !== preset);
@@ -230,6 +295,48 @@ export class FilterMenuComponent implements OnInit {
     }
   }
 
+  /**
+   * Checks if a preset is currently applied based on active filters.
+   * @param preset The filter preset to check.
+   * @returns True if the preset is applied, false otherwise.
+   */
+  isPresetApplied(preset: OrdersFilterPreset): boolean {
+    return preset.presets.every(presetFilter => {
+      const activeValue = this.activeFilter()[presetFilter.id as keyof ActiveFilters];
+
+      switch (true) {
+        case presetFilter === undefined:
+          return false;
+
+        case 'chipIds' in presetFilter:
+          return presetFilter.chipIds.every(id => activeValue && (activeValue as FilterChipData[])
+            .some(chip => chip.id === id));
+
+        case 'dateRange' in presetFilter:
+          if (activeValue && typeof activeValue === 'object' && 'start' in activeValue && 'end' in activeValue) {
+            return activeValue.start === presetFilter.dateRange.start &&
+              activeValue.end === presetFilter.dateRange.end;
+          }
+          return false;
+
+        case 'range' in presetFilter:
+          if (activeValue && typeof activeValue === 'object' && 'start' in activeValue && 'end' in activeValue) {
+            return activeValue.start === presetFilter.range.start &&
+              activeValue.end === presetFilter.range.end;
+          }
+          return false;
+
+        default:
+          return false;
+      }
+    });
+  }
+
+  /**
+   * Returns a tooltip string for a cost center.
+   * @param center The cost center DTO.
+   * @returns Tooltip string.
+   */
   getCostCenterTooltip(center: CostCenterResponseDTO): string {
     const tooltipParts = [];
     if (center.comment) tooltipParts.push(center.comment);
@@ -239,6 +346,11 @@ export class FilterMenuComponent implements OnInit {
     return tooltipParts.join(' - ');
   }
 
+  /**
+   * Composes a full name from a person or user DTO.
+   * @param person The person or user DTO.
+   * @returns Full name string.
+   */
   composeFullName(person: PersonResponseDTO | UserResponseDTO): string {
     const names = [];
     if (person.name) names.push(person.name);

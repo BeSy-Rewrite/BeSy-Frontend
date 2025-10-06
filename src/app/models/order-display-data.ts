@@ -1,3 +1,7 @@
+/**
+ * Type representing the display data for an order.
+ * Contains all relevant fields for showing order information in the UI.
+ */
 export type OrderDisplayData = {
     id: string;
     besy_number: string;
@@ -33,4 +37,4 @@ export type OrderDisplayData = {
     flag_decision_other_reasons: string;
     decision_other_reasons_description: string;
     dfg_key: string;
-}
+};

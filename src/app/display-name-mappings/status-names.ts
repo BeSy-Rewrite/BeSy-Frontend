@@ -1,6 +1,6 @@
 import { OrderStatus as state } from '../api';
 
-export const statusDisplayNames = new Map<string, string>([
+export const statusDisplayNames = new Map<state | string, string>([
     [state.IN_PROGRESS, 'In Bearbeitung'],
     [state.COMPLETED, 'Fertiggestellt'],
     [state.APPROVALS_RECEIVED, 'Genehmigungen erhalten'],
@@ -12,7 +12,7 @@ export const statusDisplayNames = new Map<string, string>([
     [state.DELETED, 'Gelöscht']
 ]);
 
-export const statusIcons = new Map<string, string>([
+export const statusIcons = new Map<state | string, string>([
     [state.IN_PROGRESS, '⏳'],
     [state.COMPLETED, '✔️'],
     [state.APPROVALS_RECEIVED, '🆗'],

@@ -2,14 +2,21 @@ import { FilterChipData } from "../models/filter-chip-data";
 import { FilterDateRange } from "../models/filter-date-range";
 import { FilterRange } from "../models/filter-range";
 
-
+/**
+ * Enum representing the available filter types.
+ */
 export enum FilterType {
+    /** Filter for date ranges. */
     DATE_RANGE = 'date-range',
+    /** Filter for selectable options (chips). */
     SELECT = 'select',
+    /** Filter for numeric or value ranges. */
     RANGE = 'range',
-    BOOLEAN = 'boolean',
 }
 
+/**
+ * Interface representing the structure of all active filters in the application.
+ */
 export interface ActiveFilters {
     primary_cost_center_id: FilterChipData[];
     secondary_cost_center_id: FilterChipData[];

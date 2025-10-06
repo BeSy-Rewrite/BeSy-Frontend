@@ -1,7 +1,11 @@
 <div class="h-fit">
     <button class="!fixed top-22.5 left-2.5 z-10" [class.open]="showFilterButton" [class.closed]="!showFilterButton"
         matFab extended color="primary" (click)="toggleShowFilters()">
+        @if (showFilters) {
+        <mat-icon>close</mat-icon>
+        } @else {
         <mat-icon>filter_list</mat-icon>
+        }
         Filter
     </button>
 
@@ -12,9 +16,9 @@
             <mat-divider class="bg-gray-500"></mat-divider>
             <div class="pt-3 flex flex-row">
 
-                <div [class.open]="showFilters" [class.closed]="!showFilters" class="w-96">
+                <div [class.open]="showFilters" [class.closed]="!showFilters" class="w-96 pb-2">
 
-                    <div class="bg-he-red p-4 rounded-lg text-white">
+                    <div class="bg-he-red p-4 rounded-lg text-white mb-2">
                         Techdemo: dynamische Spaltenauswahl
                         <mat-form-field class="w-full mt-4">
                             <mat-label>Spalten</mat-label>
@@ -26,7 +30,7 @@
                         </mat-form-field>
                     </div>
 
-                    <app-filter-menu (filtersChanged)="onFiltersChanged($event)" class="mb-4" />
+                    <app-filter-menu (filtersChanged)="onFiltersChanged($event)" />
 
                 </div>
 
