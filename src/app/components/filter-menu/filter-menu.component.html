@@ -13,7 +13,7 @@
     <div class="flex flex-row gap-2 justify-between">
         <mat-chip-listbox #presets multiple>
             @for (preset of filterPresets; track $index) {
-            <mat-chip-option (selectionChange)="applyPreset($event, preset)">
+            <mat-chip-option (selectionChange)="applyPreset($event, preset)" [selected]="isPresetApplied(preset)">
                 {{ preset.label }}
             </mat-chip-option>
             }

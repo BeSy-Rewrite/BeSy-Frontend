@@ -6,7 +6,7 @@ import { MatDivider } from "@angular/material/divider";
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { from } from 'rxjs';
 import { CostCenterResponseDTO, CostCentersService, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../../api';
-import { ORDERS_FILTER_PRESETS, OrdersFilterPreset } from '../../configs/order-filter-presets-config';
+import { ORDERS_FILTER_PRESETS } from '../../configs/order-filter-presets-config';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../configs/orders-filter-menu-config';
 import { statusDisplayNames, statusIcons } from '../../display-name-mappings/status-names';
 import { FilterChipData } from '../../models/filter-chip-data';
@@ -16,6 +16,7 @@ import { FilterRange } from '../../models/filter-range';
 import { ChipSelectionComponent } from '../chip-selection/chip-selection.component';
 import { DateRangePickerComponent } from '../date-range-picker/date-range-picker.component';
 import { RangeSelectionSliderComponent } from '../range-selection-slider/range-selection-slider.component';
+import { OrdersFilterPreset, ChipFilterPreset, DateRangeFilterPreset, RangeFilterPreset } from '../../models/filter-presets';
 
 
 @Component({
@@ -228,6 +229,39 @@ export class FilterMenuComponent implements OnInit {
         }
       }
     }
+  }
+
+  isPresetApplied(preset: OrdersFilterPreset): boolean {
+
+    return preset.presets.every(presetFilter => {
+      const activeValue = this.activeFilter()[presetFilter.id as keyof ActiveFilters];
+
+      switch (true) {
+        case presetFilter === undefined:
+          return false;
+
+        case 'chipIds' in presetFilter:
+          return presetFilter.chipIds.every(id => activeValue && (activeValue as FilterChipData[])
+            .some(chip => chip.id === id));
+
+        case 'dateRange' in presetFilter:
+          if (activeValue && typeof activeValue === 'object' && 'start' in activeValue && 'end' in activeValue) {
+            return activeValue.start === presetFilter.dateRange.start &&
+              activeValue.end === presetFilter.dateRange.end;
+          }
+          return false;
+
+        case 'range' in presetFilter:
+          if (activeValue && typeof activeValue === 'object' && 'start' in activeValue && 'end' in activeValue) {
+            return activeValue.start === presetFilter.range.start &&
+              activeValue.end === presetFilter.range.end;
+          }
+          return false;
+
+        default:
+          return false;
+      }
+    });
   }
 
   getCostCenterTooltip(center: CostCenterResponseDTO): string {
