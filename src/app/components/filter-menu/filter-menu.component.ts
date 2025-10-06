@@ -17,6 +17,7 @@ import { ChipSelectionComponent } from '../chip-selection/chip-selection.compone
 import { DateRangePickerComponent } from '../date-range-picker/date-range-picker.component';
 import { RangeSelectionSliderComponent } from '../range-selection-slider/range-selection-slider.component';
 import { OrdersFilterPreset, ChipFilterPreset, DateRangeFilterPreset, RangeFilterPreset } from '../../models/filter-presets';
+import { UsersWrapperService } from '../../services/wrapper-services/users-wrapper.service';
 
 
 @Component({
@@ -40,7 +41,7 @@ export class FilterMenuComponent implements OnInit {
 
   filtersChanged = output<ActiveFilters>();
 
-  activeFilter = computed(() => {
+  activeFilter = computed<ActiveFilters>(() => {
     return {
       primary_cost_center_id: this.chips['primary_cost_center_id']().filter(chip => chip.isSelected),
       secondary_cost_center_id: this.chips['secondary_cost_center_id']().filter(chip => chip.isSelected),
@@ -59,7 +60,7 @@ export class FilterMenuComponent implements OnInit {
 
   filters = ORDERS_FILTER_MENU_CONFIG;
 
-  chips: { [key: string]: WritableSignal<FilterChipData[]> } = {
+  chips: { [key: string]: WritableSignal<FilterChipData[]>; } = {
     'primary_cost_center_id': signal<FilterChipData[]>([]),
     'secondary_cost_center_id': signal<FilterChipData[]>([]),
     'owner_id': signal<FilterChipData[]>([]),
@@ -72,23 +73,29 @@ export class FilterMenuComponent implements OnInit {
   };
 
   // Dynamic min/max date ranges could be implemented here as well
-  dateRanges: { [key: string]: WritableSignal<FilterDateRange> } = {
+  dateRanges: { [key: string]: WritableSignal<FilterDateRange>; } = {
     'created_date': signal<FilterDateRange>({ start: null, end: null }),
     'last_updated_time': signal<FilterDateRange>({ start: null, end: null })
   };
 
   // ToDO: Dynamically adjust default range values -> min/max from DB needed
   // Manual input can increase the default max value beyond the initial maximum
-  ranges: { [key: string]: WritableSignal<FilterRange> } = {
+  ranges: { [key: string]: WritableSignal<FilterRange>; } = {
     'quote_price': signal<FilterRange>({ start: 0, end: 10000 })
   };
 
   accordion = viewChild.required(MatAccordion);
   presets = viewChild.required<MatChipListbox>('presets');
 
-  constructor() {
+  constructor(usersService: UsersWrapperService) {
     effect(() => {
       this.filtersChanged.emit(this.activeFilter());
+    });
+
+    usersService.getCurrentUser().then(user => {
+      if (user) {
+        this.setCurrentUserInPresets(user.id || '-1');
+      }
     });
   }
 
@@ -177,6 +184,11 @@ export class FilterMenuComponent implements OnInit {
     })));
   }
 
+  setCurrentUserInPresets(userId: string) {
+    this.filterPresets.find(presets => presets.label === 'Meine\u00A0Bestellungen')?.presets
+      .find((preset): preset is ChipFilterPreset => preset.id === 'owner_id')?.chipIds
+      .push(userId);
+  }
   onReset() {
     this.activePresets = [];
     const selectedChips = this.presets().selected;
