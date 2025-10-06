@@ -21,9 +21,7 @@ export const ORDERS_FILTER_PRESETS: OrdersFilterPreset[] = [
         presets: [
             {
                 id: "owner_id",
-                chipIds: [
-                    1 // Replace with dynamic user ID as needed
-                ]
+                chipIds: []
             }
         ]
     },
@@ -38,4 +36,4 @@ export const ORDERS_FILTER_PRESETS: OrdersFilterPreset[] = [
             }
         ]
     }
-]
+];
