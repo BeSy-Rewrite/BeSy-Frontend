@@ -114,16 +114,25 @@ export class FilterMenuComponent implements OnInit {
 
   /**
    * Creates an instance of FilterMenuComponent.
-   * @param usersService Service for accessing user data.
+   * @param resourceResolver Service for resolving order subresources.
    */
-  constructor(usersService: UsersWrapperService) {
+  constructor(resourceResolver: OrderSubresourceResolverService,
+    private readonly _snackBar: MatSnackBar
+  ) {
     effect(() => {
       this.filtersChanged.emit(this.activeFilter());
     });
 
-    usersService.getCurrentUser().then(user => {
-      if (user) {
-        this.setCurrentUserInPresets(user.id || '-1');
+    this.selectedColumnsControl.valueChanges.subscribe(selected => {
+      this.selectedColumnsChanged.emit(selected ?? []);
+    });
+
+    resourceResolver.resolveCurrentUserInPresets(this.filterPresets).subscribe({
+      next: resolvedPresets => {
+        this.filterPresets = resolvedPresets;
+      },
+      error: error => {
+        this._snackBar.open('Fehler beim Laden der Filtervorgaben: ' + error.message, 'Schließen', { duration: 5000 });
       }
     });
   }
@@ -233,16 +242,6 @@ export class FilterMenuComponent implements OnInit {
       label: year.toString(),
       tooltip: ''
     })));
-  }
-
-  /**
-   * Sets the current user in the "Meine Bestellungen" preset.
-   * @param userId The ID of the current user.
-   */
-  setCurrentUserInPresets(userId: string) {
-    this.filterPresets.find(presets => presets.label === 'Meine\u00A0Bestellungen')?.presets
-      .find((preset): preset is ChipFilterPreset => preset.id === 'owner_id')?.chipIds
-      .push(userId);
   }
 
   /**

@@ -2,7 +2,9 @@ import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
 import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
 import { statusDisplayNames, statusIcons } from '../display-name-mappings/status-names';
+import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../models/filter-presets';
 import { OrderDisplayData } from '../models/order-display-data';
+import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
 
 /**
  * Union of identifier types used to look up subresources.
@@ -101,7 +103,7 @@ export class OrderSubresourceResolverService {
    * Constructs the resolver and wires up the resource formatters.
    * Inject API clients or services here to provide `fetchAll` functions.
    */
-  constructor() {
+  constructor(private readonly usersService: UsersWrapperService) {
 
     this.currencyFormatter = new ResourceFormatter<CurrencyResponseDTO>(
       (c) => this.formatCurrency(c), CurrenciesService.getAllCurrencies
@@ -272,9 +274,59 @@ export class OrderSubresourceResolverService {
     return `${center.id} - ${center.name}`;
   }
 
+  /** Returns tooltip texts for specific fields in the order display data. */
   getTooltips(order: OrderResponseDTO): { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string } {
     return {
       status: statusDisplayNames.get(order.status ?? '') ?? order.status ?? '',
     }
+  }
+
+  /**
+   * Resolves the current user in the given filter presets.
+   * @param filterPresets The array of OrdersFilterPreset to resolve the current user in.
+   * @returns An observable of the resolved OrdersFilterPreset array.
+   */
+  resolveCurrentUserInPresets(filterPresets: OrdersFilterPreset[]): Observable<OrdersFilterPreset[]> {
+    return this.usersService.getCurrentUser().pipe(
+      map(user => {
+        if (!user?.id) {
+          throw new Error('Current user not found');
+        }
+
+        return this.replaceCurrentUserInPresets(filterPresets, user.id);
+      })
+    );
+  }
+
+  /**
+   * Replaces occurrences of 'CURRENT_USER' in the filter presets with the actual user ID.
+   * @param filterPresets The array of OrdersFilterPreset to process.
+   * @param userId The ID of the current user.
+   * @returns The modified array of OrdersFilterPreset.
+   */
+  private replaceCurrentUserInPresets(filterPresets: OrdersFilterPreset[], userId: string): OrdersFilterPreset[] {
+    return filterPresets.map(preset => ({
+      ...preset,
+      appliedFilters: preset.appliedFilters.map(f => this.replaceCurrentUserInAppliedFilter(f, userId))
+    }));
+  }
+
+  /**
+   * Replaces 'CURRENT_USER' in a single applied filter if it is a ChipFilterPreset.
+   * @param filter The filter preset to process.
+   * @param userId The ID of the current user.
+   * @returns The modified filter preset.
+   */
+  private replaceCurrentUserInAppliedFilter(filter: ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset, userId: string): any {
+    if (!('chipIds' in filter)) {
+      return filter;
+    }
+
+    return {
+      ...filter,
+      chipIds: filter.chipIds.map((id: numberOrString) =>
+        id === 'CURRENT_USER' ? userId : id
+      )
+    };
   }
 }
