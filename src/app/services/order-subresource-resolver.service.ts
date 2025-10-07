@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
 import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
-import { statusIcons } from '../display-name-mappings/status-names';
+import { statusDisplayNames, statusIcons } from '../display-name-mappings/status-names';
 import { OrderDisplayData } from '../models/order-display-data';
 
 /**
@@ -197,6 +197,8 @@ export class OrderSubresourceResolverService {
     data.decision_other_reasons_description = order.decision_other_reasons_description ?? '';
     data.dfg_key = order.dfg_key ?? '';
 
+    data.tooltips = this.getTooltips(order);
+
     return data;
   }
 
@@ -268,5 +270,11 @@ export class OrderSubresourceResolverService {
    */
   formatCostCenter = (center: CostCenterResponseDTO) => {
     return `${center.id} - ${center.name}`;
+  }
+
+  getTooltips(order: OrderResponseDTO): { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string } {
+    return {
+      status: statusDisplayNames.get(order.status ?? '') ?? order.status ?? '',
+    }
   }
 }

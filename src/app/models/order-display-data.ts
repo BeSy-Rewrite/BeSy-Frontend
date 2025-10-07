@@ -37,4 +37,5 @@ export type OrderDisplayData = {
     flag_decision_other_reasons: string;
     decision_other_reasons_description: string;
     dfg_key: string;
+    tooltips?: { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string };
 };

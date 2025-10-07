@@ -41,7 +41,7 @@
 
       <tr mat-header-row *matHeaderRowDef="displayedColumnIds()" sticky></tr>
       <tr mat-row *matRowDef="let row; columns: displayedColumnIds()" (click)="onRowClick(row)"
-        [class.selected]="selectedRow === row"></tr>
+        [class.selected]="selectedRow === row" (keydown.enter)="onRowClick(row)"></tr>
       @if (showFooter()) {
       <tr mat-footer-row *matFooterRowDef="displayedColumnIds()"></tr>
       }
