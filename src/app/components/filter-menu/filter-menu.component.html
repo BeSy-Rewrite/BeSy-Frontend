@@ -13,7 +13,8 @@
     <div class="flex flex-row gap-2 justify-between">
         <mat-chip-listbox #presets multiple>
             @for (preset of filterPresets; track $index) {
-            <mat-chip-option (selectionChange)="applyPreset($event, preset)" [selected]="isPresetApplied(preset)">
+            <mat-chip-option (selectionChange)="onPresetSelectionChange($event, preset)"
+                [selected]="isPresetApplied(preset)">
                 {{ preset.label }}
             </mat-chip-option>
             }
@@ -56,7 +57,7 @@
             <mat-form-field class="w-full mt-4">
                 <mat-label>Spalten</mat-label>
                 <mat-select [formControl]="selectedColumnsControl" multiple>
-                    @for (column of ordersTableColumns(); track column) {
+                    @for (column of ordersTableColumns(); track $index) {
                     <mat-option [value]="column.id">{{column.label}}</mat-option>
                     }
                 </mat-select>
