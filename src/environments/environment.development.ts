@@ -9,5 +9,8 @@ export const environment = {
     approveOrdersRole: "dekanat",
 
     nominatimUrl: 'https://nominatim.openstreetmap.org/search',
-    cacheDurationMs: 5 * 60 * 1000 // 5 minutes
+
+    // Caching and performance, in milliseconds
+    cacheDurationMs: 5 * 60 * 1000, // 5 minutes
+    searchAndFilterDebounceMs: 100
 };

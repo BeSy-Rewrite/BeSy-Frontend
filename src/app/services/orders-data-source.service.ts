@@ -4,6 +4,7 @@ import { Injectable } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { BehaviorSubject, debounceTime, forkJoin, Observable, of } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api';
 import { ActiveFilters } from '../models/filter-menu-types';
 import { FilterRequestParams } from '../models/filter-request-params';
@@ -32,7 +33,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
     this._data = new BehaviorSubject<OrderResponseDTO[]>([]);
 
     this._filterUpdates = new BehaviorSubject<ActiveFilters>({} as ActiveFilters);
-    this._filterUpdates.pipe(debounceTime(100))
+    this._filterUpdates.pipe(debounceTime(environment.searchAndFilterDebounceMs))
       .subscribe(filter => {
         this._filter = filter;
         this._fetchData();
