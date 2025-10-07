@@ -8,7 +8,7 @@ import {
   OnInit,
   output,
   signal,
-  ViewChild
+  viewChild
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDivider } from "@angular/material/divider";
@@ -99,9 +99,9 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
   /**
    * Reference to the MatSort directive for enabling sorting functionality.
    */
-  @ViewChild(MatSort) sort!: MatSort;
+  sort = viewChild.required(MatSort);
 
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  paginator = viewChild.required(MatPaginator);
 
   showFooter = computed(() =>
     this.internalColumns().some((col) => col.footerContent !== undefined)
@@ -182,17 +182,32 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
   private _setupDataSource() {
     const ds = this.dataSource();
     // Only assign sort and paginator if ds is a MatTableDataSource
-    if (ds && this.sort && this.paginator && 'sort' in ds && 'paginator' in ds) {
-      ds.sort = this.sort;
-      ds.paginator = this.paginator;
-      this.paginator._intl.itemsPerPageLabel = 'Einträge pro Seite';
-      this.paginator._intl.getRangeLabel = (page: number, pageSize: number, length: number) => {
+    if (ds && this.sort() && this.paginator() && 'sort' in ds && 'paginator' in ds) {
+      this._setupPaginator();
+      ds.sort = this.sort();
+      ds.paginator = this.paginator();
+    }
+  }
+
+  /**
+   * Configures the paginator with custom labels and settings.
+   * @private
+   */
+  private _setupPaginator() {
+    const paginator = this.paginator();
+    if (paginator) {
+      paginator._intl.itemsPerPageLabel = 'Einträge pro Seite';
+      paginator._intl.getRangeLabel = (page: number, pageSize: number, length: number) => {
         if (length === 0 || pageSize === 0) {
           return `0 von ${length}`;
         }
         return `${page * pageSize + 1} - ${Math.min((page + 1) * pageSize, length)} von ${length}`;
       };
-      this.paginator.pageSize = this.pageSize();
+      paginator._intl.firstPageLabel = 'Erste Seite';
+      paginator._intl.lastPageLabel = 'Letzte Seite';
+      paginator._intl.nextPageLabel = 'Nächste Seite';
+      paginator._intl.previousPageLabel = 'Vorherige Seite';
+      paginator.pageSize = this.pageSize();
     }
   }
 
