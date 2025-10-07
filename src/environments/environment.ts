@@ -1,5 +1,5 @@
 export const environment = {
-    production: true,
+    production: true, // Disable authentication in non-production environments
     apiUrl: 'https://api.besy.hs-esslingen.com',
 
     // Keycloak configuration
