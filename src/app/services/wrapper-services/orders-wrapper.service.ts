@@ -75,6 +75,7 @@ export class OrdersWrapperService {
   }
 
   async createOrder(request: OrderRequestDTO): Promise<OrderResponseDTO> {
+    request.booking_year = request.booking_year?.slice(-2); // Nur die letzten zwei Ziffern übergeben
     return await OrdersService.createOrder(request);
   }
 

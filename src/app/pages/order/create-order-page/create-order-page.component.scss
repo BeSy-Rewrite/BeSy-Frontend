@@ -12,3 +12,15 @@
   min-height: 100vh;
 
 }
+
+.main-offer-container,
+.supplier-decision-reason-container {
+  display: flex;
+  justify-content: center;
+}
+
+.main-offer-container > div,
+.supplier-decision-reason-container > div {
+  width: 100%;
+  max-width: 50%; /* optional, für saubere Ausrichtung */
+}

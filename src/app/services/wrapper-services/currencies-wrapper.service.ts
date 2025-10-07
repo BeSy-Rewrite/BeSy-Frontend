@@ -45,7 +45,7 @@ export class CurrenciesWrapperService {
 
       return {
         ...c,
-        symbol, // e.g. "€"
+        symbol: symbol, // e.g. "€"
         displayName: `${name} (${symbol})`, // e.g. "Euro (€)"
       } as CurrencyWithDisplayName;
     });

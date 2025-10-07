@@ -51,6 +51,7 @@ import {
   ORDER_ADDRESS_FORM_CONFIG,
   ORDER_APPROVAL_FORM_CONFIG,
   ORDER_COST_CENTER_FORM_CONFIG,
+  ORDER_GENERAL_FORM_CONFIG,
   ORDER_MAIN_OFFER_FORM_CONFIG,
   ORDER_QUOTATION_FORM_CONFIG,
   ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
@@ -73,6 +74,8 @@ import {
   CurrencyWithDisplayName,
 } from '../../../services/wrapper-services/currencies-wrapper.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
+import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 
 @Component({
   selector: 'app-create-order-page',
@@ -93,6 +96,8 @@ import { SuppliersWrapperService } from '../../../services/wrapper-services/supp
     MatButtonToggleGroup,
     MatRadioButton,
     MatRadioModule,
+    MatTabGroup,
+    MatTabsModule,
   ],
   templateUrl: './create-order-page.component.html',
   styleUrl: './create-order-page.component.scss',
@@ -103,7 +108,8 @@ export class CreateOrderPageComponent implements OnInit {
     private _notifications: MatSnackBar,
     private personsWrapperService: PersonsWrapperService,
     private currenciesWrapperService: CurrenciesWrapperService,
-    private suppliersWrapperService: SuppliersWrapperService
+    private suppliersWrapperService: SuppliersWrapperService,
+    private orderWrapperService: OrdersWrapperService,
   ) {}
 
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
@@ -258,6 +264,10 @@ export class CreateOrderPageComponent implements OnInit {
   // Supplier decision reason variables
   supplierDecisionReasonFormConfig = ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG;
   supplierDecisionReasonFormGroup = new FormGroup({});
+
+  // General form variables
+  generalFormConfig = ORDER_GENERAL_FORM_CONFIG;
+  generalFormGroup = new FormGroup({});
 
   async ngOnInit(): Promise<void> {
     // Load initial data for the VAT options field in the form
@@ -714,27 +724,6 @@ export class CreateOrderPageComponent implements OnInit {
     return { invalidCostCenter: true }; // No valid cost center selected
   }
 
-  saveOrder() {
-    console.log('PostOrderDTO vor dem Speichern:', this.postOrderDTO);
-    OrdersService.createOrder(this.postOrderDTO)
-      .then((order) => {
-        this._notifications.open(
-          'Bestellung erfolgreich erstellt.',
-          undefined,
-          { duration: 3000 }
-        );
-        this.router.navigate(['/orders', order.id]);
-      })
-      .catch((error) => {
-        console.error('Fehler beim Erstellen der Bestellung:', error);
-        this._notifications.open(
-          'Fehler beim Erstellen der Bestellung. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.',
-          undefined,
-          { duration: 5000 }
-        );
-      });
-  }
-
   /**
    * Set the dropdown options for the currency fields in the form
    * @param currencies
@@ -908,5 +897,35 @@ export class CreateOrderPageComponent implements OnInit {
     } else {
       this.filteredPersonsInvoice = filtered;
     }
+  }
+
+  async createOrder() {
+    // Implement the logic to create the order
+    this.generalFormGroup.markAllAsTouched();
+    if (!this.generalFormGroup.valid) {
+      this._notifications.open(
+        'Bitte überprüfen Sie die Eingaben im Formular. Alle Pflichtfelder müssen ausgefüllt sein.',
+        undefined,
+        { duration: 3000 }
+      );
+      return;
+    }
+    this.postOrderDTO = {
+      ...this.postOrderDTO,
+      ...this.generalFormGroup.value,
+      ...this.supplierDecisionReasonFormGroup.value,
+      ...this.approvalFormGroup.value,
+      ...this.mainOfferFormGroup.value,
+    };
+    console.log('PostOrderDTO vor Erstellung:', this.postOrderDTO);
+    const createdOrder = await this.orderWrapperService.createOrder(this.postOrderDTO);
+    if (createdOrder) {
+      this.orderWrapperService.getOrderById(createdOrder.id!);
+      this._notifications.open('Bestellung wurde erstellt.', undefined, {
+        duration: 3000,
+      });
+      console.log('Erstellte Bestellung:', createdOrder);
+    }
+    else this._notifications.open('Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.', undefined, { duration: 3000 });
   }
 }

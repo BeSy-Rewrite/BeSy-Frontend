@@ -14,259 +14,344 @@
     ></app-progress-bar>
   </div>
   <mat-divider></mat-divider>
-  <div class="form-container">
-    <!-- Hauptangebot -->
-    <div class="main-offer-container">
-      <div class="text-2xl font-bold mb-4 mt-4">
-        Hauptangebot
+  <mat-tab-group
+    #tabGroup
+    mat-stretch-tabs="true"
+    mat-align-tabs="start"
+    class="mb-4"
+  >
+    <!-- General Information -->
+    <mat-tab label="Bestellung erstellen">
+      <div class="general-info-container">
         <app-form-component
-          [config]="mainOfferFormConfig"
-          [formGroup]="mainOfferFormGroup"
-          (valueChanged)="onMainOfferFormGroupChanged($event)"
+          [config]="generalFormConfig"
+          [formGroup]="generalFormGroup"
         ></app-form-component>
-      </div>
-    </div>
-    <div class="spacing-container h-8"></div>
-    <!-- Supplier Decision Reason -->
-    <div class="supplier-decision-reason-container">
-      <div class="text-2xl font-bold mb-4 mt-4">
-        Begründung der Lieferantenauswahl
-        <app-form-component
-          [config]="supplierDecisionReasonFormConfig"
-          [formGroup]="supplierDecisionReasonFormGroup"
-          (valueChanged)="onSupplierDecisionReasonChanged($event)"
-        ></app-form-component>
-      </div>
-    </div>
-    <div class="spacing-container h-8"></div>
-    <!-- Add Item -->
-    <div class="item-container">
-      <div class="text-2xl font-bold mb-4 mt-4">
-        Bestellpositionen
-        <app-form-component
-          [config]="orderItemFormConfig"
-          [formGroup]="orderItemFormGroup"
-        ></app-form-component>
-        <button
-          mat-raised-button
-          class="ml-8 mb-4 w-31/40"
-          color="primary"
-          (click)="onAddItem()"
-        >
-          Position hinzufügen
-        </button>
-      </div>
-      <div class="table-container w-31/40 ml-8">
-        <app-generic-table
-          [dataSource]="itemTableDataSource"
-          [columns]="orderItemColumns"
-          [actions]="orderItemTableActions"
-        ></app-generic-table>
-      </div>
-    </div>
-    <div class="spacing-container h-8"></div>
-    <div class="quotation-container">
-      <div class="text-2xl font-bold mb-4 mt-4 ml-8">
-        Vergleichsangebot
-        <app-form-component
-          [config]="quotationFormConfig"
-          [formGroup]="quotationFormGroup"
-        ></app-form-component>
-        <button
-          mat-raised-button
-          class="ml-8 mb-4 w-31/40"
-          color="primary"
-          (click)="onAddQuotation()"
-        >
-          Vergleichsangebot hinzufügen
-        </button>
-      </div>
-      <div class="table-container w-31/40 ml-8">
-        <app-generic-table
-          [dataSource]="quotationTableDataSource"
-          [columns]="orderQuotationColumns"
-          [actions]="orderQuotationTableActions"
-        ></app-generic-table>
-      </div>
-    </div>
-    <div class="spacing-container h-8"></div>
-    <div class="address-container">
-      <div class="text-2xl font-bold mb-4 mt-4 ml-8">
-        Adressdaten
-        <div class="recipient-container flex flex-col mb-4">
+        <div class="cost-center-container w-31/40 ml-8">
           <mat-form-field class="w-full" appearance="fill">
-            <mat-label>Sendungsempfänger auswählen</mat-label>
+            <mat-label>Primäre Kostenstelle auswählen</mat-label>
             <input
-              #inputRecipient
+              type="text"
               matInput
-              [matAutocomplete]="autoRecipient"
-              required
-              (input)="filterPersons(true)"
-              (focus)="filterPersons(true)"
+              [formControl]="primaryCostCenterControl"
+              [matAutocomplete]="autoPrimaryCostCenter"
+              [required]="true"
             />
 
             <mat-autocomplete
-              #autoRecipient="matAutocomplete"
-              [requireSelection]="true"
-              [displayWith]="displayPerson"
-              (optionSelected)="onPersonSelected($event.option.value, true)"
+              #autoPrimaryCostCenter="matAutocomplete"
+              (optionSelected)="onCostCenterSelected($event.option.value, true)"
+              [displayWith]="displayCostCenter"
             >
-              @for (person of filteredPersonsRecipient; track person.id) {
-              <mat-option [value]="person">{{ person.fullName }}</mat-option>
+              @for (costCenter of filteredPrimaryCostCenters | async; track
+              costCenter.id) {
+              <mat-option [value]="costCenter">
+                {{ costCenter.name }}
+              </mat-option>
               }
             </mat-autocomplete>
           </mat-form-field>
 
-          <!-- Info Text -->
-          <p class="mt-2 mb-2 text-sm text-red-700">{{ recipientInfoText }}</p>
+          <mat-form-field class="w-full" appearance="fill">
+            <mat-label>Sekundäre Kostenstelle auswählen</mat-label>
+            <input
+              type="text"
+              matInput
+              [formControl]="secondaryCostCenterControl"
+              [matAutocomplete]="autoSecondaryCostCenter"
+              [required]="true"
+            />
 
-          @if (selectedRecipientPerson) {
-          <mat-button-toggle-group
-            name="recipientAddressOption"
-            [(ngModel)]="recipientAddressOption"
-            (change)="onAddressOptionChange($event.value, true)"
-            aria-label="Adresse auswählen"
-          >
-            <mat-button-toggle
-              value="preferred"
-              [disabled]="!recipientHasPreferredAddress"
+            <mat-autocomplete
+              #autoSecondaryCostCenter="matAutocomplete"
+              (optionSelected)="
+                onCostCenterSelected($event.option.value, false)
+              "
+              [displayWith]="displayCostCenter"
             >
-              Bevorzugte Adresse
-            </mat-button-toggle>
-            <mat-button-toggle value="existing">
-              Bestehende Adresse auswählen
-            </mat-button-toggle>
-            <mat-button-toggle value="new">
-              Neue Adresse erstellen
-            </mat-button-toggle>
-          </mat-button-toggle-group>
-          }
-          <!-- Table for existing addresses -->
-          @if (recipientAddressOption === 'existing' && selectedRecipientPerson)
-          {
-          <div class="table-container w-31/40 mt-4">
-            @if (addressTableDataSource.data.length > 0) {
-            <app-generic-table
-              [dataSource]="addressTableDataSource"
-              [columns]="addressTableColumns"
-              (rowClicked)="onAddressSelected($event, true)"
-            ></app-generic-table>
-            } @else {
-            <p class="mt-2 mb-2 text-sm text-gray-700">
-              Fehler beim Laden der Adressen. Bitte versuchen Sie es später
-              erneut.
+              @for (costCenter of filteredSecondaryCostCenters | async; track
+              costCenter.id) {
+              <mat-option [value]="costCenter">
+                {{ costCenter.name }}
+              </mat-option>
+              }
+            </mat-autocomplete>
+          </mat-form-field>
+          <button
+            mat-raised-button
+            class="ml-8 mb-4 w-31/40"
+            color="primary"
+            (click)="createOrder()"
+          >
+            Bestellung anlegen
+          </button>
+        </div>
+      </div>
+    </mat-tab>
+    <mat-tab label="Hauptangebot festlegen">
+      <div
+        class="flex flex-col items-center justify-center min-h-full w-full overflow-y-auto py-8"
+      >
+        <!-- Hauptangebot -->
+        <div class="main-offer-container w-1/2 flex justify-center">
+          <app-form-component
+            [config]="mainOfferFormConfig"
+            [formGroup]="mainOfferFormGroup"
+            (valueChanged)="onMainOfferFormGroupChanged($event)"
+          ></app-form-component>
+        </div>
+
+        <!-- Begründung der Lieferantenauswahl -->
+        <div
+          class="supplier-decision-reason-container w-1/2 flex justify-center"
+        >
+          <app-form-component
+            [config]="supplierDecisionReasonFormConfig"
+            [formGroup]="supplierDecisionReasonFormGroup"
+            (valueChanged)="onSupplierDecisionReasonChanged($event)"
+          ></app-form-component>
+        </div>
+      </div>
+    </mat-tab>
+
+    <!-- Add Item -->
+    <mat-tab label="Bestellpositionen">
+      <div class="item-container">
+        <div class="text-2xl font-bold mb-4 mt-4">
+          Bestellpositionen
+          <app-form-component
+            [config]="orderItemFormConfig"
+            [formGroup]="orderItemFormGroup"
+          ></app-form-component>
+          <button
+            mat-raised-button
+            class="ml-8 mb-4 w-31/40"
+            color="primary"
+            (click)="onAddItem()"
+          >
+            Position hinzufügen
+          </button>
+        </div>
+        <div class="table-container w-31/40 ml-8">
+          <app-generic-table
+            [dataSource]="itemTableDataSource"
+            [columns]="orderItemColumns"
+            [actions]="orderItemTableActions"
+          ></app-generic-table>
+        </div>
+      </div>
+    </mat-tab>
+    <mat-tab label="Vergleichsangebote">
+      <div class="quotation-container">
+        <div class="text-2xl font-bold mb-4 mt-4 ml-8">
+          Vergleichsangebot
+          <app-form-component
+            [config]="quotationFormConfig"
+            [formGroup]="quotationFormGroup"
+          ></app-form-component>
+          <button
+            mat-raised-button
+            class="ml-8 mb-4 w-31/40"
+            color="primary"
+            (click)="onAddQuotation()"
+          >
+            Vergleichsangebot hinzufügen
+          </button>
+        </div>
+        <div class="table-container w-31/40 ml-8">
+          <app-generic-table
+            [dataSource]="quotationTableDataSource"
+            [columns]="orderQuotationColumns"
+            [actions]="orderQuotationTableActions"
+          ></app-generic-table>
+        </div>
+      </div>
+    </mat-tab>
+    <mat-tab label="Adressdaten">
+      <div class="address-container">
+        <div class="text-2xl font-bold mb-4 mt-4 ml-8">
+          Adressdaten
+          <div class="recipient-container flex flex-col mb-4">
+            <mat-form-field class="w-full" appearance="fill">
+              <mat-label>Sendungsempfänger auswählen</mat-label>
+              <input
+                #inputRecipient
+                matInput
+                [matAutocomplete]="autoRecipient"
+                required
+                (input)="filterPersons(true)"
+                (focus)="filterPersons(true)"
+              />
+
+              <mat-autocomplete
+                #autoRecipient="matAutocomplete"
+                [requireSelection]="true"
+                [displayWith]="displayPerson"
+                (optionSelected)="onPersonSelected($event.option.value, true)"
+              >
+                @for (person of filteredPersonsRecipient; track person.id) {
+                <mat-option [value]="person">{{ person.fullName }}</mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+
+            <!-- Info Text -->
+            <p class="mt-2 mb-2 text-sm text-red-700">
+              {{ recipientInfoText }}
             </p>
+
+            @if (selectedRecipientPerson) {
+            <mat-button-toggle-group
+              name="recipientAddressOption"
+              [(ngModel)]="recipientAddressOption"
+              (change)="onAddressOptionChange($event.value, true)"
+              aria-label="Adresse auswählen"
+            >
+              <mat-button-toggle
+                value="preferred"
+                [disabled]="!recipientHasPreferredAddress"
+              >
+                Bevorzugte Adresse
+              </mat-button-toggle>
+              <mat-button-toggle value="existing">
+                Bestehende Adresse auswählen
+              </mat-button-toggle>
+              <mat-button-toggle value="new">
+                Neue Adresse erstellen
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+            }
+            <!-- Table for existing addresses -->
+            @if (recipientAddressOption === 'existing' &&
+            selectedRecipientPerson) {
+            <div class="table-container w-31/40 mt-4">
+              @if (addressTableDataSource.data.length > 0) {
+              <app-generic-table
+                [dataSource]="addressTableDataSource"
+                [columns]="addressTableColumns"
+                (rowClicked)="onAddressSelected($event, true)"
+              ></app-generic-table>
+              } @else {
+              <p class="mt-2 mb-2 text-sm text-gray-700">
+                Fehler beim Laden der Adressen. Bitte versuchen Sie es später
+                erneut.
+              </p>
+              }
+            </div>
+            } @if (selectedRecipientPerson) {
+            <app-form-component
+              [config]="recipientAddressFormConfig"
+              [formGroup]="recipientAddressFormGroup"
+            ></app-form-component>
+
+            }
+          </div>
+          @if (selectedRecipientPerson) {
+          <div class="flex flex-col">
+            <label class="block mb-2 text-sm font-semibold text-gray-700">
+              Entspricht Empfänger und Lieferadresse dem Rechnungsempfänger und
+              der Rechnungsadresse?
+            </label>
+            <mat-radio-group
+              [(ngModel)]="sameAsRecipient"
+              class="flex space-x-4"
+            >
+              <mat-radio-button [value]="true">Ja</mat-radio-button>
+              <mat-radio-button [value]="false">Nein</mat-radio-button>
+            </mat-radio-group>
+          </div>
+
+          <!-- Rechnungsadresse -->
+          } @if(!sameAsRecipient && selectedRecipientPerson) {
+          <div class="invoice-address-container mt-4">
+            <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
+
+            <mat-form-field class="w-full" appearance="fill">
+              <mat-label>Sendungsempfänger auswählen</mat-label>
+              <input
+                #inputInvoice
+                matInput
+                [matAutocomplete]="autoInvoice"
+                required
+                (input)="filterPersons(false)"
+                (focus)="filterPersons(false)"
+              />
+
+              <mat-autocomplete
+                #autoInvoice="matAutocomplete"
+                [requireSelection]="true"
+                [displayWith]="displayPerson"
+                (optionSelected)="onPersonSelected($event.option.value, false)"
+              >
+                @for (person of filteredPersonsInvoice; track person.id) {
+                <mat-option [value]="person">{{ person.fullName }}</mat-option>
+                }
+              </mat-autocomplete>
+            </mat-form-field>
+
+            <!-- Info Text -->
+            <p class="mt-2 mb-2 text-sm text-red-700">
+              {{ invoiceInfoText }}
+            </p>
+            @if (selectedInvoicePerson) {
+            <mat-button-toggle-group
+              name="invoiceAddressOption"
+              [(ngModel)]="invoiceAddressOption"
+              (change)="onAddressOptionChange($event.value, false)"
+              aria-label="Adresse auswählen"
+            >
+              <mat-button-toggle
+                value="preferred"
+                [disabled]="!invoiceHasPreferredAddress"
+              >
+                Bevorzugte Adresse
+              </mat-button-toggle>
+              <mat-button-toggle value="existing">
+                Bestehende Adresse auswählen
+              </mat-button-toggle>
+              <mat-button-toggle value="new">
+                Neue Adresse erstellen
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+
+            <!-- Table for existing addresses -->
+            @if (invoiceAddressOption === 'existing') {
+            <div class="table-container w-31/40 mt-4">
+              @if (addressTableDataSource.data.length > 0) {
+              <app-generic-table
+                [dataSource]="addressTableDataSource"
+                [columns]="addressTableColumns"
+                (rowClicked)="onAddressSelected($event, false)"
+              ></app-generic-table>
+              } @else {
+              <p class="mt-2 mb-2 text-sm text-gray-700">
+                Fehler beim Laden der Adressen. Bitte versuchen Sie es später
+                erneut.
+              </p>
+              }
+            </div>
+            }
+
+            <app-form-component
+              [config]="invoiceAddressFormConfig"
+              [formGroup]="invoiceAddressFormGroup"
+            ></app-form-component>
             }
           </div>
           } @if (selectedRecipientPerson) {
-          <app-form-component
-            [config]="recipientAddressFormConfig"
-            [formGroup]="recipientAddressFormGroup"
-          ></app-form-component>
-
-          }
-        </div>
-        @if (selectedRecipientPerson) {
-        <div class="flex flex-col">
-          <label class="block mb-2 text-sm font-semibold text-gray-700">
-            Entspricht Empfänger und Lieferadresse dem Rechnungsempfänger und
-            der Rechnungsadresse?
-          </label>
-          <mat-radio-group [(ngModel)]="sameAsRecipient" class="flex space-x-4">
-            <mat-radio-button [value]="true">Ja</mat-radio-button>
-            <mat-radio-button [value]="false">Nein</mat-radio-button>
-          </mat-radio-group>
-        </div>
-
-        <!-- Rechnungsadresse -->
-        } @if(!sameAsRecipient && selectedRecipientPerson) {
-        <div class="invoice-address-container mt-4">
-          <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
-
-          <mat-form-field class="w-full" appearance="fill">
-            <mat-label>Sendungsempfänger auswählen</mat-label>
-            <input
-              #inputInvoice
-              matInput
-              [matAutocomplete]="autoInvoice"
-              required
-              (input)="filterPersons(false)"
-              (focus)="filterPersons(false)"
-            />
-
-            <mat-autocomplete
-              #autoInvoice="matAutocomplete"
-              [requireSelection]="true"
-              [displayWith]="displayPerson"
-              (optionSelected)="onPersonSelected($event.option.value, false)"
-            >
-              @for (person of filteredPersonsInvoice; track person.id) {
-              <mat-option [value]="person">{{ person.fullName }}</mat-option>
-              }
-            </mat-autocomplete>
-          </mat-form-field>
-
-          <!-- Info Text -->
-          <p class="mt-2 mb-2 text-sm text-red-700">
-            {{ invoiceInfoText }}
-          </p>
-          @if (selectedInvoicePerson) {
-          <mat-button-toggle-group
-            name="invoiceAddressOption"
-            [(ngModel)]="invoiceAddressOption"
-            (change)="onAddressOptionChange($event.value, false)"
-            aria-label="Adresse auswählen"
+          <button
+            mat-raised-button
+            class="ml-8 mb-4 mt-4 w-31/40"
+            color="primary"
+            (click)="locallySaveAddressFormInput()"
           >
-            <mat-button-toggle
-              value="preferred"
-              [disabled]="!invoiceHasPreferredAddress"
-            >
-              Bevorzugte Adresse
-            </mat-button-toggle>
-            <mat-button-toggle value="existing">
-              Bestehende Adresse auswählen
-            </mat-button-toggle>
-            <mat-button-toggle value="new">
-              Neue Adresse erstellen
-            </mat-button-toggle>
-          </mat-button-toggle-group>
-
-          <!-- Table for existing addresses -->
-          @if (invoiceAddressOption === 'existing') {
-          <div class="table-container w-31/40 mt-4">
-            @if (addressTableDataSource.data.length > 0) {
-            <app-generic-table
-              [dataSource]="addressTableDataSource"
-              [columns]="addressTableColumns"
-              (rowClicked)="onAddressSelected($event, false)"
-            ></app-generic-table>
-            } @else {
-            <p class="mt-2 mb-2 text-sm text-gray-700">
-              Fehler beim Laden der Adressen. Bitte versuchen Sie es später
-              erneut.
-            </p>
-            }
-          </div>
-          }
-
-          <app-form-component
-            [config]="invoiceAddressFormConfig"
-            [formGroup]="invoiceAddressFormGroup"
-          ></app-form-component>
+            Adressdaten speichern
+          </button>
           }
         </div>
-        } @if (selectedRecipientPerson) {
-        <button
-          mat-raised-button
-          class="ml-8 mb-4 mt-4 w-31/40"
-          color="primary"
-          (click)="locallySaveAddressFormInput()"
-        >
-          Adressdaten speichern
-        </button>
-        }
       </div>
-      <div class="spacing-container h-8"></div>
+    </mat-tab>
+    <mat-tab label="Zustimmungen">
       <div class="approval-container">
         <div class="text-2xl font-bold mb-4 mt-4 ml-8">
           Zustimmungen
@@ -284,63 +369,6 @@
           Zustimmungen zwischenspeichern
         </button>
       </div>
-
-      <!-- Cost Center Container -->
-      <div class="cost-center-container w-31/40 ml-8 mt-8 mb-8">
-        <div class="text-2xl font-bold mb-4 mt-4">Kostenstelle</div>
-        <mat-form-field class="w-full" appearance="fill">
-          <mat-label>Primäre Kostenstelle auswählen</mat-label>
-          <input
-            type="text"
-            matInput
-            [formControl]="primaryCostCenterControl"
-            [matAutocomplete]="autoPrimaryCostCenter"
-            [required]="true"
-          />
-
-          <mat-autocomplete
-            #autoPrimaryCostCenter="matAutocomplete"
-            (optionSelected)="onCostCenterSelected($event.option.value, true)"
-            [displayWith]="displayCostCenter"
-          >
-            @for (costCenter of filteredPrimaryCostCenters | async; track
-            costCenter.id) {
-            <mat-option [value]="costCenter">
-              {{ costCenter.name }}
-            </mat-option>
-            }
-          </mat-autocomplete>
-        </mat-form-field>
-
-        <mat-form-field class="w-full" appearance="fill">
-          <mat-label>Sekundäre Kostenstelle auswählen</mat-label>
-          <input
-            type="text"
-            matInput
-            [formControl]="secondaryCostCenterControl"
-            [matAutocomplete]="autoSecondaryCostCenter"
-            [required]="true"
-          />
-
-          <mat-autocomplete
-            #autoSecondaryCostCenter="matAutocomplete"
-            (optionSelected)="onCostCenterSelected($event.option.value, false)"
-            [displayWith]="displayCostCenter"
-          >
-            @for (costCenter of filteredSecondaryCostCenters | async; track
-            costCenter.id) {
-            <mat-option [value]="costCenter">
-              {{ costCenter.name }}
-            </mat-option>
-            }
-          </mat-autocomplete>
-        </mat-form-field>
-      </div>
-      <div class="flex justify-end mt-4">
-        <button mat-raised-button color="primary" (click)="saveOrder()">
-          Bestellung speichern
-        </button>
-      </div>
-    </div>
-  </div>
+    </mat-tab>
+  </mat-tab-group>
 </div>

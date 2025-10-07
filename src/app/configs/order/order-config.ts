@@ -312,3 +312,28 @@ export const ORDER_COST_CENTER_FORM_CONFIG: FormConfig = {
 
   ]
 };
+
+export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
+  title: 'Allgemeine Angaben',
+  fields: [
+    {
+      name: 'content_description',
+      label: 'Bestellungsname',
+      type: 'text',
+      required: true,
+      editable: false,
+      validators: [Validators.maxLength(100)],
+      tooltip: 'Name der Bestellung, unter diesem Namen wird die Bestellung in der Übersicht angezeigt.'
+    },
+    {
+      name: 'booking_year',
+      label: 'Buchungsjahr',
+      type: 'text',
+      required: false,
+      editable: false,
+      validators: [Validators.pattern('^[0-9]{4}$')],
+      tooltip: 'Das Buchungsjahr gibt an, in welchem Jahr die Bestellung verbucht wird. Standardmäßig ist das aktuelle Jahr vorausgewählt.',
+      defaultValue: new Date().getFullYear().toString()
+    }
+  ]
+};
