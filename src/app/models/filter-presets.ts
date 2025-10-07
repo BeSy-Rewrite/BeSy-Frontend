@@ -41,5 +41,5 @@ export type OrdersFilterPreset = {
     /** The label for the orders filter preset. */
     label: string;
     /** An array of filter presets (chip, date range, or range) associated with this orders filter preset. */
-    presets: (ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset)[];
+    appliedFilters: (ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset)[];
 };

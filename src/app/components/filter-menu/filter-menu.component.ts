@@ -1,23 +1,29 @@
-import { Component, computed, effect, OnInit, output, signal, viewChild, WritableSignal } from '@angular/core';
+import { Component, computed, effect, input, OnInit, output, signal, viewChild, WritableSignal } from '@angular/core';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipListbox, MatChipSelectionChange, MatChipsModule } from "@angular/material/chips";
-import { MatDivider } from "@angular/material/divider";
+import { MatDividerModule } from "@angular/material/divider";
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatSelectModule } from '@angular/material/select';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { from } from 'rxjs';
 import { CostCenterResponseDTO, CostCentersService, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../../api';
 import { ORDERS_FILTER_PRESETS } from '../../configs/order-filter-presets-config';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../configs/orders-filter-menu-config';
+import { ordersTableConfig } from '../../configs/orders-table-config';
 import { statusDisplayNames, statusIcons } from '../../display-name-mappings/status-names';
 import { FilterChipData } from '../../models/filter-chip-data';
 import { FilterDateRange } from '../../models/filter-date-range';
 import { ActiveFilters } from '../../models/filter-menu-types';
+import { OrdersFilterPreset } from '../../models/filter-presets';
 import { FilterRange } from '../../models/filter-range';
+import { TableColumn } from '../../models/generic-table';
+import { OrderSubresourceResolverService } from '../../services/order-subresource-resolver.service';
 import { ChipSelectionComponent } from '../chip-selection/chip-selection.component';
 import { DateRangePickerComponent } from '../date-range-picker/date-range-picker.component';
 import { RangeSelectionSliderComponent } from '../range-selection-slider/range-selection-slider.component';
-import { OrdersFilterPreset, ChipFilterPreset, DateRangeFilterPreset, RangeFilterPreset } from '../../models/filter-presets';
-import { UsersWrapperService } from '../../services/wrapper-services/users-wrapper.service';
 
 /**
  * Component for displaying and managing the filter menu for orders.
@@ -26,13 +32,17 @@ import { UsersWrapperService } from '../../services/wrapper-services/users-wrapp
   selector: 'app-filter-menu',
   imports: [
     MatButtonModule,
+    MatFormFieldModule,
+    MatButtonToggleModule,
+    MatChipsModule,
+    MatExpansionModule,
+    MatDividerModule,
+    MatSelectModule,
+    FormsModule,
+    ReactiveFormsModule,
     DateRangePickerComponent,
     ChipSelectionComponent,
     RangeSelectionSliderComponent,
-    MatExpansionModule,
-    MatDivider,
-    MatButtonToggleModule,
-    MatChipsModule
   ],
   templateUrl: './filter-menu.component.html',
   styleUrl: './filter-menu.component.scss'
@@ -96,6 +106,11 @@ export class FilterMenuComponent implements OnInit {
   accordion = viewChild.required(MatAccordion);
   /** Reference to the chip listbox for presets. */
   presets = viewChild.required<MatChipListbox>('presets');
+
+  /** Control for the selected columns in the table. */
+  selectedColumnsControl = new FormControl(ordersTableConfig.filter(col => !col.isInvisible).map(col => col.id));
+  ordersTableColumns = input.required<TableColumn<any>[]>();
+  selectedColumnsChanged = output<string[]>();
 
   /**
    * Creates an instance of FilterMenuComponent.
@@ -279,7 +294,7 @@ export class FilterMenuComponent implements OnInit {
     this.clearAllFilters();
 
     for (const preset of this.activePresets) {
-      for (const presetItem of preset.presets) {
+      for (const presetItem of preset.appliedFilters) {
         if ('chipIds' in presetItem) {
           this.chips[presetItem.id]?.update(currentChips =>
             currentChips.map(chip =>
@@ -301,8 +316,8 @@ export class FilterMenuComponent implements OnInit {
    * @returns True if the preset is applied, false otherwise.
    */
   isPresetApplied(preset: OrdersFilterPreset): boolean {
-    return preset.presets.every(presetFilter => {
-      const activeValue = this.activeFilter()[presetFilter.id as keyof ActiveFilters];
+    return preset.appliedFilters.every(presetFilter => {
+      const activeValue = this.activeFilter()[presetFilter.id];
 
       switch (true) {
         case presetFilter === undefined:

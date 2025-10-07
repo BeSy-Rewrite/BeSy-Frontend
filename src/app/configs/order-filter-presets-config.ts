@@ -7,7 +7,7 @@ const currentYearString = new Date().getFullYear().toString();
 export const ORDERS_FILTER_PRESETS: OrdersFilterPreset[] = [
     {
         label: currentYearString,
-        presets: [
+        appliedFilters: [
             {
                 id: "booking_year",
                 chipIds: [
@@ -18,16 +18,18 @@ export const ORDERS_FILTER_PRESETS: OrdersFilterPreset[] = [
     },
     {
         label: 'Meine\u00A0Bestellungen',
-        presets: [
+        appliedFilters: [
             {
                 id: "owner_id",
-                chipIds: []
+                chipIds: [
+                    "CURRENT_USER"
+                ]
             }
         ]
     },
     {
         label: 'Auf\u00A0Freigabe\u00A0wartend',
-        presets: [
+        appliedFilters: [
             {
                 id: "status",
                 chipIds: [

@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDivider } from '@angular/material/divider';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from "@angular/material/input";
@@ -14,8 +14,8 @@ import { GenericTableComponent } from '../../../components/generic-table/generic
 import { ordersTableConfig } from '../../../configs/orders-table-config';
 import { ActiveFilters } from '../../../models/filter-menu-types';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
-import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
 import { OrderDisplayData } from '../../../models/order-display-data';
+import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
 
 /**
  * Component for managing the orders page.
@@ -32,7 +32,7 @@ import { OrderDisplayData } from '../../../models/order-display-data';
     MatFormFieldModule,
     FormsModule,
     ReactiveFormsModule,
-    MatDivider,
+    MatDividerModule,
     GenericTableComponent,
     FilterMenuComponent
   ],
@@ -42,9 +42,6 @@ import { OrderDisplayData } from '../../../models/order-display-data';
 export class OrdersPageComponent {
   /** Columns to display in the orders table. */
   ordersTableColumns = [...ordersTableConfig];
-
-  /** Control for the selected columns in the table. */
-  selectedColumnsControl = new FormControl(ordersTableConfig.filter(col => !col.isInvisible).map(col => col.id));
 
   /** Data source for the orders table. */
   ordersDataSource = inject(OrdersDataSourceService);
@@ -68,14 +65,17 @@ export class OrdersPageComponent {
     // Set actions for specific columns in the table.
     ordersTableConfig.filter(col => ['id', 'besy_number'].includes(col.id))
       .forEach(col => col.action = (row) => this.onViewOrder(row));
+  }
 
-    // Subscribe to changes in selected columns.
-    this.selectedColumnsControl.valueChanges.subscribe(selected => {
-      this.ordersTableColumns = ordersTableConfig.map(col => ({
-        ...col,
-        isInvisible: !selected?.includes(col.id)
-      }));
-    });
+  /**
+   * Updates the visible columns in the orders table based on user selection.
+   * @param selected - Array of selected column IDs to display.
+   */
+  onSelectedColumnsChanged(selected: string[]) {
+    this.ordersTableColumns = ordersTableConfig.map(col => ({
+      ...col,
+      isInvisible: !selected?.includes(col.id)
+    }));
   }
 
   /**
