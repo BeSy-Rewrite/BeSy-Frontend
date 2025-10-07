@@ -43,3 +43,9 @@ export type OrdersFilterPreset = {
     /** An array of filter presets (chip, date range, or range) associated with this orders filter preset. */
     appliedFilters: (ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset)[];
 };
+
+/**
+ * Type representing URL parameters for filter presets.
+ * Each key corresponds to a filter in ActiveFilters, and the value is a string or undefined.
+ */
+export type FilterPresetParams = { [key in keyof ActiveFilters]: string | undefined };
