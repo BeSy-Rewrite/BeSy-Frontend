@@ -20,7 +20,7 @@
 
                     <app-filter-menu (filtersChanged)="onFiltersChanged($event)"
                         [ordersTableColumns]="ordersTableColumns"
-                        (selectedColumnsChanged)="onSelectedColumnsChanged($event)" />
+                        (selectedColumnsChanged)="onSelectedColumnsChanged($event)" [initialPreset]="initialPreset" />
 
                 </div>
 
