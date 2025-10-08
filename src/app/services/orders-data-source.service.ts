@@ -136,7 +136,11 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       } else {
         const sortIndex = this._sorting().findIndex(s => s.startsWith(sort.active + ','));
         if (sortIndex !== -1) {
-          this._sorting().splice(sortIndex, 1);
+          this._sorting.update(s => {
+            const newS = [...s];
+            newS.splice(sortIndex, 1);
+            return newS;
+          });
         }
 
         this._sorting.update(s => [sort.active + ',' + sort.direction, ...s]);
