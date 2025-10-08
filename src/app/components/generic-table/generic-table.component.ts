@@ -199,7 +199,7 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
    */
   private _setupDataSource() {
     const ds = this.dataSource();
-    // Only assign sort and paginator if ds is a MatTableDataSource
+    // Only assign sort and paginator if they exist on the data source
     if (ds && this.sort() && this.paginator() && 'sort' in ds && 'paginator' in ds) {
       this._setupPaginator();
       ds.sort = this.sort();

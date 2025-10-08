@@ -3,7 +3,7 @@ import { DataSource } from '@angular/cdk/table';
 import { computed, Injectable, signal } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
-import { BehaviorSubject, debounceTime, forkJoin, Observable, of } from 'rxjs';
+import { BehaviorSubject, debounceTime, forkJoin, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api';
 import { DataSourceSorting } from '../models/datasource-sorting';
@@ -74,7 +74,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * Triggers an update to the table display.
    * @param data The new data array.
    */
-  set data(data: OrderResponseDTO[] | OrderDisplayData[]) {
+  set data(data: OrderResponseDTO[]) {
     data = Array.isArray(data) ? data : [];
     let displayData: Observable<OrderDisplayData>[] = [];
     if (data.length === 0) {
@@ -82,11 +82,8 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       return;
     }
     data.forEach(order => {
-      // Only pass OrderResponseDTO objects to resolveOrderSubresources
-      if (order && typeof order.id === 'number') {
-        displayData.push(this.subresourceResolver.resolveOrderSubresources(order as OrderResponseDTO));
-      } else {
-        displayData.push(of(order as OrderDisplayData));
+      if (order) {
+        displayData.push(this.subresourceResolver.resolveOrderSubresources(order));
       }
     });
     forkJoin(displayData).subscribe(resolvedData => {
