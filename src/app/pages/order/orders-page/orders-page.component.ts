@@ -1,4 +1,5 @@
-import { Component, inject, viewChild } from '@angular/core';
+import { Component, inject, OnInit, viewChild } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
@@ -9,11 +10,12 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
-import { ActivatedRoute, ActivatedRouteSnapshot, Router } from '@angular/router';
+import { ActivatedRoute, ActivatedRouteSnapshot, Params, Router } from '@angular/router';
 import { FilterMenuComponent } from '../../../components/filter-menu/filter-menu.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-filter-menu-config';
 import { ordersTableConfig } from '../../../configs/orders-table-config';
+import { DataSourceSorting } from '../../../models/datasource-sorting';
 import { ActiveFilters } from '../../../models/filter-menu-types';
 import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetParams, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
@@ -42,7 +44,7 @@ import { OrdersDataSourceService } from '../../../services/orders-data-source.se
   templateUrl: './orders-page.component.html',
   styleUrl: './orders-page.component.scss'
 })
-export class OrdersPageComponent {
+export class OrdersPageComponent implements OnInit {
   /** Columns to display in the orders table. */
   ordersTableColumns = [...ordersTableConfig];
 
@@ -65,6 +67,10 @@ export class OrdersPageComponent {
   filterMenu = viewChild.required(FilterMenuComponent);
   initialPreset: OrdersFilterPreset | undefined = undefined;
 
+  ordersTable = viewChild.required(GenericTableComponent);
+
+  private readonly dataSourceService = inject(OrdersDataSourceService);
+
   /**
    * Constructor for the OrdersPageComponent.
    * @param router - Angular Router for navigation.
@@ -72,7 +78,7 @@ export class OrdersPageComponent {
   constructor(
     private readonly router: Router,
     route: ActivatedRoute,
-    private readonly _snackBar: MatSnackBar
+    private readonly _snackBar: MatSnackBar,
   ) {
     this.routeSnapshot = route.snapshot;
     // Set actions for specific columns in the table.
@@ -80,8 +86,31 @@ export class OrdersPageComponent {
       .forEach(col => col.action = (row) => this.onViewOrder(row));
 
     if (Object.keys(this.routeSnapshot.queryParams).length > 0) {
-      this.initialPreset = this.parseFilterPresetFromUrlParams();
+      const presetParams: Params = {};
+      for (const key of Object.keys(this.routeSnapshot.queryParams)) {
+        if (ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)) {
+          presetParams[key] = this.routeSnapshot.queryParams[key];
+        }
+      }
+      this.initialPreset = this.parseFilterPresetFromUrlParams(presetParams);
     }
+
+    toObservable(this.dataSourceService.sorting).subscribe(() => this.updateUrlParams());
+  }
+  /**
+   * Lifecycle hook that is called after data-bound properties are initialized.
+   * Initializes pagination and sorting from URL parameters.
+   */
+  ngOnInit() {
+    const pagination = this.parsePaginationFromUrlParams(this.routeSnapshot.queryParams);
+    this.dataSourceService.setNextPagination(pagination.pageIndex, pagination.pageSize);
+
+    const sorting = this.parseSortingFromUrlParams(this.routeSnapshot.queryParams);
+    if (sorting) {
+      this.dataSourceService.setNextSorting(sorting);
+    }
+
+    this.ordersTable().paginator().page.subscribe(() => this.updateUrlParams());
   }
 
   /**
@@ -108,7 +137,7 @@ export class OrdersPageComponent {
    */
   onFiltersChanged(filters: ActiveFilters) {
     this.ordersDataSource.filter = filters;
-    this.router.navigate([], { queryParams: this.getFiltersAsParams() });
+    this.updateUrlParams();
   }
 
   /**
@@ -127,8 +156,50 @@ export class OrdersPageComponent {
     this.router.navigate(['/orders', order.id]);
   }
 
-  parseFilterPresetFromUrlParams() {
-    const params = this.routeSnapshot.queryParams;
+  /**
+   * Updates the URL parameters to reflect the current filters, pagination, and sorting.
+   */
+  updateUrlParams() {
+    this.router.navigate([], { queryParams: { ...this.getFiltersAsParams(), ...this.getPaginationAsParams(), ...this.getSortingAsParams() } });
+  }
+
+  /**
+   * Parses sorting information from URL parameters.
+   * @param params - The URL parameters to parse.
+   * @returns A MatSortable object if sorting parameters are present, otherwise undefined.
+   */
+  parseSortingFromUrlParams(params: Params) {
+    if (!params['sort_by']) {
+      return undefined;
+    }
+    const sortParams: string[] = params['sort_by'].split(';');
+    const sorting = sortParams.map((sortParam: string) => {
+      if (sortParam) {
+        const [id, direction] = sortParam.split(',');
+        return { id, direction: direction === 'desc' ? 'desc' : 'asc' } as DataSourceSorting;
+      }
+      return undefined;
+    });
+    return sorting.filter(s => s !== undefined);
+  }
+
+  /**
+   * Parses pagination information from URL parameters.
+   * @param params - The URL parameters to parse.
+   * @returns An object containing pageIndex and pageSize.
+   */
+  parsePaginationFromUrlParams(params: Params): { pageIndex: number; pageSize: number } {
+    const pageIndex = params['page'] ? parseInt(params['page'], 10) : 0;
+    const pageSize = params['page_size'] ? parseInt(params['page_size'], 10) : 25;
+    return { pageIndex, pageSize };
+  }
+
+  /**
+   * Parses URL parameters to create a filter preset.
+   * Supports chip, date range, and range filters.
+   * @returns An OrdersFilterPreset constructed from the URL parameters.
+   */
+  parseFilterPresetFromUrlParams(params: Params) {
     const preset: OrdersFilterPreset = {
       label: 'urlParams',
       appliedFilters: []
@@ -160,6 +231,7 @@ export class OrdersPageComponent {
     return preset;
   }
 
+  /** Parses chip filter parameters from the URL. */
   parseChipParams(key: string, value: string): ChipFilterPreset | undefined {
     if (value) {
       const chipIds = value.split(',');
@@ -172,6 +244,7 @@ export class OrdersPageComponent {
     return undefined;
   }
 
+  /** Parses date range filter parameters from the URL. */
   parseDateRangeParams(key: string, value: string): DateRangeFilterPreset | undefined {
     if (value) {
       const [start, end] = value.split('_');
@@ -187,6 +260,7 @@ export class OrdersPageComponent {
     return undefined;
   }
 
+  /** Parses range filter parameters from the URL. */
   parseRangeParams(key: string, value: string): RangeFilterPreset | undefined {
     if (value) {
       const [start, end] = value.split('-').map((v: string) => v === 'Infinity' ? Infinity : parseFloat(v));
@@ -197,11 +271,6 @@ export class OrdersPageComponent {
       };
     }
     return undefined;
-  }
-
-  areParamsValid(params: FilterPresetParams): boolean {
-    // Implement validation of URL parameters
-    return false;
   }
 
   /**
@@ -234,5 +303,31 @@ export class OrdersPageComponent {
       }
     });
     return params;
+  }
+
+  /**
+   * Converts the current pagination state into URL parameters for navigation.
+   * @returns An object mapping pagination keys to their values.
+   */
+  getPaginationAsParams() {
+    const params: { page?: number; page_size?: number } = {};
+    if (this.ordersTable().paginator()) {
+      params['page'] = this.ordersTable().paginator().pageIndex;
+      params['page_size'] = this.ordersTable().paginator().pageSize;
+    }
+    return params;
+  }
+
+  /**
+   * Converts the current sorting state into URL parameters for navigation.
+   * @returns An object mapping sorting keys to their values.
+   */
+  getSortingAsParams() {
+    const params: { sort_by?: string } = {};
+    const sorting = this.dataSourceService.sorting();
+    if (this.ordersTable().sort()) {
+      params['sort_by'] = sorting.map(s => `${s.id},${s.direction}`).join(';');
+    }
+    return params.sort_by ? params : {};
   }
 }

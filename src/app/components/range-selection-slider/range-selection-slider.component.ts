@@ -112,7 +112,7 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
       return;
     }
 
-    this.internalMaxValue.set(this.maxValue());
+    this.internalMaxValue.set(Math.max(this.maxValue(), this.selectedRange()?.end ?? this.minValue()));
 
     let initialRange = this.selectedRange();
     initialRange ??= {

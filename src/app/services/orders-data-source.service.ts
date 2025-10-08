@@ -1,11 +1,12 @@
 import { CollectionViewer } from '@angular/cdk/collections';
 import { DataSource } from '@angular/cdk/table';
-import { Injectable } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { BehaviorSubject, debounceTime, forkJoin, Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api';
+import { DataSourceSorting } from '../models/datasource-sorting';
 import { ActiveFilters } from '../models/filter-menu-types';
 import { FilterRequestParams } from '../models/filter-request-params';
 import { OrderDisplayData } from '../models/order-display-data';
@@ -23,22 +24,42 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
   private _paginator: MatPaginator | undefined;
   private _sort: MatSort | undefined;
   private _filter: ActiveFilters | undefined;
-  private readonly _filterUpdates: BehaviorSubject<ActiveFilters> | undefined;
+  private readonly _requestFetch: BehaviorSubject<void> | undefined;
   private _searchTerm: string | undefined;
 
-  private readonly _sorting: string[] = [];
+  private readonly _sorting = signal<string[]>([]);
+
+  private _nextPagination: { pageIndex: number; pageSize: number; } | undefined;
+  private _nextSorting: string[] | undefined;
 
   constructor(private readonly cacheService: CachedOrdersService, private readonly subresourceResolver: OrderSubresourceResolverService) {
     super();
     this._data = new BehaviorSubject<OrderResponseDTO[]>([]);
 
-    this._filterUpdates = new BehaviorSubject<ActiveFilters>({} as ActiveFilters);
-    this._filterUpdates.pipe(debounceTime(environment.searchAndFilterDebounceMs))
-      .subscribe(filter => {
-        this._filter = filter;
+    this._requestFetch = new BehaviorSubject<void>(undefined);
+    this._requestFetch.pipe(
+      debounceTime(environment.searchAndFilterDebounceMs))
+      .subscribe(() => {
         this._fetchData();
       });
   }
+
+  setNextPagination(pageIndex: number, pageSize: number) {
+    this._nextPagination = { pageIndex, pageSize };
+    this._requestFetch?.next();
+  }
+
+  setNextSorting(sorting: DataSourceSorting[]) {
+    this._nextSorting = sorting.map(s => `${this.snakeToCamel(s.id)},${s.direction}`);
+  }
+
+  sorting = computed<DataSourceSorting[]>(() => {
+    const sorting = this._sorting().map(s => {
+      const [id, direction] = s.split(',');
+      return { id: this.camelToSnake(id), direction: direction === 'desc' ? 'desc' : 'asc' } as DataSourceSorting;
+    });
+    return sorting;
+  });
 
   /**
    * The data to be displayed by the table.
@@ -90,7 +111,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
   set paginator(paginator: MatPaginator) {
     this._paginator = paginator;
     this._paginator.page.subscribe((page: PageEvent) => {
-      this._fetchData();
+      this._requestFetch?.next();
     });
   }
 
@@ -114,17 +135,17 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       sort.active = this.snakeToCamel(sort.active);
 
       if (sort.direction === '') {
-        this._sorting.length = 0;
+        this._sorting.set([]);
       } else {
-        const sortIndex = this._sorting.findIndex(s => s.startsWith(sort.active + ','));
+        const sortIndex = this._sorting().findIndex(s => s.startsWith(sort.active + ','));
         if (sortIndex !== -1) {
-          this._sorting.splice(sortIndex, 1);
+          this._sorting().splice(sortIndex, 1);
         }
 
-        this._sorting.unshift(sort.active + ',' + sort.direction);
+        this._sorting.update(s => [sort.active + ',' + sort.direction, ...s]);
       }
 
-      this._fetchData();
+      this._requestFetch?.next();
     });
   }
 
@@ -144,7 +165,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    */
   set filter(filter: ActiveFilters) {
     this._filter = filter;
-    this._filterUpdates?.next(filter);
+    this._requestFetch?.next();
   }
 
   /**
@@ -163,7 +184,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    */
   set searchTerm(searchTerm: string) {
     this._searchTerm = searchTerm.toLowerCase().trim();
-    this._fetchData();
+    this._requestFetch?.next();
   }
 
   /**
@@ -202,14 +223,32 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
   }
 
   /**
+   * Converts a camelCase string to snake_case.
+   * @param s The camelCase string to convert.
+   * @returns The converted snake_case string.
+   */
+  private camelToSnake(s: string): string {
+    return s.replace(/([A-Z])/g, '_$1').toLowerCase();
+  }
+
+  /**
    * Fetches data from the backend API using the current paginator, sort, filter, and search term.
    * Updates the data and paginator properties with the fetched data.
    */
-  private _fetchData() {
+  _fetchData() {
+    if (this._nextPagination) {
+      if (this._paginator) {
+        this._paginator.pageIndex = this._nextPagination.pageIndex;
+        this._paginator.pageSize = this._nextPagination.pageSize;
+        this._nextPagination = undefined;
+      }
+    }
+    if (this._nextSorting) this._sorting.set(this._nextSorting);
+
     this.cacheService.getAllOrders(
       this._paginator?.pageIndex ?? 0,
       this._paginator?.pageSize ?? OrdersDataSourceService.DEFAULT_PAGE_SIZE,
-      this._sorting,
+      this._sorting(),
       this.getFilterRequestParams(),
       this._searchTerm ?? ''
     ).subscribe((page: PagedOrderResponseDTO) => {
@@ -220,6 +259,12 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
         this._paginator.pageSize = page.size ?? OrdersDataSourceService.DEFAULT_PAGE_SIZE;
         this._paginator.length = page.total_elements ?? 0;
       }
+      if (this._sort && this._sorting().length > 0 && this._sort.active === undefined) {
+        this._sort.active = this.camelToSnake(this._sorting()[0]?.split(',')[0]);
+        this._sort.direction = (this._sorting()[0]?.split(',')[1] ?? 'asc') as 'asc' | 'desc' | '';
+        this._sort.ngOnChanges();
+      }
+      this._nextSorting = undefined;
     });
   }
 
@@ -229,7 +274,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * @returns An observable of the data to display.
    */
   override connect(collectionViewer: CollectionViewer): Observable<readonly T[]> {
-    this._fetchData();
+    this._requestFetch?.next();
     return this._data.asObservable();
   }
 
