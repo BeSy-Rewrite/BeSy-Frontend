@@ -278,7 +278,7 @@ export class FilterMenuComponent implements OnInit {
           })
         );
         this.chips['primary_cost_center_id'].set(costCenterChips);
-        this.chips['secondary_cost_center_id'].set(costCenterChips);
+        this.chips['secondary_cost_center_id'].set(costCenterChips.map(chip => ({ ...chip })));
       })
     );
   }
