@@ -138,7 +138,7 @@ export class CachedOrdersService {
   private getCacheKey(page: number, size: number, sort: Array<string>, filters: FilterRequestParams, searchTerm: string): string {
     let sortKey = '';
     if (Array.isArray(sort)) {
-      sortKey = sort ? sort.join(',') : 'empty';
+      sortKey = sort.join(',');
     }
     const filtersKey = JSON.stringify(filters);
     return `${page}-${size}-${sortKey}-${filtersKey}-${searchTerm}`;
