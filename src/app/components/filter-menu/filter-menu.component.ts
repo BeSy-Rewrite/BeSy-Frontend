@@ -99,7 +99,9 @@ export class FilterMenuComponent implements OnInit {
         if (Array.isArray(value)) {
           return {
             id: typedKey,
-            chipIds: value.map((v: FilterChipData) => v.id ?? '')
+            chipIds: value
+              .filter((v: FilterChipData) => v.id !== undefined && v.id !== null)
+              .map((v: FilterChipData) => v.id)
           } as ChipFilterPreset;
         } else if (isNumericRange(value)) {
           return {
