@@ -263,7 +263,7 @@ export class OrdersPageComponent implements OnInit {
   /** Parses range filter parameters from the URL. */
   parseRangeParams(key: string, value: string): RangeFilterPreset | undefined {
     if (value) {
-      const [start, end] = value.split('-').map((v: string) => v === 'Infinity' ? Infinity : parseFloat(v));
+      const [start, end] = value.split('-').map((v: string) => parseFloat(v));
 
       return {
         id: key as keyof ActiveFilters,
