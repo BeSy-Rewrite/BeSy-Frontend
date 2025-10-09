@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
+import { from, map } from 'rxjs';
 import { PersonsService } from '../../api';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PersonsWrapperService {
-  constructor() {}
+  constructor() { }
 
   async getAllPersons() {
     const persons = await PersonsService.getAllPersons();
@@ -28,7 +29,7 @@ export class PersonsWrapperService {
     const personsWithFullName = persons.map((person) => {
       return {
         ...person,
-        fullName: `${person.name}` + " " + `${person.surname}` as string,
+        fullName: `${person.name}` + " " + `${person.surname}`,
       };
     });
     return personsWithFullName;
@@ -48,5 +49,10 @@ export class PersonsWrapperService {
     const createdAddress = await PersonsService.createPersonAddress(address);
     return createdAddress;
   }
-}
 
+  getAddress(addressId: number) {
+    return from(PersonsService.getPersonsAddresses()).pipe(
+      map(addresses => addresses.find(addr => addr.id === addressId))
+    );
+  }
+}
