@@ -12,6 +12,7 @@ import { TableColumn } from '../../models/generic-table';
 import { OrderDisplayData } from '../../models/order-display-data';
 import { OrderSubresourceResolverService } from '../../services/order-subresource-resolver.service';
 import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
+import { AddressDisplayComponent } from '../address-display/address-display.component';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
 
 @Component({
@@ -20,6 +21,7 @@ import { GenericTableComponent } from '../generic-table/generic-table.component'
     MatDividerModule,
     MatButtonModule,
     GenericTableComponent,
+    AddressDisplayComponent
   ],
   templateUrl: './order-main-information.component.html',
   styleUrl: './order-main-information.component.scss'
