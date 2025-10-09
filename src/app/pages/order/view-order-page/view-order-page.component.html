@@ -42,40 +42,27 @@
         <app-order-main-information [orderData]="order()" />
 
 
-        <div>
-            <h3 class="text-2xl mb-2">Vergleichsangebote</h3>
-            <mat-divider class="bg-he-red-200 !mb-2" />
-
-            <app-quotations-list [orderId]="order().order.id ?? 0" />
-        </div>
-
-
         <div class="flex flex-wrap gap-4 h-fit">
 
-            <div class="grow">
-                <h3 class="text-2xl mb-2">Kontaktdaten</h3>
+            @for (section of sections; track section.id) {
+            <div [classList]="section.id === 'quotations' ? 'w-full' : 'grow'">
+
+                <h3 class="text-2xl mb-2">{{section.title}}</h3>
                 <mat-divider class="bg-he-red-200 !mb-2" />
 
-                <app-order-persons [order]="order().order" />
+                @switch (section.id) {
+                @case ('quotations') { <app-quotations-list [orderId]="order().order.id!" /> }
+                @case ('contacts') { <app-order-persons [order]="order().order" /> }
+                @case ('approvals') { <app-approvals [orderId]="order().order.id!" /> }
+                @case ('history') { <app-state-history [order]="order().order" /> }
+                }
+
             </div>
-
-            <div class="grow">
-                <h3 class="text-2xl mb-2">Freigaben</h3>
-                <mat-divider class="bg-he-red-200 !mb-2" />
-
-                <app-approvals [orderId]="order().order.id ?? 0" />
-            </div>
-
-            <div class="grow">
-                <h3 class="text-2xl mb-2">Statusverlauf</h3>
-                <mat-divider class="bg-he-red-200 !mb-2" />
-
-                <app-state-history [order]="order().order" />
-            </div>
+            }
 
         </div>
 
-    </div>
 
+    </div>
 
 </div>
