@@ -1,5 +1,5 @@
-<div class="create-order-page h-auto overflow-visible bg">
-  <div class="progress-bar-container">
+<div class="create-order-page h-auto overflow-visible">
+  <div class="progress-bar-container bg-gray-200 sticky py-2 top-0 z-10">
     <app-progress-bar
       [steps]="[
         { label: 'Bestellung erstellen', tooltip: 'Beschreibung für Step 1' },
@@ -22,12 +22,13 @@
   >
     <!-- General Information -->
     <mat-tab label="Bestellung erstellen">
+      <mat-divider class="tab-divider"></mat-divider>
       <div class="general-info-container">
         <app-form-component
           [config]="generalFormConfig"
           [formGroup]="generalFormGroup"
         ></app-form-component>
-        <div class="cost-center-container w-31/40 ml-8">
+        <div class="cost-center-container">
           <mat-form-field class="w-full" appearance="fill">
             <mat-label>Primäre Kostenstelle auswählen</mat-label>
             <input
@@ -77,9 +78,16 @@
               }
             </mat-autocomplete>
           </mat-form-field>
+          <div class="queries-person-container">
+            <app-form-component
+              [config]="queriesPersonFormConfig"
+              [formGroup]="queriesPersonFormGroup"
+              (valueChanged)="onQueriesPersonFormGroupChanged($event)"
+            ></app-form-component>
+          </div>
           <button
             mat-raised-button
-            class="ml-8 mb-4 w-31/40"
+            class="w-full"
             color="primary"
             (click)="createOrder()"
           >
@@ -89,22 +97,22 @@
       </div>
     </mat-tab>
     <mat-tab label="Hauptangebot festlegen">
+      <mat-divider class="tab-divider"></mat-divider>
       <div
-        class="flex flex-col items-center justify-center min-h-full w-full overflow-y-auto py-8"
+        class="flex flex-col items-center justify-center min-h-full w-full overflow-y-auto"
       >
         <!-- Hauptangebot -->
-        <div class="main-offer-container w-1/2 flex justify-center">
+        <div class="main-offer-container justify-center">
           <app-form-component
             [config]="mainOfferFormConfig"
             [formGroup]="mainOfferFormGroup"
+            [refreshTrigger]="currenciesLoaded"
             (valueChanged)="onMainOfferFormGroupChanged($event)"
           ></app-form-component>
         </div>
 
         <!-- Begründung der Lieferantenauswahl -->
-        <div
-          class="supplier-decision-reason-container w-1/2 flex justify-center"
-        >
+        <div class="supplier-decision-reason-container justify-center">
           <app-form-component
             [config]="supplierDecisionReasonFormConfig"
             [formGroup]="supplierDecisionReasonFormGroup"
@@ -116,23 +124,21 @@
 
     <!-- Add Item -->
     <mat-tab label="Bestellpositionen">
+      <mat-divider class="tab-divider"></mat-divider>
       <div class="item-container">
-        <div class="text-2xl font-bold mb-4 mt-4">
-          Bestellpositionen
-          <app-form-component
-            [config]="orderItemFormConfig"
-            [formGroup]="orderItemFormGroup"
-          ></app-form-component>
-          <button
-            mat-raised-button
-            class="ml-8 mb-4 w-31/40"
-            color="primary"
-            (click)="onAddItem()"
-          >
-            Position hinzufügen
-          </button>
-        </div>
-        <div class="table-container w-31/40 ml-8">
+        <app-form-component
+          [config]="orderItemFormConfig"
+          [formGroup]="orderItemFormGroup"
+        ></app-form-component>
+        <button
+          mat-raised-button
+          class="mb-4 w-full"
+          color="primary"
+          (click)="onAddItem()"
+        >
+          Position hinzufügen
+        </button>
+        <div class="table-container">
           <app-generic-table
             [dataSource]="itemTableDataSource"
             [columns]="orderItemColumns"
@@ -142,23 +148,21 @@
       </div>
     </mat-tab>
     <mat-tab label="Vergleichsangebote">
+      <mat-divider class="tab-divider"></mat-divider>
       <div class="quotation-container">
-        <div class="text-2xl font-bold mb-4 mt-4 ml-8">
-          Vergleichsangebot
-          <app-form-component
-            [config]="quotationFormConfig"
-            [formGroup]="quotationFormGroup"
-          ></app-form-component>
-          <button
-            mat-raised-button
-            class="ml-8 mb-4 w-31/40"
-            color="primary"
-            (click)="onAddQuotation()"
-          >
-            Vergleichsangebot hinzufügen
-          </button>
-        </div>
-        <div class="table-container w-31/40 ml-8">
+        <app-form-component
+          [config]="quotationFormConfig"
+          [formGroup]="quotationFormGroup"
+        ></app-form-component>
+        <button
+          mat-raised-button
+          class="w-full mb-4"
+          color="primary"
+          (click)="onAddQuotation()"
+        >
+          Vergleichsangebot hinzufügen
+        </button>
+        <div class="table-container w-full">
           <app-generic-table
             [dataSource]="quotationTableDataSource"
             [columns]="orderQuotationColumns"
@@ -168,6 +172,7 @@
       </div>
     </mat-tab>
     <mat-tab label="Adressdaten">
+      <mat-divider class="tab-divider"></mat-divider>
       <div class="address-container">
         <div class="text-2xl font-bold mb-4 mt-4 ml-8">
           Adressdaten
@@ -206,25 +211,28 @@
               [(ngModel)]="recipientAddressOption"
               (change)="onAddressOptionChange($event.value, true)"
               aria-label="Adresse auswählen"
+              class="w-full flex"
             >
               <mat-button-toggle
                 value="preferred"
                 [disabled]="!recipientHasPreferredAddress"
+                class="flex-1"
               >
                 Bevorzugte Adresse
               </mat-button-toggle>
-              <mat-button-toggle value="existing">
+              <mat-button-toggle value="existing" class="flex-1">
                 Bestehende Adresse auswählen
               </mat-button-toggle>
-              <mat-button-toggle value="new">
+              <mat-button-toggle value="new" class="flex-1">
                 Neue Adresse erstellen
               </mat-button-toggle>
             </mat-button-toggle-group>
             }
+            <div class="spacing-container my-4"></div>
             <!-- Table for existing addresses -->
             @if (recipientAddressOption === 'existing' &&
             selectedRecipientPerson) {
-            <div class="table-container w-31/40 mt-4">
+            <div class="table-container w-full">
               @if (addressTableDataSource.data.length > 0) {
               <app-generic-table
                 [dataSource]="addressTableDataSource"
@@ -267,7 +275,7 @@
             <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
 
             <mat-form-field class="w-full" appearance="fill">
-              <mat-label>Sendungsempfänger auswählen</mat-label>
+              <mat-label>Rechnungsempfänger auswählen</mat-label>
               <input
                 #inputInvoice
                 matInput
@@ -299,24 +307,26 @@
               [(ngModel)]="invoiceAddressOption"
               (change)="onAddressOptionChange($event.value, false)"
               aria-label="Adresse auswählen"
+              class="w-full flex"
             >
               <mat-button-toggle
                 value="preferred"
                 [disabled]="!invoiceHasPreferredAddress"
+                class="flex-1"
               >
                 Bevorzugte Adresse
               </mat-button-toggle>
-              <mat-button-toggle value="existing">
+              <mat-button-toggle value="existing" class="flex-1">
                 Bestehende Adresse auswählen
               </mat-button-toggle>
-              <mat-button-toggle value="new">
+              <mat-button-toggle value="new" class="flex-1">
                 Neue Adresse erstellen
               </mat-button-toggle>
             </mat-button-toggle-group>
 
             <!-- Table for existing addresses -->
             @if (invoiceAddressOption === 'existing') {
-            <div class="table-container w-31/40 mt-4">
+            <div class="table-container w-full mt-4">
               @if (addressTableDataSource.data.length > 0) {
               <app-generic-table
                 [dataSource]="addressTableDataSource"
@@ -341,7 +351,7 @@
           } @if (selectedRecipientPerson) {
           <button
             mat-raised-button
-            class="ml-8 mb-4 mt-4 w-31/40"
+            class="mb-4 mt-4 w-full"
             color="primary"
             (click)="locallySaveAddressFormInput()"
           >
@@ -352,17 +362,15 @@
       </div>
     </mat-tab>
     <mat-tab label="Zustimmungen">
+      <mat-divider class="tab-divider"></mat-divider>
       <div class="approval-container">
-        <div class="text-2xl font-bold mb-4 mt-4 ml-8">
-          Zustimmungen
-          <app-form-component
-            [config]="approvalFormConfig"
-            [formGroup]="approvalFormGroup"
-          ></app-form-component>
-        </div>
+        <app-form-component
+          [config]="approvalFormConfig"
+          [formGroup]="approvalFormGroup"
+        ></app-form-component>
         <button
           mat-raised-button
-          class="ml-8 mb-4 mt-4 w-31/40"
+          class="ml-8 mb-4 mt-4 w-full"
           color="primary"
           (click)="locallySaveApprovalFormInput()"
         >

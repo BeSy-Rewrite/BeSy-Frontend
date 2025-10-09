@@ -1,3 +1,4 @@
+import { ORDER_QUERIES_PERSON_FORM_CONFIG } from './../../../configs/order/order-config';
 import {
   PersonsWrapperService,
   PersonWithFullName,
@@ -76,29 +77,28 @@ import {
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
-
 @Component({
   selector: 'app-create-order-page',
-  imports: [
-    ProgressBarComponent,
-    MatDivider,
-    FormComponent,
-    MatButton,
-    GenericTableComponent,
-    MatInputModule,
-    MatAutocompleteModule,
-    MatOptionModule,
-    CommonModule,
-    MatFormFieldModule,
-    ReactiveFormsModule,
-    FormsModule,
-    MatButtonToggle,
-    MatButtonToggleGroup,
-    MatRadioButton,
-    MatRadioModule,
-    MatTabGroup,
-    MatTabsModule,
-  ],
+imports: [
+  ProgressBarComponent,
+  MatDivider,
+  FormComponent,
+  MatButton,
+  GenericTableComponent,
+  MatInputModule,
+  MatAutocompleteModule,
+  MatOptionModule,
+  CommonModule,
+  MatFormFieldModule,
+  ReactiveFormsModule,
+  FormsModule,
+  MatButtonToggle,
+  MatButtonToggleGroup,
+  MatRadioButton,
+  MatRadioModule,
+  MatTabGroup,
+  MatTabsModule,
+],
   templateUrl: './create-order-page.component.html',
   styleUrl: './create-order-page.component.scss',
 })
@@ -109,7 +109,7 @@ export class CreateOrderPageComponent implements OnInit {
     private personsWrapperService: PersonsWrapperService,
     private currenciesWrapperService: CurrenciesWrapperService,
     private suppliersWrapperService: SuppliersWrapperService,
-    private orderWrapperService: OrdersWrapperService,
+    private orderWrapperService: OrdersWrapperService
   ) {}
 
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
@@ -168,10 +168,11 @@ export class CreateOrderPageComponent implements OnInit {
   // Recipient address variables
   recipientAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
   recipientAddressFormGroup = new FormGroup({});
-  recipientAddressId?: number; // Save id of the selected recipient address for the post
+  recipientAddressId?: number; // Stores the id of the selected recipient preferred address for the post
   recipientHasPreferredAddress = false;
   recipientAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
   recipientInfoText = '';
+  selectedRecipientAddressIdFromTable: number | undefined; // Stores the id of the selected recipient address from the table
   selectedRecipientPerson?: PersonWithFullName;
   selectedInvoicePerson?: PersonWithFullName;
   filteredPersonsRecipient: PersonWithFullName[] = [];
@@ -181,13 +182,20 @@ export class CreateOrderPageComponent implements OnInit {
   // Invoice address variables
   invoiceAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
   invoiceAddressFormGroup = new FormGroup({});
-  invoiceAddressId?: number; // Save id of the selected invoice address for the post
+  invoiceAddressId?: number; // Stores the id of the selected invoice person's preferred address
   invoiceHasPreferredAddress = false;
   invoiceAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
   invoiceInfoText = '';
+  selectedInvoiceAddressIdFromTable: number | undefined; // Stores the id of the selected invoice address from the table
   filteredPersonsInvoice: PersonWithFullName[] = [];
   @ViewChild('inputInvoice', { static: false })
   inputInvoice!: ElementRef<HTMLInputElement>;
+
+  // Queries person variables
+  selectedQueryPerson?: PersonWithFullName;
+  filteredPersonsQuery: PersonWithFullName[] = [];
+  queriesPersonFormConfig = ORDER_QUERIES_PERSON_FORM_CONFIG;
+  queriesPersonFormGroup = new FormGroup({});
 
   // Shared recipient/invoice address variables
   persons: PersonWithFullName[] = []; // Store all persons locally for the autocomplete input
@@ -254,6 +262,7 @@ export class CreateOrderPageComponent implements OnInit {
 
   // Currency variables
   currencies: Array<CurrencyWithDisplayName> = [];
+  currenciesLoaded = false;
 
   // Main offer variables
   mainOfferFormConfig = ORDER_MAIN_OFFER_FORM_CONFIG;
@@ -311,10 +320,6 @@ export class CreateOrderPageComponent implements OnInit {
     this.currencies =
       await this.currenciesWrapperService.getAllCurrenciesWithSymbol();
     this.setCurrenciesDropdownOptions(this.currencies);
-    console.log(
-      'filteredPersonsReciptient in ngOnInit:',
-      this.filteredPersonsRecipient
-    );
   }
 
   /**
@@ -355,14 +360,29 @@ export class CreateOrderPageComponent implements OnInit {
     }));
   }
 
+  /**
+   * Loads all persons from the API and stores them in the component
+   */
   private async loadPersons() {
     console.log('Loading persons...');
     this.persons = await this.personsWrapperService.getAllPersonsWithFullName();
     console.log('Geladene Personen:', this.persons);
 
-    // initial alle anzeigen
+    // fill the filteredPersons arrays with all persons initially for the autocomplete inputs
     this.filteredPersonsRecipient = this.persons.slice();
     this.filteredPersonsInvoice = this.persons.slice();
+    this.filteredPersonsQuery = this.persons.slice();
+
+    // Configure the config for the queries person autocomplete input, as this field is handled in a seperate form component
+    const field = this.queriesPersonFormConfig.fields.find(
+      (field) => field.name === 'queries_person_id'
+    );
+    if (!field) return;
+    field.options = this.persons.map((person) => ({
+      label: person.fullName, // Label shown in the dropdown of the autocomplete
+      value: person.id, // value which is returned when selecting an option
+    }));
+
   }
 
   /**
@@ -431,6 +451,33 @@ export class CreateOrderPageComponent implements OnInit {
     }
   }
 
+  /** Handle clearing of the autocomplete input
+   * @param isRecipient Boolean flag indicating if the cleared input is for the recipient (true) or the invoice party (false)
+   */
+  onPersonCleared(isRecipient: boolean) {
+      // Clear all locally stored data related to the previously selected person
+      // and reset the address form and related variables
+      if (isRecipient) {
+        this.selectedRecipientPerson = undefined;
+      this.recipientHasPreferredAddress = false;
+      this.recipientAddressOption = 'preferred';
+      this.recipientAddressId = undefined;
+      this.recipientAddressFormGroup.reset();
+      this.recipientInfoText = '';
+      this.recipientAddressFormConfig.title =
+        'Empfängeradresse auswählen oder erstellen';
+    } else {
+      this.selectedInvoicePerson = undefined;
+      this.invoiceHasPreferredAddress = false;
+      this.invoiceAddressOption = 'preferred';
+      this.invoiceAddressId = undefined;
+      this.invoiceAddressFormGroup.reset();
+      this.invoiceInfoText = '';
+      this.invoiceAddressFormConfig.title =
+        'Rechnungsadresse auswählen oder erstellen';
+    }
+  }
+
   /**
    * Add a new quotation to the locally stored quotations list and update the table data source
    */
@@ -462,10 +509,10 @@ export class CreateOrderPageComponent implements OnInit {
     // Wird aufgerufen, wenn in der Adress-Tabelle eine Zeile ausgewählt wird
     if (isRecipientAddress) {
       this.recipientAddressFormGroup.patchValue(address);
-      this.recipientAddressId = address.id;
+      this.selectedRecipientAddressIdFromTable = address.id;
     } else {
       this.invoiceAddressFormGroup.patchValue(address);
-      this.invoiceAddressId = address.id;
+      this.selectedInvoiceAddressIdFromTable = address.id;
     }
   }
 
@@ -476,33 +523,38 @@ export class CreateOrderPageComponent implements OnInit {
   onAddressOptionChange(option: string, isRecipient: boolean) {
     // Recipient address mode has changed
     if (isRecipient) {
-      this.recipientAddressOption = option as any;
 
-      if (option === 'preferred' && this.selectedRecipientPerson?.address_id) {
+      if ( option === 'preferred' && this.selectedRecipientPerson?.address_id ) {
         this.personsWrapperService
-          .getPersonAddressesById(this.selectedRecipientPerson.id!)
-          .then((addr) => this.recipientAddressFormGroup.patchValue(addr));
+          .getPersonAddressesById( this.selectedRecipientPerson.id! )
+          .then( ( addr ) => this.recipientAddressFormGroup.patchValue( addr ) );
         this.recipientInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
         this.recipientAddressFormConfig.title =
           'Hinterlegte bevorzugte Adresse';
         this.recipientAddressFormGroup.disable();
-      } else if (option === 'existing') {
+        if (this.selectedRecipientAddressIdFromTable && this.recipientAddressOption === 'existing') {
+          this.selectedRecipientAddressIdFromTable = undefined; // Clear selected address if switching from existing to preferred
+        }
+      } else if ( option === 'existing' ) {
         this.recipientAddressFormGroup.reset();
         this.recipientAddressFormGroup.disable();
         this.recipientAddressFormConfig.title = 'Bestehende Adresse überprüfen';
         this.recipientInfoText = 'Adressdaten überprüfen';
-      } else if (option === 'new') {
+      } else if ( option === 'new' ) {
         this.recipientAddressFormGroup.reset();
         this.recipientAddressFormGroup.enable();
         this.recipientAddressFormConfig.title = 'Neue Adresse erstellen';
         this.recipientInfoText =
           'Neue Adresse erstellen: bitte Formular ausfüllen.';
+        if ( this.selectedRecipientAddressIdFromTable && this.recipientAddressOption === 'existing' ) {
+          this.selectedRecipientAddressIdFromTable = undefined; // Clear selected address if switching from existing to new
+        }
       }
+      this.recipientAddressOption = option as any;
     }
     // Invoice address mode has changed
     else {
-      this.invoiceAddressOption = option as any;
 
       if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
         this.personsWrapperService
@@ -512,6 +564,9 @@ export class CreateOrderPageComponent implements OnInit {
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
         this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
         this.invoiceAddressFormGroup.disable();
+        if(this.selectedInvoiceAddressIdFromTable && this.invoiceAddressOption === 'existing'){
+          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address if switching from existing to preferred
+        }
       } else if (option === 'existing') {
         this.invoiceAddressFormGroup.reset();
         this.invoiceAddressFormGroup.disable();
@@ -523,7 +578,11 @@ export class CreateOrderPageComponent implements OnInit {
         this.invoiceAddressFormConfig.title = 'Neue Adresse erstellen';
         this.invoiceInfoText =
           'Neue Adresse erstellen: bitte Formular ausfüllen.';
+        if(this.selectedInvoiceAddressIdFromTable && this.invoiceAddressOption === 'existing'){
+          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address if switching from existing to new
+        }
       }
+      this.invoiceAddressOption = option as any;
     }
   }
 
@@ -556,7 +615,7 @@ export class CreateOrderPageComponent implements OnInit {
 
     // Handle address saving based on the selected addressModes
 
-    // Delivery address
+    // Recipient address
     if (this.recipientAddressOption === 'new') {
       this.recipientAddressFormGroup.markAllAsTouched();
       if (this.recipientAddressFormGroup.valid) {
@@ -567,6 +626,11 @@ export class CreateOrderPageComponent implements OnInit {
           const createdAddress: AddressResponseDTO =
             await this.personsWrapperService.createPersonAddress(newAddress);
           this.postOrderDTO.delivery_address_id = createdAddress.id;
+          this._notifications.open(
+            'Neue Lieferadresse wurde gespeichert.',
+            undefined,
+            { duration: 3000 }
+          );
         } catch (error) {
           this._notifications.open(
             'Fehler beim Speichern der Lieferadresse. Bitte überprüfen Sie die Eingaben im Lieferadress-Formular und versuchen Sie es später erneut.',
@@ -595,9 +659,9 @@ export class CreateOrderPageComponent implements OnInit {
         return;
       }
     } else {
-      // Use the address id stored in recipientAddressId to assign to the postOrderDTO
-      if (this.recipientAddressId) {
-        this.postOrderDTO.delivery_address_id = this.recipientAddressId;
+      // Use the address id stored in selectedRecipientAddressId to assign to the postOrderDTO
+      if (this.selectedRecipientAddressIdFromTable) {
+        this.postOrderDTO.delivery_address_id = this.selectedRecipientAddressIdFromTable;
       } else {
         this._notifications.open(
           'Bitte wählen Sie eine Lieferadresse aus der Tabelle aus (Lieferadresse).',
@@ -650,8 +714,8 @@ export class CreateOrderPageComponent implements OnInit {
           return;
         }
       } else {
-        if (this.invoiceAddressId) {
-          this.postOrderDTO.invoice_address_id = this.invoiceAddressId;
+        if (this.selectedInvoiceAddressIdFromTable) {
+          this.postOrderDTO.invoice_address_id = this.selectedInvoiceAddressIdFromTable;
         } else {
           this._notifications.open(
             'Bitte wählen Sie eine Adresse aus der Tabelle aus.',
@@ -732,17 +796,6 @@ export class CreateOrderPageComponent implements OnInit {
   private setCurrenciesDropdownOptions(
     currencies: Array<CurrencyWithDisplayName>
   ) {
-    const field = this.orderItemFormConfig.fields.find(
-      (f) => f.name === 'quantity_unit'
-    );
-    if (!field) return;
-
-    // Options setzen, Default-Werte bei undefined
-    field.options = currencies.map((c) => ({
-      label: c.displayName ?? '', // Falls displayName undefined -> leere Zeichenkette
-      value: c.code ?? '', // Falls code undefined -> leere Zeichenkette
-    }));
-
     const mainOfferField = this.mainOfferFormConfig.fields.find(
       (f) => f.name === 'currency_short'
     );
@@ -752,6 +805,14 @@ export class CreateOrderPageComponent implements OnInit {
       label: c.displayName ?? '', // Falls displayName undefined -> leere Zeichenkette
       value: c.code ?? '', // Falls code undefined -> leere Zeichenkette
     }));
+
+    mainOfferField.defaultValue = currencies
+      .filter((c) => c.code === 'EUR')
+      .map((c) => ({
+        label: c.displayName ?? '',
+        value: c.code ?? '',
+      }))[0];
+    this.currenciesLoaded = !this.currenciesLoaded;
   }
 
   /**
@@ -802,7 +863,7 @@ export class CreateOrderPageComponent implements OnInit {
       // Set the selected currency signal based on the selected value
 
       // Find the selected currency in the currencies array
-      const selected = this.currencies.find((c) => c.code === field.value);
+      const selected = this.currencies.find((c) => c.code === (field.value?.value ?? field.value));
 
       // Update the selectedCurrency signal with the found currency or default to EUR
       this.selectedCurrency.set({
@@ -877,25 +938,41 @@ export class CreateOrderPageComponent implements OnInit {
    * @param isRecipient boolean flag indicating if the filtering is for the recipient (true) or invoice (false)
    */
   filterPersons(isRecipient: boolean): void {
-    const value = isRecipient
-      ? this.inputRecipient.nativeElement.value.toLowerCase()
-      : this.inputInvoice.nativeElement.value.toLowerCase();
+  const inputEl = isRecipient
+    ? this.inputRecipient.nativeElement
+    : this.inputInvoice.nativeElement;
 
-    const filtered = this.persons.filter((p) =>
-      p.fullName.toLowerCase().includes(value)
-    );
+  const value = inputEl.value.trim().toLowerCase();
 
-    console.log(
-      'Filtered persons:',
-      filtered,
-      'for',
-      isRecipient ? 'recipient' : 'invoice'
-    );
-
+  // Wenn das Feld leer ist → Person-Cleared auslösen
+  if (value === '') {
+    this.onPersonCleared(isRecipient);
     if (isRecipient) {
-      this.filteredPersonsRecipient = filtered;
+      this.filteredPersonsRecipient = this.persons;
     } else {
-      this.filteredPersonsInvoice = filtered;
+      this.filteredPersonsInvoice = this.persons;
+    }
+    return;
+  }
+
+  // Normales Filtern
+  const filtered = this.persons.filter((p) =>
+    p.fullName.toLowerCase().includes(value)
+  );
+
+  if (isRecipient) {
+    this.filteredPersonsRecipient = filtered;
+  } else {
+    this.filteredPersonsInvoice = filtered;
+  }
+}
+
+
+
+  onQueriesPersonFormGroupChanged(field: { field: string; value: any }) {
+    if (field.field === 'queries_person_id' && field.value) {
+      this.selectedQueryPerson = field.value as PersonWithFullName;
+      this.postOrderDTO.queries_person_id = this.selectedQueryPerson.id;
     }
   }
 
@@ -910,22 +987,33 @@ export class CreateOrderPageComponent implements OnInit {
       );
       return;
     }
+
+
+    const currencyValue = (this.mainOfferFormGroup.value as any)?.currency_short?.value ?? null;
     this.postOrderDTO = {
       ...this.postOrderDTO,
       ...this.generalFormGroup.value,
       ...this.supplierDecisionReasonFormGroup.value,
       ...this.approvalFormGroup.value,
       ...this.mainOfferFormGroup.value,
+      ...this.queriesPersonFormGroup.value,
+      currency_short: currencyValue,
     };
     console.log('PostOrderDTO vor Erstellung:', this.postOrderDTO);
-    const createdOrder = await this.orderWrapperService.createOrder(this.postOrderDTO);
+    const createdOrder = await this.orderWrapperService.createOrder(
+      this.postOrderDTO
+    );
     if (createdOrder) {
       this.orderWrapperService.getOrderById(createdOrder.id!);
       this._notifications.open('Bestellung wurde erstellt.', undefined, {
         duration: 3000,
       });
       console.log('Erstellte Bestellung:', createdOrder);
-    }
-    else this._notifications.open('Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.', undefined, { duration: 3000 });
+    } else
+      this._notifications.open(
+        'Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.',
+        undefined,
+        { duration: 3000 }
+      );
   }
 }

@@ -1,7 +1,7 @@
 import { Validators } from "@angular/forms";
 import { AddressConfig } from "../../components/address-form/address-form.component";
 
-export const EDIT_ADDRESS_FORM_CONFIG: AddressConfig = {
+export const EDIT_SUPPLIER_ADDRESS_FORM_CONFIG: AddressConfig = {
   title: 'Bestehende Adressdaten',
   fields: [
     {
@@ -9,7 +9,7 @@ export const EDIT_ADDRESS_FORM_CONFIG: AddressConfig = {
       label: 'Gebäudename',
       type: 'text',
       required: false,
-      editable: false
+      editable: true
     },
     {
       name: 'street',
@@ -18,7 +18,7 @@ export const EDIT_ADDRESS_FORM_CONFIG: AddressConfig = {
       required: true,
       nominatim_param: 'street',
       nominatim_field: 'road',
-      editable: false
+      editable: true
     },
     {
       name: 'building_number',
@@ -27,7 +27,7 @@ export const EDIT_ADDRESS_FORM_CONFIG: AddressConfig = {
       required: false,
       nominatim_param: 'street',
       nominatim_field: 'house_number',
-      editable: false
+      editable: true
     },
     {
       name: 'town',
@@ -36,7 +36,7 @@ export const EDIT_ADDRESS_FORM_CONFIG: AddressConfig = {
       required: true,
       nominatim_param: 'city',
       nominatim_field: 'town',
-      editable: false
+      editable: true
     },
     {
       name: 'postal_code',
@@ -45,7 +45,7 @@ export const EDIT_ADDRESS_FORM_CONFIG: AddressConfig = {
       required: true,
       nominatim_param: 'postalcode',
       nominatim_field: 'postcode',
-      editable: false
+      editable: true
     },
     {
       name: 'county',
@@ -54,7 +54,7 @@ export const EDIT_ADDRESS_FORM_CONFIG: AddressConfig = {
       required: false,
       nominatim_param: 'county',
       nominatim_field: 'county',
-      editable: false
+      editable: true
     },
     {
       name: 'country',
@@ -64,14 +64,14 @@ export const EDIT_ADDRESS_FORM_CONFIG: AddressConfig = {
       defaultValue: 'Deutschland',
       nominatim_param: 'country',
       nominatim_field: 'country',
-      editable: false
+      editable: true
     },
     {
       name: 'comment',
       label: 'Kommentar',
       type: 'textarea',
       required: false,
-      editable: false,
+      editable: true,
       validators: [Validators.maxLength(255)]
     }
   ]

@@ -2,8 +2,7 @@ import { Validators } from "@angular/forms";
 import { FormConfig } from "../../components/form-component/form-component.component";
 
 export const EDIT_CUSTOMER_ID_FORM_CONFIG: FormConfig = {
-  title: 'Lieferant {Lieferantenname} bearbeiten',
-  subtitle: 'Neue Kundennummer hinzufügen',
+  title: 'Neue Kundennummer hinzufügen',
   fields: [
     {
       name: 'customer_table',

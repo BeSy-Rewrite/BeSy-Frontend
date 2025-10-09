@@ -144,13 +144,6 @@ export class SuppliersPageComponent implements OnInit {
     this.router.navigate(['/suppliers/', row.id, 'view']);
   }
 
-  // Signals to be handled coming from the supplier-form-component
-  onFormValueChanged(event: { field: string; value: any }) {
-    /* if (event.field === 'addressMode') {
-      this.addressMode = event.value;
-    } */
-  }
-
   // Signals to be handled coming from the address-form-component
   onAddressFormValueChanged(event: { field: string; value: any }) {
     // Handle address form value changes if needed

@@ -3,7 +3,7 @@ import { FormConfig } from "../../components/form-component/form-component.compo
 
 // Supplier Configuration (matches SupplierRequestDTO)
 export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
-  title: 'Bestehende Lieferantendaten',
+  title: 'Lieferant {Lieferantenname} bearbeiten',
   fields: [
     {
       name: 'name',
@@ -11,7 +11,9 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
       type: 'text',
       required: true,
       nominatim_param: 'q', // Cannot be paired with any other address param!!!
-      nominatim_field: 'name'
+      nominatim_field: 'name',
+      editable: true,
+      tooltip: 'Name des Lieferanten. Wird in der Lieferantenauswahl angezeigt.'
     },
     {
       name: 'flag_preferred',
@@ -22,6 +24,7 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
         { value: false, label: 'Nein' },
         { value: true, label: 'Ja' }
       ],
+      editable: true,
     },
     {
       name: 'vat_id',
@@ -31,47 +34,49 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
       options: [
         {value: 'error_loading_from_api', label: 'Fehler beim Laden der Optionen'}
       ],
-      tooltip: 'Bitte wählen Sie den Mehrwertsteuersatz aus.'
+      tooltip: 'Bitte wählen Sie den Mehrwertsteuersatz aus.',
+      editable: true,
     },
     {
       name: 'email',
       label: 'E-Mail',
       type: 'email',
       required: false,
-      validators: [Validators.email]
+      validators: [Validators.email],
+      editable: true,
     },
     {
       name: 'fax',
       label: 'Fax',
       type: 'tel',
-      required: false
+      required: false,
+      editable: true,
+      tooltip: 'Faxnummer des Lieferanten. Bitte im internationalen Format angeben, z.B. +49 123 4567890'
     },
     {
       name: 'phone',
       label: 'Telefon',
       type: 'tel',
-      required: false
+      required: false,
+      editable: true,
+      tooltip: 'Telefonnummer des Lieferanten. Bitte im internationalen Format angeben, z.B. +49 123 4567890'
     },
     {
       name: 'comment',
       label: 'Kommentar',
       type: 'textarea',
       required: false,
-      validators: [Validators.maxLength(255)]
+      validators: [Validators.maxLength(255)],
+      editable: true,
+      tooltip: 'Interne Anmerkungen zum Lieferanten.'
     },
     {
       name: 'website',
       label: 'Website',
       type: 'text',
       required: false,
+      editable: true,
+      tooltip: 'Webseite des Lieferanten.'
     },
-
-    {
-      name: 'customer_id',
-      label: 'Kundennummer',
-      type: 'text',
-      required: false,
-      tooltip: 'Interne oder vom Lieferanten vergebene Kundennummer. Diese wird später zum Erstellen einer Bestellungen benötigt. Falls möglich bitte angeben.'
-    }
   ]
 };

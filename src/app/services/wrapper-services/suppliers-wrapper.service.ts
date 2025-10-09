@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SuppliersService } from '../../api';
+import { SupplierRequestDTO, SuppliersService } from '../../api';
 
 @Injectable({
   providedIn: 'root'
@@ -22,7 +22,7 @@ export class SuppliersWrapperService {
     return createdSupplier;
   }
 
-  async updateSupplier(id: number, supplier: any) {
+  async updateSupplier(id: number, supplier: SupplierRequestDTO) {
     const updatedSupplier = await SuppliersService.updateSupplierById(id, supplier);
     console.log("Updated supplier:", updatedSupplier);
     return updatedSupplier;

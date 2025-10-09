@@ -88,7 +88,8 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       type: 'text',
       required: false,
       editable: true,
-      validators: [Validators.maxLength(100)]
+      validators: [Validators.maxLength(100)],
+      tooltip: 'Die Bestellnummer ist eine vom Lieferanten vergebene Nummer, die die Bestellung eindeutig identifiziert.'
     },
     {
       name: 'supplier_id',
@@ -111,7 +112,7 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       // Will be loaded from API: customersId
       options: [{ label: 'Bitte wählen sie zuerst einen Lieferanten aus.', value: null }],
       editable: true,
-      tooltip: 'Die Kundennummer wird vom Lieferanten vergeben und dient der eindeutigen Identifikation Ihres Unternehmens bei diesem Lieferanten.'
+      tooltip: 'Die Kundennummer wird vom Lieferanten vergeben und dient der eindeutigen Identifikation bei diesem Lieferanten.'
     },
     {
       name: 'quote_price',
@@ -129,9 +130,10 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       required: false,
       filterable: true,
       // Will be loaded from currencies api
-      options: [{ label: 'Fehler beim Laden der Währungen', value: null }],
+      options: [],
       editable: true,
-      tooltip: 'Die Währung, in der der Preis des Hauptangebots angegeben ist.',
+      tooltip: 'Die Währung, in welcher der Preis des Hauptangebots angegeben ist.',
+      defaultValue: [],
       emitAsSignal: true
     },
     {
@@ -334,6 +336,24 @@ export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
       validators: [Validators.pattern('^[0-9]{4}$')],
       tooltip: 'Das Buchungsjahr gibt an, in welchem Jahr die Bestellung verbucht wird. Standardmäßig ist das aktuelle Jahr vorausgewählt.',
       defaultValue: new Date().getFullYear().toString()
+    }
+  ]
+};
+
+export const ORDER_QUERIES_PERSON_FORM_CONFIG: FormConfig = {
+  fields: [
+    {
+      name: 'queries_person_id',
+      label: 'Person für Rückfragen',
+      type: 'autocomplete',
+      requireSelection: true,
+      required: false,
+      filterable: true,
+      // Will be loaded from persons api
+      options: [],
+      editable: true,
+      tooltip: 'Die Person, die bei Rückfragen zur Bestellung kontaktiert werden kann.',
+      emitAsSignal: true
     }
   ]
 };

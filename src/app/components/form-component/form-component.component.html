@@ -1,353 +1,359 @@
-<div class="form-header p-8">
+<div class="form-header">
+  @if(config.title) {
   <h4 class="text-2xl font-medium mb-2 text-gray-800">
     {{ config.title }}
   </h4>
   <h2>{{ config.subtitle }}</h2>
   <mat-divider class="my-4"></mat-divider>
+  }
   <form [formGroup]="formGroup" class="w-full flex flex-col gap-4 mt-4">
-      @for (field of config.fields; track field.name) {
-          @switch (field.type) {
+    @for (field of config.fields; track field.name) { @switch (field.type) {
 
-          <!-- Textfeld -->
-          @case ('text') {
-          <mat-form-field class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
-            <input
-              matInput
-              [formControlName]="field.name"
-              [required]="field.required"
-            />
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-            } @if (field.tooltip) {
-            <!-- Help-Icon mit Tooltip im Suffix -->
-            <button
-              mat-icon-button
-              matSuffix
-              matTooltip="{{ field.tooltip }}"
-              matTooltipPosition="above"
-              type="button"
-              aria-label="Mehr Informationen"
-              class="tooltip-icon"
-            >
-              <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
-            </button>
-            }
-          </mat-form-field>
-          }
-
-          <!-- Select -->
-          @case ('select') {
-          <mat-form-field class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
-            <mat-select
-              [formControlName]="field.name"
-              [required]="field.required"
-            >
-              @for (opt of field.options ?? []; track opt.value) {
-              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-              }
-            </mat-select>
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültigen Wert auswählen!</mat-error>
-            } @if (field.tooltip) {
-            <!-- Help-Icon mit Tooltip im Suffix -->
-            <button
-              mat-icon-button
-              matSuffix
-              matTooltip="{{ field.tooltip }}"
-              matTooltipPosition="above"
-              type="button"
-              aria-label="Mehr Informationen"
-              class="tooltip-icon"
-            >
-              <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
-            </button>
-            }
-          </mat-form-field>
-          }
-
-          <!-- Radio -->
-          @case ('radio') {
-          <div class="w-full flex flex-col">
-            <!-- Label + Help Icon -->
-            <div class="flex items-center mb-2">
-              <label class="text-gray-700 font-semibold">
-                {{ field.label }}
-              </label>
-
-              @if(field.tooltip) {
-              <button
-                mat-icon-button
-                matTooltip="{{ field.tooltip }}"
-                class="ml-2 !h-6 !w-6 !p-0"
-                type="button"
-              >
-                <mat-icon
-                  class="text-gray-500 text-base"
-                  style="color: rgb(58, 126, 229)"
-                  >help</mat-icon
-                >
-              </button>
-              }
-            </div>
-
-            <!-- Radio Buttons -->
-            <mat-radio-group
-              [formControlName]="field.name"
-              [required]="field.required"
-              class="flex gap-4"
-            >
-              @for (opt of field.options ?? []; track opt.value) {
-              <mat-radio-button [value]="opt.value">{{
-                opt.label
-              }}</mat-radio-button>
-              }
-            </mat-radio-group>
-
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültige Auswahl treffen!</mat-error>
-            }
-          </div>
-
-          }
-
-          <!-- Checkbox -->
-          @case ('checkbox') {
-          <div class="w-full flex items-center gap-2">
-            <!-- Checkbox -->
-            <mat-checkbox [formControlName]="field.name">
-              {{ field.label }}
-            </mat-checkbox>
-
-            <!-- Tooltip-Button -->
-            @if (field.tooltip) {
-            <button
-              mat-icon-button
-              matTooltip="{{ field.tooltip }}"
-              class="ml-2 !h-6 !w-6 !p-0"
-              type="button"
-            >
-              <mat-icon
-                class="text-gray-500 text-base"
-                style="color: rgb(58, 126, 229)"
-              >
-                help
-              </mat-icon>
-            </button>
-            }
-
-            <!-- Fehleranzeige -->
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültige Auswahl treffen!</mat-error>
-            }
-          </div>
-          }
-
-          <!-- Number -->
-          @case ('number') {
-          <mat-form-field class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
-            <input
-              matInput
-              [formControlName]="field.name"
-              [required]="field.required"
-              type="number"
-            />
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-            } @if (field.tooltip) {
-            <!-- Help-Icon mit Tooltip im Suffix -->
-            <button
-              mat-icon-button
-              matSuffix
-              matTooltip="{{ field.tooltip }}"
-              matTooltipPosition="above"
-              type="button"
-              aria-label="Mehr Informationen"
-              class="tooltip-icon"
-            >
-              <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
-            </button>
-            }
-          </mat-form-field>
-          }
-
-          <!-- Date -->
-          @case ('date') {
-          <mat-form-field class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
-            <input
-              matInput
-              [formControlName]="field.name"
-              [required]="field.required"
-              type="date"
-            />
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-            } @if (field.tooltip) {
-            <!-- Help-Icon mit Tooltip im Suffix -->
-            <button
-              mat-icon-button
-              matSuffix
-              matTooltip="{{ field.tooltip }}"
-              matTooltipPosition="above"
-              type="button"
-              aria-label="Mehr Informationen"
-              class="tooltip-icon"
-            >
-              <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
-            </button>
-            }
-          </mat-form-field>
-          }
-
-          <!-- Email -->
-          @case ('email') {
-          <mat-form-field class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
-            <input
-              matInput
-              [formControlName]="field.name"
-              [required]="field.required"
-              type="email"
-            />
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-            } @if (field.tooltip) {
-            <!-- Help-Icon mit Tooltip im Suffix -->
-            <button
-              mat-icon-button
-              matSuffix
-              matTooltip="{{ field.tooltip }}"
-              matTooltipPosition="above"
-              type="button"
-              aria-label="Mehr Informationen"
-              class="tooltip-icon"
-            >
-              <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
-            </button>
-            }
-          </mat-form-field>
-          } @case ('tel') {
-          <mat-form-field class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
-            <input
-              matInput
-              [formControlName]="field.name"
-              [required]="field.required"
-              type="tel"
-            />
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-            }
-          </mat-form-field>
-          } @case ('search') {
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
-            <input
-              matInput
-              [formControlName]="field.name"
-              [required]="field.required"
-              type="search"
-            />
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-            }
-          </mat-form-field>
-
-          } @case ('table') {
-          <app-generic-table
-            [dataSource]="tableDataSource"
-            [columns]="tableColumns"
-            [pageSize]="5"
-          ></app-generic-table>
-          <mat-divider
-            class="bg-he-lightblue"
-            style="border-top-width: 2px"
-          ></mat-divider>
-
-          } @case ('textarea') {
-          <mat-form-field class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
-            <textarea
-              matInput
-              [formControlName]="field.name"
-              [required]="field.required"
-            ></textarea>
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-            } @if (field.tooltip) {
-            <!-- Help-Icon mit Tooltip im Suffix -->
-            <button
-              mat-icon-button
-              matSuffix
-              matTooltip="{{ field.tooltip }}"
-              matTooltipPosition="above"
-              type="button"
-              aria-label="Mehr Informationen"
-              class="tooltip-icon"
-            >
-              <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
-            </button>
-            }
-          </mat-form-field>
-          } @case ('autocomplete'){
-          <!-- Autocomplete Case inside your loop -->
-          <mat-form-field class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
-
-            <input
-              #autoInput
-              matInput
-              [formControlName]="field.name"
-              [matAutocomplete]="auto"
-              [required]="field.required"
-              (input)="onAutocompleteInput(field, $any($event.target)?.value)"
-              (focus)="onAutocompleteInput(field, $any($event.target)?.value)"
-            />
-
-            <mat-autocomplete
-              #auto="matAutocomplete"
-              [requireSelection]="field.requireSelection"
-              [displayWith]="displayFn"
-            >
-              @for (opt of filteredOptions[field.name]; track opt.value) {
-              <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
-              }
-            </mat-autocomplete>
-
-            @if (field.tooltip) {
-            <!-- Help-Icon mit Tooltip im Suffix -->
-            <button
-              mat-icon-button
-              matSuffix
-              matTooltip="{{ field.tooltip }}"
-              matTooltipPosition="above"
-              type="button"
-              aria-label="Mehr Informationen"
-              class="tooltip-icon"
-            >
-              <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
-            </button>
-            }
-
-            @if (formGroup.get(field.name)?.invalid &&
-            formGroup.get(field.name)?.touched) {
-            <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-            }
-          </mat-form-field>
-          } }
+    <!-- Textfeld -->
+    @case ('text') {
+    <mat-form-field class="w-full">
+      <mat-label>{{ field.label }}</mat-label>
+      <input
+        matInput
+        [formControlName]="field.name"
+        [required]="field.required"
+      />
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+      } @if (field.tooltip) {
+      <!-- Help-Icon mit Tooltip im Suffix -->
+      <button
+        mat-icon-button
+        matSuffix
+        matTooltip="{{ field.tooltip }}"
+        matTooltipPosition="above"
+        type="button"
+        aria-label="Mehr Informationen"
+        class="tooltip-icon"
+      >
+        <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+      </button>
       }
+    </mat-form-field>
+    }
+
+    <!-- Select -->
+    @case ('select') {
+    <mat-form-field class="w-full">
+      <mat-label>{{ field.label }}</mat-label>
+      <mat-select [formControlName]="field.name" [required]="field.required">
+        @for (opt of field.options ?? []; track opt.value) {
+        <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
+        }
+      </mat-select>
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültigen Wert auswählen!</mat-error>
+      } @if (field.tooltip) {
+      <!-- Help-Icon mit Tooltip im Suffix -->
+      <button
+        mat-icon-button
+        matSuffix
+        matTooltip="{{ field.tooltip }}"
+        matTooltipPosition="above"
+        type="button"
+        aria-label="Mehr Informationen"
+        class="tooltip-icon"
+      >
+        <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+      </button>
+      }
+    </mat-form-field>
+    }
+
+    <!-- Radio -->
+    @case ('radio') {
+    <div class="w-full flex flex-col">
+      <!-- Label + Help Icon -->
+      <div class="flex items-center mb-2">
+        <label class="text-gray-700 text-lg font-medium">
+          {{ field.label }}
+        </label>
+
+        @if(field.tooltip) {
+        <button
+          mat-icon-button
+          matTooltip="{{ field.tooltip }}"
+          class="ml-2 !h-6 !w-6 !p-0"
+          type="button"
+        >
+          <mat-icon
+            class="text-gray-500 text-base"
+            style="color: rgb(58, 126, 229)"
+            >help</mat-icon
+          >
+        </button>
+        }
+      </div>
+
+      <!-- Radio Buttons -->
+      <mat-radio-group
+        [formControlName]="field.name"
+        [required]="field.required"
+        class="flex gap-4"
+      >
+        @for (opt of field.options ?? []; track opt.value) {
+        <mat-radio-button [value]="opt.value">{{ opt.label }}</mat-radio-button>
+        }
+      </mat-radio-group>
+
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültige Auswahl treffen!</mat-error>
+      }
+    </div>
+
+    }
+
+    <!-- Checkbox -->
+    @case ('checkbox') {
+    <div class="w-full flex items-center gap-2">
+      <!-- Checkbox -->
+      <mat-checkbox [formControlName]="field.name">
+        {{ field.label }}
+      </mat-checkbox>
+
+      <!-- Tooltip-Button -->
+      @if (field.tooltip) {
+      <button
+        mat-icon-button
+        matTooltip="{{ field.tooltip }}"
+        class="ml-2 !h-6 !w-6 !p-0"
+        type="button"
+      >
+        <mat-icon
+          class="text-gray-500 text-base"
+          style="color: rgb(58, 126, 229)"
+        >
+          help
+        </mat-icon>
+      </button>
+      }
+
+      <!-- Fehleranzeige -->
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültige Auswahl treffen!</mat-error>
+      }
+    </div>
+    }
+
+    <!-- Number -->
+    @case ('number') {
+    <mat-form-field class="w-full">
+      <mat-label>{{ field.label }}</mat-label>
+      <input
+        matInput
+        [formControlName]="field.name"
+        [required]="field.required"
+        type="number"
+      />
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+      } @if (field.tooltip) {
+      <!-- Help-Icon mit Tooltip im Suffix -->
+      <button
+        mat-icon-button
+        matSuffix
+        matTooltip="{{ field.tooltip }}"
+        matTooltipPosition="above"
+        type="button"
+        aria-label="Mehr Informationen"
+        class="tooltip-icon"
+      >
+        <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+      </button>
+      }
+    </mat-form-field>
+    }
+
+    <!-- Date -->
+    @case ('date') {
+    <mat-form-field class="w-full">
+      <mat-label>{{ field.label }}</mat-label>
+      <input
+        matInput
+        [formControlName]="field.name"
+        [required]="field.required"
+        type="date"
+      />
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+      } @if (field.tooltip) {
+      <!-- Help-Icon mit Tooltip im Suffix -->
+      <button
+        mat-icon-button
+        matSuffix
+        matTooltip="{{ field.tooltip }}"
+        matTooltipPosition="above"
+        type="button"
+        aria-label="Mehr Informationen"
+        class="tooltip-icon"
+      >
+        <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+      </button>
+      }
+    </mat-form-field>
+    }
+
+    <!-- Email -->
+    @case ('email') {
+    <mat-form-field class="w-full">
+      <mat-label>{{ field.label }}</mat-label>
+      <input
+        matInput
+        [formControlName]="field.name"
+        [required]="field.required"
+        type="email"
+      />
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+      } @if (field.tooltip) {
+      <!-- Help-Icon mit Tooltip im Suffix -->
+      <button
+        mat-icon-button
+        matSuffix
+        matTooltip="{{ field.tooltip }}"
+        matTooltipPosition="above"
+        type="button"
+        aria-label="Mehr Informationen"
+        class="tooltip-icon"
+      >
+        <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+      </button>
+      }
+    </mat-form-field>
+    } @case ('tel') {
+    <mat-form-field class="w-full">
+      <mat-label>{{ field.label }}</mat-label>
+      <input
+        matInput
+        [formControlName]="field.name"
+        [required]="field.required"
+        type="tel"
+      />
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+      }
+      @if (field.tooltip) {
+      <!-- Help-Icon mit Tooltip im Suffix -->
+      <button
+        mat-icon-button
+        matSuffix
+        matTooltip="{{ field.tooltip }}"
+        matTooltipPosition="above"
+        type="button"
+        aria-label="Mehr Informationen"
+        class="tooltip-icon"
+      >
+        <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+      </button>
+      }
+    </mat-form-field>
+    } @case ('search') {
+    <mat-form-field appearance="outline" class="w-full">
+      <mat-label>{{ field.label }}</mat-label>
+      <input
+        matInput
+        [formControlName]="field.name"
+        [required]="field.required"
+        type="search"
+      />
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+      }
+    </mat-form-field>
+
+    } @case ('table') {
+    <app-generic-table
+      [dataSource]="tableDataSource"
+      [columns]="tableColumns"
+      [pageSize]="5"
+    ></app-generic-table>
+    <mat-divider
+      class="bg-he-lightblue"
+      style="border-top-width: 2px"
+    ></mat-divider>
+
+    } @case ('textarea') {
+    <mat-form-field class="w-full">
+      <mat-label>{{ field.label }}</mat-label>
+      <textarea
+        matInput
+        [formControlName]="field.name"
+        [required]="field.required"
+      ></textarea>
+      @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+      } @if (field.tooltip) {
+      <!-- Help-Icon mit Tooltip im Suffix -->
+      <button
+        mat-icon-button
+        matSuffix
+        matTooltip="{{ field.tooltip }}"
+        matTooltipPosition="above"
+        type="button"
+        aria-label="Mehr Informationen"
+        class="tooltip-icon"
+      >
+        <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+      </button>
+      }
+    </mat-form-field>
+    } @case ('autocomplete'){
+    <mat-form-field class="w-full">
+      <mat-label>{{ field.label }}</mat-label>
+
+      <input
+        #autoInput
+        matInput
+        [formControlName]="field.name"
+        [matAutocomplete]="auto"
+        [required]="field.required"
+        (input)="onAutocompleteInput(field, $any($event.target)?.value)"
+        (focus)="onAutocompleteInput(field, $any($event.target)?.value)"
+      />
+
+      <mat-autocomplete
+        #auto="matAutocomplete"
+        [requireSelection]="field.requireSelection"
+        [displayWith]="displayFn"
+      >
+        @for (opt of filteredOptions[field.name]; track opt.value) {
+        <mat-option [value]="opt">{{ opt.label }}</mat-option>
+        }
+      </mat-autocomplete>
+
+      @if (field.tooltip) {
+      <!-- Help-Icon mit Tooltip im Suffix -->
+      <button
+        mat-icon-button
+        matSuffix
+        matTooltip="{{ field.tooltip }}"
+        matTooltipPosition="above"
+        type="button"
+        aria-label="Mehr Informationen"
+        class="tooltip-icon"
+      >
+        <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+      </button>
+      } @if (formGroup.get(field.name)?.invalid &&
+      formGroup.get(field.name)?.touched) {
+      <mat-error>Bitte gültigen Wert eingeben!</mat-error>
+      }
+    </mat-form-field>
+    } } }
   </form>
 </div>

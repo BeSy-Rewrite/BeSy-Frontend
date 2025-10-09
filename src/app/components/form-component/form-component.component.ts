@@ -5,7 +5,7 @@ import {
   OnInit,
   output,
   QueryList,
-  Signal,
+  SimpleChanges,
   ViewChildren,
 } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -57,7 +57,7 @@ export interface FormField {
 }
 
 export interface FormConfig {
-  title: string;
+  title?: string;
   subtitle?: string;
   fields: FormField[];
 }
@@ -97,6 +97,9 @@ export class FormComponent implements OnInit {
   // Columns to be displayed in the address table
   @Input() tableColumns: { id: string; label: string }[] = [];
 
+  // Trigger to refresh the form controls (e.g. when options are loaded from API or the config changes)
+  @Input() refreshTrigger?: any;
+
   valueChanged = output<{ field: string; value: any }>();
 
   filteredOptions: { [fieldName: string]: { label: string; value: any }[] } =
@@ -106,34 +109,7 @@ export class FormComponent implements OnInit {
   >;
 
   ngOnInit() {
-    this.config.fields.forEach((field) => {
-      this.formGroup.addControl(
-        field.name,
-        this.fb.control(field.defaultValue, field.validators || [])
-      );
-
-      // Initial Filter setzen
-      if (field.type === 'autocomplete' && field.options) {
-        this.filteredOptions[field.name] = field.options.slice();
-
-        // Wenn filterbar → bei ValueChanges neu filtern
-        if (field.filterable) {
-          this.formGroup.get(field.name)!.valueChanges.subscribe((val) => {
-            this.filterOptions(field, val);
-          });
-        }
-      }
-      if (field.emitAsSignal) {
-        const control = this.formGroup.get(field.name);
-        control?.valueChanges.subscribe((val) => {
-          this.valueChanged.emit({ field: field.name, value: val });
-        });
-      }
-    });
-
-    if (this.editMode) {
-      this.editModeDisableFields();
-    }
+    this.updateFormControls();
   }
 
   private editModeDisableFields() {
@@ -158,13 +134,65 @@ export class FormComponent implements OnInit {
 
   // displayWith: zeigt das Label für einen gespeicherten value an
   displayFn = (val: any) => {
-    if (val == null) return '';
-    for (const f of this.config.fields) {
-      if (f.type === 'autocomplete' && f.options) {
-        const found = f.options.find((o) => o.value === val);
-        if (found) return found.label;
-      }
-    }
-    return val;
+    if (!val) return '';
+    return typeof val === 'object' ? val.label : val;
   };
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['refreshTrigger']) {
+      this.updateFormControls();
+    }
+  }
+
+  private updateFormControls() {
+    this.config.fields.forEach((field) => {
+      // If the control already exists, do not overwrite it (to preserve user input)
+      if (!this.formGroup.get(field.name)) {
+        this.formGroup.addControl(
+          field.name,
+          this.fb.control(field.defaultValue, field.validators || [])
+        );
+      }
+
+      // Handle Autocomplete fields
+      if (field.type === 'autocomplete' && field.options) {
+        this.filteredOptions[field.name] = field.options.slice();
+
+        const control = this.formGroup.get(field.name);
+
+        // Set default value if it's an object and matches one of the options
+        if (field.defaultValue && field.options?.length > 0) {
+          const match =
+            field.options.find(
+              (opt) => opt.value === field.defaultValue.value
+            ) || null;
+
+          // Set the control value to the matching option object
+          if (match) {
+            control?.setValue(match, { emitEvent: false });
+          }
+        }
+
+        // Handle filtering for Autocomplete fields
+        if (field.filterable) {
+          control?.valueChanges.subscribe((val) => {
+            this.filterOptions(field, val);
+          });
+        }
+      }
+
+      // Emit value changes as signals if configured as such in the config
+      if (field.emitAsSignal) {
+        const control = this.formGroup.get(field.name);
+        control?.valueChanges.subscribe((val) => {
+          this.valueChanged.emit({ field: field.name, value: val });
+        });
+      }
+    });
+
+    // Disable non-editable fields in edit mode
+    if (this.editMode) {
+      this.editModeDisableFields();
+    }
+  }
 }

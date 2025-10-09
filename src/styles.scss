@@ -24,13 +24,30 @@
   @include mat.form-field-overrides((filled-container-color: rgba(0, 0, 0, 0.113),
       filled-container-shape: rounded));
 
-  @include mat.table-overrides((
-    //header-headline-color: rgb(0, 255, 42), // macht nix?
-    header-headline-line-height: 40px, // header height
-    header-headline-tracking: 0.05em,
-    background-color: #3a9bf5fa, // header background color,
-    row-item-outline-width: 1.5px, // row outline
-    row-item-outline-color: #00000019, // row outline color
+  @include mat.table-overrides((header-headline-color: rgb(0, 255, 42), // macht nix?
+      header-headline-line-height: 40px, // header height
+      header-headline-tracking: 0.05em,
+      //background-color: #3a9bf5fa, // header background color,
+      background-color: #00AADC,
+      row-item-outline-width: 1.5px, // row outline
+      row-item-outline-color: #00000019, // row outline color
+    ));
+
+  @include mat.tabs-overrides((active-focus-indicator-color: orange,
+      active-focus-label-text-color: red,
+      active-label-text-color: green,
+      foreground-color: orange,
+      inactive-label-text-color: blue,
+      background-color: green));
+
+  @include mat.button-toggle-overrides((background-color: #F0F0F0,
+      disabled-selected-state-background-color: red,
+      divider-color: #00AADC,
+      selected-state-background-color: #bbbbbb,
+    ));
+
+  @include mat.dialog-overrides((container-color: white,
+      subhead-color: rgb(204, 0, 255),
     ));
 
   // HS Esslingen Colorschema
@@ -39,4 +56,3 @@
   --color-he-lightblue: #00AADC;
   --color-he-grey: #F0F0F0;
 }
-

@@ -1,26 +1,24 @@
+$form-width: calc(6 / 10 * 100%); // 60% der Breite des Containers
+
 .create-order-page {
 
   min-height: 100vh;
 }
 
-.form-container {
-  background-image: url('/assets/pics/5426.jpg');
-
-  background-size: cover;
-  background-position: center;
-
-  min-height: 100vh;
-
-}
-
 .main-offer-container,
-.supplier-decision-reason-container {
-  display: flex;
-  justify-content: center;
+.supplier-decision-reason-container,
+.general-info-container,
+.item-container,
+.quotation-container,
+.address-container,
+.approval-container {
+  width: $form-width;
+  margin: 0 auto; // center the divs horizontally
+  padding: 1rem;
 }
 
-.main-offer-container > div,
-.supplier-decision-reason-container > div {
-  width: 100%;
-  max-width: 50%; /* optional, für saubere Ausrichtung */
+.tab-divider {
+  background: purple;
+  margin-bottom: 1rem;
+  height: 2px;
 }

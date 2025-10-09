@@ -45,7 +45,7 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
       filterable: true,
       // Will be loaded from currencies api
       options:[],
-      defaultValue: 'Euro Member Countries'
+      defaultValue: { label: 'Euro', value: 'EUR' }
     },
 
     {
