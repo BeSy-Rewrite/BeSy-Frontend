@@ -1,12 +1,22 @@
-import { Component, input, OnInit } from '@angular/core';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { Component, input, OnInit, output } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from "@angular/material/divider";
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { PersonResponseDTO, UserResponseDTO } from '../../api';
 import { PERSON_FIELD_NAMES } from '../../display-name-mappings/person-names';
 import { PersonsWrapperService } from '../../services/wrapper-services/persons-wrapper.service';
 import { UsersWrapperService } from '../../services/wrapper-services/users-wrapper.service';
 
+
 @Component({
   selector: 'app-person-details',
-  imports: [],
+  imports: [
+    ClipboardModule,
+    MatButtonModule,
+    MatTooltipModule,
+    MatDividerModule
+  ],
   templateUrl: './person-details.component.html',
   styleUrl: './person-details.component.scss'
 })
@@ -14,6 +24,8 @@ export class PersonDetailsComponent implements OnInit {
 
   personId = input.required<number>();
   isUserId = input<boolean>(false);
+
+  personGenderLoaded = output<'m' | 'f' | 'd'>();
 
   person!: PersonResponseDTO;
   personData = new Map<string, string>();
@@ -43,6 +55,7 @@ export class PersonDetailsComponent implements OnInit {
         this.personData.set(key, String(value));
       }
     }
+    this.personGenderLoaded.emit(this.person?.gender ?? 'd');
   }
 
   getFullName(): string {

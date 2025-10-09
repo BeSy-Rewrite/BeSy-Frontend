@@ -1,20 +1,17 @@
-<div class="p-6 bg-[url('/assets/pics/5426.jpg')] bg-cover bg-center rounded-lg shadow-md">
+<div class="flex flex-col">
+    <p class="text-xl ml-1.5">{{getFullName()}}</p>
 
-    <div class="flex flex-row items-center gap-4 rounded-lg bg-he-lightblue-200 -mx-3 -mt-3 p-2">
-        <div
-            class="flex items-center justify-center px-1 pb-0.5 h-12 w-fit min-w-12 rounded-full bg-he-grey text-he-darkblue text-xl font-semibold border-2 border-he-darkblue">
-            {{getInitials()}}
-        </div>
-        <div class="flex flex-col">
-            <p class="text-2xl font-semibold">{{getFullName()}}</p>
-            <p class="text-md">{{personData.get('email')}}</p>
-        </div>
-    </div>
-    <div class="grid grid-cols-[max-content_1fr] gap-x-8 gap-y-2 mt-2">
-        @for (field of personData; track $index) {
-        <h3 class="font-semibold">{{personFieldLabels[field[0]]}}:</h3>
-        <p>{{field[1]}}</p>
-        }
-    </div>
-
+    <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="personData.get('email') ?? ''"
+        matTooltip="Kopieren">
+        <u>{{personData.get('email')}}</u>
+    </button>
 </div>
+
+@if (!isUserId()) {
+<div class="grid grid-cols-[max-content_1fr] gap-x-8 gap-y-2 mt-2 ml-2">
+    @for (field of personData; track $index) {
+    <h3 class="font-semibold">{{personFieldLabels[field[0]]}}:</h3>
+    <p>{{field[1]}}</p>
+    }
+</div>
+}

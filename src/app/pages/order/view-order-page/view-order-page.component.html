@@ -1,83 +1,99 @@
-<div class="flex flex-col pl-4 pr-4 gap-4 m-2">
-    <!-- Header Section -->
+<div class="flex flex-col mx-6 my-2 gap-8">
+
     <div class="flex justify-between">
 
         <div class="flex flex-col items-start gap-2">
             <h1 class="font-semibold text-2xl">{{order().orderDisplay.content_description}}</h1>
-            <h2>Bestellnummer:&nbsp;{{order().orderDisplay.besy_number}}</h2>
-            <h2>#&nbsp;{{order().order.id}}</h2>
+
+            <span>
+                Bestellnummer:
+                <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="order().orderDisplay.besy_number"
+                    matTooltip="Bestellnummer kopieren">
+                    {{order().orderDisplay.besy_number}}
+                </button>
+                &nbsp;/&nbsp;
+                <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="currentUrl()"
+                    matTooltip="Link kopieren">
+                    #&nbsp;{{order().order.id}}
+                </button>
+
+            </span>
         </div>
 
-        <a mat-button color="primary" [routerLink]="['/orders', order().order.id, 'edit']"
-            [disabled]="order().order.status !== orderStates.IN_PROGRESS">Bearbeiten</a>
+        <div class="flex flex-row-reverse gap-2">
+            <a mat-button color="primary" [routerLink]="['/orders', order().order.id, 'edit']"
+                [disabled]="order().order.status !== orderStates.IN_PROGRESS">Bearbeiten</a>
+
+            <div class="flex flex-col-reverse">
+                <h3 class="text-md text-gray-600 ml-1.5">
+                    {{getGenderedWord('Besteller:in', ordererGender())}}
+                </h3>
+                <app-person-details [personId]="order().order.owner_id ?? 0" [isUserId]="true"
+                    (personGenderLoaded)="ordererGender.set($event)" />
+            </div>
+        </div>
     </div>
 
 
-    <mat-tab-group #tabGroup dynamicHeight mat-stretch-tabs="true" mat-align-tabs="start">
+    <mat-divider class="bg-he-red-200" />
 
-        <mat-tab label="Allgemeine Informationen">
-            <mat-divider class="bg-gray-500" />
 
-            <div class="mt-2">
-                <app-order-details [orderData]="order()" />
-            </div>
+    <div class="flex flex-col gap-8">
 
-        </mat-tab>
+        <app-order-main-information [orderData]="order()" />
 
-        <mat-tab label="Beteiligte Personen">
-            <mat-divider class="bg-gray-500" />
 
-            <div class="flex flex-wrap justify-evenly gap-16 mt-2">
+        <div class="">
+            <h3 class="text-2xl mb-2">Vergleichsangebote</h3>
+            <mat-divider class="bg-he-red-200 !mb-2" />
 
-                @for (personId of personMappings.keys(); track $index) {
-                <div class="flex flex-row gap-4">
+            <app-quotations-list [orderId]="order().order.id ?? 0" />
+        </div>
 
-                    <div class="flex flex-col gap-2 items-end">
-                        @for (role of personMappings.get(personId); track $index) {
-                        <h2 class="text-xl font-semibold">{{orderFieldNames[role]}}</h2>
-                        }
+        <div class="flex flex-wrap gap-4 h-fit">
+
+            <div class="grow">
+                <h3 class="text-2xl mb-2">Kontaktdaten</h3>
+                <mat-divider class="bg-he-red-200 !mb-2" />
+
+                <div class="flex flex-wrap gap-16 mt-2">
+
+                    @for (personId of personMappings.keys(); track $index) {
+                    <div class="flex flex-row gap-4 grow">
+
+                        <div class="flex flex-col gap-2 items-end">
+                            @for (role of personMappings.get(personId); track $index) {
+                            <h2 class="text-xl">
+                                {{getGenderedWord(orderFieldNames[role], personGenderMap.get(personId) ?? 'd')}}
+                            </h2>
+                            }
+                        </div>
+
+                        <app-person-details [personId]="personId"
+                            (personGenderLoaded)="personGenderMap.set(personId, $event)"></app-person-details>
                     </div>
+                    }
 
-                    <app-person-details [personId]="personId"></app-person-details>
                 </div>
-                }
-
-            </div>
-        </mat-tab>
-
-        <mat-tab label="Hauptangebot">
-            <mat-divider class="bg-gray-500" />
-
-            <div class="mt-2">
-                <app-order-article-list [order]="order()" />
             </div>
 
-        </mat-tab>
+            <div class="grow">
+                <h3 class="text-2xl mb-2">Freigaben</h3>
+                <mat-divider class="bg-he-red-200 !mb-2" />
 
-        <mat-tab label="Vergleichsangebote">
-            <mat-divider class="bg-gray-500" />
-
-            <div class="mt-2">
-                <app-quotations-list [orderId]="order().order.id ?? 0" />
-            </div>
-        </mat-tab>
-
-        <mat-tab label="Freigaben">
-            <mat-divider class="bg-gray-500" />
-
-            <div class="mt-2">
                 <app-approvals [orderId]="order().order.id ?? 0" />
             </div>
-        </mat-tab>
 
-        <mat-tab label="Statusverlauf">
-            <mat-divider class="bg-gray-500" />
+            <div class="grow">
+                <h3 class="text-2xl mb-2">Statusverlauf</h3>
+                <mat-divider class="bg-he-red-200 !mb-2" />
 
-            <div class="mt-2">
                 <app-state-history [order]="order().order" />
             </div>
-        </mat-tab>
 
-    </mat-tab-group>
+        </div>
+
+    </div>
+
 
 </div>
