@@ -26,10 +26,9 @@
 
             <div class="flex flex-col-reverse">
                 <h3 class="text-md text-gray-600 ml-1.5">
-                    {{getGenderedWord('Besteller:in', ordererGender())}}
+                    Besteller:in
                 </h3>
-                <app-person-details [personId]="order().order.owner_id ?? 0" [isUserId]="true"
-                    (personGenderLoaded)="ordererGender.set($event)" />
+                <app-person-details [personId]="order().order.owner_id ?? 0" [isUserId]="true" />
             </div>
         </div>
     </div>
@@ -43,12 +42,13 @@
         <app-order-main-information [orderData]="order()" />
 
 
-        <div class="">
+        <div>
             <h3 class="text-2xl mb-2">Vergleichsangebote</h3>
             <mat-divider class="bg-he-red-200 !mb-2" />
 
             <app-quotations-list [orderId]="order().order.id ?? 0" />
         </div>
+
 
         <div class="flex flex-wrap gap-4 h-fit">
 
@@ -56,25 +56,7 @@
                 <h3 class="text-2xl mb-2">Kontaktdaten</h3>
                 <mat-divider class="bg-he-red-200 !mb-2" />
 
-                <div class="flex flex-wrap gap-16 mt-2">
-
-                    @for (personId of personMappings.keys(); track $index) {
-                    <div class="flex flex-row gap-4 grow">
-
-                        <div class="flex flex-col gap-2 items-end">
-                            @for (role of personMappings.get(personId); track $index) {
-                            <h2 class="text-xl">
-                                {{getGenderedWord(orderFieldNames[role], personGenderMap.get(personId) ?? 'd')}}
-                            </h2>
-                            }
-                        </div>
-
-                        <app-person-details [personId]="personId"
-                            (personGenderLoaded)="personGenderMap.set(personId, $event)"></app-person-details>
-                    </div>
-                    }
-
-                </div>
+                <app-order-persons [order]="order().order" />
             </div>
 
             <div class="grow">
