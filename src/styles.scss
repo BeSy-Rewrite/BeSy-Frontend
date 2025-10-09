@@ -29,4 +29,9 @@
   --color-he-red: #B6163D;
   --color-he-lightblue: #00AADC;
   --color-he-grey: #F0F0F0;
+
+  // FAB always on top, even above autocomplete dropdowns
+  .mdc-fab {
+    z-index: 10000;
+  }
 }
