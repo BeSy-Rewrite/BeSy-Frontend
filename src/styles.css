@@ -1,0 +1,67 @@
+/*
+  This file is important for the VS Code Tailwind CSS extension to work properly.
+  It should not be deleted, it will not be used at runtime.
+  Use src/styles.scss for global styles instead.
+*/
+@import 'tailwindcss';
+@tailwind utilities;
+
+@theme {
+
+  /* he-darkblue */
+  --color-he-darkblue-50: #b2bbca;
+  --color-he-darkblue-100: #9ba7ba;
+  --color-he-darkblue-200: #8694ab;
+  --color-he-darkblue-300: #70819b;
+  --color-he-darkblue-400: #5c6e8c;
+  --color-he-darkblue-500: #485c7d;
+  --color-he-darkblue-600: #354a6e;
+  --color-he-darkblue-700: #22395f;
+  --color-he-darkblue-800: #15294d;
+  --color-he-darkblue-900: #0d1d38;
+  --color-he-darkblue-950: #061125;
+  --color-he-darkblue: #193058;
+
+  /* he-lightblue */
+  --color-he-lightblue-50: #c4e6f5;
+  --color-he-lightblue-100: #b2def2;
+  --color-he-lightblue-200: #9fd6ef;
+  --color-he-lightblue-300: #8cceec;
+  --color-he-lightblue-400: #78c6e8;
+  --color-he-lightblue-500: #63bee5;
+  --color-he-lightblue-600: #4ab6e1;
+  --color-he-lightblue-700: #27aede;
+  --color-he-lightblue-800: #0096c3;
+  --color-he-lightblue-900: #007193;
+  --color-he-lightblue-950: #004d66;
+  --color-he-lightblue: #00AADC;
+
+  /* he-grey */
+  --color-he-grey-50: #fafafa;
+  --color-he-grey-100: #f9f9f9;
+  --color-he-grey-200: #f8f8f8;
+  --color-he-grey-300: #f6f6f6;
+  --color-he-grey-400: #f5f5f5;
+  --color-he-grey-500: #f3f3f3;
+  --color-he-grey-600: #f2f2f2;
+  --color-he-grey-700: #f1f1f1;
+  --color-he-grey-800: #d5d5d5;
+  --color-he-grey-900: #a1a1a1;
+  --color-he-grey-950: #707070;
+  --color-he-grey: #F0F0F0;
+
+  /* he-red */
+  --color-he-red-50: #f0bec0;
+  --color-he-red-100: #ebaaad;
+  --color-he-red-200: #e4979b;
+  --color-he-red-300: #dd8389;
+  --color-he-red-400: #d56f78;
+  --color-he-red-500: #cd5b67;
+  --color-he-red-600: #c44456;
+  --color-he-red-700: #bb2945;
+  --color-he-red-800: #a11235;
+  --color-he-red-900: #790b26;
+  --color-he-red-950: #530517;
+  --color-he-red: #B6163D;
+
+}

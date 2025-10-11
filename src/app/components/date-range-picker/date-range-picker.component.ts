@@ -29,20 +29,20 @@ export class DateRangePickerComponent implements OnInit, OnChanges {
   /**
    * The minimum date that can be selected, defaults to January 1, 2000.
    */
-  minDate = input<Date>(new Date(2000, 0, 1)); // January 1, 2000
+  minDate = input<Date | null>(new Date(2000, 0, 1)); // January 1, 2000
 
   /**
    * The maximum date that can be selected, defaults to today.
    */
-  maxDate = input<Date>(new Date()); // Today
+  maxDate = input<Date | null>(new Date()); // Today
 
   /**
    * The currently selected date range.
    * This is a model that is synchronized with the form controls.
    */
   dateRange = model<FilterDateRange>({
-    start: undefined,
-    end: undefined
+    start: null,
+    end: null
   });
 
   range = new FormGroup({
@@ -53,7 +53,11 @@ export class DateRangePickerComponent implements OnInit, OnChanges {
   /**
    * Emits the selected date range when it changes.
    */
-  onChanges = output<FilterDateRange>();
+  dateRangeChanged = output<FilterDateRange>();
+  /**
+   * Internal flag to prevent recursive changes during synchronization.
+   */
+  skipChangeDetection = false;
 
   /**
    * Initializes the date range picker component.
@@ -62,8 +66,9 @@ export class DateRangePickerComponent implements OnInit, OnChanges {
    */
   ngOnInit() {
     this.range.valueChanges.subscribe(() => {
+      this.skipChangeDetection = true;
       this.dateRange.set(this.getRange());
-      this.onChanges.emit(this.getRange());
+      this.dateRangeChanged.emit(this.getRange());
     });
   }
 
@@ -71,26 +76,27 @@ export class DateRangePickerComponent implements OnInit, OnChanges {
    * Sets the initial date range when the components input's change.
    */
   ngOnChanges() {
+    if (this.skipChangeDetection) {
+      this.skipChangeDetection = false;
+      return;
+    }
     this.range.setValue(this.dateRange());
   }
 
   /**
    * Returns the selected date range as an object with start and end dates.
-   * If the start or end date is not set, it returns undefined for that field.
+   * If the start or end date is not set, it returns null for that field.
    */
   getRange(): FilterDateRange {
     let start = this.range.get('start')?.value;
     let end = this.range.get('end')?.value;
 
-    if (!(start instanceof Date)) {
-      start = start?.toJSDate();
-    }
-    if (!(end instanceof Date)) {
-      end = end?.toJSDate();
-    }
+    start = start ? new Date(Date.parse(start)) : null;
+    end = end ? new Date(Date.parse(end)) : null;
+
     return {
-      start: start ?? undefined,
-      end: end ?? undefined
+      start: start ?? null,
+      end: end ?? null
     };
   }
 

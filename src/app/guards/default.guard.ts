@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, CanActivate, GuardResult, MaybeAsync, Router, RouterStateSnapshot } from '@angular/router';
+import { environment } from '../../environments/environment';
 import { AuthenticationService } from '../services/authentication.service';
 
 @Injectable({
@@ -10,6 +11,8 @@ import { AuthenticationService } from '../services/authentication.service';
  * before allowing access to certain routes. It uses the AuthenticationService to verify the user's
  * authentication status and roles.
  * If the user is not authenticated or does not have the required role, the unauthorized page is displayed.
+ *
+ * In non-production environments, the guard allows access without checks for easier development and testing.
  */
 export class DefaultGuard implements CanActivate {
 
@@ -23,7 +26,7 @@ export class DefaultGuard implements CanActivate {
     const isAuthenticated = this.authService.hasValidToken();
     const isAuthorized = this.authService.isAuthorized();
 
-    if (isAuthenticated && isAuthorized) {
+    if (!environment.production || (isAuthenticated && isAuthorized)) {
       return true;
     }
     this.router.navigate(['/unauthorized'], { skipLocationChange: true });

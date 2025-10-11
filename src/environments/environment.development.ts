@@ -7,5 +7,10 @@ export const environment = {
     clientId: 'besy-dev',
     requiredRole: "besy",
     approveOrdersRole: "dekanat",
-    nominatimUrl: 'https://nominatim.openstreetmap.org/search'
+
+    nominatimUrl: 'https://nominatim.openstreetmap.org/search',
+
+    // Caching and performance, in milliseconds
+    cacheDurationMs: 5 * 60 * 1000, // 5 minutes
+    searchAndFilterDebounceMs: 100
 };

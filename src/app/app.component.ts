@@ -1,3 +1,4 @@
+import { ScrollingModule } from '@angular/cdk/scrolling';
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconRegistry } from '@angular/material/icon';
@@ -12,6 +13,7 @@ import { AuthenticationService } from './services/authentication.service';
   imports: [
     RouterOutlet,
     MatButtonModule,
+    ScrollingModule,
     HomebarComponent
   ],
   templateUrl: './app.component.html',
