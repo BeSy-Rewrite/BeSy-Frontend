@@ -1,5 +1,4 @@
-<div class="flex flex-row gap-16 mb-12">
-    <!-- ToDo: Add current status display -->
+<div class="flex flex-col md:flex-row gap-24 mb-12">
 
     <div class="grid grid-cols-[max-content_1fr] gap-x-16 gap-y-4">
         @for (field of generalDetailsFields; track $index) {
@@ -8,9 +7,7 @@
         }
     </div>
 
-    <mat-divider class="bg-he-red-200" vertical></mat-divider>
-
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-wrap md:flex-col gap-16 md:gap-8">
         <div>
             <h3 class="font-semibold text-lg mb-2">Lieferadresse:</h3>
             <app-address-display [addressId]="orderData().order.delivery_address_id ?? -1" />

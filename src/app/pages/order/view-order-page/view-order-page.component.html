@@ -1,43 +1,47 @@
 <div class="flex flex-col mx-6 my-2 gap-8">
 
-    <div class="flex justify-between">
+    <div class="flex flex-row justify-between gap-2">
 
-        <div class="flex flex-col items-start gap-2">
-            <h1 class="font-semibold text-2xl">{{order().orderDisplay.content_description}}</h1>
+        <div class="flex flex-col xl:flex-row justify-between w-full min-w-fit gap-4">
+            <div class="flex flex-col items-start min-w-fit">
+                <h1 class="font-semibold text-2xl mb-2">{{order().orderDisplay.content_description}}</h1>
 
-            <span>
-                Bestellnummer:
-                <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="order().orderDisplay.besy_number"
-                    matTooltip="Bestellnummer kopieren">
-                    {{order().orderDisplay.besy_number}}
-                </button>
-                &nbsp;/&nbsp;
-                <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="currentUrl()"
-                    matTooltip="Link kopieren">
-                    #&nbsp;{{order().order.id}}
-                </button>
+                <span class="min-w-fit">
+                    Bestellnummer:
+                    <button matButton color="primary" class="w-fit"
+                        [cdkCopyToClipboard]="order().orderDisplay.besy_number" matTooltip="Bestellnummer kopieren">
+                        {{order().orderDisplay.besy_number}}
+                    </button>
+                </span>
+                <span class="min-w-fit">
+                    ID:
+                    <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="currentUrl()"
+                        matTooltip="Link kopieren">
+                        #&nbsp;{{order().order.id}}
+                    </button>
+                </span>
 
-            </span>
-        </div>
+            </div>
 
-        <div class="flex flex-row-reverse gap-2">
-            <a mat-button color="primary" [routerLink]="['/orders', order().order.id, 'edit']"
-                [disabled]="order().order.status !== orderStates.IN_PROGRESS">Bearbeiten</a>
-
-            <div class="flex flex-col-reverse">
+            <div class="flex flex-col min-w-fit -ml-1.5 xl:ml-0">
+                <app-person-details [personId]="order().order.owner_id ?? 0" [isUserId]="true" />
                 <h3 class="text-md text-gray-600 ml-1.5">
                     Besteller:in
                 </h3>
-                <app-person-details [personId]="order().order.owner_id ?? 0" [isUserId]="true" />
             </div>
+
         </div>
+
+        <a mat-button color="primary" [routerLink]="['/orders', order().order.id, 'edit']"
+            [disabled]="order().order.status !== orderStates.IN_PROGRESS">Bearbeiten</a>
     </div>
 
+    <app-state-controller [order]="order().order" />
 
     <mat-divider class="bg-he-red-200" />
 
 
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-12">
 
         <app-order-main-information [orderData]="order()" />
 
@@ -45,7 +49,7 @@
         <div class="flex flex-wrap gap-4 h-fit">
 
             @for (section of sections; track section.id) {
-            <div [classList]="section.id === 'quotations' ? 'w-full' : 'grow'">
+            <div [class]="'mb-12 ' + (section.id === 'quotations' ? 'w-full' : 'grow')">
 
                 <h3 class="text-2xl mb-2">{{section.title}}</h3>
                 <mat-divider class="bg-he-red-200 !mb-2" />

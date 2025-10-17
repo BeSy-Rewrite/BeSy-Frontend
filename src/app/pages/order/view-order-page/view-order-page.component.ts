@@ -11,7 +11,9 @@ import { ApprovalsComponent } from '../../../components/approvals/approvals.comp
 import { OrderMainInformationComponent } from '../../../components/order-main-information/order-main-information.component';
 import { OrderPersonsComponent } from "../../../components/order-persons/order-persons.component";
 import { PersonDetailsComponent } from "../../../components/person-details/person-details.component";
+import { Step } from "../../../components/progress-bar/progress-bar.component";
 import { QuotationsListComponent } from '../../../components/quotations-list/quotations-list.component';
+import { StateDisplayComponent } from "../../../components/state-controller/state-display.component";
 import { StateHistoryComponent } from "../../../components/state-history/state-history.component";
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
@@ -36,6 +38,7 @@ interface Section { id: SectionId; title: string; }
     QuotationsListComponent,
     ApprovalsComponent,
     StateHistoryComponent,
+    StateDisplayComponent
   ],
   templateUrl: './view-order-page.component.html',
   styleUrl: './view-order-page.component.scss'
@@ -49,7 +52,7 @@ export class ViewOrderPageComponent {
   orderFieldNames = ORDER_FIELD_NAMES;
   orderStates = OrderStatus;
 
-  currentUrl = computed(() => window.location.href);
+  currentUrl = computed(() => globalThis.location.href);
 
   sections: Section[] = [
     { id: 'quotations', title: 'Vergleichsangebote' },
@@ -57,5 +60,7 @@ export class ViewOrderPageComponent {
     { id: 'approvals', title: 'Freigaben' },
     { id: 'history', title: 'Statusverlauf' },
   ];
+
+  states: Step[] = [];
 
 }
