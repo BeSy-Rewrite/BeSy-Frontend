@@ -17,10 +17,11 @@ import { StateDisplayComponent } from "../../../components/state-display/state-d
 import { StateHistoryComponent } from "../../../components/state-history/state-history.component";
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
+import { OrderDocumentsComponent } from "../../../order-documents/order-documents.component";
 
 
-type SectionId = 'quotations' | 'contacts' | 'approvals' | 'history';
-interface Section { id: SectionId; title: string; }
+type SectionId = 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
+interface Section { id: SectionId; title: string; isFullWidth: boolean; }
 
 @Component({
   selector: 'app-view-order-page',
@@ -38,7 +39,8 @@ interface Section { id: SectionId; title: string; }
     QuotationsListComponent,
     ApprovalsComponent,
     StateHistoryComponent,
-    StateDisplayComponent
+    StateDisplayComponent,
+    OrderDocumentsComponent
   ],
   templateUrl: './view-order-page.component.html',
   styleUrl: './view-order-page.component.scss'
@@ -55,10 +57,11 @@ export class ViewOrderPageComponent {
   currentUrl = computed(() => globalThis.location.href);
 
   sections: Section[] = [
-    { id: 'quotations', title: 'Vergleichsangebote' },
-    { id: 'contacts', title: 'Kontaktdaten' },
-    { id: 'approvals', title: 'Freigaben' },
-    { id: 'history', title: 'Statusverlauf' },
+    { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true },
+    { id: 'documents', title: 'Dokumente', isFullWidth: true },
+    { id: 'contacts', title: 'Kontaktdaten', isFullWidth: false },
+    { id: 'approvals', title: 'Freigaben', isFullWidth: false },
+    { id: 'history', title: 'Statusverlauf', isFullWidth: false },
   ];
 
   states: Step[] = [];
