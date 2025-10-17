@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { from, of, tap } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { OrdersService, PagedOrderResponseDTO } from '../api';
 import { FilterRequestParams } from '../models/filter-request-params';
-import { environment } from '../../environments/environment';
 
 type CacheEntry = {
   response: PagedOrderResponseDTO;
@@ -21,7 +21,7 @@ type CacheEntry = {
 export class CachedOrdersService {
 
   private totalElements: number = 0;
-  private readonly cacheDurationMs: number = environment.cacheDurationMs || 5 * 60 * 1000; // 5 minutes default
+  private readonly cacheDurationMs: number = environment.cacheDurationMs ?? 5 * 60 * 1000; // 5 minutes default
 
   private readonly cache: Map<string, CacheEntry> = new Map();
 
@@ -113,7 +113,7 @@ export class CachedOrdersService {
     );
   }
 
-  /** 
+  /**
    * Check if the cache is still valid based on its age.
    * This method removes stale cache entries based on the defined cache duration.
    */
@@ -126,7 +126,7 @@ export class CachedOrdersService {
     });
   }
 
-  /** 
+  /**
    * Generate a cache key based on page, size, sort parameters, filters, and search term.
    * @param page Page number
    * @param size Page size
@@ -136,7 +136,10 @@ export class CachedOrdersService {
    * @returns A unique cache key
    */
   private getCacheKey(page: number, size: number, sort: Array<string>, filters: FilterRequestParams, searchTerm: string): string {
-    const sortKey = sort ? sort.join(',') : '';
+    let sortKey = '';
+    if (Array.isArray(sort)) {
+      sortKey = sort.join(',');
+    }
     const filtersKey = JSON.stringify(filters);
     return `${page}-${size}-${sortKey}-${filtersKey}-${searchTerm}`;
   }

@@ -1,30 +1,33 @@
-<div class="homebar fixed top-0 left-0 w-full h-20 z-50 bg-he-darkblue flex items-center">
-  <div class="homebar__logo">
-    <img class="h-18 mx-8 w-auto object-contain cursor-pointer"
-      src="assets/pics/logo_hochschule_esslingen_negativ_de.png" alt="Logo" (click)="navigateToHome()"
-      (keydown)="navigateToHome()" />
+<div class="homebar fixed top-0 left-0 w-full h-20 z-100000 bg-he-darkblue flex items-center">
+
+  <a class="flex min-w-fit items-center mx-8" routerLink="/">
+    <img class="h-16" src="assets/pics/heonline_logo-white-red.svg" alt="Logo der Hochschule Esslingen">
+    <img class="h-11" src="assets/pics/favicon.png" alt="Logo des InventarisierungsSystems">
+  </a>
+
+  <div class="-m-4 lg:hidden flex flex-row items-center align-baseline">
+    <button matIconButton class="!mb-1" [matMenuTriggerFor]="menu">
+      <mat-icon class="!text-he-grey">menu</mat-icon>
+    </button>
+
+    <a class="ml-2 h-fit text-he-grey text-lg" [routerLink]="links[activeMenuItem()].path">{{
+      links[activeMenuItem()].name }}</a>
   </div>
 
-  <nav class="homebar__navigation flex gap-4">
-    <app-navbar-button label="Startseite" routerLink="/" [isExact]="true"></app-navbar-button>
-    <app-navbar-button label="Bestellungen" routerLink="/orders" [isExact]="false"></app-navbar-button>
-    <app-navbar-button label="Lieferanten" routerLink="/suppliers" [isExact]="false"></app-navbar-button>
-    <app-navbar-button label="Personen" routerLink="/persons" [isExact]="false"></app-navbar-button>
-    <app-navbar-button label="Kostenstellen" routerLink="/cost-centers" [isExact]="false"></app-navbar-button>
+  <mat-menu #menu="matMenu">
+    @for (link of links; track $index) {
+    <a mat-menu-item [routerLink]="link.path" (click)="activeMenuItem.set($index); isMobileMenuOpen.set(false)">
+      {{ link.name }}
+    </a>
+    }
+  </mat-menu>
+
+  <nav class="hidden lg:flex homebar__navigation gap-4">
+    @for (link of links; track $index) {
+    <app-navbar-button label="{{ link.name }}" routerLink="{{ link.path }}"
+      [isExact]="link.path === '/'"></app-navbar-button>
+    }
   </nav>
 
-  <!--
-  <div class="homebar__user ml-auto mr-8">
-    @if (authService.hasValidToken()) {
-    <button mat-flat-button color="accent" (click)="authService.logout()">
-      Logout
-    </button>
-    } @else {
-    <button mat-flat-button color="primary" (click)="authService.login()">
-      Login
-    </button>
-    }
-  </div>
-  -->
   <app-login class="mr-8 ml-auto"></app-login>
 </div>

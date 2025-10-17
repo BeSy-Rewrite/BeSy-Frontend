@@ -1,5 +1,9 @@
 import { AddressResponseDTO } from "../api";
 
+/**
+ * Type representing the display data for an order.
+ * Contains all relevant fields for showing order information in the UI.
+ */
 export type OrderDisplayData = {
     id: string;
     besy_number: string;
@@ -39,4 +43,5 @@ export type OrderDisplayData = {
     dfg_key: string;
     delivery_address_id?: AddressResponseDTO;
     invoice_address_id?: AddressResponseDTO;
-}
+    tooltips?: { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string };
+};

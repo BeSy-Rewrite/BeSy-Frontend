@@ -1,15 +1,28 @@
 import { FilterType } from "../models/filter-menu-types";
 
+/**
+ * Interface representing the configuration for a filter in the orders filter menu.
+ */
 interface FilterConfig {
+    /** Key corresponding to the filter field in the data model. */
     key: string;
+    /** Display title for the filter in the UI. */
     title: string;
+    /** Type of filter (select, date range, range, etc.). */
     type: FilterType;
+    /** Optional data for configuring filter specifics (labels, placeholders, min/max values or dates). */
     data?: {
+        /** Minimum selectable date for date range filters. */
         minDate?: Date;
+        /** Maximum selectable date for date range filters. */
         maxDate?: Date;
+        /** Label for input fields in the filter UI. */
         inputLabel?: string;
+        /** Placeholder text for input fields in the filter UI. */
         inputPlaceholder?: string;
+        /** Minimum value for range filters. */
         minValue?: number;
+        /** Maximum value for range filters. */
         maxValue?: number;
     };
 }

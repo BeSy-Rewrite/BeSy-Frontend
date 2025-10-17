@@ -24,12 +24,14 @@ export const routes: Routes = [
     {
         title: 'Table Demo',
         path: 'table',
-        component: TableDemoComponent
+        component: TableDemoComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Filter Demo',
         path: 'filter',
-        component: FilterDemoComponent
+        component: FilterDemoComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Guard Test',
@@ -57,32 +59,38 @@ export const routes: Routes = [
     {
         title: 'Bestellungen',
         path: 'orders',
-        component: OrdersPageComponent
+        component: OrdersPageComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Bestellung erstellen',
         path: 'orders/create',
-        component: CreateOrderPageComponent
+        component: CreateOrderPageComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Personen',
         path: 'persons',
-        component: PersonsPageComponent
+        component: PersonsPageComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Lieferanten',
         path: 'suppliers',
-        component: SuppliersPageComponent
+        component: SuppliersPageComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Lieferant bearbeiten',
         path: 'suppliers/:id/edit',
-        component: EditSuppliersPageComponent
+        component: EditSuppliersPageComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Kostenstellen',
         path: 'cost-centers',
-        component: CostCentersPageComponent
+        component: CostCentersPageComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Unauthorisiert',

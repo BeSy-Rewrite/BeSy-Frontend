@@ -91,12 +91,9 @@ export class DateRangePickerComponent implements OnInit, OnChanges {
     let start = this.range.get('start')?.value;
     let end = this.range.get('end')?.value;
 
-    if (!(start instanceof Date)) {
-      start = start?.toJSDate();
-    }
-    if (!(end instanceof Date)) {
-      end = end?.toJSDate();
-    }
+    start = start ? new Date(Date.parse(start)) : null;
+    end = end ? new Date(Date.parse(end)) : null;
+
     return {
       start: start ?? null,
       end: end ?? null
