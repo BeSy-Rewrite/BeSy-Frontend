@@ -47,7 +47,6 @@ export class QuotationsListComponent implements OnInit, OnChanges {
 
   setup() {
     this.ordersService.getOrderQuotations(this.orderId().toString()).then(quotations => {
-      console.log('Loaded quotations:', quotations);
       this.quotations = quotations;
 
       this.quotationsDataSource = new MatTableDataSource<DisplayQuotation>(

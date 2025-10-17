@@ -51,7 +51,6 @@ export class StateDisplayComponent implements OnInit {
         this.allowedStateTransitions = transitions;
         const sorted = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
         this.orderStatusHistory = sorted.map(h => h.status);
-        console.log('Order Status History:', this.orderStatusHistory);
 
         this.generateLinearStates();
         this.generateSteps();
