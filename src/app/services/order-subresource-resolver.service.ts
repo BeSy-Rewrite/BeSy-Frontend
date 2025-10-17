@@ -47,10 +47,10 @@ class ResourceFormatter<T extends IdAble> {
       .subscribe(() =>
         this.fetchAll().then(resources => {
           const map = new Map<numberOrString, T>();
-          resources.forEach(resource => {
+          for (const resource of resources) {
             if ('id' in resource && resource.id) map.set(resource.id.toString().trim(), resource);
             if ('code' in resource && resource.code) map.set(resource.code.toString().trim(), resource);
-          });
+          }
           this.fetchInProgress = false;
           this.mapping.next(map);
           this.mapping.complete();
@@ -266,9 +266,7 @@ export class OrderSubresourceResolverService {
    * Returns a human-readable label for a person (e.g., "p42 – John Doe").
    */
   formatPerson = (person: PersonResponseDTO) => {
-    const names = [person.title ?? ''];
-    names.push(person.name ?? '');
-    names.push(person.surname ?? '');
+    const names = [person.title ?? '', person.name ?? '', person.surname ?? ''];
     return names.filter(name => name && name.trim().length > 0).join(' ');
   }
 
