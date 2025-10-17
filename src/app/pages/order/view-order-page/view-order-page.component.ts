@@ -13,7 +13,7 @@ import { OrderPersonsComponent } from "../../../components/order-persons/order-p
 import { PersonDetailsComponent } from "../../../components/person-details/person-details.component";
 import { Step } from "../../../components/progress-bar/progress-bar.component";
 import { QuotationsListComponent } from '../../../components/quotations-list/quotations-list.component';
-import { StateDisplayComponent } from "../../../components/state-controller/state-display.component";
+import { StateDisplayComponent } from "../../../components/state-display/state-display.component";
 import { StateHistoryComponent } from "../../../components/state-history/state-history.component";
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
