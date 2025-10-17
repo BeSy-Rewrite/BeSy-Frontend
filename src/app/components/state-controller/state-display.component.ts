@@ -1,8 +1,10 @@
 import { Component, HostListener, input, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { forkJoin } from 'rxjs';
 import { OrderResponseDTO, OrderStatus } from '../../api';
 import { STATE_DESCRIPTIONS, STATE_DISPLAY_NAMES, STATE_FONT_ICONS, STATE_ICONS } from '../../display-name-mappings/status-names';
 import { AllowedStateTransitions } from '../../models/allowed-states-transitions';
+import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
 import { StateWrapperService } from '../../services/wrapper-services/state-wrapper.service';
 import { ProgressBarComponent, Step } from "../progress-bar/progress-bar.component";
 
@@ -17,8 +19,13 @@ import { ProgressBarComponent, Step } from "../progress-bar/progress-bar.compone
 })
 export class StateDisplayComponent implements OnInit {
 
+  /**
+   * The order for which the state display is shown.
+   */
   order = input.required<OrderResponseDTO>();
+
   allowedStateTransitions: AllowedStateTransitions = {};
+  orderStatusHistory: OrderStatus[] = [];
 
   steps: Step[] = [];
   states: OrderStatus[] = [];
@@ -26,20 +33,30 @@ export class StateDisplayComponent implements OnInit {
 
   screenWidth = 0;
 
-  constructor(private readonly stateService: StateWrapperService) { }
+  constructor(
+    private readonly stateService: StateWrapperService,
+    private readonly ordersService: OrdersWrapperService
+  ) { }
 
   /**
    * Initialize the component by fetching allowed state transitions
    * and setting up the progress bar.
    */
   ngOnInit() {
-    this.stateService.getAllowedStateTransitions().subscribe((transitions) => {
-      this.allowedStateTransitions = transitions;
+    forkJoin({
+      transitions: this.stateService.getAllowedStateTransitions(),
+      history: this.ordersService.getOrderStatusHistory(this.order().id!)
+    })
+      .subscribe(({ transitions, history }) => {
+        this.allowedStateTransitions = transitions;
+        const sorted = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+        this.orderStatusHistory = sorted.map(h => h.status);
+        console.log('Order Status History:', this.orderStatusHistory);
 
-      this.generateLinearStates();
-      this.generateSteps();
-      this.onResize();
-    });
+        this.generateLinearStates();
+        this.generateSteps();
+        this.onResize();
+      });
   }
 
   /**
@@ -72,29 +89,46 @@ export class StateDisplayComponent implements OnInit {
    */
   generateSteps() {
     this.steps = this.states.map((state) => ({
-      label: STATE_ICONS.get(state) + ' ' + STATE_DISPLAY_NAMES.get(state),
+      label: STATE_ICONS.get(state) + '\u00A0' + STATE_DISPLAY_NAMES.get(state),
       tooltip: STATE_DESCRIPTIONS.get(state) || '',
       icon: STATE_FONT_ICONS.get(state) || '',
     }));
   }
 
   /**
-   * Generate a linear list of states for the progress bar.
-   * This simplifies the state progression for display purposes.
+   * Generate a linear sequence of states for the progress bar.
+   * Ensures all future states are included in order.
    */
   generateLinearStates() {
-    this.states = [OrderStatus.IN_PROGRESS];
+    this.setupStateHistory();
+
+    const futureStates = [OrderStatus.IN_PROGRESS];
     let nextState: OrderStatus | undefined;
 
     do {
-      nextState = this.getNextLinearState(this.states);
+      nextState = this.getNextLinearState(futureStates);
       if (nextState) {
-        this.states.push(nextState);
+        futureStates.push(nextState);
       }
     } while (nextState);
 
+    if (this.order().status === OrderStatus.DELETED) return;
+
+    this.states = [...this.states, ...futureStates.splice(futureStates.indexOf(this.order().status!) + 1)];
     this.currentStepIndex = this.states.indexOf(this.order().status!);
   }
+
+  /**
+   * Setup the initial state history for the progress bar.
+   */
+  private setupStateHistory() {
+    this.states = this.orderStatusHistory.slice();
+    if (!this.states.includes(this.order().status!)) {
+      this.states.push(this.order().status!);
+    }
+    this.currentStepIndex = this.states.indexOf(this.order().status!);
+  }
+
 
   /**
    * Get the next linear state in the progression.
