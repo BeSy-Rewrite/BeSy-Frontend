@@ -13,7 +13,7 @@ import { OrderPersonsComponent } from "../../../components/order-persons/order-p
 import { PersonDetailsComponent } from "../../../components/person-details/person-details.component";
 import { QuotationsListComponent } from '../../../components/quotations-list/quotations-list.component';
 import { StateHistoryComponent } from "../../../components/state-history/state-history.component";
-import { ORDER_FIELD_LABELS } from '../../../display-name-mappings/order-names';
+import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
 
 
@@ -46,7 +46,7 @@ export class ViewOrderPageComponent {
    */
   order = input.required<DisplayableOrder>();
 
-  orderFieldNames = ORDER_FIELD_LABELS;
+  orderFieldNames = ORDER_FIELD_NAMES;
   orderStates = OrderStatus;
 
   currentUrl = computed(() => window.location.href);

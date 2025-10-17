@@ -2,7 +2,7 @@
  * Centralized mapping of order field keys to their display labels.
  * Used for table columns and other UI elements.
  */
-export const ORDER_FIELD_LABELS: Record<string, string> = {
+export const ORDER_FIELD_NAMES: Record<string, string> = {
     id: 'BeSy ID',
     besy_number: 'Bestellnummer',
     status: 'Status',

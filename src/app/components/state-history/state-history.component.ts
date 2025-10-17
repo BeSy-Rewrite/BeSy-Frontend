@@ -1,13 +1,12 @@
-import { Component, input } from '@angular/core';
-import { OrderResponseDTO, OrdersService, OrderStatusHistoryResponseDTO } from '../../api';
-import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
-import { STATE_HISTORY_FIELD_NAMES } from '../../display-name-mappings/state-history-names';
-import { statusDisplayNames, statusIcons } from '../../display-name-mappings/status-names';
-import { GenericTableComponent } from "../generic-table/generic-table.component";
 import { DataSource } from '@angular/cdk/table';
+import { Component, input } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
+import { OrderResponseDTO, OrderStatusHistoryResponseDTO } from '../../api';
+import { STATE_HISTORY_FIELD_NAMES } from '../../display-name-mappings/state-history-names';
+import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../../display-name-mappings/status-names';
 import { TableColumn } from '../../models/generic-table';
-import { timestamp } from 'rxjs';
+import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
+import { GenericTableComponent } from "../generic-table/generic-table.component";
 
 @Component({
   selector: 'app-state-history',
@@ -18,10 +17,10 @@ import { timestamp } from 'rxjs';
 export class StateHistoryComponent {
   order = input.required<OrderResponseDTO>();
   stateHistory: OrderStatusHistoryResponseDTO[] = [];
-  
+
   stateHistoryFieldNames = STATE_HISTORY_FIELD_NAMES;
-  stateNames = statusDisplayNames;
-  stateIcons = statusIcons;
+  stateNames = STATE_DISPLAY_NAMES;
+  stateIcons = STATE_ICONS;
 
   dataSource: DataSource<{ status: string; timestamp: string }> = new MatTableDataSource();
   columns: TableColumn[] = [
@@ -29,7 +28,7 @@ export class StateHistoryComponent {
     { id: 'status', label: this.stateHistoryFieldNames['status'] }
   ];
 
-  constructor(private readonly ordersService: OrdersWrapperService) {}
+  constructor(private readonly ordersService: OrdersWrapperService) { }
 
   fetchStateHistory(): void {
     this.ordersService.getOrderStatusHistory(this.order().id ?? 0).then(history => {

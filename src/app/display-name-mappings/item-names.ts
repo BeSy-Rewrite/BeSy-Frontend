@@ -1,4 +1,4 @@
-export const ITEM_FIELD_LABELS: Record<string, string> = {
+export const ITEM_FIELD_NAMES: Record<string, string> = {
     item_id: 'ID',
     name: 'Name',
     price_per_unit: 'Preis pro Einheit',

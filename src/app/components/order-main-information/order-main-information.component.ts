@@ -4,8 +4,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTableDataSource } from '@angular/material/table';
 import { ItemResponseDTO } from '../../api';
-import { ITEM_FIELD_LABELS } from '../../display-name-mappings/item-names';
-import { ORDER_FIELD_LABELS } from '../../display-name-mappings/order-names';
+import { ITEM_FIELD_NAMES } from '../../display-name-mappings/item-names';
+import { ORDER_FIELD_NAMES } from '../../display-name-mappings/order-names';
 import { DisplayItem } from '../../models/display-item';
 import { DisplayableOrder } from '../../models/displayable-order';
 import { TableColumn } from '../../models/generic-table';
@@ -30,8 +30,8 @@ export class OrderMainInformationComponent implements OnInit {
 
   orderData = input.required<DisplayableOrder>();
 
-  orderFieldLabels = ORDER_FIELD_LABELS;
-  itemFieldLabels = ITEM_FIELD_LABELS;
+  orderFieldLabels = ORDER_FIELD_NAMES;
+  itemFieldLabels = ITEM_FIELD_NAMES;
 
   generalDetailsFields: (keyof OrderDisplayData)[] = [
     'primary_cost_center_id',

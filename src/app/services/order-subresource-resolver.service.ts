@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
 import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
-import { statusDisplayNames, statusIcons } from '../display-name-mappings/status-names';
+import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
 import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../models/filter-presets';
 import { OrderDisplayData } from '../models/order-display-data';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
@@ -174,7 +174,7 @@ export class OrderSubresourceResolverService {
     data.legacy_alias = order.legacy_alias ?? '';
     data.owner_id = '';
     data.content_description = order.content_description ?? '';
-    data.status = statusIcons.get(order.status ?? '') ?? order.status ?? '';
+    data.status = STATE_ICONS.get(order.status ?? '') ?? order.status ?? '';
     data.currency = '';
     data.comment = order.comment ?? '';
     data.comment_for_supplier = order.comment_for_supplier ?? '';
@@ -304,7 +304,7 @@ export class OrderSubresourceResolverService {
   /** Returns tooltip texts for specific fields in the order display data. */
   getTooltips(order: OrderResponseDTO): { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string } {
     return {
-      status: statusDisplayNames.get(order.status ?? '') ?? order.status ?? '',
+      status: STATE_DISPLAY_NAMES.get(order.status ?? '') ?? order.status ?? '',
     }
   }
 

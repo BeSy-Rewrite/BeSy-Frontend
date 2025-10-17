@@ -1,6 +1,6 @@
 import { Component, input, OnInit } from '@angular/core';
 import { OrderResponseDTO } from '../../api';
-import { ORDER_FIELD_LABELS } from '../../display-name-mappings/order-names';
+import { ORDER_FIELD_NAMES } from '../../display-name-mappings/order-names';
 import { PersonDetailsComponent } from '../person-details/person-details.component';
 
 type Gender = 'm' | 'f' | 'd';
@@ -17,7 +17,7 @@ export class OrderPersonsComponent implements OnInit {
   /** The order whose persons should be displayed */
   order = input.required<OrderResponseDTO>();
 
-  orderFieldNames = ORDER_FIELD_LABELS;
+  orderFieldNames = ORDER_FIELD_NAMES;
 
   personKeys = ['delivery_person_id', 'invoice_person_id', 'queries_person_id'];
   personMappings = new Map<number, string[]>();
