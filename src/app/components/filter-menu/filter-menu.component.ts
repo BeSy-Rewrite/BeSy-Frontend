@@ -183,6 +183,15 @@ export class FilterMenuComponent implements OnInit {
       error: error => {
         console.error('Error loading filter presets:', error);
         this._snackBar.open('Fehler beim Laden der Filtervorgaben: ' + error.message, 'Schließen', { duration: 5000 });
+
+        this.filterPresets = this.filterPresets.filter(preset =>
+          !preset.appliedFilters.some(filter => {
+            if ('chipIds' in filter) {
+              return filter.chipIds?.includes('CURRENT_USER')
+            }
+            return false;
+          })
+        );
       }
     });
 
@@ -233,14 +242,11 @@ export class FilterMenuComponent implements OnInit {
     if (lastActiveFilters) {
       try {
         const preset: OrdersFilterPreset = JSON.parse(lastActiveFilters);
-        preset.appliedFilters.forEach(filter => {
+        for (const filter of preset.appliedFilters) {
           if (this.dateRanges[filter.id] !== undefined && 'dateRange' in filter) {
-            filter.dateRange = {
-              start: typeof filter.dateRange.start === 'string' ? new Date(Date.parse(filter.dateRange.start)) : filter.dateRange.start,
-              end: typeof filter.dateRange.end === 'string' ? new Date(Date.parse(filter.dateRange.end)) : filter.dateRange.end
-            };
+            filter.dateRange = this.fixDateRange(filter.dateRange);
           }
-        });
+        }
         this.clearAllFilters();
         this.applyPreset(preset);
       } catch (e) {
@@ -249,6 +255,18 @@ export class FilterMenuComponent implements OnInit {
         this._snackBar.open('Fehler beim Laden der letzten Filtereinstellungen. Die gespeicherten Einstellungen wurden zurückgesetzt.', 'Schließen', { duration: 5000 });
       }
     }
+  }
+
+  /**
+   * Fixes date range by converting string dates to Date objects.
+   * @param date The date range to fix.
+   * @returns The fixed date range with Date objects.
+   */
+  private fixDateRange(date: FilterDateRange): FilterDateRange {
+    return {
+      start: typeof date.start === 'string' ? new Date(Date.parse(date.start)) : date.start,
+      end: typeof date.end === 'string' ? new Date(Date.parse(date.end)) : date.end
+    };
   }
 
   /**
@@ -377,7 +395,9 @@ export class FilterMenuComponent implements OnInit {
     this.activePresets = [];
     const selectedChips = this.presets().selected;
     if (Array.isArray(selectedChips)) {
-      selectedChips.forEach(chip => chip.deselect());
+      for (const chip of selectedChips) {
+        chip.deselect();
+      }
     } else if (selectedChips) {
       selectedChips.deselect();
     }
@@ -389,19 +409,19 @@ export class FilterMenuComponent implements OnInit {
    * Clears all filters to their default state.
    */
   clearAllFilters() {
-    Object.values(this.chips).forEach(chipSignal => {
+    for (const chipSignal of Object.values(this.chips)) {
       chipSignal.update(chips => chips.map(chip => (
         { ...chip, isSelected: false }
       )));
-    });
-    Object.values(this.dateRanges).forEach(dateRangeSignal => {
+    }
+    for (const dateRangeSignal of Object.values(this.dateRanges)) {
       dateRangeSignal.set({ start: null, end: null });
-    });
-    Object.entries(this.ranges).forEach(([key, rangeSignal]) => {
+    }
+    for (const [key, rangeSignal] of Object.entries(this.ranges)) {
       const min = this.filters.find(f => f.key === key)?.data?.minValue ?? 0;
       const max = this.filters.find(f => f.key === key)?.data?.maxValue ?? 100;
       rangeSignal.set({ start: min, end: max });
-    });
+    }
   }
 
   /** Resets selected columns to default visible columns. */
