@@ -1,7 +1,15 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import {
+  ApplicationConfig,
+  provideZoneChangeDetection,
+  isDevMode,
+} from '@angular/core';
 import { provideRouter } from '@angular/router';
 
-import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withFetch,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
 import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
@@ -14,21 +22,15 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideLuxonDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'de-DE' },
-    provideHttpClient(
-      withFetch(),
-      withInterceptorsFromDi(),
-    ),
+    provideHttpClient(withFetch(), withInterceptorsFromDi()),
     provideOAuthClient({
       resourceServer: {
         allowedUrls: [environment.apiUrl],
-        sendAccessToken: true
+        sendAccessToken: true,
       },
-    })
-  ]
+    }),
+  ],
 };
-
-
-
 
 // Reference: https://www.npmjs.com/package/angular-oauth2-oidc
 export const authCodeFlowConfig: AuthConfig = {

@@ -292,26 +292,37 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
   ]
 };
 
-export const ORDER_COST_CENTER_FORM_CONFIG: FormConfig = {
+export const ORDER_PRIMARY_COST_CENTER_FORM_CONFIG: FormConfig = {
   title: 'Kostenstelle festlegen',
   fields: [
     {
       name: 'primary_cost_center_id',
       label: 'Primäre Kostenstelle',
-      type: 'select',
+      type: 'autocomplete',
       required: true,
       editable: true,
-      tooltip: 'Pflichtfeld'
-    },
+      tooltip: 'Pflichtfeld',
+      options: [
+        { label: 'Fehler beim Laden der Kostenstellen', value: -1 }
+      ]
+    }
+  ]
+};
+
+export const ORDER_SECONDARY_COST_CENTER_FORM_CONFIG: FormConfig = {
+  title: 'Kostenstelle festlegen',
+  fields: [
     {
       name: 'secondary_cost_center_id',
       label: 'Sekundäre Kostenstelle',
-      type: 'select',
-      required: false,
+      type: 'autocomplete',
+      required: true,
       editable: true,
-      tooltip: 'Optional'
+      tooltip: 'Pflichtfeld',
+      options: [
+        { label: 'Fehler beim Laden der Kostenstellen', value: -1 }
+      ]
     }
-
   ]
 };
 

@@ -1,8 +1,8 @@
-import { ORDER_QUERIES_PERSON_FORM_CONFIG } from './../../../configs/order/order-config';
+import { ORDER_QUERIES_PERSON_FORM_CONFIG } from '../../../configs/order/order-config';
 import {
   PersonsWrapperService,
   PersonWithFullName,
-} from './../../../services/wrapper-services/persons-wrapper.service';
+} from '../../../services/wrapper-services/persons-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 import {
   Component,
@@ -51,7 +51,6 @@ import {
 import {
   ORDER_ADDRESS_FORM_CONFIG,
   ORDER_APPROVAL_FORM_CONFIG,
-  ORDER_COST_CENTER_FORM_CONFIG,
   ORDER_GENERAL_FORM_CONFIG,
   ORDER_MAIN_OFFER_FORM_CONFIG,
   ORDER_QUOTATION_FORM_CONFIG,
@@ -99,10 +98,10 @@ imports: [
   MatTabGroup,
   MatTabsModule,
 ],
-  templateUrl: './create-order-page.component.html',
-  styleUrl: './create-order-page.component.scss',
+  templateUrl: './edit-order-page.component.html',
+  styleUrl: './edit-order-page.component.scss',
 })
-export class CreateOrderPageComponent implements OnInit {
+export class EditOrderPageComponent implements OnInit {
   constructor(
     private router: Router,
     private _notifications: MatSnackBar,
@@ -192,7 +191,7 @@ export class CreateOrderPageComponent implements OnInit {
   inputInvoice!: ElementRef<HTMLInputElement>;
 
   // Queries person variables
-  selectedQueryPerson?: PersonWithFullName;
+  selectedQueryPersonId: number | undefined = undefined;
   filteredPersonsQuery: PersonWithFullName[] = [];
   queriesPersonFormConfig = ORDER_QUERIES_PERSON_FORM_CONFIG;
   queriesPersonFormGroup = new FormGroup({});
@@ -842,7 +841,7 @@ export class CreateOrderPageComponent implements OnInit {
     if (field.field === 'supplier_id' && field.value) {
       try {
         // Fetch customer IDs for the selected supplier
-        this.customerIds = await this.loadCustomerIdsForSupplier(field.value);
+        this.customerIds = await this.loadCustomerIdsForSupplier(field.value.value);
         const customerIdField = this.mainOfferFormConfig.fields.find(
           (f) => f.name === 'customer_id'
         );
@@ -970,9 +969,15 @@ export class CreateOrderPageComponent implements OnInit {
 
 
   onQueriesPersonFormGroupChanged(field: { field: string; value: any }) {
-    if (field.field === 'queries_person_id' && field.value) {
-      this.selectedQueryPerson = field.value as PersonWithFullName;
-      this.postOrderDTO.queries_person_id = this.selectedQueryPerson.id;
+    if (field.field === 'queries_person_id') {
+      // If the field is cleared (null or empty), reset the selectedQueryPersonId and postOrderDTO.queries_person_id
+      if (!field.value) {
+        this.selectedQueryPersonId = undefined;
+        this.postOrderDTO.queries_person_id = undefined;
+        return;
+      }
+      this.selectedQueryPersonId = field.value;
+      this.postOrderDTO.queries_person_id = field.value.value;
     }
   }
 
@@ -996,7 +1001,6 @@ export class CreateOrderPageComponent implements OnInit {
       ...this.supplierDecisionReasonFormGroup.value,
       ...this.approvalFormGroup.value,
       ...this.mainOfferFormGroup.value,
-      ...this.queriesPersonFormGroup.value,
       currency_short: currencyValue,
     };
     console.log('PostOrderDTO vor Erstellung:', this.postOrderDTO);

@@ -8,8 +8,9 @@ import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.component';
 import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
-import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
+import { EditOrderPageComponent } from './pages/order/edit-order-page/edit-order-page.component';
 import { EditSuppliersPageComponent} from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
+import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page/create-order-page.component';
 import { CostCentersPageComponent } from './pages/cost-center/cost-center-component/cost-center-page.component';
 
 export const routes: Routes = [
@@ -47,6 +48,11 @@ export const routes: Routes = [
       title: 'Bestellung erstellen',
       path: 'orders/create',
       component: CreateOrderPageComponent
+    },
+    {
+      title: 'Bestellung bearbeiten',
+      path: 'orders/:id/edit',
+      component: EditOrderPageComponent
     },
     {
       title: 'Personen',
