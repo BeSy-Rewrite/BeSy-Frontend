@@ -9,11 +9,18 @@ import {
   ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_GENERAL_FORM_CONFIG,
   ORDER_QUERIES_PERSON_FORM_CONFIG,
+  ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
 } from '../../../../configs/order/order-config';
-import { AsyncPipe } from '@angular/common';
-import { CostCenterResponseDTO } from '../../../../api';
+import { OrdersWrapperService } from '../../../../services/wrapper-services/orders-wrapper.service';
+import { CostCenterResponseDTO, OrderRequestDTO } from '../../../../api';
 import { CostCenterWrapperService } from '../../../../services/wrapper-services/cost-centers-wrapper.service';
-import { PersonsWrapperService, PersonWithFullName } from '../../../../services/wrapper-services/persons-wrapper.service';
+import {
+  PersonsWrapperService,
+  PersonWithFullName,
+} from '../../../../services/wrapper-services/persons-wrapper.service';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-order-page',
@@ -24,12 +31,15 @@ import { PersonsWrapperService, PersonWithFullName } from '../../../../services/
     MatDivider,
     FormComponent,
     MatAutocompleteModule,
+    MatButtonModule,
   ],
   templateUrl: './create-order-page.component.html',
   styleUrls: ['./create-order-page.component.scss'],
 })
 export class CreateOrderPageComponent implements OnInit {
   progressBarStepIndex = 0; // assigned based on the current status of the order
+
+  createOrderDTO: OrderRequestDTO = undefined as unknown as OrderRequestDTO;
 
   generalFormGroup = new FormGroup({});
   generalFormConfig = ORDER_GENERAL_FORM_CONFIG;
@@ -39,7 +49,7 @@ export class CreateOrderPageComponent implements OnInit {
   primaryCostCenterFormConfig = ORDER_PRIMARY_COST_CENTER_FORM_CONFIG;
 
   secondaryCostCenterFormGroup = new FormGroup({});
-  secondaryCostCenterFormConfig = ORDER_PRIMARY_COST_CENTER_FORM_CONFIG;
+  secondaryCostCenterFormConfig = ORDER_SECONDARY_COST_CENTER_FORM_CONFIG;
 
   persons: PersonWithFullName[] = [];
   queriesPersonFormGroup = new FormGroup({});
@@ -47,7 +57,10 @@ export class CreateOrderPageComponent implements OnInit {
 
   constructor(
     private costCenterWrapperService: CostCenterWrapperService,
-    private personsWrapperService: PersonsWrapperService
+    private personsWrapperService: PersonsWrapperService,
+    private _notifications: MatSnackBar,
+    private orderService: OrdersWrapperService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -55,6 +68,10 @@ export class CreateOrderPageComponent implements OnInit {
     this.loadPersons();
   }
 
+  /**
+   * Loads all cost centers and updates the form configuration with the retrieved options.
+   * @returns {Promise<void>}
+   */
   private async loadCostCenters() {
     this.costCenters = await this.costCenterWrapperService.getAllCostCenters();
     const primaryCostCenterField = this.primaryCostCenterFormConfig.fields.find(
@@ -67,17 +84,27 @@ export class CreateOrderPageComponent implements OnInit {
       value: cc.id ?? 0, // Falls id undefined -> 0
     }));
 
-    const secondaryCostCenterField = this.secondaryCostCenterFormConfig.fields.find(
-      (f) => f.name === 'secondary_cost_center_id'
-    );
+    const secondaryCostCenterField =
+      this.secondaryCostCenterFormConfig.fields.find(
+        (f) => f.name === 'secondary_cost_center_id'
+      );
     if (!secondaryCostCenterField) return;
 
     secondaryCostCenterField.options = this.costCenters.map((cc) => ({
       label: cc.name ?? '', // Falls name undefined -> leere Zeichenkette
       value: cc.id ?? 0, // Falls id undefined -> 0
     }));
+
+    this.primaryCostCenterFormConfig = { ...this.primaryCostCenterFormConfig };
+    this.secondaryCostCenterFormConfig = {
+      ...this.secondaryCostCenterFormConfig,
+    };
   }
 
+  /**
+   * Loads all persons and updates the form configuration with the retrieved options.
+   * @returns {Promise<void>}
+   */
   private async loadPersons() {
     this.persons = await this.personsWrapperService.getAllPersonsWithFullName();
     const queriesPersonField = this.queriesPersonFormConfig.fields.find(
@@ -91,7 +118,87 @@ export class CreateOrderPageComponent implements OnInit {
     }));
   }
 
-  createOrder() {
-    // Implement order creation logic here
+  /**
+   * Normalize form data from autocomplete fields, as they return an object with "label" and "value" properties.
+   * As this object structure is not compatible with the API, only the "value" property is extracted.
+   * @param data Form data to normalize
+   * @returns Normalized form data
+   */
+  private normalizeFormData(data: any): any {
+    const normalized: any = {};
+    for (const key in data) {
+      if (!data.hasOwnProperty(key)) continue;
+
+      const value = data[key];
+      // Wenn Feld Objekt mit "value"-Property ist → nur value übernehmen
+      if (value && typeof value === 'object' && 'value' in value) {
+        normalized[key] = value.value;
+      } else {
+        normalized[key] = value;
+      }
+    }
+    return normalized;
+  }
+
+  /**
+   * Creates a new order based on the filled form data.
+   * Validates the form data before sending the create request.
+   */
+  async createOrder() {
+    if (
+      this.generalFormGroup.valid &&
+      this.primaryCostCenterFormGroup.valid &&
+      this.secondaryCostCenterFormGroup.valid &&
+      this.queriesPersonFormGroup.valid
+    ) {
+      // All forms are valid, normalize the autocomplete fields
+      const generalData = this.generalFormGroup.value;
+      const primaryCostCenterData = this.normalizeFormData(
+        this.primaryCostCenterFormGroup.value
+      );
+      const secondaryCostCenterData = this.normalizeFormData(
+        this.secondaryCostCenterFormGroup.value
+      );
+      const queriesPersonData = this.normalizeFormData(
+        this.queriesPersonFormGroup.value
+      );
+
+      // Combine all form data into the createOrderDTO
+      this.createOrderDTO = {
+        ...generalData,
+        ...primaryCostCenterData,
+        ...secondaryCostCenterData,
+        ...queriesPersonData,
+      };
+
+      // Create order, show notifications based on the result
+      // and navigate to the edit page of the newly created order
+      const createdOrder = await this.orderService.createOrder(
+        this.createOrderDTO
+      );
+
+      if (createdOrder && createdOrder.id) {
+        this._notifications.open(
+          'Bestellung erfolgreich erstellt.',
+          'Schließen',
+          {
+            duration: 5000,
+          }
+        );
+
+        // Navigate to the edit page of the newly created order
+        this.router.navigate(['/orders', createdOrder.id, 'edit']);
+      } else {
+        this._notifications.open('Interner Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.', 'Schließen', {
+          duration: 5000,
+        });
+      }
+    } else {
+      this._notifications.open(
+        'Bitte füllen Sie alle Pflichtfelder aus.',
+        'Schließen',
+        { duration: 5000 }
+      );
+    }
   }
 }

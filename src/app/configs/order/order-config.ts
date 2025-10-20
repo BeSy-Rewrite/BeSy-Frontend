@@ -293,14 +293,15 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
 };
 
 export const ORDER_PRIMARY_COST_CENTER_FORM_CONFIG: FormConfig = {
-  title: 'Kostenstelle festlegen',
   fields: [
     {
       name: 'primary_cost_center_id',
       label: 'Primäre Kostenstelle',
       type: 'autocomplete',
       required: true,
-      editable: true,
+      requireSelection: true,
+      editable: false,
+      filterable: true,
       tooltip: 'Pflichtfeld',
       options: [
         { label: 'Fehler beim Laden der Kostenstellen', value: -1 }
@@ -310,14 +311,15 @@ export const ORDER_PRIMARY_COST_CENTER_FORM_CONFIG: FormConfig = {
 };
 
 export const ORDER_SECONDARY_COST_CENTER_FORM_CONFIG: FormConfig = {
-  title: 'Kostenstelle festlegen',
   fields: [
     {
       name: 'secondary_cost_center_id',
       label: 'Sekundäre Kostenstelle',
       type: 'autocomplete',
-      required: true,
+      required: false,
+      requireSelection: true,
       editable: true,
+      filterable: true,
       tooltip: 'Pflichtfeld',
       options: [
         { label: 'Fehler beim Laden der Kostenstellen', value: -1 }
@@ -342,7 +344,7 @@ export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
       name: 'booking_year',
       label: 'Buchungsjahr',
       type: 'text',
-      required: false,
+      required: true,
       editable: false,
       validators: [Validators.pattern('^[0-9]{4}$')],
       tooltip: 'Das Buchungsjahr gibt an, in welchem Jahr die Bestellung verbucht wird. Standardmäßig ist das aktuelle Jahr vorausgewählt.',
