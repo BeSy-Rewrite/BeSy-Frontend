@@ -1,0 +1,9 @@
+<h2 mat-dialog-title>{{ data.title }}</h2>
+<mat-dialog-content>
+    <h3 class="mb-2">{{ data.comment }}</h3>
+    <img [src]="data.previewImageURL" alt="Dokumentvorschau" />
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+    <button mat-stroked-button mat-dialog-close>Schließen</button>
+    <button mat-flat-button color="primary" (click)="data.onDownload()">Herunterladen</button>
+</mat-dialog-actions>
