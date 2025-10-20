@@ -88,7 +88,7 @@ export class OrdersPageComponent implements OnInit {
     if (Object.keys(this.routeSnapshot.queryParams).length > 0) {
       const presetParams: Params = {};
       for (const key of Object.keys(this.routeSnapshot.queryParams)) {
-        if (ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)) {
+        if (ORDERS_FILTER_MENU_CONFIG.some(f => f.key === key)) {
           presetParams[key] = this.routeSnapshot.queryParams[key];
         }
       }

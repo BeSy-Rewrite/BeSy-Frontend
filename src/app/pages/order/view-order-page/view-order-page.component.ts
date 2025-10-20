@@ -8,6 +8,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { OrderStatus } from '../../../api';
 import { ApprovalsComponent } from '../../../components/approvals/approvals.component';
+import { OrderDocumentsComponent } from "../../../components/order-documents/order-documents.component";
 import { OrderMainInformationComponent } from '../../../components/order-main-information/order-main-information.component';
 import { OrderPersonsComponent } from "../../../components/order-persons/order-persons.component";
 import { PersonDetailsComponent } from "../../../components/person-details/person-details.component";
@@ -17,7 +18,6 @@ import { StateDisplayComponent } from "../../../components/state-display/state-d
 import { StateHistoryComponent } from "../../../components/state-history/state-history.component";
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
-import { OrderDocumentsComponent } from "../../../order-documents/order-documents.component";
 
 
 type SectionId = 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
