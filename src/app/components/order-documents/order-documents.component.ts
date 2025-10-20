@@ -1,12 +1,15 @@
 import { Component, input, OnInit } from '@angular/core';
+import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
-import { InvoiceResponseDTO, OrderResponseDTO } from '../api';
-import { GenericTableComponent } from "../components/generic-table/generic-table.component";
-import { INVOICE_FIELD_NAMES } from '../display-name-mappings/invoice-names';
-import { ButtonColor, TableActionButton, TableColumn } from '../models/generic-table';
-import { OrderSubresourceResolverService } from '../services/order-subresource-resolver.service';
-import { InvoicesWrapperServiceService } from '../services/wrapper-services/invoices-wrapper-service.service';
+import { DomSanitizer } from '@angular/platform-browser';
+import { InvoiceResponseDTO, OrderResponseDTO } from '../../api';
+import { INVOICE_FIELD_NAMES } from '../../display-name-mappings/invoice-names';
+import { ButtonColor, TableActionButton, TableColumn } from '../../models/generic-table';
+import { OrderSubresourceResolverService } from '../../services/order-subresource-resolver.service';
+import { InvoicesWrapperServiceService } from '../../services/wrapper-services/invoices-wrapper-service.service';
+import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
+import { GenericTableComponent } from "../generic-table/generic-table.component";
 
 type DisplayableInvoice = Omit<InvoiceResponseDTO, 'price'> & {
   price?: string;
@@ -20,7 +23,6 @@ type DisplayableInvoice = Omit<InvoiceResponseDTO, 'price'> & {
   styleUrl: './order-documents.component.scss'
 })
 export class OrderDocumentsComponent implements OnInit {
-  // TODO: Add preview functionality
   // TODO: Add upload functionality
   /**
    * The order for which to display documents.
@@ -62,7 +64,8 @@ export class OrderDocumentsComponent implements OnInit {
       buttonType: 'outlined',
       color: ButtonColor.PRIMARY,
       action: (row: DisplayableInvoice) => {
-        console.log('Preview document with ID:', row.id);
+        if (row.id)
+          this.openDocumentPreview(row);
       }
     }
   ];
@@ -70,7 +73,9 @@ export class OrderDocumentsComponent implements OnInit {
   constructor(
     private readonly invoicesService: InvoicesWrapperServiceService,
     private readonly resourceResolverService: OrderSubresourceResolverService,
-    private readonly _snackBar: MatSnackBar
+    private readonly _snackBar: MatSnackBar,
+    private readonly dialogRef: MatDialog,
+    private readonly sanitizer: DomSanitizer
   ) { }
 
   /**
@@ -91,7 +96,6 @@ export class OrderDocumentsComponent implements OnInit {
           paperless_id: invoice.paperless_id ? 'Klicken zum Kopieren der Paperless ID' : 'Keine Paperless ID vorhanden'
         }
       }));
-      console.log(this.documents);
 
       this.dataSource.data = this.documents;
     });
@@ -107,12 +111,47 @@ export class OrderDocumentsComponent implements OnInit {
       return;
     }
     this.invoicesService.downloadDocument(row.id).subscribe(blob => {
-      const a = document.createElement('a')
+      const link = document.createElement('a')
+      console.log(typeof blob);
       const objectUrl = URL.createObjectURL(blob)
-      a.href = objectUrl
-      a.download = `Dokument-${row.id}_Bestellung-${row.order_id}_${row.comment}.pdf`;
-      a.click();
+      link.href = objectUrl
+      link.download = `Dokument-${row.id}_Bestellung-${row.order_id}_Paperless-${row.paperless_id}_${row.comment}.pdf`;
+      link.click();
       URL.revokeObjectURL(objectUrl);
+    });
+  }
+
+  /**
+   * Opens the document preview for the specified document.
+   * @param row The document meta data.
+   */
+  openDocumentPreview(row: DisplayableInvoice) {
+    if (!row.id) {
+      this._snackBar.open('Dokument-ID fehlerhaft', 'Schließen', { duration: 3000 });
+      return;
+    }
+
+    this.invoicesService.getDocumentPreview(row.id).subscribe(blob => {
+      const objectUrl = URL.createObjectURL(blob);
+      this.openPreviewDialog(row, objectUrl);
+    });
+  }
+
+  /**
+   * Opens the document preview dialog.
+   * @param row The document meta data.
+   * @param previewImageURL The URL of the preview image.
+   */
+  openPreviewDialog(row: DisplayableInvoice, previewImageURL: string) {
+    this.dialogRef.open(DocumentPreviewComponent, {
+      data: {
+        title: `Vorschau für Dokument ${row.id} - Bestellung ${row.order_id}`,
+        comment: row.comment,
+        previewImageURL: this.sanitizer.bypassSecurityTrustUrl(previewImageURL),
+        onDownload: () => {
+          this.downloadDocument(row);
+        }
+      },
     });
   }
 
