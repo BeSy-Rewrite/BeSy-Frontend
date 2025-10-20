@@ -1,5 +1,7 @@
 import { Component, input, OnInit } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { DomSanitizer } from '@angular/platform-browser';
@@ -9,6 +11,7 @@ import { ButtonColor, TableActionButton, TableColumn } from '../../models/generi
 import { OrderSubresourceResolverService } from '../../services/order-subresource-resolver.service';
 import { InvoicesWrapperServiceService } from '../../services/wrapper-services/invoices-wrapper-service.service';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
+import { DocumentUploadComponent } from '../document-upload/document-upload.component';
 import { GenericTableComponent } from "../generic-table/generic-table.component";
 
 type DisplayableInvoice = Omit<InvoiceResponseDTO, 'price'> & {
@@ -18,12 +21,15 @@ type DisplayableInvoice = Omit<InvoiceResponseDTO, 'price'> & {
 
 @Component({
   selector: 'app-order-documents',
-  imports: [GenericTableComponent],
+  imports: [
+    MatButtonModule,
+    MatIconModule,
+    GenericTableComponent
+  ],
   templateUrl: './order-documents.component.html',
   styleUrl: './order-documents.component.scss'
 })
 export class OrderDocumentsComponent implements OnInit {
-  // TODO: Add upload functionality
   /**
    * The order for which to display documents.
    */
@@ -34,6 +40,7 @@ export class OrderDocumentsComponent implements OnInit {
 
   dataSource = new MatTableDataSource<DisplayableInvoice>(this.documents);
   columns: TableColumn<DisplayableInvoice>[] = [
+    { id: 'id', label: INVOICE_FIELD_NAMES.id },
     { id: 'comment', label: INVOICE_FIELD_NAMES.comment },
     { id: 'cost_center_id', label: INVOICE_FIELD_NAMES.cost_center_id },
     { id: 'price', label: INVOICE_FIELD_NAMES.price },
@@ -152,6 +159,22 @@ export class OrderDocumentsComponent implements OnInit {
           this.downloadDocument(row);
         }
       },
+    });
+  }
+
+  /**
+   * Opens the document upload dialog.
+   */
+  openUploadDialog() {
+    const dialogRef = this.dialogRef.open(DocumentUploadComponent, {
+      data: { orderId: this.order().id! },
+      minWidth: '60%'
+    });
+
+    dialogRef.componentInstance.uploadSuccessful.subscribe((success: boolean) => {
+      if (success) {
+        this.ngOnInit();
+      }
     });
   }
 

@@ -1,1 +1,12 @@
-<app-generic-table [dataSource]="dataSource" [columns]="columns" [actions]="actions" />
+<div class="relative">
+
+    <app-generic-table [dataSource]="dataSource" [columns]="columns" [actions]="actions" />
+
+    @if (order().status === 'IN_PROGRESS') {
+    <button matFab extended color="primary" (click)="openUploadDialog()" aria-label="Dokument hochladen"
+        class="!absolute left-2 bottom-1.5">
+        <mat-icon>upload</mat-icon>
+        <span>hochladen</span>
+    </button>
+    }
+</div>
