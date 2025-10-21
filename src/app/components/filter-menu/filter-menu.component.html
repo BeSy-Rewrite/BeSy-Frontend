@@ -10,15 +10,26 @@
 
     <mat-divider class="bg-gray-500"></mat-divider>
 
-    <div class="flex flex-row gap-2 justify-between">
+    <div class="flex flex-col gap-2">
         <mat-chip-listbox #presets multiple>
-            @for (preset of filterPresets; track $index) {
+            @for (preset of filterPresets(); track $index) {
             <mat-chip-option (selectionChange)="onPresetSelectionChange($event, preset)"
                 [selected]="isPresetApplied(preset)">
                 {{ preset.label }}
             </mat-chip-option>
             }
         </mat-chip-listbox>
+
+        <div class="flex flex-row gap-2">
+            <button mat-stroked-button color="accent" (click)="editFilterPresets()">
+                <mat-icon>edit</mat-icon>
+                Presets&nbsp;bearbeiten
+            </button>
+            <button mat-stroked-button color="primary" (click)="saveCurrentFiltersAsPreset()">
+                <mat-icon>add</mat-icon>
+                Als&nbsp;Preset&nbsp;speichern
+            </button>
+        </div>
     </div>
 
     <mat-accordion multi>

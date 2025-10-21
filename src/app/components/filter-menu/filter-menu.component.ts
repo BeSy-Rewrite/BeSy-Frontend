@@ -4,13 +4,15 @@ import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipListbox, MatChipSelectionChange, MatChipsModule } from "@angular/material/chips";
+import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
-import { debounceTime, forkJoin, from, Observable, of, tap } from 'rxjs';
+import { debounceTime, finalize, forkJoin, from, Observable, of, tap } from 'rxjs';
 import { CostCenterResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../../api';
 import { ORDERS_FILTER_PRESETS } from '../../configs/order-filter-presets-config';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../configs/orders-filter-menu-config';
@@ -29,7 +31,11 @@ import { SuppliersWrapperService } from '../../services/wrapper-services/supplie
 import { UsersWrapperService } from '../../services/wrapper-services/users-wrapper.service';
 import { ChipSelectionComponent } from '../chip-selection/chip-selection.component';
 import { DateRangePickerComponent } from '../date-range-picker/date-range-picker.component';
+import { FilterPresetsSaveComponent } from '../filter-preset-save/filter-presets-save.component';
+import { FilterPresetsEditComponent } from '../filter-presets-edit/filter-presets-edit.component';
 import { RangeSelectionSliderComponent } from '../range-selection-slider/range-selection-slider.component';
+
+export const SAVED_FILTER_PRESETS_KEY = 'savedPresets';
 
 /**
  * Component for displaying and managing the filter menu for orders.
@@ -46,6 +52,7 @@ import { RangeSelectionSliderComponent } from '../range-selection-slider/range-s
     MatSelectModule,
     FormsModule,
     ReactiveFormsModule,
+    MatIconModule,
     DateRangePickerComponent,
     ChipSelectionComponent,
     RangeSelectionSliderComponent,
@@ -59,7 +66,8 @@ export class FilterMenuComponent implements OnInit {
   initialPreset = input<OrdersFilterPreset | undefined>(undefined);
 
   /** List of available filter presets. */
-  filterPresets = ORDERS_FILTER_PRESETS;
+  filterPresets = signal<OrdersFilterPreset[]>([]);
+  defaultPresets = [...ORDERS_FILTER_PRESETS];
   /** Currently active filter presets. */
   private activePresets: OrdersFilterPreset[] = [];
 
@@ -170,21 +178,27 @@ export class FilterMenuComponent implements OnInit {
     private readonly usersService: UsersWrapperService,
     private readonly personsService: PersonsWrapperService,
     private readonly suppliersService: SuppliersWrapperService,
-    private readonly router: Router
+    private readonly router: Router,
+    readonly dialog: MatDialog
   ) {
     effect(() => {
       this.filtersChanged.emit(this.activeFilter());
     });
 
-    resourceResolver.resolveCurrentUserInPresets(this.filterPresets).subscribe({
+    resourceResolver.resolveCurrentUserInPresets(this.defaultPresets).pipe(
+      finalize(() => {
+        this.filterPresets.set([...this.defaultPresets]);
+        this.loadSavedFilterPresets();
+      })
+    ).subscribe({
       next: resolvedPresets => {
-        this.filterPresets = resolvedPresets;
+        this.defaultPresets = resolvedPresets;
       },
       error: error => {
         console.error('Error loading filter presets:', error);
         this._snackBar.open('Fehler beim Laden der Filtervorgaben: ' + error.message, 'Schließen', { duration: 5000 });
 
-        this.filterPresets = this.filterPresets.filter(preset =>
+        this.defaultPresets = this.defaultPresets.filter(preset =>
           !preset.appliedFilters.some(filter => {
             if ('chipIds' in filter) {
               return filter.chipIds?.includes('CURRENT_USER')
@@ -241,12 +255,7 @@ export class FilterMenuComponent implements OnInit {
     const lastActiveFilters = localStorage.getItem('activeFilters');
     if (lastActiveFilters) {
       try {
-        const preset: OrdersFilterPreset = JSON.parse(lastActiveFilters);
-        for (const filter of preset.appliedFilters) {
-          if (this.dateRanges[filter.id] !== undefined && 'dateRange' in filter) {
-            filter.dateRange = this.fixDateRange(filter.dateRange);
-          }
-        }
+        const preset = this.parsePreset(lastActiveFilters);
         this.clearAllFilters();
         this.applyPreset(preset);
       } catch (e) {
@@ -389,6 +398,50 @@ export class FilterMenuComponent implements OnInit {
   }
 
   /**
+   * Saves the current filters as a preset.
+   */
+  saveCurrentFiltersAsPreset() {
+    const dialogRef = this.dialog.open(FilterPresetsSaveComponent, {
+      data: {
+        name: 'Benutzerdefinierte Filter',
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result !== undefined) {
+        const currentPreset = { ...this.activeFiltersSignal() };
+        console.log(result());
+        currentPreset.label = result();
+        console.log('Saved Preset:', currentPreset);
+
+        const savedPresets = JSON.parse(localStorage.getItem(SAVED_FILTER_PRESETS_KEY) || '{}');
+        savedPresets[currentPreset.label.toLowerCase().replaceAll(' ', '_')] = currentPreset;
+        localStorage.setItem(SAVED_FILTER_PRESETS_KEY, JSON.stringify(savedPresets));
+
+        this.loadSavedFilterPresets();
+      }
+    });
+  }
+
+  /**
+   * Opens the filter presets edit dialog.
+   */
+  editFilterPresets() {
+    const dialogRef = this.dialog.open(FilterPresetsEditComponent);
+    dialogRef.afterClosed().subscribe(result => {
+      this.loadSavedFilterPresets();
+    });
+  }
+
+  /**
+   * Loads saved filter presets from local storage.
+   */
+  loadSavedFilterPresets() {
+    const savedPresets: OrdersFilterPreset[] = Object.values(JSON.parse(localStorage.getItem(SAVED_FILTER_PRESETS_KEY) ?? '{}'));
+    this.filterPresets.set([...this.defaultPresets, ...savedPresets.map(preset => this.parsePreset(preset))]);
+  }
+
+  /**
    * Resets all filters and deselects all presets.
    */
   onReset() {
@@ -491,6 +544,21 @@ export class FilterMenuComponent implements OnInit {
         this.ranges[appliedFilter.id].set({ start: min, end: max });
       }
     }
+  }
+
+  parsePreset(presetString: string | OrdersFilterPreset): OrdersFilterPreset {
+    let preset: OrdersFilterPreset;
+    if (typeof presetString === 'string') {
+      preset = JSON.parse(presetString);
+    } else {
+      preset = presetString;
+    }
+    for (const filter of preset.appliedFilters) {
+      if (this.dateRanges[filter.id] !== undefined && 'dateRange' in filter) {
+        filter.dateRange = this.fixDateRange(filter.dateRange);
+      }
+    }
+    return preset;
   }
 
   /**
