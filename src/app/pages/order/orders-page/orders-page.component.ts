@@ -11,7 +11,7 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, ActivatedRouteSnapshot, Params, Router } from '@angular/router';
-import { FilterMenuComponent } from '../../../components/filter-menu/filter-menu.component';
+import { FilterMenuComponent } from '../../../components/filter/filter-menu/filter-menu.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-table/orders-filter-menu-config';
 import { ordersTableConfig } from '../../../configs/orders-table/orders-table-config';

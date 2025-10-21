@@ -2,7 +2,7 @@ import { Component, input, model, OnChanges, OnInit, output } from '@angular/cor
 import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { MatDatepickerModule, MatDateRangeInput } from '@angular/material/datepicker';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FilterDateRange } from '../../models/filter/filter-date-range';
+import { FilterDateRange } from '../../../models/filter/filter-date-range';
 
 /**
  * A date range picker component that allows users to select a start and end date.

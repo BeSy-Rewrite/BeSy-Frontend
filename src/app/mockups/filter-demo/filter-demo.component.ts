@@ -1,9 +1,9 @@
 import { Component, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { CardComponent } from '../../components/card/card.component';
-import { ChipSelectionComponent } from '../../components/chip-selection/chip-selection.component';
-import { DateRangePickerComponent } from '../../components/date-range-picker/date-range-picker.component';
-import { RangeSelectionSliderComponent } from '../../components/range-selection-slider/range-selection-slider.component';
+import { ChipSelectionComponent } from '../../components/filter/chip-selection/chip-selection.component';
+import { DateRangePickerComponent } from '../../components/filter/date-range-picker/date-range-picker.component';
+import { RangeSelectionSliderComponent } from '../../components/filter/range-selection-slider/range-selection-slider.component';
 import { FilterChipData } from '../../models/filter-chip-data';
 import { FilterDateRange } from '../../models/filter/filter-date-range';
 import { FilterRange } from '../../models/filter/filter-range';
