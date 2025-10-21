@@ -1,5 +1,5 @@
-import { ORDER_FIELD_NAMES } from "../display-name-mappings/order-names";
-import { TableColumn } from "../models/generic-table";
+import { ORDER_FIELD_NAMES } from "../../display-name-mappings/order-names";
+import { TableColumn } from "../../models/generic-table";
 
 export type OrdersTableConfig = TableColumn[];
 

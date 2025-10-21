@@ -1,5 +1,5 @@
-import { OrderStatus } from "../api";
-import { OrdersFilterPreset } from "../models/filter/filter-presets";
+import { OrderStatus } from "../../api";
+import { OrdersFilterPreset } from "../../models/filter/filter-presets";
 
 
 const currentYearString = new Date().getFullYear().toString();
