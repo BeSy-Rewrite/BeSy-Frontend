@@ -11,7 +11,7 @@
 
 <mat-dialog-actions align="end">
     <button mat-stroked-button (click)="close()" color="warn">abbrechen</button>
-    <button mat-flat-button [mat-dialog-close]="presetName" cdkFocusInitial color="primary">
+    <button mat-flat-button [mat-dialog-close]="presetName()" cdkFocusInitial color="primary">
         {{ data.acceptButtonText ?? 'speichern' }}
     </button>
 </mat-dialog-actions>

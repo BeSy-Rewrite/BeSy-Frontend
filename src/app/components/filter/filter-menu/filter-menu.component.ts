@@ -255,7 +255,7 @@ export class FilterMenuComponent implements OnInit {
     const lastActiveFilters = localStorage.getItem('activeFilters');
     if (lastActiveFilters) {
       try {
-        const preset = this.parsePreset(lastActiveFilters);
+        const preset = this.parseAndCheckPreset(lastActiveFilters);
         this.clearAllFilters();
         this.applyPreset(preset);
       } catch (e) {
@@ -410,7 +410,7 @@ export class FilterMenuComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result !== undefined) {
         const currentPreset = { ...this.activeFiltersSignal() };
-        currentPreset.label = result();
+        currentPreset.label = result;
 
         const savedPresets = JSON.parse(localStorage.getItem(SAVED_FILTER_PRESETS_KEY) || '{}');
         savedPresets[currentPreset.label.toLowerCase().replaceAll(' ', '_')] = currentPreset;
@@ -436,7 +436,7 @@ export class FilterMenuComponent implements OnInit {
    */
   loadSavedFilterPresets() {
     const savedPresets: OrdersFilterPreset[] = Object.values(JSON.parse(localStorage.getItem(SAVED_FILTER_PRESETS_KEY) ?? '{}'));
-    this.filterPresets.set([...this.defaultPresets, ...savedPresets.map(preset => this.parsePreset(preset))]);
+    this.filterPresets.set([...this.defaultPresets, ...savedPresets.map(preset => this.parseAndCheckPreset(preset))]);
   }
 
   /**
@@ -544,7 +544,7 @@ export class FilterMenuComponent implements OnInit {
     }
   }
 
-  parsePreset(presetString: string | OrdersFilterPreset): OrdersFilterPreset {
+  parseAndCheckPreset(presetString: string | OrdersFilterPreset): OrdersFilterPreset {
     let preset: OrdersFilterPreset;
     if (typeof presetString === 'string') {
       preset = JSON.parse(presetString);

@@ -200,8 +200,8 @@ export class OrderSubresourceResolverService {
     data.flag_decision_other_reasons = order.flag_decision_other_reasons ? 'Ja' : 'Nein';
     data.decision_other_reasons_description = order.decision_other_reasons_description ?? '';
     data.dfg_key = order.dfg_key ?? '';
-    data.delivery_address_id = { id: order.delivery_address_id };
-    data.invoice_address_id = { id: order.invoice_address_id };
+    data.delivery_address_id = order.delivery_address_id;
+    data.invoice_address_id = order.invoice_address_id;
 
     data.tooltips = this.getTooltips(order);
 

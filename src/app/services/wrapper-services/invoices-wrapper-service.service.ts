@@ -15,7 +15,7 @@ export class InvoicesWrapperServiceService {
     return this.http.get<InvoiceResponseDTO[]>(`${environment.apiUrl}/orders/${orderId}/invoices`);
   }
 
-  // Generated API call doesnt work correctly for downloading documents currently, hence a custom implementation
+  // Generated API call doesn't work correctly for downloading documents currently, hence a custom implementation
   downloadDocument(documentId: string) {
     return this.http.get(`${environment.apiUrl}/orders/invoice/${documentId}/document`, { responseType: 'blob' });
   }

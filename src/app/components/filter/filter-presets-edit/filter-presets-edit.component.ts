@@ -71,7 +71,7 @@ export class FilterPresetsEditComponent {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
-        preset.label = result();
+        preset.label = result;
         this.datasource.data = this.savedPresets;
       }
     });

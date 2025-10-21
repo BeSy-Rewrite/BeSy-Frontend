@@ -41,7 +41,7 @@ export class QuotationsListComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
-    if (!this.isInitialized)
+    if (this.isInitialized)
       this.setup();
   }
 

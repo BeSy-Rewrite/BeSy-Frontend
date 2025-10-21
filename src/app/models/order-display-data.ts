@@ -1,4 +1,3 @@
-import { AddressResponseDTO } from "../api";
 
 /**
  * Type representing the display data for an order.
@@ -41,7 +40,7 @@ export type OrderDisplayData = {
     flag_decision_other_reasons: string;
     decision_other_reasons_description: string;
     dfg_key: string;
-    delivery_address_id?: AddressResponseDTO;
-    invoice_address_id?: AddressResponseDTO;
+    delivery_address_id?: number;
+    invoice_address_id?: number;
     tooltips?: { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string };
 };
