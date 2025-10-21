@@ -12,7 +12,7 @@ import { Router, RouterModule } from '@angular/router';
 import { OrderStatus, UserResponseDTO } from '../../../api';
 import { ApprovalsComponent } from '../../../components/approvals/approvals.component';
 import { setupDialog } from "../../../components/dialog/dialog.component";
-import { OrderDocumentsComponent } from "../../../components/order-documents/order-documents.component";
+import { OrderDocumentsComponent } from "../../../components/documents/order-documents/order-documents.component";
 import { OrderMainInformationComponent } from '../../../components/order-main-information/order-main-information.component';
 import { OrderPersonsComponent } from "../../../components/order-persons/order-persons.component";
 import { Step } from "../../../components/progress-bar/progress-bar.component";

@@ -5,15 +5,15 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { DomSanitizer } from '@angular/platform-browser';
-import { environment } from '../../../environments/environment';
-import { InvoiceResponseDTO, OrderResponseDTO } from '../../api';
-import { INVOICE_FIELD_NAMES } from '../../display-name-mappings/invoice-names';
-import { ButtonColor, TableActionButton, TableColumn } from '../../models/generic-table';
-import { OrderSubresourceResolverService } from '../../services/order-subresource-resolver.service';
-import { InvoicesWrapperServiceService } from '../../services/wrapper-services/invoices-wrapper-service.service';
+import { environment } from '../../../../environments/environment';
+import { InvoiceResponseDTO, OrderResponseDTO } from '../../../api';
+import { INVOICE_FIELD_NAMES } from '../../../display-name-mappings/invoice-names';
+import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
+import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
+import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
+import { GenericTableComponent } from "../../generic-table/generic-table.component";
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
 import { DocumentUploadComponent } from '../document-upload/document-upload.component';
-import { GenericTableComponent } from "../generic-table/generic-table.component";
 
 type DisplayableInvoice = Omit<InvoiceResponseDTO, 'price'> & {
   price?: string;

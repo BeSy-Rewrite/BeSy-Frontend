@@ -7,12 +7,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { concat, merge, startWith } from 'rxjs';
-import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../configs/document-upload-config';
-import { CostCenterWrapperService } from '../../services/wrapper-services/cost-centers-wrapper.service';
-import { InvoicesWrapperServiceService } from '../../services/wrapper-services/invoices-wrapper-service.service';
+import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../../configs/document-upload-config';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
+import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
+import { FormComponent, FormConfig } from "../../form-component/form-component.component";
+import { ProcessingIndicatorComponent } from '../../processing-indicator/processing-indicator.component';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
-import { FormComponent, FormConfig } from "../form-component/form-component.component";
-import { ProcessingIndicatorComponent } from '../processing-indicator/processing-indicator.component';
 
 export interface DocumentUploadData {
   orderId: number;

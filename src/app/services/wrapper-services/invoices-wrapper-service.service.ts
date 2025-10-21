@@ -3,7 +3,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { InvoiceResponseDTO } from '../../api';
-import { InvoiceRequestDTO } from '../../components/document-upload/document-upload.component';
+import { InvoiceRequestDTO } from '../../components/documents/document-upload/document-upload.component';
 
 @Injectable({
   providedIn: 'root'
