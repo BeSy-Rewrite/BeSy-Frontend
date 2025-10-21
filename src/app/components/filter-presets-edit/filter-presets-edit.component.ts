@@ -5,7 +5,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableDataSource } from '@angular/material/table';
-import { OrdersFilterPreset } from '../../models/filter-presets';
+import { OrdersFilterPreset } from '../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../models/generic-table';
 import { SAVED_FILTER_PRESETS_KEY } from '../filter-menu/filter-menu.component';
 import { CreatePresetDialogData, FilterPresetsSaveComponent } from '../filter-preset-save/filter-presets-save.component';

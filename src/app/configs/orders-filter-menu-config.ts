@@ -1,4 +1,4 @@
-import { FilterType } from "../models/filter-menu-types";
+import { FilterType } from "../models/filter/filter-menu-types";
 
 /**
  * Interface representing the configuration for a filter in the orders filter menu.

@@ -16,8 +16,8 @@ import { GenericTableComponent } from '../../../components/generic-table/generic
 import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-filter-menu-config';
 import { ordersTableConfig } from '../../../configs/orders-table-config';
 import { DataSourceSorting } from '../../../models/datasource-sorting';
-import { ActiveFilters } from '../../../models/filter-menu-types';
-import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetParams, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter-presets';
+import { ActiveFilters } from '../../../models/filter/filter-menu-types';
+import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetParams, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
 import { OrdersDataSourceService } from '../../../services/orders-data-source.service';

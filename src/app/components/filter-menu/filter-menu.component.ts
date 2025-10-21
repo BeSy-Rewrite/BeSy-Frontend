@@ -19,10 +19,10 @@ import { ORDERS_FILTER_MENU_CONFIG } from '../../configs/orders-filter-menu-conf
 import { ordersTableConfig } from '../../configs/orders-table-config';
 import { STATE_DISPLAY_NAMES, STATE_ICONS, USED_STATES } from '../../display-name-mappings/status-names';
 import { FilterChipData } from '../../models/filter-chip-data';
-import { FilterDateRange } from '../../models/filter-date-range';
-import { ActiveFilters } from '../../models/filter-menu-types';
-import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../../models/filter-presets';
-import { FilterRange, isNumericRange } from '../../models/filter-range';
+import { FilterDateRange } from '../../models/filter/filter-date-range';
+import { ActiveFilters } from '../../models/filter/filter-menu-types';
+import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../../models/filter/filter-presets';
+import { FilterRange, isNumericRange } from '../../models/filter/filter-range';
 import { TableColumn } from '../../models/generic-table';
 import { OrderSubresourceResolverService } from '../../services/order-subresource-resolver.service';
 import { CostCenterWrapperService } from '../../services/wrapper-services/cost-centers-wrapper.service';

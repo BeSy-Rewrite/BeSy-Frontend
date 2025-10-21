@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { from, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { OrdersService, PagedOrderResponseDTO } from '../api';
-import { FilterRequestParams } from '../models/filter-request-params';
+import { FilterRequestParams } from '../models/filter/filter-request-params';
 
 type CacheEntry = {
   response: PagedOrderResponseDTO;

@@ -5,8 +5,8 @@ import { ChipSelectionComponent } from '../../components/chip-selection/chip-sel
 import { DateRangePickerComponent } from '../../components/date-range-picker/date-range-picker.component';
 import { RangeSelectionSliderComponent } from '../../components/range-selection-slider/range-selection-slider.component';
 import { FilterChipData } from '../../models/filter-chip-data';
-import { FilterDateRange } from '../../models/filter-date-range';
-import { FilterRange } from '../../models/filter-range';
+import { FilterDateRange } from '../../models/filter/filter-date-range';
+import { FilterRange } from '../../models/filter/filter-range';
 
 @Component({
   selector: 'app-filter-demo',
