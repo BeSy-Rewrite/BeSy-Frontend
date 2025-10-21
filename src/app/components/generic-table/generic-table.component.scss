@@ -21,7 +21,7 @@ table {
   white-space: nowrap;
 }
 
-$color: #00AADC;
+$color: #193058;
 
 // Data-Zeilen
 .mat-mdc-row {
@@ -31,16 +31,16 @@ $color: #00AADC;
 
   &.selected {
     // background-color: #ede7f6; // selected row color
-    background-color: color.adjust($color, $lightness: 35%); // selected row color
+    background-color: color.adjust($color, $lightness: 60%); // selected row color
   }
 
   &:hover {
-    background-color: color.adjust($color, $lightness: 45%); // row hover color
+    background-color: color.adjust($color, $lightness: 65%); // row hover color
     cursor: pointer;
   }
 
   &.selected:hover {
-    background-color: color.adjust($color, $lightness: 40%); // selected row hover color
+    background-color: color.adjust($color, $lightness: 55%); // selected row hover color
   }
 }
 
