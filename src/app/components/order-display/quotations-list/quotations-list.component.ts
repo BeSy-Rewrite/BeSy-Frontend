@@ -1,12 +1,12 @@
 import { DataSource } from '@angular/cdk/table';
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { QuotationResponseDTO } from '../../api';
-import { QUOTATION_FIELD_NAMES } from '../../display-name-mappings/quotation-names';
-import { DisplayQuotation } from '../../models/display-quotation';
-import { TableColumn } from '../../models/generic-table';
-import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
-import { GenericTableComponent } from "../generic-table/generic-table.component";
+import { QuotationResponseDTO } from '../../../api';
+import { QUOTATION_FIELD_NAMES } from '../../../display-name-mappings/quotation-names';
+import { DisplayQuotation } from '../../../models/display-quotation';
+import { TableColumn } from '../../../models/generic-table';
+import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import { GenericTableComponent } from "../../generic-table/generic-table.component";
 
 @Component({
   selector: 'app-quotations-list',

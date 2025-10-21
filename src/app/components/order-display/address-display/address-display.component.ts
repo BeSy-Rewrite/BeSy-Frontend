@@ -1,6 +1,6 @@
 import { Component, input, OnInit, signal } from '@angular/core';
-import { AddressResponseDTO } from '../../api';
-import { PersonsWrapperService } from '../../services/wrapper-services/persons-wrapper.service';
+import { AddressResponseDTO } from '../../../api';
+import { PersonsWrapperService } from '../../../services/wrapper-services/persons-wrapper.service';
 
 type DisplayAddress = { [key in keyof AddressResponseDTO]: string };
 

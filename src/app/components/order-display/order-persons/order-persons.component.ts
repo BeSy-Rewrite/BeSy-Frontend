@@ -1,7 +1,7 @@
 import { Component, input, OnInit } from '@angular/core';
-import { OrderResponseDTO } from '../../api';
-import { ORDER_FIELD_NAMES } from '../../display-name-mappings/order-names';
-import { PersonDetailsComponent } from '../person-details/person-details.component';
+import { OrderResponseDTO } from '../../../api';
+import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
+import { PersonDetailsComponent } from '../../person-details/person-details.component';
 
 type Gender = 'm' | 'f' | 'd';
 

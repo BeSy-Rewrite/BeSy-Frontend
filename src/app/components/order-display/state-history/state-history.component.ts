@@ -1,12 +1,12 @@
 import { DataSource } from '@angular/cdk/table';
 import { Component, input } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { OrderResponseDTO, OrderStatusHistoryResponseDTO } from '../../api';
-import { STATE_HISTORY_FIELD_NAMES } from '../../display-name-mappings/state-history-names';
-import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../../display-name-mappings/status-names';
-import { TableColumn } from '../../models/generic-table';
-import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
-import { GenericTableComponent } from "../generic-table/generic-table.component";
+import { OrderResponseDTO, OrderStatusHistoryResponseDTO } from '../../../api';
+import { STATE_HISTORY_FIELD_NAMES } from '../../../display-name-mappings/state-history-names';
+import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../../../display-name-mappings/status-names';
+import { TableColumn } from '../../../models/generic-table';
+import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import { GenericTableComponent } from "../../generic-table/generic-table.component";
 
 @Component({
   selector: 'app-state-history',
