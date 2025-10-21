@@ -21,16 +21,6 @@ table {
   white-space: nowrap;
 }
 
-
-
-.mat-mdc-header-cell {
-  font-weight: 600;
-  font-size: 0.875rem;
-  letter-spacing: 0.05em;
-  padding: 16px;
-}
-
-
 $color: #00AADC;
 
 // Data-Zeilen
@@ -64,10 +54,10 @@ td.mat-mdc-cell.mat-column-status {
 }
 
 tr.mat-mdc-footer-row td {
-  font-weight: bold;
-  color: var(--color-he-grey);
+  font-weight: 600;
+  color: var(--color-he-darkblue);
 }
 
 tr.mat-mdc-header-row th {
-  font-weight: bold;
+  font-weight: 600;
 }

@@ -12,22 +12,14 @@
   @include mat.form-field-overrides((filled-container-color: rgba(0, 0, 0, 0.113),
       filled-container-shape: rounded));
 
-  @include mat.table-overrides((header-headline-color: var(--color-he-grey), // macht nix? wurde in der Komponente überschrieben
+  @include mat.table-overrides((header-headline-color: var(--color-he-darkblue),
       header-headline-line-height: 40px, // header height
       header-headline-tracking: 0.05em,
-      background-color: var(--color-he-lightblue), //#3a9bf5fa, // header background color,
-      row-item-outline-width: 1.5px, // row outline
-      row-item-outline-color: #00000019, // row outline color
+      background-color: var(--color-he-darkblue-100), // header background color,
     ));
 
-  @include mat.paginator-overrides((container-text-color: var(--color-he-grey),
-      container-background-color: var(--color-he-lightblue),
+  @include mat.paginator-overrides((container-text-color: var(--color-he-darkblue),
+      container-background-color: var(--color-he-darkblue-100),
     ));
-
-  // HS Esslingen Colorschema
-  --color-he-darkblue: #193058;
-  --color-he-red: #B6163D;
-  --color-he-lightblue: #00AADC;
-  --color-he-grey: #F0F0F0;
 
 }
