@@ -9,7 +9,7 @@ import { StateWrapperService } from '../../services/wrapper-services/state-wrapp
 import { ProgressBarComponent, Step } from "../progress-bar/progress-bar.component";
 
 @Component({
-  selector: 'app-state-controller',
+  selector: 'app-state-display',
   imports: [
     ProgressBarComponent,
     MatButtonModule
