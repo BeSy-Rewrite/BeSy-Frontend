@@ -123,7 +123,6 @@ export class DocumentUploadComponent implements OnInit {
    */
   onUpload(): void {
     if (this.documentFormGroup.valid) {
-      this.processingIndicator = this.dialog.open(ProcessingIndicatorComponent);
 
       const invoice = this.getInvoice();
       this.createInvoice(invoice);
@@ -174,7 +173,6 @@ export class DocumentUploadComponent implements OnInit {
     }
     concat(...observables).subscribe({
       complete: () => {
-        this.processingIndicator?.close();
         this.snackBar.open('Dokument erfolgreich hochgeladen.', 'Schließen', {
           duration: 3000
         });
@@ -182,7 +180,6 @@ export class DocumentUploadComponent implements OnInit {
         this.dialogRef.close(true);
       },
       error: (error) => {
-        this.processingIndicator?.close();
         this.snackBar.open('Fehler beim Hochladen des Dokuments. Bitte versuchen Sie es erneut.', 'Schließen', {
           duration: 5000
         });

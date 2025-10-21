@@ -1,3 +1,4 @@
+import { NgClass } from '@angular/common';
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -25,7 +26,8 @@ type DisplayableInvoice = Omit<InvoiceResponseDTO, 'price'> & {
   imports: [
     MatButtonModule,
     MatIconModule,
-    GenericTableComponent
+    GenericTableComponent,
+    NgClass
   ],
   templateUrl: './order-documents.component.html',
   styleUrl: './order-documents.component.scss'
