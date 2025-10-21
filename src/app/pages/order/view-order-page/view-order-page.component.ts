@@ -23,6 +23,7 @@ import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { STATE_CHANGE_TO_NAMES, STATE_DISPLAY_NAMES, STATE_ICONS } from "../../../display-name-mappings/status-names";
 import { AllowedStateTransitions } from "../../../models/allowed-states-transitions";
 import { DisplayableOrder } from '../../../models/displayable-order';
+import { OrderSubresourceResolverService } from "../../../services/order-subresource-resolver.service";
 import { OrdersWrapperService } from "../../../services/wrapper-services/orders-wrapper.service";
 import { StateWrapperService } from "../../../services/wrapper-services/state-wrapper.service";
 import { UsersWrapperService } from "../../../services/wrapper-services/users-wrapper.service";
@@ -87,10 +88,13 @@ export class ViewOrderPageComponent implements OnInit {
   stateTransitionMap: AllowedStateTransitions = {};
   stateChangeButtons: StateChangeButtons[] = [];
 
+  lastStateChangeTimestamp = Date.now();
+
   constructor(
     private readonly usersService: UsersWrapperService,
     private readonly stateService: StateWrapperService,
     private readonly ordersService: OrdersWrapperService,
+    private readonly orderDisplayService: OrderSubresourceResolverService,
     private readonly router: Router,
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog
@@ -166,7 +170,16 @@ export class ViewOrderPageComponent implements OnInit {
     }
   }
 
+  /**
+   * Changes the order state to the specified new state.
+   * @param newState The new state to change to.
+   */
   changeOrderState(newState: OrderStatus): void {
+    if (Date.now() - this.lastStateChangeTimestamp < 1000) {
+      this.snackBar.open('Bitte warten Sie einen Moment, bevor Sie den Bestellungsstatus erneut ändern.', 'Schließen', { duration: 5000 });
+      this.lastStateChangeTimestamp = Date.now();
+      return;
+    }
     if (!this.getNextAllowedStates().includes(newState)) {
       this.snackBar.open(`Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState) ?? newState}' ist nicht erlaubt.`, 'Schließen', { duration: 5000 });
       return;
@@ -176,10 +189,11 @@ export class ViewOrderPageComponent implements OnInit {
       this.ordersService.putOrderState(this.internalOrder().order.id!, newState).then(() => {
         this.snackBar.open(`Bestellungsstatus erfolgreich zu '${STATE_DISPLAY_NAMES.get(newState) ?? newState}' geändert.`, 'Schließen', { duration: 5000 });
 
-        const currentUrl = this.router.url;
-        this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-          this.router.navigate([currentUrl]);
+        const newOrder = { ...this.internalOrder().order, status: newState };
+        this.orderDisplayService.resolveOrderSubresources(newOrder).subscribe(orderDisplay => {
+          this.internalOrder.set({ order: newOrder, orderDisplay });
         });
+        this.createStateChangeButtons();
       });
       return;
     }

@@ -1,32 +1,46 @@
 <div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
-    <app-state-display [order]="order().order" />
+    <app-state-display [order]="internalOrder().order" />
     <mat-divider class="bg-gray-400" />
 </div>
 
 <div class="flex flex-row justify-between mb-4 gap-4">
     <div class="flex flex-col items-start min-w-fit">
-        <h1 class="font-semibold text-2xl mb-2">{{order().orderDisplay.content_description}}</h1>
+        <h1 class="font-semibold text-2xl mb-2">{{internalOrder().orderDisplay.content_description}}</h1>
 
         <span class="min-w-fit">
             Erstellt von:
-            <button matButton color="primary" class="w-fit"
+            <button
+                matButton
+                color="primary"
+                class="w-fit"
                 [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
-                [cdkCopyToClipboard]="owner?.email ?? ''">
+                [cdkCopyToClipboard]="owner?.email ?? ''"
+            >
                 {{owner?.name}} {{owner?.surname}}
             </button>
         </span>
         <span class="min-w-fit">
             Bestellnummer:
-            <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="order().orderDisplay.besy_number"
-                matTooltip="Bestellnummer kopieren">
-                {{order().orderDisplay.besy_number}}
+            <button
+                matButton
+                color="primary"
+                class="w-fit"
+                [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number"
+                matTooltip="Bestellnummer kopieren"
+            >
+                {{internalOrder().orderDisplay.besy_number}}
             </button>
         </span>
         <span class="min-w-fit">
             ID:
-            <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="currentUrl()"
-                matTooltip="Link kopieren">
-                #&nbsp;{{order().order.id}}
+            <button
+                matButton
+                color="primary"
+                class="w-fit"
+                [cdkCopyToClipboard]="currentUrl()"
+                matTooltip="Link kopieren"
+            >
+                #&nbsp;{{internalOrder().order.id}}
                 <mat-icon iconPositionEnd>link</mat-icon>
             </button>
         </span>
@@ -34,14 +48,33 @@
     </div>
 
     <div class="sticky top-20 w-fit flex flex-col gap-2">
-        @if (order().order.status === orderStates.IN_PROGRESS) {
-        <a mat-flat-button color="primary" [routerLink]="['/orders', order().order.id, 'edit']"
-            [disabled]="order().order.status !== orderStates.IN_PROGRESS">
+        @if (internalOrder().order.status === orderStates.COMPLETED) {
+        <button
+            mat-flat-button
+            color="primary"
+            (click)="export()"
+        >
+            <mat-icon iconPositionStart>download</mat-icon>
+            Exportieren
+        </button>
+        }
+        @if (internalOrder().order.status === orderStates.IN_PROGRESS) {
+        <a
+            mat-flat-button
+            color="primary"
+            [routerLink]="['/orders', internalOrder().order.id, 'edit']"
+            [disabled]="internalOrder().order.status !== orderStates.IN_PROGRESS"
+        >
             Bearbeiten
         </a>
         }
         @for (state of stateChangeButtons; track $index) {
-        <button mat-button color="primary" (click)="changeOrderState(state.state)" [matTooltip]="state.tooltip">
+        <button
+            mat-button
+            color="primary"
+            (click)="changeOrderState(state.state)"
+            [matTooltip]="state.tooltip"
+        >
             {{ state.label }} {{ state.icon }}
         </button>
         }
@@ -54,7 +87,7 @@
 
 <div class="flex flex-col gap-12 mt-8">
 
-    <app-order-main-information [orderData]="order()" />
+    <app-order-main-information [orderData]="internalOrder()" />
 
 
     <div class="flex flex-wrap gap-4 h-fit">
@@ -66,11 +99,11 @@
             <mat-divider class="bg-he-red-200 !mb-2" />
 
             @switch (section.id) {
-            @case ('quotations') { <app-quotations-list [orderId]="order().order.id!" /> }
-            @case ('documents') { <app-order-documents [order]="order().order" /> }
-            @case ('contacts') { <app-order-persons [order]="order().order" /> }
-            @case ('approvals') { <app-approvals [orderId]="order().order.id!" /> }
-            @case ('history') { <app-state-history [order]="order().order" /> }
+            @case ('quotations') { <app-quotations-list [orderId]="internalOrder().order.id!" /> }
+            @case ('documents') { <app-order-documents [order]="internalOrder().order" /> }
+            @case ('contacts') { <app-order-persons [order]="internalOrder().order" /> }
+            @case ('approvals') { <app-approvals [orderId]="internalOrder().order.id!" /> }
+            @case ('history') { <app-state-history [order]="internalOrder().order" /> }
             }
 
         </div>
