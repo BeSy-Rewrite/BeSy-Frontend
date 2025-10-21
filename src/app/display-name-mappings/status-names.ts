@@ -1,5 +1,15 @@
 import { OrderStatus as state } from '../api';
 
+export const USED_STATES: state[] = [
+    state.IN_PROGRESS,
+    state.COMPLETED,
+    state.APPROVALS_RECEIVED,
+    state.APPROVED,
+    state.SENT,
+    state.SETTLED,
+    state.ARCHIVED
+];
+
 export const STATE_DISPLAY_NAMES = new Map<state | string, string>([
     [state.IN_PROGRESS, 'In\u00A0Bearbeitung'],
     [state.COMPLETED, 'Fertiggestellt'],

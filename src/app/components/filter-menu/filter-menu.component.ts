@@ -17,7 +17,7 @@ import { CostCenterResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResp
 import { ORDERS_FILTER_PRESETS } from '../../configs/order-filter-presets-config';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../configs/orders-filter-menu-config';
 import { ordersTableConfig } from '../../configs/orders-table-config';
-import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../../display-name-mappings/status-names';
+import { STATE_DISPLAY_NAMES, STATE_ICONS, USED_STATES } from '../../display-name-mappings/status-names';
 import { FilterChipData } from '../../models/filter-chip-data';
 import { FilterDateRange } from '../../models/filter-date-range';
 import { ActiveFilters } from '../../models/filter-menu-types';
@@ -357,9 +357,9 @@ export class FilterMenuComponent implements OnInit {
    */
   setupStatuses() {
     this.chips['status'].set(
-      Array.from(STATE_DISPLAY_NAMES.entries()).map(([id, label]) => ({
+      [...USED_STATES].map(id => ({
         id: id,
-        label: STATE_ICONS.get(id) + ' ' + label,
+        label: STATE_ICONS.get(id) + ' ' + STATE_DISPLAY_NAMES.get(id),
         tooltip: ''
       }))
     );
