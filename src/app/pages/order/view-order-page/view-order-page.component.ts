@@ -9,6 +9,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
+import { environment } from "../../../../environments/environment";
 import { OrderStatus, UserResponseDTO } from '../../../api';
 import { setupDialog } from "../../../components/dialog/dialog.component";
 import { OrderDocumentsComponent } from "../../../components/documents/order-documents/order-documents.component";
@@ -23,6 +24,7 @@ import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { STATE_CHANGE_TO_NAMES, STATE_DISPLAY_NAMES, STATE_ICONS } from "../../../display-name-mappings/status-names";
 import { AllowedStateTransitions } from "../../../models/allowed-states-transitions";
 import { DisplayableOrder } from '../../../models/displayable-order';
+import { AuthenticationService } from "../../../services/authentication.service";
 import { OrderSubresourceResolverService } from "../../../services/order-subresource-resolver.service";
 import { OrdersWrapperService } from "../../../services/wrapper-services/orders-wrapper.service";
 import { StateWrapperService } from "../../../services/wrapper-services/state-wrapper.service";
@@ -36,6 +38,7 @@ interface StateChangeButtons {
   icon: string;
   tooltip: string;
   state: OrderStatus;
+  color?: string;
 }
 
 @Component({
@@ -95,6 +98,7 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly stateService: StateWrapperService,
     private readonly ordersService: OrdersWrapperService,
     private readonly orderDisplayService: OrderSubresourceResolverService,
+    private readonly authService: AuthenticationService,
     private readonly router: Router,
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog
@@ -161,11 +165,27 @@ export class ViewOrderPageComponent implements OnInit {
   createStateChangeButtons(): void {
     this.stateChangeButtons = [];
     for (const state of this.getNextAllowedStates()) {
+      if (state === OrderStatus.APPROVED && !this.authService.isAuthorizedFor(environment.approveOrdersRole)) {
+        continue;
+      }
+      let color;
+      switch (state) {
+        case OrderStatus.DELETED:
+          color = 'warn';
+          break;
+        case OrderStatus.APPROVED:
+          color = 'accent';
+          break;
+        default:
+          color = 'default';
+      }
+
       this.stateChangeButtons.push({
         label: STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`,
         icon: STATE_ICONS.get(state) ?? '',
         tooltip: `Zu '${STATE_DISPLAY_NAMES.get(state) ?? state}' wechseln`,
-        state
+        state,
+        color
       });
     }
   }

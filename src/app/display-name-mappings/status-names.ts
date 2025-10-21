@@ -61,7 +61,7 @@ export const STATE_DESCRIPTIONS = new Map<state | string, string>([
 ]);
 
 export const STATE_CHANGE_TO_NAMES = new Map<state | string, string>([
-    [state.IN_PROGRESS, 'Auf in Bearbeitung setzen'],
+    [state.IN_PROGRESS, "Auf 'In Bearbeitung' setzen"],
     [state.COMPLETED, 'Fertigstellen'],
     [state.APPROVALS_RECEIVED, 'Genehmigungen erhalten'],
     [state.APPROVED, 'Genehmigen'],
