@@ -98,7 +98,6 @@ export class OrderSubresourceResolverService {
   private readonly costCenterFormatter: ResourceFormatter<CostCenterResponseDTO>;
   /** Formats suppliers for display and caches them by id/code. */
   private readonly supplierFormatter: ResourceFormatter<SupplierResponseDTO>;
-  // ToDo: How to resolve addresses? private readonly addressFormatter: ResourceFormatter<AddressResponseDTO>;
 
   /**
    * Constructs the resolver and wires up the resource formatters.

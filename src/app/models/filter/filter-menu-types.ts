@@ -1,6 +1,7 @@
-import { FilterChipData } from "../models/filter-chip-data";
-import { FilterDateRange } from "../models/filter-date-range";
-import { FilterRange } from "../models/filter-range";
+import { FilterChipData } from "./filter-chip-data";
+import { FilterDateRange } from "./filter-date-range";
+import { FilterRange } from "./filter-range";
+
 
 /**
  * Enum representing the available filter types.

@@ -1,8 +1,6 @@
 import { Routes } from '@angular/router';
 import { ApproveOrdersGuard } from './guards/approve-orders.guard';
 import { DefaultGuard } from './guards/default.guard';
-import { FilterDemoComponent } from './mockups/filter-demo/filter-demo.component';
-import { TableDemoComponent } from './mockups/table-demo/table-demo.component';
 import { CostCentersPageComponent } from './pages/cost-center/cost-center-component/cost-center-page.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
@@ -20,18 +18,6 @@ export const routes: Routes = [
         title: 'BeSy',
         path: '',
         component: HomepageComponent
-    },
-    {
-        title: 'Table Demo',
-        path: 'table',
-        component: TableDemoComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Filter Demo',
-        path: 'filter',
-        component: FilterDemoComponent,
-        canActivate: [DefaultGuard]
     },
     {
         title: 'Guard Test',
