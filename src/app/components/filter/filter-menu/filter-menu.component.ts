@@ -357,7 +357,7 @@ export class FilterMenuComponent implements OnInit {
    */
   setupStatuses() {
     this.chips['status'].set(
-      [...USED_STATES].map(id => ({
+      USED_STATES.map(id => ({
         id: id,
         label: STATE_ICONS.get(id) + ' ' + STATE_DISPLAY_NAMES.get(id),
         tooltip: ''

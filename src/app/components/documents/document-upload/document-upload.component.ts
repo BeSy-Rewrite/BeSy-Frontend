@@ -146,7 +146,7 @@ export class DocumentUploadComponent implements OnInit {
       const raw = this.existingDocumentId.value;
       if (raw) {
         const parsed = typeof raw === 'number' ? raw : Number.parseInt(String(raw), 10);
-        paperlessId = Number.isNaN(parsed) ? undefined : parsed;
+        paperlessId = Number.isNaN(parsed) || !Number.isInteger(parsed) || parsed < 1 ? undefined : parsed;
       } else {
         paperlessId = undefined;
       }

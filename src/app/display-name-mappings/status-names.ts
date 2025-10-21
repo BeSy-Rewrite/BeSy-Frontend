@@ -1,5 +1,7 @@
 import { OrderStatus as state } from '../api';
 
+const NBSP = '\u00A0';
+
 export const USED_STATES: state[] = [
     state.IN_PROGRESS,
     state.COMPLETED,
@@ -11,9 +13,9 @@ export const USED_STATES: state[] = [
 ];
 
 export const STATE_DISPLAY_NAMES = new Map<state | string, string>([
-    [state.IN_PROGRESS, 'In\u00A0Bearbeitung'],
+    [state.IN_PROGRESS, `In${NBSP}Bearbeitung`],
     [state.COMPLETED, 'Fertiggestellt'],
-    [state.APPROVALS_RECEIVED, 'Genehmigungen\u00A0erhalten'],
+    [state.APPROVALS_RECEIVED, `Genehmigungen${NBSP}erhalten`],
     [state.APPROVED, 'Genehmigt'],
     [state.REJECTED, 'Abgelehnt'],
     [state.SENT, 'Abgesendet'],

@@ -6,6 +6,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { ItemResponseDTO } from '../../../api';
 import { ITEM_FIELD_NAMES } from '../../../display-name-mappings/item-names';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
+import { PREFERRED_LIST_NAMES } from '../../../display-name-mappings/preferred-list-names';
 import { DisplayItem } from '../../../models/display-item';
 import { DisplayableOrder } from '../../../models/displayable-order';
 import { TableColumn } from '../../../models/generic-table';
@@ -110,9 +111,9 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
   private createDisplayItem(item: ItemResponseDTO): DisplayItem {
     let preferredList = 'Keine bevorzugte Liste';
     if (item.preferred_list === ItemResponseDTO.preferred_list.RZ) {
-      preferredList = 'RZ';
+      preferredList = PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.RZ) ?? 'RZ';
     } else if (item.preferred_list === ItemResponseDTO.preferred_list.TA) {
-      preferredList = 'TA';
+      preferredList = PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.TA) ?? 'TA';
     }
 
     this.totalQuantity.update(value => value + (item.quantity ?? 0));

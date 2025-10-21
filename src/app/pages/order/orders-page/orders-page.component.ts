@@ -190,8 +190,8 @@ export class OrdersPageComponent implements OnInit {
    * @returns An object containing pageIndex and pageSize.
    */
   parsePaginationFromUrlParams(params: Params): { pageIndex: number; pageSize: number } {
-    const pageIndex = params['page'] ? Number.parseInt(params['page'], 10) : 0;
-    const pageSize = params['page_size'] ? Number.parseInt(params['page_size'], 10) : 25;
+    const pageIndex = params['page'] ? Number.parseInt(params['page'], 10) ?? 0 : 0;
+    const pageSize = params['page_size'] ? Number.parseInt(params['page_size'], 10) ?? 25 : 25;
     return { pageIndex, pageSize };
   }
 

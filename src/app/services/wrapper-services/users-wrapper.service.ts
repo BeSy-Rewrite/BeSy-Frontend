@@ -37,6 +37,6 @@ export class UsersWrapperService {
    * @returns An observable of the resolved UserResponseDTO or undefined if not found.
    */
   getCurrentUser(): Observable<UserResponseDTO | undefined> {
-    return this.http.get<UserResponseDTO>(environment.apiUrl + '/users/me');
+    return this.http.get<UserResponseDTO>(`${environment.apiUrl}/users/me`);
   }
 }
