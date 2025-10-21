@@ -1,7 +1,7 @@
-import { Component, input, OnInit } from '@angular/core';
+import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { forkJoin } from 'rxjs';
-import { OrderResponseDTO, OrderStatus } from '../../api';
+import { OrderResponseDTO, OrderStatus, OrderStatusHistoryResponseDTO } from '../../api';
 import { STATE_DESCRIPTIONS, STATE_DISPLAY_NAMES, STATE_FONT_ICONS, STATE_ICONS } from '../../display-name-mappings/status-names';
 import { AllowedStateTransitions } from '../../models/allowed-states-transitions';
 import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
@@ -17,7 +17,7 @@ import { ProgressBarComponent, Step } from "../progress-bar/progress-bar.compone
   templateUrl: './state-display.component.html',
   styleUrl: './state-display.component.scss'
 })
-export class StateDisplayComponent implements OnInit {
+export class StateDisplayComponent implements OnInit, OnChanges {
 
   /**
    * The order for which the state display is shown.
@@ -25,7 +25,7 @@ export class StateDisplayComponent implements OnInit {
   order = input.required<OrderResponseDTO>();
 
   allowedStateTransitions: AllowedStateTransitions = {};
-  orderStatusHistory: OrderStatus[] = [];
+  orderStatusHistory: OrderStatusHistoryResponseDTO[] = [];
 
   steps: Step[] = [];
   states: OrderStatus[] = [];
@@ -49,23 +49,38 @@ export class StateDisplayComponent implements OnInit {
     })
       .subscribe(({ transitions, history }) => {
         this.allowedStateTransitions = transitions;
-        const sorted = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
-        this.orderStatusHistory = sorted.map(h => h.status);
+        this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
 
         this.generateLinearStates();
         this.generateSteps();
       });
   }
 
+  ngOnChanges() {
+    this.ordersService.getOrderStatusHistory(this.order().id!).then(history => {
+      this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+      this.generateLinearStates();
+      this.generateSteps();
+    });
+  }
+
   /**
    * Generate the steps for the progress bar based on the current states.
    */
   generateSteps() {
-    this.steps = this.states.map((state) => ({
-      label: STATE_ICONS.get(state) + '\u00A0' + STATE_DISPLAY_NAMES.get(state),
-      tooltip: STATE_DESCRIPTIONS.get(state) || '',
-      icon: STATE_FONT_ICONS.get(state) || '',
-    }));
+    this.steps = [];
+    let i = 0;
+    for (const state of this.states) {
+      const timestamp = this.orderStatusHistory.at(i)?.timestamp ?? '';
+
+      this.steps.push({
+        label: STATE_ICONS.get(state) + '\u00A0' + STATE_DISPLAY_NAMES.get(state),
+        subLabel: timestamp ? new Date(timestamp).toLocaleDateString() : undefined,
+        tooltip: STATE_DESCRIPTIONS.get(state) || '',
+        icon: STATE_FONT_ICONS.get(state) || '',
+      });
+      i++;
+    }
   }
 
   /**
@@ -95,7 +110,7 @@ export class StateDisplayComponent implements OnInit {
    * Setup the initial state history for the progress bar.
    */
   private setupStateHistory() {
-    this.states = this.orderStatusHistory.slice();
+    this.states = this.orderStatusHistory.map(h => h.status).slice();
     if (this.states.at(-1) !== this.order().status) {
       this.states.push(this.order().status!);
     }
