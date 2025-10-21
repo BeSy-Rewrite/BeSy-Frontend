@@ -121,4 +121,8 @@ export class OrdersWrapperService {
   async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistoryResponseDTO[]> {
     return await OrdersService.getOrdersStatusHistory(orderId);
   }
+
+  async putOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
+    return await OrdersService.putOrdersStatus(orderId, newState);
+  }
 }
