@@ -52,7 +52,7 @@ export class PersonDetailsComponent implements OnInit {
   private setupPersonData(): void {
     for (const [key, value] of Object.entries(this.person)) {
       if (value && typeof value === 'string') {
-        this.personData.set(key, String(value));
+        this.personData.set(key, value);
       }
     }
     this.personGenderLoaded.emit(this.person?.gender ?? 'd');

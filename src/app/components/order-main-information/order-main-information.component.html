@@ -41,21 +41,9 @@
             } @else if (isQuotePriceProbablyNetto()) {
             (netto)
             } @else {
-        <p>
-            Irgendwas stimmt da nicht! Da steht was anderes als die berechneten Summen: {{ totalPriceFormatted()
-            }}/{{
-            totalNetPriceFormatted() }}<br />
-            <br />
-            Übrigens sollte das hier niemals angezeigt werden, weil das nur bei fehlerhaften Daten passiert.<br />
-            Also Glückwunsch, du hast einen Bug gefunden! 🎉<br />
-            Kannst du gerne melden auf <a matButton color="primary"
-                href="https://github.com/besy-rewrite/besy-frontend">GitHub</a> Ob's da jemand liest, ist fraglich,
-            aber
-            hey, du hast es versucht.<br />
-            Ich schreibe das hier grad nur weil ich's lustig finde, viele Grüße an dich, du toller Mensch! 😊
-        </p>
-        }
-        }
+            - Berechneten Summen: {{ totalPriceFormatted() }} / {{ totalNetPriceFormatted() }}<br />
+            }
+            }
         </p>
         }
     </div>

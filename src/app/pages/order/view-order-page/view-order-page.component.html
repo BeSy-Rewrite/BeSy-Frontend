@@ -10,7 +10,7 @@
         <span class="min-w-fit">
             Erstellt von:
             <button matButton color="primary" class="w-fit"
-                [matTooltip]="owner?.email ? owner!.email + ' Klicke zum kopieren' : ''"
+                [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
                 [cdkCopyToClipboard]="owner?.email ?? ''">
                 {{owner?.name}} {{owner?.surname}}
             </button>
