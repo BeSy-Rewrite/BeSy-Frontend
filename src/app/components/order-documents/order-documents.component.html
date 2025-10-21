@@ -1,10 +1,15 @@
 <div class="relative">
 
+    @if (documents.length > 0) {
     <app-generic-table [dataSource]="dataSource" [columns]="columns" [actions]="actions" />
+    } @else {
+    <span class="text-gray-600">Es sind noch keine Dokumente für diese Bestellung vorhanden.</span>
+    }
+
 
     @if (order().status === 'IN_PROGRESS') {
     <button matFab extended color="primary" (click)="openUploadDialog()" aria-label="Dokument hochladen"
-        class="!absolute left-2 bottom-1.5">
+        [class]="documents.length > 0 ? '!absolute right-4 top-1' : ''">
         <mat-icon>upload</mat-icon>
         <span>hochladen</span>
     </button>

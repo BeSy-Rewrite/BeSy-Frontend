@@ -61,6 +61,10 @@
     </div>
 
 
+    @if (fetchedItems().length > 0) {
     <app-generic-table [dataSource]="items" [columns]="displayedColumns"></app-generic-table>
+    } @else {
+    <span class="text-gray-600">Keine Artikel vorhanden.</span>
+    }
 
 </div>

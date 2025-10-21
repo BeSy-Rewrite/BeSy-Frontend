@@ -1,6 +1,10 @@
-<div class="grid grid-cols-[max-content_1fr] gap-4 p-4">
+<div class="grid grid-cols-[max-content_1fr] gap-4 mb-4 mt-4">
     <h3 class="font-semibold">Aktueller Status:</h3>
     <p>{{ stateIcons.get(order().status?.toString() ?? '') }} {{ stateNames.get(order().status?.toString() ?? '') }}</p>
 </div>
 
+@if (stateHistory.length > 0) {
 <app-generic-table [columns]="columns" [dataSource]="dataSource" />
+} @else {
+<span class="text-gray-600">Noch keine Statusänderungen vorhanden.</span>
+}
