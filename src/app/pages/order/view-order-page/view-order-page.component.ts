@@ -96,6 +96,9 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly dialog: MatDialog
   ) { }
 
+  /**
+   * Initializes the component, fetching necessary data and setting up state transitions.
+   */
   ngOnInit(): void {
     this.internalOrder = signal<DisplayableOrder>(this.order());
 
@@ -112,6 +115,34 @@ export class ViewOrderPageComponent implements OnInit {
     });
   }
 
+  /**
+   * Exports the order as a PDF document if it is in the COMPLETED state.
+   */
+  export(): void {
+    if (!this.internalOrder().order.id) {
+      this.snackBar.open('Bestellung hat keine gültige ID und kann nicht exportiert werden.', 'Schließen', { duration: 5000 });
+      return;
+    }
+    if (this.internalOrder().order.status !== OrderStatus.COMPLETED) {
+      this.snackBar.open('Bestellung kann nur im Status "Abgeschlossen" exportiert werden.', 'Schließen', { duration: 5000 });
+      return;
+    }
+
+    this.ordersService.exportOrderToDocument(this.internalOrder().order.id?.toString()!).subscribe(blob => {
+      const link = document.createElement('a')
+      const objectUrl = URL.createObjectURL(blob)
+      link.href = objectUrl
+      link.download = `Bestellung-${this.internalOrder().orderDisplay.besy_number}.pdf`;
+      link.click();
+      URL.revokeObjectURL(objectUrl);
+
+      this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
+    });
+  }
+
+  /**
+   * Gets the next allowed states for the current order status.
+   */
   getNextAllowedStates(): OrderStatus[] {
     const currentState = this.internalOrder().order.status;
     if (!currentState) {
@@ -120,6 +151,9 @@ export class ViewOrderPageComponent implements OnInit {
     return this.stateTransitionMap[currentState] ?? [];
   }
 
+  /**
+   * Creates the buttons data for changing the order state.
+   */
   createStateChangeButtons(): void {
     this.stateChangeButtons = [];
     for (const state of this.getNextAllowedStates()) {

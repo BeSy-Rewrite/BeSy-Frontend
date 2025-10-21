@@ -1,10 +1,15 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { ApprovalResponseDTO, ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, OrderStatusHistoryResponseDTO, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrdersWrapperService {
+
+  constructor(private readonly http: HttpClient) { }
 
   /**
      * @param page Seitenzahl für die Paginierung (beginnend bei 0).
@@ -110,8 +115,8 @@ export class OrdersWrapperService {
     return await OrdersService.deleteQuotationOfOrder(orderId, quotationId);
   }
 
-  async exportOrderToFormula(orderId: string): Promise<any> {
-    return await OrdersService.exportOrderToFormula(orderId);
+  exportOrderToDocument(orderId: string): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/orders/${orderId}/export`, { responseType: 'blob' });
   }
 
   async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
