@@ -57,3 +57,15 @@ export const STATE_DESCRIPTIONS = new Map<state | string, string>([
     [state.ARCHIVED, 'Die Bestellung wurde archiviert.'],
     [state.DELETED, 'Die Bestellung wurde gelöscht.']
 ]);
+
+export const STATE_CHANGE_TO_NAMES = new Map<state | string, string>([
+    [state.IN_PROGRESS, 'Auf in Bearbeitung setzen'],
+    [state.COMPLETED, 'Fertigstellen'],
+    [state.APPROVALS_RECEIVED, 'Genehmigungen erhalten'],
+    [state.APPROVED, 'Genehmigen'],
+    [state.REJECTED, 'Ablehnen'],
+    [state.SENT, 'Als Abgesendet markieren'],
+    [state.SETTLED, 'Abschließen'],
+    [state.ARCHIVED, 'Archivieren'],
+    [state.DELETED, 'Löschen']
+]);
