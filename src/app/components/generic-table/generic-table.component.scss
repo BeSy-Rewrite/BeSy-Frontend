@@ -4,6 +4,11 @@ tr:nth-child(2n) {
   background-color: #f0f0f0;
 }
 
+th {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
 td {
   white-space: normal;
   word-wrap: break-word;
