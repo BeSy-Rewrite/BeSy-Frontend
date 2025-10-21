@@ -185,16 +185,15 @@ export class ViewOrderPageComponent implements OnInit {
       return;
     }
 
-    if ([OrderStatus.IN_PROGRESS, OrderStatus.COMPLETED].includes(newState)) {
+    if (newState === OrderStatus.IN_PROGRESS) {
       this.ordersService.putOrderState(this.internalOrder().order.id!, newState).then(() => {
         this.snackBar.open(`Bestellungsstatus erfolgreich zu '${STATE_DISPLAY_NAMES.get(newState) ?? newState}' geändert.`, 'Schließen', { duration: 5000 });
-
-        const newOrder = { ...this.internalOrder().order, status: newState };
-        this.orderDisplayService.resolveOrderSubresources(newOrder).subscribe(orderDisplay => {
-          this.internalOrder.set({ order: newOrder, orderDisplay });
-        });
-        this.createStateChangeButtons();
-      });
+        this.updateOrderState(newState);
+      },
+        () => {
+          this.snackBar.open('Fehler beim Ändern des Bestellungsstatus.', 'Schließen', { duration: 5000 });
+        }
+      );
       return;
     }
 
@@ -205,6 +204,18 @@ export class ViewOrderPageComponent implements OnInit {
 
     console.warn(`Statuswechsel zu '${newState}' ist nicht implementiert.`);
     // TODO: Implement order requirements check for other state changes. Use a service or something.
+  }
+
+  /**
+   * Updates the order state and resolves its subresources.
+   * @param newState The new state to set.
+   */
+  updateOrderState(newState: OrderStatus) {
+    const newOrder = { ...this.internalOrder().order, status: newState };
+    this.orderDisplayService.resolveOrderSubresources(newOrder).subscribe(orderDisplay => {
+      this.internalOrder.set({ order: newOrder, orderDisplay });
+    });
+    this.createStateChangeButtons();
   }
 
   /**

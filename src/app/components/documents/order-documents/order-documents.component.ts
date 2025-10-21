@@ -1,4 +1,4 @@
-import { Component, input, OnInit } from '@angular/core';
+import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -30,7 +30,7 @@ type DisplayableInvoice = Omit<InvoiceResponseDTO, 'price'> & {
   templateUrl: './order-documents.component.html',
   styleUrl: './order-documents.component.scss'
 })
-export class OrderDocumentsComponent implements OnInit {
+export class OrderDocumentsComponent implements OnInit, OnChanges {
   /**
    * The order for which to display documents.
    */
@@ -116,6 +116,10 @@ export class OrderDocumentsComponent implements OnInit {
 
       this.dataSource.data = this.documents;
     });
+  }
+
+  ngOnChanges() {
+    this.ngOnInit();
   }
 
   /**

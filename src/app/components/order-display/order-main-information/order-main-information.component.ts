@@ -1,5 +1,5 @@
 import { DataSource } from '@angular/cdk/table';
-import { Component, computed, input, OnInit, signal } from '@angular/core';
+import { Component, computed, input, OnChanges, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTableDataSource } from '@angular/material/table';
@@ -26,7 +26,7 @@ import { AddressDisplayComponent } from '../address-display/address-display.comp
   templateUrl: './order-main-information.component.html',
   styleUrl: './order-main-information.component.scss'
 })
-export class OrderMainInformationComponent implements OnInit {
+export class OrderMainInformationComponent implements OnInit, OnChanges {
 
   orderData = input.required<DisplayableOrder>();
 
@@ -92,6 +92,12 @@ export class OrderMainInformationComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadOrderItems();
+  }
+
+  ngOnChanges(): void {
+    if (this.orderData()) {
+      this.loadOrderItems();
+    }
   }
 
   private loadOrderItems(): void {

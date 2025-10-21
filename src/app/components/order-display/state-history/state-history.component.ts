@@ -1,5 +1,5 @@
 import { DataSource } from '@angular/cdk/table';
-import { Component, input } from '@angular/core';
+import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
 import { OrderResponseDTO, OrderStatusHistoryResponseDTO } from '../../../api';
 import { STATE_HISTORY_FIELD_NAMES } from '../../../display-name-mappings/state-history-names';
@@ -14,7 +14,7 @@ import { GenericTableComponent } from "../../generic-table/generic-table.compone
   templateUrl: './state-history.component.html',
   styleUrl: './state-history.component.scss'
 })
-export class StateHistoryComponent {
+export class StateHistoryComponent implements OnInit, OnChanges {
   order = input.required<OrderResponseDTO>();
   stateHistory: OrderStatusHistoryResponseDTO[] = [];
 
@@ -29,6 +29,16 @@ export class StateHistoryComponent {
   ];
 
   constructor(private readonly ordersService: OrdersWrapperService) { }
+
+  ngOnInit(): void {
+    this.fetchStateHistory();
+  }
+
+  ngOnChanges(): void {
+    if (this.order()?.id) {
+      this.fetchStateHistory();
+    }
+  }
 
   fetchStateHistory(): void {
     this.ordersService.getOrderStatusHistory(this.order().id ?? 0).then(history => {

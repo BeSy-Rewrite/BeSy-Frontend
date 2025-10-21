@@ -1,4 +1,4 @@
-import { Component, input, OnInit } from '@angular/core';
+import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { OrderResponseDTO } from '../../../api';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { PersonDetailsComponent } from '../../person-details/person-details.component';
@@ -13,7 +13,7 @@ type Gender = 'm' | 'f' | 'd';
   templateUrl: './order-persons.component.html',
   styleUrl: './order-persons.component.scss'
 })
-export class OrderPersonsComponent implements OnInit {
+export class OrderPersonsComponent implements OnInit, OnChanges {
   /** The order whose persons should be displayed */
   order = input.required<OrderResponseDTO>();
 
@@ -36,6 +36,12 @@ export class OrderPersonsComponent implements OnInit {
       } else {
         this.personMappings.set(personId, [key]);
       }
+    }
+  }
+
+  ngOnChanges(): void {
+    if (this.order()) {
+      this.ngOnInit();
     }
   }
 
