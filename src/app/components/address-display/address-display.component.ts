@@ -24,9 +24,9 @@ export class AddressDisplayComponent implements OnInit {
     this.personsService.getAddress(this.addressId()).subscribe(address => {
       const addressDisplay: DisplayAddress = {};
 
-      Object.entries(address ?? {}).forEach(([key, value]) => {
+      for (const [key, value] of Object.entries(address ?? {})) {
         addressDisplay[key as keyof DisplayAddress] = typeof value === 'string' ? value : value?.toString() ?? '';
-      });
+      }
       this.address.set(addressDisplay);
     });
   }

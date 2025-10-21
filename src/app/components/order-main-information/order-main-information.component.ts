@@ -123,7 +123,7 @@ export class OrderMainInformationComponent implements OnInit {
       name: item.name ?? '',
       comment: item.comment ?? '',
       article_id: item.article_id ?? '',
-      preferred_list: item.preferred_list ?? '' + (item.preferred_list_number ?? ''),
+      preferred_list: (item.preferred_list ?? '') + (item.preferred_list_number ?? ''),
       vat: item.vat?.value?.toString() + '%',
       vat_type: item.vat_type ?? '',
       price_per_unit: this.subresourceService.formatPrice(item.price_per_unit ?? 0, this.currencyCode),

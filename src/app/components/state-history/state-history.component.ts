@@ -34,7 +34,7 @@ export class StateHistoryComponent {
     this.ordersService.getOrderStatusHistory(this.order().id ?? 0).then(history => {
       this.stateHistory = history;
       const formattedHistory = this.stateHistory.map(entry => ({
-        status: `${this.stateIcons.get(entry.status.toString() ?? '')} ${this.stateNames.get(entry.status.toString() ?? '')}`,
+        status: `${this.stateIcons.get(entry.status) ?? ''} ${this.stateNames.get(entry.status) ?? entry.status}`,
         timestamp: new Date(entry.timestamp).toLocaleString()
       }));
       this.dataSource = new MatTableDataSource(formattedHistory);

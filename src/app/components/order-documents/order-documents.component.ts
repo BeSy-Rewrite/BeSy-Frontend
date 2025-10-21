@@ -119,7 +119,6 @@ export class OrderDocumentsComponent implements OnInit {
     }
     this.invoicesService.downloadDocument(row.id).subscribe(blob => {
       const link = document.createElement('a')
-      console.log(typeof blob);
       const objectUrl = URL.createObjectURL(blob)
       link.href = objectUrl
       link.download = `Dokument-${row.id}_Bestellung-${row.order_id}_Paperless-${row.paperless_id}_${row.comment}.pdf`;

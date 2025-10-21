@@ -29,7 +29,7 @@ export class PersonsWrapperService {
     const personsWithFullName = persons.map((person) => {
       return {
         ...person,
-        fullName: `${person.name}` + " " + `${person.surname}`,
+        fullName: `${person.name} ${person.surname}`,
       };
     });
     return personsWithFullName;

@@ -410,9 +410,7 @@ export class FilterMenuComponent implements OnInit {
     dialogRef.afterClosed().subscribe(result => {
       if (result !== undefined) {
         const currentPreset = { ...this.activeFiltersSignal() };
-        console.log(result());
         currentPreset.label = result();
-        console.log('Saved Preset:', currentPreset);
 
         const savedPresets = JSON.parse(localStorage.getItem(SAVED_FILTER_PRESETS_KEY) || '{}');
         savedPresets[currentPreset.label.toLowerCase().replaceAll(' ', '_')] = currentPreset;
