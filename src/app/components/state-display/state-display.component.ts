@@ -1,4 +1,4 @@
-import { Component, HostListener, input, OnInit } from '@angular/core';
+import { Component, input, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { forkJoin } from 'rxjs';
 import { OrderResponseDTO, OrderStatus } from '../../api';
@@ -54,33 +54,7 @@ export class StateDisplayComponent implements OnInit {
 
         this.generateLinearStates();
         this.generateSteps();
-        this.onResize();
       });
-  }
-
-  /**
-   * Handle window resize events to adjust the progress bar steps.
-   * Hides steps centered around the current step if the screen is too small.
-   * @param event The resize event.
-   */
-  @HostListener('window:resize', ['$event'])
-  onResize(event: any = null) {
-    this.screenWidth = window.innerWidth;
-
-    this.generateLinearStates();
-
-    while (this.states.length * 1450 / 7 > this.screenWidth && this.states.length > 2) {
-
-      if (this.currentStepIndex < (this.states.length - 1) / 2) {
-        this.states.pop();
-      } else {
-        this.states.shift();
-      }
-
-      this.currentStepIndex = this.states.indexOf(this.order().status!);
-    }
-
-    this.generateSteps();
   }
 
   /**
@@ -114,7 +88,7 @@ export class StateDisplayComponent implements OnInit {
     if (this.order().status === OrderStatus.DELETED) return;
 
     this.states = [...this.states, ...futureStates.splice(futureStates.indexOf(this.order().status!) + 1)];
-    this.currentStepIndex = this.states.indexOf(this.order().status!);
+    this.currentStepIndex = this.states.lastIndexOf(this.order().status!);
   }
 
   /**
@@ -122,10 +96,10 @@ export class StateDisplayComponent implements OnInit {
    */
   private setupStateHistory() {
     this.states = this.orderStatusHistory.slice();
-    if (!this.states.includes(this.order().status!)) {
+    if (this.states.at(-1) !== this.order().status) {
       this.states.push(this.order().status!);
     }
-    this.currentStepIndex = this.states.indexOf(this.order().status!);
+    this.currentStepIndex = this.states.lastIndexOf(this.order().status!);
   }
 
 
