@@ -5,6 +5,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { DomSanitizer } from '@angular/platform-browser';
+import { environment } from '../../../environments/environment';
 import { InvoiceResponseDTO, OrderResponseDTO } from '../../api';
 import { INVOICE_FIELD_NAMES } from '../../display-name-mappings/invoice-names';
 import { ButtonColor, TableActionButton, TableColumn } from '../../models/generic-table';
@@ -73,6 +74,15 @@ export class OrderDocumentsComponent implements OnInit {
       action: (row: DisplayableInvoice) => {
         if (row.id)
           this.openDocumentPreview(row);
+      }
+    },
+    {
+      id: 'view',
+      label: 'In Paperless anzeigen',
+      buttonType: 'filled',
+      color: ButtonColor.PRIMARY,
+      action: (row: DisplayableInvoice) => {
+        window.open(`${environment.paperlessUrl}/documents/${row.paperless_id}`, '_blank');
       }
     }
   ];

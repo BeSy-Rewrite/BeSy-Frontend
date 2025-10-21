@@ -1,6 +1,7 @@
 export const environment = {
     production: true,
     apiUrl: 'https://api.test.besy.hs-esslingen.com/api/v1',
+    paperlessUrl: 'https://paperless.test.besy.hs-esslingen.com',
 
     // Keycloak configuration
     identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
