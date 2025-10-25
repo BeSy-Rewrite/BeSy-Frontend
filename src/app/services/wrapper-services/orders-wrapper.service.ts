@@ -1,35 +1,101 @@
+import {
+  FormattedPerson,
+  PersonsWrapperService,
+} from './persons-wrapper.service';
+import { CostCenterWrapperService } from './cost-centers-wrapper.service';
 import { Injectable } from '@angular/core';
-import { ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api';
+import {
+  CurrencyResponseDTO,
+  ItemResponseDTO,
+  OrderRequestDTO,
+  OrderResponseDTO,
+  OrdersService,
+  OrderStatus,
+  PagedOrderResponseDTO,
+  QuotationResponseDTO,
+} from '../../api';
+import { CurrencyWithDisplayName } from './currencies-wrapper.service';
+import { CurrenciesWrapperService } from './currencies-wrapper.service';
+import { CostCenterFormatted } from './cost-centers-wrapper.service';
+import {
+  SupplierFormatted,
+  SuppliersWrapperService,
+} from './suppliers-wrapper.service';
+import { Form } from '@angular/forms';
 
+export interface OrderResponseDTOFormatted {
+  id?: number;
+  primary_cost_center_id?: CostCenterFormatted | undefined;
+  booking_year?: string; //
+  auto_index?: number;
+  created_date?: string;
+  legacy_alias?: string;
+  owner_id?: number;
+  content_description?: string; // Beschreibung der Bestellung
+  status?: OrderResponseDTO.status;
+  currency?: CurrencyWithDisplayName | undefined;
+  comment?: string;
+  comment_for_supplier?: string;
+  quote_number?: string; // Angebotsnummer
+  quote_sign?: string;
+  quote_date?: string;
+  quote_price?: number;
+  delivery_person_id?: FormattedPerson | undefined;
+  invoice_person_id?: FormattedPerson | undefined;
+  queries_person_id?: FormattedPerson | undefined;
+  customer_id?: string;
+  supplier_id?: SupplierFormatted | undefined;
+  secondary_cost_center_id?: CostCenterFormatted | string | undefined;
+  fixed_discount?: number;
+  percentage_discount?: number;
+  cash_discount?: number;
+  cashback_days?: number;
+  last_updated_time?: string;
+  flag_decision_cheapest_offer?: boolean;
+  flag_decision_most_economical_offer?: boolean;
+  flag_decision_sole_supplier?: boolean;
+  flag_decision_contract_partner?: boolean;
+  flag_decision_preferred_supplier_list?: boolean;
+  flag_decision_other_reasons?: boolean;
+  decision_other_reasons_description?: string;
+  dfg_key?: string;
+  delivery_address_id?: number;
+  invoice_address_id?: number;
+}
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class OrdersWrapperService {
-
+  constructor(
+    private costCenterWrapperService: CostCenterWrapperService,
+    private personsWrapperService: PersonsWrapperService,
+    private currenciesWrapperService: CurrenciesWrapperService,
+    private suppliersWrapperService: SuppliersWrapperService
+  ) {}
   /**
-     * @param page Seitenzahl für die Paginierung (beginnend bei 0).
-     * @param size Anzahl der Elemente pro Seite.
-     * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.  `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend), dann nach `id` (aufsteigend).
-     *
-     * @param primaryCostCenters Filtert nach IDs der primären Kostenstellen.
-     * @param bookingYears Filtert nach den letzten zwei Ziffern der Jahreszahl der Buchung. Achtung, diese muss ein String sein, z.B. "25".
-     * @param createdAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt erstellt wurden.
-     * @param createdBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt erstellt wurden.
-     * @param ownerIds Filtert nach IDs der Ersteller der Bestellung. Beinh
-     * @param statuses Filtert nach dem Bestellstatus. Beinhaltet default-mäßig alle Bestellstatus.
-     * @param quotePriceMin Filtert nach quotePriceMin.
-     * @param quotePriceMax Filtert nach quotePriceMax.
-     * @param deliveryPersonIds Filtert nach IDs der Besteller.
-     * @param invoicePersonIds Filtert nach IDs invoicePersonIds.
-     * @param queriesPersonIds Filtert nach IDs queriesPersonIds.
-     * @param customerIds Filter nach Kundennummern.
-     * @param supplierIds Filtert nach IDs der Lieferanten.
-     * @param secondaryCostCenters Filtert nach IDs der sekundären Kostenstellen.
-     * @param lastUpdatedTimeAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt bearbeitet wurden.
-     * @param lastUpdatedTimeBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt bearbeitet wurden.
-     * @returns PagedOrderResponseDTO OK
-     * @throws ApiError
-     */
+   * @param page Seitenzahl für die Paginierung (beginnend bei 0).
+   * @param size Anzahl der Elemente pro Seite.
+   * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.  `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend), dann nach `id` (aufsteigend).
+   *
+   * @param primaryCostCenters Filtert nach IDs der primären Kostenstellen.
+   * @param bookingYears Filtert nach den letzten zwei Ziffern der Jahreszahl der Buchung. Achtung, diese muss ein String sein, z.B. "25".
+   * @param createdAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt erstellt wurden.
+   * @param createdBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt erstellt wurden.
+   * @param ownerIds Filtert nach IDs der Ersteller der Bestellung. Beinh
+   * @param statuses Filtert nach dem Bestellstatus. Beinhaltet default-mäßig alle Bestellstatus.
+   * @param quotePriceMin Filtert nach quotePriceMin.
+   * @param quotePriceMax Filtert nach quotePriceMax.
+   * @param deliveryPersonIds Filtert nach IDs der Besteller.
+   * @param invoicePersonIds Filtert nach IDs invoicePersonIds.
+   * @param queriesPersonIds Filtert nach IDs queriesPersonIds.
+   * @param customerIds Filter nach Kundennummern.
+   * @param supplierIds Filtert nach IDs der Lieferanten.
+   * @param secondaryCostCenters Filtert nach IDs der sekundären Kostenstellen.
+   * @param lastUpdatedTimeAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt bearbeitet wurden.
+   * @param lastUpdatedTimeBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt bearbeitet wurden.
+   * @returns PagedOrderResponseDTO OK
+   * @throws ApiError
+   */
   async getAllOrders(
     page?: number,
     size: number = 20,
@@ -87,7 +153,7 @@ export class OrdersWrapperService {
     return await OrdersService.deleteOrder(orderId);
   }
 
-  async getOrderItems(orderId: string): Promise<ItemResponseDTO[]> {
+  async getOrderItems(orderId: number): Promise<ItemResponseDTO[]> {
     return await OrdersService.getOrderItems(orderId);
   }
 
@@ -99,7 +165,7 @@ export class OrdersWrapperService {
     return await OrdersService.deleteItemOfOrder(orderId, itemId);
   }
 
-  async getOrderQuotations(orderId: string): Promise<QuotationResponseDTO[]> {
+  async getOrderQuotations(orderId: number): Promise<QuotationResponseDTO[]> {
     return await OrdersService.getOrderQuotations(orderId);
   }
 
@@ -107,11 +173,98 @@ export class OrdersWrapperService {
     return await OrdersService.createOrderQuotations(orderId, requestBody);
   }
 
-  async deleteQuotationOfOrder(orderId: number, quotationId: number): Promise<void> {
+  async deleteQuotationOfOrder(
+    orderId: number,
+    quotationId: number
+  ): Promise<void> {
     return await OrdersService.deleteQuotationOfOrder(orderId, quotationId);
   }
 
   async exportOrderToFormula(orderId: string): Promise<any> {
     return await OrdersService.exportOrderToFormula(orderId);
+  }
+
+  async getOrderByIDInFormFormat(orderId: number): Promise<OrderResponseDTOFormatted> {
+    const orderData = await OrdersService.getOrderById(orderId);
+    return this.formatOrderData(orderData);
+  }
+
+  private async formatOrderData(
+    order: OrderResponseDTO
+  ): Promise<OrderResponseDTOFormatted> {
+    let formatedPrimaryCostCenter: CostCenterFormatted | undefined =
+      undefined;
+    let formatedSecondaryCostCenter: CostCenterFormatted | undefined =
+      undefined;
+    let formatedDeliveryPerson: FormattedPerson | undefined = undefined;
+    let formatedInvoicePerson: FormattedPerson | undefined = undefined;
+    let formatedQueriesPerson: FormattedPerson | undefined = undefined;
+    let formatedCurrency: CurrencyWithDisplayName | undefined = undefined;
+    let formatedSupplier: SupplierFormatted | undefined = undefined;
+
+    [
+      formatedPrimaryCostCenter,
+      formatedSecondaryCostCenter,
+      formatedDeliveryPerson,
+      formatedInvoicePerson,
+      formatedQueriesPerson,
+      formatedSupplier,
+      formatedCurrency
+    ] = await Promise.all([
+      order.primary_cost_center_id
+        ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
+            order.primary_cost_center_id
+          )
+        : Promise.resolve(undefined),
+
+      order.secondary_cost_center_id
+        ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
+            order.secondary_cost_center_id
+          )
+        : Promise.resolve(undefined),
+
+      order.delivery_person_id
+        ? this.personsWrapperService.getPersonByIdFormattedForAutocomplete(
+            order.delivery_person_id
+          )
+        : Promise.resolve(undefined),
+
+      order.invoice_person_id
+        ? this.personsWrapperService.getPersonByIdFormattedForAutocomplete(
+            order.invoice_person_id
+          )
+        : Promise.resolve(undefined),
+
+      order.queries_person_id
+        ? this.personsWrapperService.getPersonByIdFormattedForAutocomplete(
+            order.queries_person_id
+          )
+        : Promise.resolve(undefined),
+
+      order.supplier_id
+        ? this.suppliersWrapperService.getSupplierByIdFormattedForAutocomplete(
+            order.supplier_id
+          )
+        : Promise.resolve(undefined),
+      order.currency
+        ? this.currenciesWrapperService.formatCurrencyWithSymbol(
+            order.currency
+          )
+        : Promise.resolve(undefined),
+    ]);
+
+    return {
+      ...order,
+      booking_year: order.booking_year
+        ? '20' + order.booking_year.toString().padStart(2, '0')
+        : undefined,
+      currency: formatedCurrency,
+      primary_cost_center_id: formatedPrimaryCostCenter,
+      secondary_cost_center_id: formatedSecondaryCostCenter,
+      delivery_person_id: formatedDeliveryPerson,
+      invoice_person_id: formatedInvoicePerson,
+      queries_person_id: formatedQueriesPerson,
+      supplier_id: formatedSupplier,
+    };
   }
 }

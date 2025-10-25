@@ -84,12 +84,12 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
   fields: [
     {
       name: 'quote_number',
-      label: 'Bestellnummer',
+      label: 'Angebotsnummer',
       type: 'text',
       required: false,
       editable: true,
       validators: [Validators.maxLength(100)],
-      tooltip: 'Die Bestellnummer ist eine vom Lieferanten vergebene Nummer, die die Bestellung eindeutig identifiziert.'
+      tooltip: 'Die Angebotsnummer ist eine vom Lieferanten vergebene Nummer, die das Angebot eindeutig identifiziert.'
     },
     {
       name: 'supplier_id',
@@ -110,7 +110,7 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       type: 'select',
       required: false,
       // Will be loaded from API: customersId
-      options: [{ label: 'Bitte wählen sie zuerst einen Lieferanten aus.', value: null }],
+      options: [{ label: 'Bitte wählen sie zuerst einen Lieferanten aus.', value: undefined }],
       editable: true,
       tooltip: 'Die Kundennummer wird vom Lieferanten vergeben und dient der eindeutigen Identifikation bei diesem Lieferanten.'
     },
@@ -304,8 +304,9 @@ export const ORDER_PRIMARY_COST_CENTER_FORM_CONFIG: FormConfig = {
       filterable: true,
       tooltip: 'Pflichtfeld',
       options: [
-        { label: 'Fehler beim Laden der Kostenstellen', value: -1 }
-      ]
+        { label: 'Fehler beim Laden der Kostenstellen', value: undefined }
+      ],
+      defaultValue: []
     }
   ]
 };
@@ -322,8 +323,9 @@ export const ORDER_SECONDARY_COST_CENTER_FORM_CONFIG: FormConfig = {
       filterable: true,
       tooltip: 'Pflichtfeld',
       options: [
-        { label: 'Fehler beim Laden der Kostenstellen', value: -1 }
-      ]
+        { label: 'Fehler beim Laden der Kostenstellen', value: undefined }
+      ],
+      defaultValue: []
     }
   ]
 };
@@ -366,7 +368,8 @@ export const ORDER_QUERIES_PERSON_FORM_CONFIG: FormConfig = {
       options: [],
       editable: true,
       tooltip: 'Die Person, die bei Rückfragen zur Bestellung kontaktiert werden kann.',
-      emitAsSignal: true
+      emitAsSignal: true,
+      defaultValue: []
     }
   ]
 };

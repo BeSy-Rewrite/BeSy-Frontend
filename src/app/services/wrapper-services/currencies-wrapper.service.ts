@@ -78,4 +78,26 @@ export class CurrenciesWrapperService {
     // Enriched data zurückgeben
     return enrichedCurrencies;
   }
+
+  formatCurrencyWithSymbol(currency: CurrencyResponseDTO): CurrencyWithDisplayName {
+    const code = currency.code ?? '';
+
+    let symbol = '';
+    if (code) {
+      try {
+        symbol =
+          Intl.NumberFormat('en', { style: 'currency', currency: code })
+            .formatToParts(0)
+            .find((part) => part.type === 'currency')?.value ?? '';
+      } catch {
+        symbol = '';
+      }
+    }
+
+    return {
+      ...currency,
+      symbol,
+      displayName: `${currency.name} (${symbol})`,
+    };
+  }
 }

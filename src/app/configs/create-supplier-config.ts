@@ -32,7 +32,7 @@ export const SUPPLIER_FORM_CONFIG: FormConfig = {
       type: 'select',
       required: false,
       options: [
-        {value: 'error_loading_from_api', label: 'Fehler beim Laden der Optionen'}
+        {value: undefined, label: 'Fehler beim Laden der Optionen'}
       ],
       tooltip: 'Bitte wählen Sie den Mehrwertsteuersatz aus.',
       editable: false

@@ -35,7 +35,8 @@ export class EditSuppliersPageComponent implements OnInit {
     private router: Router,
     private _notifications: MatSnackBar,
     private suppliersWrapperService: SuppliersWrapperService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private vatWrapperService: VatWrapperService
   ) {}
 
   supplierId!: number | unknown; // ID of the supplier being edited
@@ -67,10 +68,9 @@ export class EditSuppliersPageComponent implements OnInit {
       this.supplierId = id;
 
       try {
-        // Lade beides parallel
         const [supplier, vatOptions, address, customerIds] = await Promise.all([
           this.suppliersWrapperService.getSupplierById(id),
-          VatWrapperService.getAllVats(),
+          this.vatWrapperService.getAllVats(),
           this.suppliersWrapperService.getSupplierAddress(id),
           this.suppliersWrapperService.getCustomersIdsBySupplierId(id)
         ]);

@@ -1,4 +1,8 @@
-import { ORDER_QUERIES_PERSON_FORM_CONFIG } from '../../../configs/order/order-config';
+import {
+  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
+  ORDER_QUERIES_PERSON_FORM_CONFIG,
+  ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
+} from '../../../configs/order/order-config';
 import {
   PersonsWrapperService,
   PersonWithFullName,
@@ -11,6 +15,7 @@ import {
   Signal,
   signal,
   computed,
+  WritableSignal,
 } from '@angular/core';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import { MatDivider } from '@angular/material/divider';
@@ -47,6 +52,9 @@ import {
   VatResponseDTO,
   SupplierResponseDTO,
   CustomerIdResponseDTO,
+  OrderResponseDTO,
+  QuotationResponseDTO,
+  ItemResponseDTO,
 } from '../../../api';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
@@ -68,36 +76,37 @@ import {
   MatButtonToggleGroup,
 } from '@angular/material/button-toggle';
 import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   CurrenciesWrapperService,
   CurrencyWithDisplayName,
 } from '../../../services/wrapper-services/currencies-wrapper.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import { OrderResponseDTOFormatted, OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 @Component({
   selector: 'app-create-order-page',
-imports: [
-  ProgressBarComponent,
-  MatDivider,
-  FormComponent,
-  MatButton,
-  GenericTableComponent,
-  MatInputModule,
-  MatAutocompleteModule,
-  MatOptionModule,
-  CommonModule,
-  MatFormFieldModule,
-  ReactiveFormsModule,
-  FormsModule,
-  MatButtonToggle,
-  MatButtonToggleGroup,
-  MatRadioButton,
-  MatRadioModule,
-  MatTabGroup,
-  MatTabsModule,
-],
+  imports: [
+    ProgressBarComponent,
+    MatDivider,
+    FormComponent,
+    MatButton,
+    GenericTableComponent,
+    MatInputModule,
+    MatAutocompleteModule,
+    MatOptionModule,
+    CommonModule,
+    MatFormFieldModule,
+    ReactiveFormsModule,
+    FormsModule,
+    MatButtonToggle,
+    MatButtonToggleGroup,
+    MatRadioButton,
+    MatRadioModule,
+    MatTabGroup,
+    MatTabsModule,
+  ],
   templateUrl: './edit-order-page.component.html',
   styleUrl: './edit-order-page.component.scss',
 })
@@ -108,9 +117,15 @@ export class EditOrderPageComponent implements OnInit {
     private personsWrapperService: PersonsWrapperService,
     private currenciesWrapperService: CurrenciesWrapperService,
     private suppliersWrapperService: SuppliersWrapperService,
-    private orderWrapperService: OrdersWrapperService
+    private orderWrapperService: OrdersWrapperService,
+    private vatWrapperService: VatWrapperService,
+    private costCenterWrapperService: CostCenterWrapperService,
+    private route: ActivatedRoute
   ) {}
 
+  editOrderId!: number;
+  editOrderDTO!: OrderResponseDTO;
+  formattedOrderDTO!: OrderResponseDTOFormatted;
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 
   // Item variables
@@ -119,6 +134,8 @@ export class EditOrderPageComponent implements OnInit {
   orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
   orderItemFormGroup = new FormGroup({});
 
+
+  vatOptions: VatResponseDTO[] = [];
   // Track the currently selected currency for formatting the total sum in the items table footer
   selectedCurrency = signal<{ code: string; symbol: string } | null>(null);
   // Compute the footer content for the items table, showing the total sum of all items
@@ -195,8 +212,11 @@ export class EditOrderPageComponent implements OnInit {
   filteredPersonsQuery: PersonWithFullName[] = [];
   queriesPersonFormConfig = ORDER_QUERIES_PERSON_FORM_CONFIG;
   queriesPersonFormGroup = new FormGroup({});
+  // In deiner Component-Klasse:
+  queriesPersonConfigRefreshTrigger = signal(0);
 
   // Shared recipient/invoice address variables
+  personAddresses: AddressResponseDTO[] = [];
   persons: PersonWithFullName[] = []; // Store all persons locally for the autocomplete input
   addressTableDataSource: MatTableDataSource<AddressResponseDTO> =
     new MatTableDataSource<AddressResponseDTO>([]);
@@ -212,9 +232,10 @@ export class EditOrderPageComponent implements OnInit {
   // Quotation variables
   quotationFormConfig = ORDER_QUOTATION_FORM_CONFIG;
   quotationFormGroup = new FormGroup({});
-  quotations: QuotationRequestDTO[] = [];
+  existingQuotations: QuotationResponseDTO[] = [];
+  newQuotations: QuotationRequestDTO[] = [];
   quotationTableDataSource = new MatTableDataSource<QuotationRequestDTO>(
-    this.quotations
+    this.newQuotations
   );
   orderQuotationColumns: TableColumn<QuotationRequestDTO>[] = [
     { id: 'index', label: 'Nummer' },
@@ -239,25 +260,13 @@ export class EditOrderPageComponent implements OnInit {
 
   // Cost center variables
   costCenters: CostCenterResponseDTO[] = [];
-  primaryCostCenterControl = new FormControl<CostCenterResponseDTO | string>(
-    '',
-    {
-      nonNullable: false,
-      updateOn: 'change',
-      validators: [this.validateCostCentersSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
-    }
-  );
-  filteredPrimaryCostCenters!: Observable<CostCenterResponseDTO[]>;
+  primaryCostCenterFormGroup = new FormGroup({});
+  primaryCostCenterFormConfig = ORDER_PRIMARY_COST_CENTER_FORM_CONFIG;
+  primaryCostCenterConfigRefreshTrigger = signal(0);
 
-  secondaryCostCenterControl = new FormControl<CostCenterResponseDTO | string>(
-    '',
-    {
-      nonNullable: false,
-      updateOn: 'change',
-      validators: [this.validateCostCentersSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
-    }
-  );
-  filteredSecondaryCostCenters!: Observable<CostCenterResponseDTO[]>;
+  secondaryCostCenterFormGroup = new FormGroup({});
+  secondaryCostCenterFormConfig = ORDER_SECONDARY_COST_CENTER_FORM_CONFIG;
+  secondaryCostCenterConfigRefreshTrigger = signal(0);
 
   // Currency variables
   currencies: Array<CurrencyWithDisplayName> = [];
@@ -272,53 +281,69 @@ export class EditOrderPageComponent implements OnInit {
   // Supplier decision reason variables
   supplierDecisionReasonFormConfig = ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG;
   supplierDecisionReasonFormGroup = new FormGroup({});
+  mainOfferConfigRefreshTrigger = signal(0);
 
   // General form variables
   generalFormConfig = ORDER_GENERAL_FORM_CONFIG;
   generalFormGroup = new FormGroup({});
 
   async ngOnInit(): Promise<void> {
+    // Load order data based on the id parameter in the route
+    this.route.paramMap.subscribe(async (params) => {
+      const id = Number(params.get('id'));
+
+      // If id is not a number, navigate to not-found page
+      if (isNaN(id)) {
+        this.router.navigate(['/not-found'], { skipLocationChange: true });
+        return;
+      }
+
+      try {
+        // try to load the order data
+        const order = await this.orderWrapperService.getOrderById(id);
+        this.editOrderDTO = order;
+        this.editOrderId = id;
+      } catch (error: any) {
+        // Api-call returns 404 if order not found
+        if (error?.status === 404) {
+          this._notifications.open('Bestellung nicht gefunden', undefined, {
+            duration: 5000,
+          });
+          this.router.navigate(['/not-found'], { skipLocationChange: true });
+        } else {
+          this._notifications.open(
+            'Fehler beim Laden der Bestellung',
+            undefined,
+            { duration: 5000 }
+          );
+          console.error(error);
+        }
+      }
+    });
+
     // Load initial data for the VAT options field in the form
-    const vatOptions = await VatWrapperService.getAllVats();
-    this.setDropdownVatOptions(vatOptions);
+    [
+      this.vatOptions,
+      this.persons,
+      this.suppliers,
+      this.costCenters,
+      this.currencies,
+    ] = await Promise.all([
+      this.vatWrapperService.getAllVats(),
+      this.personsWrapperService.getAllPersonsWithFullName(),
+      this.suppliersWrapperService.getAllSuppliers(),
+      this.costCenterWrapperService.getAllCostCenters(),
+      this.currenciesWrapperService.getAllCurrenciesWithSymbol(),
+    ]);
 
-    // Initialize the person dropdown in the address form with data from the api
-    // and set up filtering for the autocomplete inputs
-    this.loadPersons();
-
-    this.loadSuppliers();
-
-    // Initialize the cost center form with data from the api
-    this.costCenters = await CostCentersService.getCostCenters();
-    this.filteredPrimaryCostCenters =
-      this.primaryCostCenterControl.valueChanges.pipe(
-        startWith(''),
-        map((value) => {
-          const searchText =
-            typeof value === 'string'
-              ? value
-              : this.displayCostCenter(value as CostCenterResponseDTO);
-
-          return this._filterCostCenters(searchText || '');
-        })
-      );
-    console.log('Gefilterte Kostenstellen:', this.filteredPrimaryCostCenters);
-    this.filteredSecondaryCostCenters =
-      this.secondaryCostCenterControl.valueChanges.pipe(
-        startWith(''),
-        map((value) => {
-          const searchText =
-            typeof value === 'string'
-              ? value
-              : this.displayCostCenter(value as CostCenterResponseDTO);
-
-          return this._filterCostCenters(searchText || '');
-        })
-      );
-    // Fetch currencies from api
-    this.currencies =
-      await this.currenciesWrapperService.getAllCurrenciesWithSymbol();
-    this.setCurrenciesDropdownOptions(this.currencies);
+    // Initialize form configurations with loaded data
+    this.formatPersons();
+    this.setDropdownVatOptions();
+    this.formatSuppliers();
+    this.formatCostCenters();
+    this.setCurrenciesDropdownOptions();
+    this.loadAllOrderData();
+    this.formatOrderForFormInput();
   }
 
   /**
@@ -349,11 +374,11 @@ export class EditOrderPageComponent implements OnInit {
    * Sets the dropdown options for the VAT fields in the form
    * @param vatOptions The list of VAT options to set in the dropdown
    */
-  private setDropdownVatOptions(vatOptions: VatResponseDTO[]) {
+  private setDropdownVatOptions() {
     // set options for dropdown fields
     this.orderItemFormConfig.fields.find(
       (field) => field.name === 'vat_value'
-    )!.options = vatOptions.map((vat) => ({
+    )!.options = this.vatOptions.map((vat) => ({
       value: vat.value,
       label: `${vat.description} (${vat.value}%)`,
     }));
@@ -362,11 +387,7 @@ export class EditOrderPageComponent implements OnInit {
   /**
    * Loads all persons from the API and stores them in the component
    */
-  private async loadPersons() {
-    console.log('Loading persons...');
-    this.persons = await this.personsWrapperService.getAllPersonsWithFullName();
-    console.log('Geladene Personen:', this.persons);
-
+  private formatPersons() {
     // fill the filteredPersons arrays with all persons initially for the autocomplete inputs
     this.filteredPersonsRecipient = this.persons.slice();
     this.filteredPersonsInvoice = this.persons.slice();
@@ -381,19 +402,38 @@ export class EditOrderPageComponent implements OnInit {
       label: person.fullName, // Label shown in the dropdown of the autocomplete
       value: person.id, // value which is returned when selecting an option
     }));
-
   }
 
   /**
-   * Filters the list of persons based on the search string
-   * @param search The search string to filter persons by
-   * @returns The filtered list of persons
+   * Updates the form configuration with the retrieved options.
+   * @returns {Promise<void>}
    */
-  private _filter(search: string): PersonWithFullName[] {
-    const filterValue = search.toLowerCase(); // input string in the input field to lower case
-    return this.persons.filter((p) =>
-      `${p.name} ${p.surname}`.toLowerCase().includes(filterValue)
+  private formatCostCenters() {
+    const primaryCostCenterField = this.primaryCostCenterFormConfig.fields.find(
+      (f) => f.name === 'primary_cost_center_id'
     );
+    if (!primaryCostCenterField) return;
+
+    primaryCostCenterField.options = this.costCenters.map((cc) => ({
+      label: cc.name ?? '', // If name undefined -> empty string
+      value: cc.id ?? 0, // If id undefined -> 0
+    }));
+
+    const secondaryCostCenterField =
+      this.secondaryCostCenterFormConfig.fields.find(
+        (f) => f.name === 'secondary_cost_center_id'
+      );
+    if (!secondaryCostCenterField) return;
+
+    secondaryCostCenterField.options = this.costCenters.map((cc) => ({
+      label: cc.name ?? '', // If name undefined -> empty string
+      value: cc.id ?? 0, // If id undefined -> 0
+    }));
+
+    this.primaryCostCenterFormConfig = { ...this.primaryCostCenterFormConfig };
+    this.secondaryCostCenterFormConfig = {
+      ...this.secondaryCostCenterFormConfig,
+    };
   }
 
   /**
@@ -445,8 +485,11 @@ export class EditOrderPageComponent implements OnInit {
         this.invoiceAddressFormGroup.disable();
       }
       // Load all addresses of any person into the address table for selection
-      this.addressTableDataSource.data =
-        await this.personsWrapperService.getAllPersonsAddresses();
+      if (this.personAddresses.length === 0) {
+        this.personAddresses =
+          await this.personsWrapperService.getAllPersonsAddresses();
+      }
+      this.addressTableDataSource.data = this.personAddresses;
     }
   }
 
@@ -454,10 +497,10 @@ export class EditOrderPageComponent implements OnInit {
    * @param isRecipient Boolean flag indicating if the cleared input is for the recipient (true) or the invoice party (false)
    */
   onPersonCleared(isRecipient: boolean) {
-      // Clear all locally stored data related to the previously selected person
-      // and reset the address form and related variables
-      if (isRecipient) {
-        this.selectedRecipientPerson = undefined;
+    // Clear all locally stored data related to the previously selected person
+    // and reset the address form and related variables
+    if (isRecipient) {
+      this.selectedRecipientPerson = undefined;
       this.recipientHasPreferredAddress = false;
       this.recipientAddressOption = 'preferred';
       this.recipientAddressId = undefined;
@@ -483,7 +526,7 @@ export class EditOrderPageComponent implements OnInit {
   onAddQuotation() {
     if (this.quotationFormGroup.valid) {
       const newQuotation = this.quotationFormGroup.value as QuotationRequestDTO;
-      this.quotations.push(newQuotation);
+      this.newQuotations.push(newQuotation);
       this.quotationFormGroup.reset(); // Reset the form
     } else {
       this.quotationFormGroup.markAllAsTouched(); // Mark all fields as touched to show validation errors
@@ -495,8 +538,8 @@ export class EditOrderPageComponent implements OnInit {
    * @param quotation The quotation to be deleted
    */
   deleteQuotation(quotation: QuotationRequestDTO) {
-    this.quotations = this.quotations.filter((q) => q !== quotation);
-    this.quotationTableDataSource.data = this.quotations; // Update the table data source
+    this.newQuotations = this.newQuotations.filter((q) => q !== quotation);
+    this.quotationTableDataSource.data = this.newQuotations; // Update the table data source
   }
 
   /**
@@ -522,31 +565,36 @@ export class EditOrderPageComponent implements OnInit {
   onAddressOptionChange(option: string, isRecipient: boolean) {
     // Recipient address mode has changed
     if (isRecipient) {
-
-      if ( option === 'preferred' && this.selectedRecipientPerson?.address_id ) {
+      if (option === 'preferred' && this.selectedRecipientPerson?.address_id) {
         this.personsWrapperService
-          .getPersonAddressesById( this.selectedRecipientPerson.id! )
-          .then( ( addr ) => this.recipientAddressFormGroup.patchValue( addr ) );
+          .getPersonAddressesById(this.selectedRecipientPerson.id!)
+          .then((addr) => this.recipientAddressFormGroup.patchValue(addr));
         this.recipientInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
         this.recipientAddressFormConfig.title =
           'Hinterlegte bevorzugte Adresse';
         this.recipientAddressFormGroup.disable();
-        if (this.selectedRecipientAddressIdFromTable && this.recipientAddressOption === 'existing') {
+        if (
+          this.selectedRecipientAddressIdFromTable &&
+          this.recipientAddressOption === 'existing'
+        ) {
           this.selectedRecipientAddressIdFromTable = undefined; // Clear selected address if switching from existing to preferred
         }
-      } else if ( option === 'existing' ) {
+      } else if (option === 'existing') {
         this.recipientAddressFormGroup.reset();
         this.recipientAddressFormGroup.disable();
         this.recipientAddressFormConfig.title = 'Bestehende Adresse überprüfen';
         this.recipientInfoText = 'Adressdaten überprüfen';
-      } else if ( option === 'new' ) {
+      } else if (option === 'new') {
         this.recipientAddressFormGroup.reset();
         this.recipientAddressFormGroup.enable();
         this.recipientAddressFormConfig.title = 'Neue Adresse erstellen';
         this.recipientInfoText =
           'Neue Adresse erstellen: bitte Formular ausfüllen.';
-        if ( this.selectedRecipientAddressIdFromTable && this.recipientAddressOption === 'existing' ) {
+        if (
+          this.selectedRecipientAddressIdFromTable &&
+          this.recipientAddressOption === 'existing'
+        ) {
           this.selectedRecipientAddressIdFromTable = undefined; // Clear selected address if switching from existing to new
         }
       }
@@ -554,7 +602,6 @@ export class EditOrderPageComponent implements OnInit {
     }
     // Invoice address mode has changed
     else {
-
       if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
         this.personsWrapperService
           .getPersonAddressesById(this.selectedInvoicePerson.id!)
@@ -563,7 +610,10 @@ export class EditOrderPageComponent implements OnInit {
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
         this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
         this.invoiceAddressFormGroup.disable();
-        if(this.selectedInvoiceAddressIdFromTable && this.invoiceAddressOption === 'existing'){
+        if (
+          this.selectedInvoiceAddressIdFromTable &&
+          this.invoiceAddressOption === 'existing'
+        ) {
           this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address if switching from existing to preferred
         }
       } else if (option === 'existing') {
@@ -577,7 +627,10 @@ export class EditOrderPageComponent implements OnInit {
         this.invoiceAddressFormConfig.title = 'Neue Adresse erstellen';
         this.invoiceInfoText =
           'Neue Adresse erstellen: bitte Formular ausfüllen.';
-        if(this.selectedInvoiceAddressIdFromTable && this.invoiceAddressOption === 'existing'){
+        if (
+          this.selectedInvoiceAddressIdFromTable &&
+          this.invoiceAddressOption === 'existing'
+        ) {
           this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address if switching from existing to new
         }
       }
@@ -660,7 +713,8 @@ export class EditOrderPageComponent implements OnInit {
     } else {
       // Use the address id stored in selectedRecipientAddressId to assign to the postOrderDTO
       if (this.selectedRecipientAddressIdFromTable) {
-        this.postOrderDTO.delivery_address_id = this.selectedRecipientAddressIdFromTable;
+        this.postOrderDTO.delivery_address_id =
+          this.selectedRecipientAddressIdFromTable;
       } else {
         this._notifications.open(
           'Bitte wählen Sie eine Lieferadresse aus der Tabelle aus (Lieferadresse).',
@@ -714,7 +768,8 @@ export class EditOrderPageComponent implements OnInit {
         }
       } else {
         if (this.selectedInvoiceAddressIdFromTable) {
-          this.postOrderDTO.invoice_address_id = this.selectedInvoiceAddressIdFromTable;
+          this.postOrderDTO.invoice_address_id =
+            this.selectedInvoiceAddressIdFromTable;
         } else {
           this._notifications.open(
             'Bitte wählen Sie eine Adresse aus der Tabelle aus.',
@@ -754,72 +809,36 @@ export class EditOrderPageComponent implements OnInit {
     );
   }
 
-  onCostCenterSelected(costCenter: CostCenterResponseDTO, isPrimary: boolean) {
-    if (isPrimary) {
-      this.primaryCostCenterControl.setValue(costCenter);
-      this.postOrderDTO.primary_cost_center_id = costCenter.id;
-    } else {
-      this.secondaryCostCenterControl.setValue(costCenter);
-      this.postOrderDTO.secondary_cost_center_id = costCenter.id;
-    }
-  }
-
-  private _filterCostCenters(search: string): CostCenterResponseDTO[] {
-    const filterValue = search.toLowerCase();
-    return this.costCenters.filter((cc) =>
-      `${cc.name}`.toLowerCase().includes(filterValue)
-    );
-  }
-
-  displayCostCenter(costCenter: CostCenterResponseDTO | string): string {
-    if (!costCenter) return '';
-    return typeof costCenter === 'string' ? costCenter : `${costCenter.name}`;
-  }
-
-  validateCostCentersSelection(
-    control: AbstractControl
-  ): ValidationErrors | null {
-    const value = control.value;
-    // Check if the value is an object and has an 'id' property
-    if (value && typeof value === 'object' && 'id' in value) {
-      return null; // ok
-    }
-    return { invalidCostCenter: true }; // No valid cost center selected
-  }
-
   /**
    * Set the dropdown options for the currency fields in the form
    * @param currencies
    * @returns
    */
-  private setCurrenciesDropdownOptions(
-    currencies: Array<CurrencyWithDisplayName>
-  ) {
+  private setCurrenciesDropdownOptions() {
     const mainOfferField = this.mainOfferFormConfig.fields.find(
       (f) => f.name === 'currency_short'
     );
     if (!mainOfferField) return;
 
-    mainOfferField.options = currencies.map((c) => ({
+    mainOfferField.options = this.currencies.map((c) => ({
       label: c.displayName ?? '', // Falls displayName undefined -> leere Zeichenkette
       value: c.code ?? '', // Falls code undefined -> leere Zeichenkette
     }));
 
-    mainOfferField.defaultValue = currencies
+    mainOfferField.defaultValue = this.currencies
       .filter((c) => c.code === 'EUR')
       .map((c) => ({
         label: c.displayName ?? '',
         value: c.code ?? '',
       }))[0];
-    this.currenciesLoaded = !this.currenciesLoaded;
+    this.mainOfferConfigRefreshTrigger.update((n) => n + 1);
   }
 
   /**
    * Load all suppliers and set the dropdown options for the supplier_id field in the mainOfferFormConfig
    * @returns A promise that resolves when the suppliers have been loaded and the dropdown options set
    */
-  private async loadSuppliers() {
-    this.suppliers = await this.suppliersWrapperService.getAllSuppliers();
+  private formatSuppliers() {
     const field = this.mainOfferFormConfig.fields.find(
       (f) => f.name === 'supplier_id'
     );
@@ -841,7 +860,9 @@ export class EditOrderPageComponent implements OnInit {
     if (field.field === 'supplier_id' && field.value) {
       try {
         // Fetch customer IDs for the selected supplier
-        this.customerIds = await this.loadCustomerIdsForSupplier(field.value.value);
+        this.customerIds = await this.loadCustomerIdsForSupplier(
+          field.value.value
+        );
         const customerIdField = this.mainOfferFormConfig.fields.find(
           (f) => f.name === 'customer_id'
         );
@@ -854,6 +875,14 @@ export class EditOrderPageComponent implements OnInit {
       } catch (error) {
         console.error('Fehler beim Laden der Customer-IDs:', error);
         this.customerIds = []; // Fallback, damit die UI nicht crasht
+        const customerIdField = this.mainOfferFormConfig.fields.find(
+          (f) => f.name === 'customer_id'
+        );
+        if (customerIdField) {
+          customerIdField.options = [
+            { label: 'Fehler beim Laden der Customer-IDs', value: undefined },
+          ];
+        }
       }
     }
 
@@ -862,7 +891,9 @@ export class EditOrderPageComponent implements OnInit {
       // Set the selected currency signal based on the selected value
 
       // Find the selected currency in the currencies array
-      const selected = this.currencies.find((c) => c.code === (field.value?.value ?? field.value));
+      const selected = this.currencies.find(
+        (c) => c.code === (field.value?.value ?? field.value)
+      );
 
       // Update the selectedCurrency signal with the found currency or default to EUR
       this.selectedCurrency.set({
@@ -937,36 +968,34 @@ export class EditOrderPageComponent implements OnInit {
    * @param isRecipient boolean flag indicating if the filtering is for the recipient (true) or invoice (false)
    */
   filterPersons(isRecipient: boolean): void {
-  const inputEl = isRecipient
-    ? this.inputRecipient.nativeElement
-    : this.inputInvoice.nativeElement;
+    const inputEl = isRecipient
+      ? this.inputRecipient.nativeElement
+      : this.inputInvoice.nativeElement;
 
-  const value = inputEl.value.trim().toLowerCase();
+    const value = inputEl.value.trim().toLowerCase();
 
-  // Wenn das Feld leer ist → Person-Cleared auslösen
-  if (value === '') {
-    this.onPersonCleared(isRecipient);
-    if (isRecipient) {
-      this.filteredPersonsRecipient = this.persons;
-    } else {
-      this.filteredPersonsInvoice = this.persons;
+    // Wenn das Feld leer ist → Person-Cleared auslösen
+    if (value === '') {
+      this.onPersonCleared(isRecipient);
+      if (isRecipient) {
+        this.filteredPersonsRecipient = this.persons;
+      } else {
+        this.filteredPersonsInvoice = this.persons;
+      }
+      return;
     }
-    return;
+
+    // Normales Filtern
+    const filtered = this.persons.filter((p) =>
+      p.fullName.toLowerCase().includes(value)
+    );
+
+    if (isRecipient) {
+      this.filteredPersonsRecipient = filtered;
+    } else {
+      this.filteredPersonsInvoice = filtered;
+    }
   }
-
-  // Normales Filtern
-  const filtered = this.persons.filter((p) =>
-    p.fullName.toLowerCase().includes(value)
-  );
-
-  if (isRecipient) {
-    this.filteredPersonsRecipient = filtered;
-  } else {
-    this.filteredPersonsInvoice = filtered;
-  }
-}
-
-
 
   onQueriesPersonFormGroupChanged(field: { field: string; value: any }) {
     if (field.field === 'queries_person_id') {
@@ -993,8 +1022,8 @@ export class EditOrderPageComponent implements OnInit {
       return;
     }
 
-
-    const currencyValue = (this.mainOfferFormGroup.value as any)?.currency_short?.value ?? null;
+    const currencyValue =
+      (this.mainOfferFormGroup.value as any)?.currency_short?.value ?? null;
     this.postOrderDTO = {
       ...this.postOrderDTO,
       ...this.generalFormGroup.value,
@@ -1003,6 +1032,13 @@ export class EditOrderPageComponent implements OnInit {
       ...this.mainOfferFormGroup.value,
       currency_short: currencyValue,
     };
+
+    this.postOrderDTO = this.patchDtoWithAutocompleteValue(
+      this.postOrderDTO,
+      this.queriesPersonFormGroup,
+      'queries_person_id'
+    );
+
     console.log('PostOrderDTO vor Erstellung:', this.postOrderDTO);
     const createdOrder = await this.orderWrapperService.createOrder(
       this.postOrderDTO
@@ -1019,5 +1055,97 @@ export class EditOrderPageComponent implements OnInit {
         undefined,
         { duration: 3000 }
       );
+  }
+
+  private async loadAllOrderData() {
+    if (!this.editOrderDTO) return;
+
+    [this.formattedOrderDTO, this.existingQuotations] = await Promise.all([
+      this.orderWrapperService.getOrderByIDInFormFormat(
+        this.editOrderDTO.id!
+      ),
+
+      this.orderWrapperService.getOrderQuotations(
+        this.editOrderDTO.id!
+      ),
+    ]);
+    this.formatOrderForFormInput();
+  }
+
+  private formatOrderForFormInput() {
+    this.generalFormGroup.patchValue(this.formattedOrderDTO);
+    this.mainOfferFormGroup.patchValue(this.formattedOrderDTO);
+    this.supplierDecisionReasonFormGroup.patchValue(
+      this.formattedOrderDTO
+    );
+    this.patchConfigAutocompleteFieldsWithOrderData(
+      'queries_person_id',
+      this.formattedOrderDTO.queries_person_id,
+      { current: this.queriesPersonFormConfig },
+      this.queriesPersonConfigRefreshTrigger
+    );
+    this.patchConfigAutocompleteFieldsWithOrderData(
+      'primary_cost_center_id',
+      this.formattedOrderDTO.primary_cost_center_id,
+      { current: this.primaryCostCenterFormConfig },
+      this.primaryCostCenterConfigRefreshTrigger
+    );
+    this.patchConfigAutocompleteFieldsWithOrderData(
+      'secondary_cost_center_id',
+      this.formattedOrderDTO.secondary_cost_center_id,
+      { current: this.secondaryCostCenterFormConfig },
+      this.secondaryCostCenterConfigRefreshTrigger
+    );
+    this.patchConfigAutocompleteFieldsWithOrderData(
+      'supplier_id',
+      this.formattedOrderDTO.supplier_id,
+      { current: this.mainOfferFormConfig },
+      this.mainOfferConfigRefreshTrigger
+    );
+    if(this.formattedOrderDTO.currency) {
+      this.patchConfigAutocompleteFieldsWithOrderData(
+        'currency_short',
+        this.formattedOrderDTO.currency,
+        { current: this.mainOfferFormConfig },
+        this.mainOfferConfigRefreshTrigger
+      );
+    }
+  }
+
+  private patchConfigAutocompleteFieldsWithOrderData(
+    fieldName: string,
+    value: any,
+    configRef: { current: FormConfig },
+    refreshTrigger: WritableSignal<number>
+  ) {
+    const fieldConfig = configRef.current.fields.find(
+      (f) => f.name === fieldName
+    );
+    if (!fieldConfig) return;
+
+    fieldConfig.defaultValue = value;
+    refreshTrigger.update((v) => v + 1); // Trigger a refresh by updating the signal
+  }
+
+  private patchDtoWithAutocompleteValue<T extends Record<string, any>>(
+    dto: T,
+    formGroup: FormGroup,
+    fieldName: string
+  ): T {
+    const fieldValue = formGroup.get(fieldName)?.value;
+
+    // Prüfen, ob das Feld im Autocomplete-Format { label, value } ist
+    if (fieldValue && typeof fieldValue === 'object' && 'value' in fieldValue) {
+      return {
+        ...dto,
+        [fieldName]: fieldValue.value,
+      };
+    }
+
+    // Falls kein Objekt mit value -> direkt übernehmen
+    return {
+      ...dto,
+      [fieldName]: fieldValue ?? null,
+    };
   }
 }

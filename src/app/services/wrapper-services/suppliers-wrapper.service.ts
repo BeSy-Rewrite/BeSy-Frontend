@@ -1,6 +1,11 @@
 import { Injectable } from '@angular/core';
 import { SupplierRequestDTO, SuppliersService } from '../../api';
 
+export interface SupplierFormatted {
+  label: string | undefined;
+  value: number | undefined;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -52,5 +57,16 @@ export class SuppliersWrapperService {
   async getSupplierAddress(id: number) {
     const address = await SuppliersService.getSuppliersAddress(id);
     return address;
+  }
+
+  async getSupplierByIdFormattedForAutocomplete(id: number): Promise<SupplierFormatted | undefined> {
+    const supplier = await this.getSupplierById(id);
+    if (supplier) {
+      return {
+        label: supplier.name,
+        value: supplier.id
+      };
+    }
+    return undefined;
   }
 }

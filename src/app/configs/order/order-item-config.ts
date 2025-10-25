@@ -55,7 +55,7 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
       required: true,
       // Will be loaded from API: vats
       options: [
-        { label: 'Fehler beim Laden der Mehrwertsteuersätze', value: null },
+        { label: 'Fehler beim Laden der Mehrwertsteuersätze', value: undefined },
       ],
     },
     {

@@ -29,71 +29,34 @@
           [formGroup]="generalFormGroup"
         ></app-form-component>
         <div class="cost-center-container">
-          <mat-form-field class="w-full" appearance="fill">
-            <mat-label>Primäre Kostenstelle auswählen</mat-label>
-            <input
-              type="text"
-              matInput
-              [formControl]="primaryCostCenterControl"
-              [matAutocomplete]="autoPrimaryCostCenter"
-              [required]="true"
-            />
+          <app-form-component
+            [config]="primaryCostCenterFormConfig"
+            [formGroup]="primaryCostCenterFormGroup"
+            [refreshTrigger]="primaryCostCenterConfigRefreshTrigger()"
+          ></app-form-component>
 
-            <mat-autocomplete
-              #autoPrimaryCostCenter="matAutocomplete"
-              (optionSelected)="onCostCenterSelected($event.option.value, true)"
-              [displayWith]="displayCostCenter"
-            >
-              @for (costCenter of filteredPrimaryCostCenters | async; track
-              costCenter.id) {
-              <mat-option [value]="costCenter">
-                {{ costCenter.name }}
-              </mat-option>
-              }
-            </mat-autocomplete>
-          </mat-form-field>
-
-          <mat-form-field class="w-full" appearance="fill">
-            <mat-label>Sekundäre Kostenstelle auswählen</mat-label>
-            <input
-              type="text"
-              matInput
-              [formControl]="secondaryCostCenterControl"
-              [matAutocomplete]="autoSecondaryCostCenter"
-              [required]="true"
-            />
-
-            <mat-autocomplete
-              #autoSecondaryCostCenter="matAutocomplete"
-              (optionSelected)="
-                onCostCenterSelected($event.option.value, false)
-              "
-              [displayWith]="displayCostCenter"
-            >
-              @for (costCenter of filteredSecondaryCostCenters | async; track
-              costCenter.id) {
-              <mat-option [value]="costCenter">
-                {{ costCenter.name }}
-              </mat-option>
-              }
-            </mat-autocomplete>
-          </mat-form-field>
-          <div class="queries-person-container">
-            <app-form-component
-              [config]="queriesPersonFormConfig"
-              [formGroup]="queriesPersonFormGroup"
-              (valueChanged)="onQueriesPersonFormGroupChanged($event)"
-            ></app-form-component>
-          </div>
-          <button
-            mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="createOrder()"
-          >
-            Bestellung anlegen
-          </button>
+          <app-form-component
+            [config]="secondaryCostCenterFormConfig"
+            [formGroup]="secondaryCostCenterFormGroup"
+            [refreshTrigger]="secondaryCostCenterConfigRefreshTrigger()"
+          ></app-form-component>
         </div>
+        <div class="queries-person-container">
+          <app-form-component
+            [config]="queriesPersonFormConfig"
+            [formGroup]="queriesPersonFormGroup"
+            [refreshTrigger]="queriesPersonConfigRefreshTrigger()"
+            (valueChanged)="onQueriesPersonFormGroupChanged($event)"
+          ></app-form-component>
+        </div>
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="createOrder()"
+        >
+          Bestellung anlegen
+        </button>
       </div>
     </mat-tab>
     <mat-tab label="Hauptangebot festlegen">
@@ -106,7 +69,7 @@
           <app-form-component
             [config]="mainOfferFormConfig"
             [formGroup]="mainOfferFormGroup"
-            [refreshTrigger]="currenciesLoaded"
+            [refreshTrigger]="mainOfferConfigRefreshTrigger()"
             (valueChanged)="onMainOfferFormGroupChanged($event)"
           ></app-form-component>
         </div>

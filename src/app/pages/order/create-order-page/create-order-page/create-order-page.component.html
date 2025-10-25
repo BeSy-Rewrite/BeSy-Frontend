@@ -38,21 +38,21 @@
             [config]="secondaryCostCenterFormConfig"
             [formGroup]="secondaryCostCenterFormGroup"
           ></app-form-component>
-          <div class="queries-person-container">
-            <app-form-component
-              [config]="queriesPersonFormConfig"
-              [formGroup]="queriesPersonFormGroup"
-            ></app-form-component>
-          </div>
-          <button
-            mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="createOrder()"
-          >
-            Bestellung anlegen
-          </button>
         </div>
+        <div class="queries-person-container">
+          <app-form-component
+            [config]="queriesPersonFormConfig"
+            [formGroup]="queriesPersonFormGroup"
+          ></app-form-component>
+        </div>
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="createOrder()"
+        >
+          Bestellung anlegen
+        </button>
       </div>
     </mat-tab>
   </mat-tab-group>

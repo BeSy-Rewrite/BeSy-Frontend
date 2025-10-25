@@ -39,7 +39,7 @@ import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapp
   styleUrl: './suppliers-page.component.scss',
 })
 export class SuppliersPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar) {}
+  constructor(private router: Router, private _notifications: MatSnackBar, private vatWrapperService: VatWrapperService) {}
 
   // ! ID of the selected address in the table. Keep default undefinded!
   selectedAddressId: number | undefined = undefined;
@@ -125,7 +125,7 @@ export class SuppliersPageComponent implements OnInit {
     );
 
     // Load initial data for the VAT options field in the form
-    const vatOptions = await VatWrapperService.getAllVats();
+    const vatOptions = await this.vatWrapperService.getAllVats();
     this.setDropdownOptions(vatOptions);
   }
 

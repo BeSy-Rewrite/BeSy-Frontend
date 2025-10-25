@@ -6,6 +6,11 @@ export interface PersonWithFullName extends PersonResponseDTO {
   fullName: string;
 }
 
+export interface FormattedPerson {
+  label: string;
+  value: number;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -43,6 +48,21 @@ export class PersonsWrapperService {
     return personsWithFullName as PersonWithFullName[];
   }
 
+  /**
+   * Fetch a person by ID with their full name
+   * @param id ID of the person
+   * @returns PersonWithFullName | undefined
+   */
+  async getPersonByIdWithFullName(id: number) {
+    const person = await this.getPersonById(id);
+    if (!person) return undefined;
+
+    return {
+      ...person,
+      fullName: `${person.name} ${person.surname}` as string,
+    } as PersonWithFullName;
+  }
+
   async getAllPersonsAddresses() {
     const addresses = await PersonsService.getPersonsAddresses();
     return addresses;
@@ -57,5 +77,14 @@ export class PersonsWrapperService {
     const createdAddress = await PersonsService.createPersonAddress(address);
     return createdAddress;
   }
-}
 
+  async getPersonByIdFormattedForAutocomplete(id: number): Promise<FormattedPerson | undefined> {
+    const person = await this.getPersonByIdWithFullName(id);
+    if (!person) return undefined;
+
+    return {
+      label: person.fullName,
+      value: person.id!,
+    };
+  }
+}

@@ -63,25 +63,31 @@ export class CreateOrderPageComponent implements OnInit {
     private router: Router
   ) {}
 
-  ngOnInit() {
-    this.loadCostCenters();
-    this.loadPersons();
+  async ngOnInit() {
+    // Load cost centers and persons
+    [this.costCenters, this.persons] = await Promise.all([
+      this.costCenterWrapperService.getAllCostCenters(),
+      this.personsWrapperService.getAllPersonsWithFullName(),
+    ]);
+
+    // Format cost centers and persons for the autocomplete fields
+    this.formatCostCenters();
+    this.formatPersons();
   }
 
   /**
-   * Loads all cost centers and updates the form configuration with the retrieved options.
+   * Updates the form configuration with the retrieved options.
    * @returns {Promise<void>}
    */
-  private async loadCostCenters() {
-    this.costCenters = await this.costCenterWrapperService.getAllCostCenters();
+  private formatCostCenters() {
     const primaryCostCenterField = this.primaryCostCenterFormConfig.fields.find(
       (f) => f.name === 'primary_cost_center_id'
     );
     if (!primaryCostCenterField) return;
 
     primaryCostCenterField.options = this.costCenters.map((cc) => ({
-      label: cc.name ?? '', // Falls name undefined -> leere Zeichenkette
-      value: cc.id ?? 0, // Falls id undefined -> 0
+      label: cc.name ?? '', // If name undefined -> empty string
+      value: cc.id ?? 0, // If id undefined -> 0
     }));
 
     const secondaryCostCenterField =
@@ -91,8 +97,8 @@ export class CreateOrderPageComponent implements OnInit {
     if (!secondaryCostCenterField) return;
 
     secondaryCostCenterField.options = this.costCenters.map((cc) => ({
-      label: cc.name ?? '', // Falls name undefined -> leere Zeichenkette
-      value: cc.id ?? 0, // Falls id undefined -> 0
+      label: cc.name ?? '', // If name undefined -> empty string
+      value: cc.id ?? 0, // If id undefined -> 0
     }));
 
     this.primaryCostCenterFormConfig = { ...this.primaryCostCenterFormConfig };
@@ -105,16 +111,15 @@ export class CreateOrderPageComponent implements OnInit {
    * Loads all persons and updates the form configuration with the retrieved options.
    * @returns {Promise<void>}
    */
-  private async loadPersons() {
-    this.persons = await this.personsWrapperService.getAllPersonsWithFullName();
+  private formatPersons() {
     const queriesPersonField = this.queriesPersonFormConfig.fields.find(
       (f) => f.name === 'queries_person_id'
     );
     if (!queriesPersonField) return;
 
     queriesPersonField.options = this.persons.map((p) => ({
-      label: p.fullName ?? '', // Falls fullName undefined -> leere Zeichenkette
-      value: p.id ?? 0, // Falls id undefined -> 0
+      label: p.fullName ?? '', // If fullName undefined -> empty string
+      value: p.id ?? 0, // If id undefined -> 0
     }));
   }
 
@@ -130,7 +135,7 @@ export class CreateOrderPageComponent implements OnInit {
       if (!data.hasOwnProperty(key)) continue;
 
       const value = data[key];
-      // Wenn Feld Objekt mit "value"-Property ist → nur value übernehmen
+      // If field is an object with "value" property → only take value
       if (value && typeof value === 'object' && 'value' in value) {
         normalized[key] = value.value;
       } else {

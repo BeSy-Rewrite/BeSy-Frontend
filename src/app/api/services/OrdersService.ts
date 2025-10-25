@@ -183,7 +183,7 @@ export class OrdersService {
      * @throws ApiError
      */
     public static getOrderItems(
-        orderId: string,
+        orderId: number,
     ): CancelablePromise<Array<ItemResponseDTO>> {
         return __request(OpenAPI, {
             method: 'GET',
@@ -255,7 +255,7 @@ export class OrdersService {
      * @throws ApiError
      */
     public static getOrderQuotations(
-        orderId: string,
+        orderId: number,
     ): CancelablePromise<Array<QuotationResponseDTO>> {
         return __request(OpenAPI, {
             method: 'GET',
