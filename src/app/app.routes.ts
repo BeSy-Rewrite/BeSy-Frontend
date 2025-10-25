@@ -40,7 +40,8 @@ export const routes: Routes = [
         component: ViewOrderPageComponent,
         resolve: {
             order: OrderResolver
-        }
+        },
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Bestellungen',
