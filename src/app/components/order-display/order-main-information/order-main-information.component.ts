@@ -6,7 +6,6 @@ import { MatTableDataSource } from '@angular/material/table';
 import { ItemResponseDTO } from '../../../api';
 import { ITEM_FIELD_NAMES } from '../../../display-name-mappings/item-names';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
-import { PREFERRED_LIST_NAMES } from '../../../display-name-mappings/preferred-list-names';
 import { DisplayItem } from '../../../models/display-item';
 import { DisplayableOrder } from '../../../models/displayable-order';
 import { TableColumn } from '../../../models/generic-table';
@@ -57,7 +56,7 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
   });
 
   totalNetPriceFormatted = computed(() => {
-    const totalNetPrice = this.calculateTotalNetPrice();
+    const totalNetPrice = this.subresourceService.calculateTotalNetPrice(this.fetchedItems());
     const formatted = this.subresourceService.formatPrice(totalNetPrice, this.currencyCode);
     return formatted + '\u00A0(netto)';
   });
@@ -101,30 +100,22 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
     }
   }
 
+  /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
     this.ordersService.getOrderItems(this.orderData().order.id?.toString() ?? '').then(items => {
       this.fetchedItems.set(items);
+
+      this.currencyCode = this.orderData().order.currency?.code ?? 'EUR';
+      this.totalQuantity.set(this.subresourceService.calculateTotalQuantity(items));
+      this.totalPrice.set(this.subresourceService.calculateTotalGrossPrice(this.fetchedItems()));
+
       this.items = new MatTableDataSource(items.map(item => this.createDisplayItem(item)));
     });
   }
 
+  /** Converts an ItemResponseDTO into a DisplayItem for table display. */
   private createDisplayItem(item: ItemResponseDTO): DisplayItem {
-    let preferredList = 'Keine bevorzugte Liste';
-    if (item.preferred_list === ItemResponseDTO.preferred_list.RZ) {
-      preferredList = PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.RZ) ?? 'RZ';
-    } else if (item.preferred_list === ItemResponseDTO.preferred_list.TA) {
-      preferredList = PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.TA) ?? 'TA';
-    }
-
-    this.totalQuantity.update(value => value + (item.quantity ?? 0));
     const quantity = item.quantity?.toString() + ' ' + (item.quantity_unit ?? '');
-
-    this.currencyCode = this.orderData().order.currency?.code ?? 'EUR';
-    let articleTotalPrice = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
-    if (item.vat_type === ItemResponseDTO.vat_type.NETTO) {
-      articleTotalPrice = this.subresourceService.calculateGrossPrice(articleTotalPrice, item.vat?.value ?? 0);
-    }
-    this.totalPrice.update(value => value + articleTotalPrice);
 
     return {
       name: item.name ?? '',
@@ -135,38 +126,32 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
       vat_type: item.vat_type ?? '',
       price_per_unit: this.subresourceService.formatPrice(item.price_per_unit ?? 0, this.currencyCode),
       quantity: quantity.trim(),
-      price_total: this.subresourceService.formatPrice(articleTotalPrice, this.currencyCode),
+      price_total: this.subresourceService.formatPrice(this.subresourceService.calculateTotalGrossPrice([item]), this.currencyCode),
       tooltips: {
         vat: item.vat ? `MwSt.: ${item.vat.value}% (${item.vat.description})` : 'Keine MwSt. angegeben',
-        preferred_list: preferredList,
+        preferred_list: this.subresourceService.formatPreferredList(item.preferred_list),
         price_total: `Gesamtbruttopreis für Menge: ${quantity.trim()}`
       }
     }
   }
 
+  /**
+   * Heuristic to determine if the quote price is likely a gross price.
+   * Compares the quote price to the calculated total gross price of items.
+   */
   isQuotePriceProbablyBrutto(): boolean {
     const quotePrice = this.orderData().order['quote_price'];
     return Math.abs((quotePrice ?? 0) - this.totalPrice()) < 0.01;
   }
 
+  /**
+   * Heuristic to determine if the quote price is likely a net price.
+   * Compares the quote price to the calculated total net price of items.
+   */
   isQuotePriceProbablyNetto(): boolean {
     const quotePrice = this.orderData().order['quote_price'];
-    const totalPrice = this.calculateTotalNetPrice();
+    const totalPrice = this.subresourceService.calculateTotalNetPrice(this.fetchedItems());
     return Math.abs((quotePrice ?? 0) - totalPrice) < 0.01;
-  }
-
-  calculateTotalNetPrice(): number {
-    let totalNetPrice = 0;
-    for (const item of this.fetchedItems()) {
-      if (item.vat_type === ItemResponseDTO.vat_type.NETTO) {
-        totalNetPrice += (item.price_per_unit ?? 0) * (item.quantity ?? 0);
-      } else if (item.vat_type === ItemResponseDTO.vat_type.BRUTTO) {
-        const grossPrice = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
-        const netPrice = this.subresourceService.calculateNetPrice(grossPrice, item.vat?.value ?? 0);
-        totalNetPrice += netPrice;
-      }
-    }
-    return totalNetPrice;
   }
 
 }

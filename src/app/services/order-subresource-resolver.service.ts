@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
-import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
+import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, ItemResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
 import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
 import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../models/filter/filter-presets';
 import { OrderDisplayData } from '../models/order-display-data';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
+import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-names';
 
 /**
  * Union of identifier types used to look up subresources.
@@ -277,6 +278,22 @@ export class OrderSubresourceResolverService {
   }
 
   /**
+   * Formats the preferred list enum into a human-readable string.
+   * @param preferredList The preferred list enum value.
+   * @returns The formatted preferred list string.
+   */
+  formatPreferredList(preferredList: ItemResponseDTO.preferred_list | undefined): string {
+    switch (preferredList) {
+      case ItemResponseDTO.preferred_list.RZ:
+        return PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.RZ) ?? 'RZ';
+      case ItemResponseDTO.preferred_list.TA:
+        return PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.TA) ?? 'TA';
+      default:
+        return 'Keine bevorzugte Liste';
+    }
+  }
+
+  /**
    * Calculates the net price from a gross price and VAT percentage.
    * If VAT is zero or negative, returns the gross price unchanged.
    * @param grossPrice The gross price including VAT.
@@ -298,6 +315,53 @@ export class OrderSubresourceResolverService {
   calculateGrossPrice(netPrice: number, vatPercent: number): number {
     if (vatPercent <= 0) return netPrice;
     return netPrice * (1 + vatPercent / 100);
+  }
+  
+  /**
+   * Calculates the total net price for a list of items.
+   * @param items The list of items to calculate the total net price for.
+   * @returns The total net price.
+   */
+  calculateTotalNetPrice(items: ItemResponseDTO[]): number {
+    let totalNetPrice = 0;
+    for (const item of items) {
+      let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
+      if (item.vat_type === ItemResponseDTO.vat_type.BRUTTO) {
+        price = this.calculateNetPrice(price, item.vat?.value ?? 0);
+      }
+      totalNetPrice += price;
+    }
+    return totalNetPrice;
+  }
+
+  /**
+   * Calculates the total gross price for a list of items.
+   * @param items The list of items to calculate the total gross price for.
+   * @returns The total gross price.
+   */
+  calculateTotalGrossPrice(items: ItemResponseDTO[]): number {
+    let totalGrossPrice = 0;
+    for (const item of items) {
+      let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
+      if (item.vat_type === ItemResponseDTO.vat_type.NETTO) {
+        price = this.calculateGrossPrice(price, item.vat?.value ?? 0);
+      }
+      totalGrossPrice += price;
+    }
+    return totalGrossPrice;
+  }
+  
+  /**
+   * Calculates the total quantity of items.
+   * @param items The list of items to calculate the total quantity for.
+   * @returns The total quantity.
+   */
+  calculateTotalQuantity(items: ItemResponseDTO[]): number {
+    let totalQuantity = 0;
+    for (const item of items) {
+      totalQuantity += item.quantity ?? 0;
+    }
+    return totalQuantity;
   }
 
   /** Returns tooltip texts for specific fields in the order display data. */
