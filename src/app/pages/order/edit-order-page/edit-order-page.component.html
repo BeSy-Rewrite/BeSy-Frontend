@@ -10,7 +10,7 @@
           tooltip: 'Beschreibung für Step 4'
         }
       ]"
-      [currentStepIndex]="0"
+      [currentStepIndex]="currentProgressBarStepIndex"
     ></app-progress-bar>
   </div>
   <mat-divider></mat-divider>
@@ -142,67 +142,57 @@
         <div class="text-2xl font-bold mb-4 mt-4 ml-8">
           Adressdaten
           <div class="recipient-container flex flex-col mb-4">
-            <mat-form-field class="w-full" appearance="fill">
-              <mat-label>Sendungsempfänger auswählen</mat-label>
-              <input
-                #inputRecipient
-                matInput
-                [matAutocomplete]="autoRecipient"
-                required
-                (input)="filterPersons(true)"
-                (focus)="filterPersons(true)"
-              />
-
-              <mat-autocomplete
-                #autoRecipient="matAutocomplete"
-                [requireSelection]="true"
-                [displayWith]="displayPerson"
-                (optionSelected)="onPersonSelected($event.option.value, true)"
-              >
-                @for (person of filteredPersonsRecipient; track person.id) {
-                <mat-option [value]="person">{{ person.fullName }}</mat-option>
-                }
-              </mat-autocomplete>
-            </mat-form-field>
+            <app-form-component
+              [config]="deliveryPersonFormConfig"
+              [formGroup]="deliveryPersonFormGroup"
+              (valueChanged)="onAddressPersonSelected($event, true)"
+              [refreshTrigger]="deliveryPersonConfigRefreshTrigger()"
+            ></app-form-component>
 
             <!-- Info Text -->
             <p class="mt-2 mb-2 text-sm text-red-700">
-              {{ recipientInfoText }}
+              {{ deliveryInfoText }}
             </p>
 
-            @if (selectedRecipientPerson) {
             <mat-button-toggle-group
-              name="recipientAddressOption"
-              [(ngModel)]="recipientAddressOption"
-              (change)="onAddressOptionChange($event.value, true)"
-              aria-label="Adresse auswählen"
+              name="deliveryAddressOptions"
+              [(ngModel)]="deliveryAddressOption"
+              (change)="onAddressOptionChanged($event.value, true)"
+              aria-label="Addressoption auswählen"
               class="w-full flex"
             >
+              <!-- -->
+              @if(deliveryPersonHasExistingAddress) {
+              <mat-button-toggle value="existing" class="flex-1"
+                >Gespeicherte Lieferadresse</mat-button-toggle
+              >
+              }
               <mat-button-toggle
                 value="preferred"
-                [disabled]="!recipientHasPreferredAddress"
+                [disabled]="!deliveryPersonHasPreferredAddress"
                 class="flex-1"
               >
                 Bevorzugte Adresse
               </mat-button-toggle>
-              <mat-button-toggle value="existing" class="flex-1">
+
+              <mat-button-toggle value="selected" class="flex-1">
                 Bestehende Adresse auswählen
               </mat-button-toggle>
+
               <mat-button-toggle value="new" class="flex-1">
                 Neue Adresse erstellen
               </mat-button-toggle>
             </mat-button-toggle-group>
-            }
+
             <div class="spacing-container my-4"></div>
             <!-- Table for existing addresses -->
-            @if (recipientAddressOption === 'existing' &&
-            selectedRecipientPerson) {
+            @if (deliveryAddressOption === 'selected') {
             <div class="table-container w-full">
               @if (addressTableDataSource.data.length > 0) {
               <app-generic-table
                 [dataSource]="addressTableDataSource"
                 [columns]="addressTableColumns"
-                (rowClicked)="onAddressSelected($event, true)"
+                (rowClicked)="onAddressInTableSelected($event, true)"
               ></app-generic-table>
               } @else {
               <p class="mt-2 mb-2 text-sm text-gray-700">
@@ -211,15 +201,13 @@
               </p>
               }
             </div>
-            } @if (selectedRecipientPerson) {
-            <app-form-component
-              [config]="recipientAddressFormConfig"
-              [formGroup]="recipientAddressFormGroup"
-            ></app-form-component>
-
             }
+            <app-form-component
+              [config]="deliveryAddressFormConfig"
+              [formGroup]="deliveryAddressFormGroup"
+            ></app-form-component>
           </div>
-          @if (selectedRecipientPerson) {
+          @if (selectedDeliveryPerson) {
           <div class="flex flex-col">
             <label class="block mb-2 text-sm font-semibold text-gray-700">
               Entspricht Empfänger und Lieferadresse dem Rechnungsempfänger und
@@ -235,32 +223,16 @@
           </div>
 
           <!-- Rechnungsadresse -->
-          } @if(!sameAsRecipient && selectedRecipientPerson) {
+          } @if(!sameAsRecipient && selectedDeliveryPerson) {
           <div class="invoice-address-container mt-4">
             <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
 
-            <mat-form-field class="w-full" appearance="fill">
-              <mat-label>Rechnungsempfänger auswählen</mat-label>
-              <input
-                #inputInvoice
-                matInput
-                [matAutocomplete]="autoInvoice"
-                required
-                (input)="filterPersons(false)"
-                (focus)="filterPersons(false)"
-              />
-
-              <mat-autocomplete
-                #autoInvoice="matAutocomplete"
-                [requireSelection]="true"
-                [displayWith]="displayPerson"
-                (optionSelected)="onPersonSelected($event.option.value, false)"
-              >
-                @for (person of filteredPersonsInvoice; track person.id) {
-                <mat-option [value]="person">{{ person.fullName }}</mat-option>
-                }
-              </mat-autocomplete>
-            </mat-form-field>
+            <app-form-component
+              [config]="invoicePersonFormConfig"
+              [formGroup]="invoicePersonFormGroup"
+              (valueChanged)="onAddressPersonSelected($event, false)"
+              [refreshTrigger]="invoicePersonConfigRefreshTrigger()"
+            ></app-form-component>
 
             <!-- Info Text -->
             <p class="mt-2 mb-2 text-sm text-red-700">
@@ -268,20 +240,26 @@
             </p>
             @if (selectedInvoicePerson) {
             <mat-button-toggle-group
-              name="invoiceAddressOption"
+              name="invoiceAddressOptions"
+              (change)="onAddressOptionChanged($event.value, false)"
+              aria-label="Addressoption auswählen"
               [(ngModel)]="invoiceAddressOption"
-              (change)="onAddressOptionChange($event.value, false)"
-              aria-label="Adresse auswählen"
-              class="w-full flex"
+              class="flex-1"
             >
+              <!-- Existing Address -->
+              @if(invoicePersonHasExistingAddress) {
+              <mat-button-toggle value="existing" class="flex-1"
+                >Gespeicherte Rechnungsadresse</mat-button-toggle
+              >
+              }
               <mat-button-toggle
                 value="preferred"
-                [disabled]="!invoiceHasPreferredAddress"
+                [disabled]="!invoicePersonHasPreferredAddress"
                 class="flex-1"
               >
                 Bevorzugte Adresse
               </mat-button-toggle>
-              <mat-button-toggle value="existing" class="flex-1">
+              <mat-button-toggle value="selected" class="flex-1">
                 Bestehende Adresse auswählen
               </mat-button-toggle>
               <mat-button-toggle value="new" class="flex-1">
@@ -290,13 +268,13 @@
             </mat-button-toggle-group>
 
             <!-- Table for existing addresses -->
-            @if (invoiceAddressOption === 'existing') {
+            @if (invoiceAddressOption === 'selected') {
             <div class="table-container w-full mt-4">
               @if (addressTableDataSource.data.length > 0) {
               <app-generic-table
                 [dataSource]="addressTableDataSource"
                 [columns]="addressTableColumns"
-                (rowClicked)="onAddressSelected($event, false)"
+                (rowClicked)="onAddressInTableSelected($event, false)"
               ></app-generic-table>
               } @else {
               <p class="mt-2 mb-2 text-sm text-gray-700">
@@ -313,7 +291,7 @@
             ></app-form-component>
             }
           </div>
-          } @if (selectedRecipientPerson) {
+          } @if (selectedDeliveryPerson) {
           <button
             mat-raised-button
             class="mb-4 mt-4 w-full"

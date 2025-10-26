@@ -125,8 +125,23 @@ export class FormComponent implements OnInit {
     if (field.filterable) this.filterOptions(field, value);
   }
 
-  private filterOptions(field: FormField, value: string) {
-    const filterValue = (value ?? '').toLowerCase();
+  private filterOptions(field: FormField, value: any) {
+    console.log(`Filtering options for field ${field.name} with value`, value);
+
+    let filterValue = '';
+
+    if (typeof value === 'string') {
+      // Benutzer tippt selbst
+      filterValue = value.toLowerCase();
+    } else if (
+      value &&
+      typeof value === 'object' &&
+      typeof value.label === 'string'
+    ) {
+      // Benutzer hat bereits ein Objekt ausgewählt
+      filterValue = value.label.toLowerCase();
+    }
+
     this.filteredOptions[field.name] = (field.options ?? []).filter((opt) =>
       opt.label.toLowerCase().includes(filterValue)
     );

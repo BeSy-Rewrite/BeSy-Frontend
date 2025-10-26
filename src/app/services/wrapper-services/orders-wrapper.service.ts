@@ -5,6 +5,7 @@ import {
 import { CostCenterWrapperService } from './cost-centers-wrapper.service';
 import { Injectable } from '@angular/core';
 import {
+  ApprovalResponseDTO,
   CurrencyResponseDTO,
   ItemRequestDTO,
   ItemResponseDTO,
@@ -195,6 +196,17 @@ export class OrdersWrapperService {
   ): Promise<OrderResponseDTOFormatted> {
     const orderData = await OrdersService.getOrderById(orderId);
     return this.formatOrderData(orderData);
+  }
+
+  async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
+    return await OrdersService.getOrdersApproval(orderId);
+  }
+
+  async patchOrderApprovals(
+    orderId: number,
+    requestBody: any
+  ): Promise<ApprovalResponseDTO> {
+    return await OrdersService.patchOrdersApproval(orderId, requestBody);
   }
 
   /**

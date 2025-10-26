@@ -373,3 +373,41 @@ export const ORDER_QUERIES_PERSON_FORM_CONFIG: FormConfig = {
     }
   ]
 };
+
+export const ORDER_DELIVERY_PERSON_FORM_CONFIG: FormConfig = {
+  fields: [
+    {
+      name: 'delivery_person_id',
+      label: 'Lieferperson',
+      type: 'autocomplete',
+      requireSelection: true,
+      required: false,
+      filterable: true,
+      // Will be loaded from persons api
+      options: [],
+      editable: true,
+      tooltip: 'Die Person, die für die Lieferung verantwortlich ist.',
+      emitAsSignal: true,
+      defaultValue: []
+    }
+  ]
+};
+
+export const ORDER_INVOICE_PERSON_FORM_CONFIG: FormConfig = {
+  fields: [
+    {
+      name: 'invoice_person_id',
+      label: 'Rechnungsempfänger',
+      type: 'autocomplete',
+      requireSelection: true,
+      required: false,
+      filterable: true,
+      // Will be loaded from persons api
+      options: [],
+      editable: true,
+      tooltip: 'Die Person, die für die Rechnungsstellung verantwortlich ist.',
+      emitAsSignal: true,
+      defaultValue: []
+    }
+  ]
+};

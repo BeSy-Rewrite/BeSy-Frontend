@@ -1,4 +1,6 @@
 import {
+  ORDER_DELIVERY_PERSON_FORM_CONFIG,
+  ORDER_INVOICE_PERSON_FORM_CONFIG,
   ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_QUERIES_PERSON_FORM_CONFIG,
   ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
@@ -56,6 +58,7 @@ import {
   OrderResponseDTO,
   QuotationResponseDTO,
   ItemResponseDTO,
+  ApprovalResponseDTO,
 } from '../../../api';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
@@ -168,7 +171,7 @@ export class EditOrderPageComponent implements OnInit {
   editOrderId!: number;
   editOrderDTO!: OrderResponseDTO;
   formattedOrderDTO!: OrderResponseDTOFormatted;
-  patchOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
+  patchOrderDTO: OrderResponseDTOFormatted = {} as OrderResponseDTOFormatted;
 
   // Item variables
   items = signal<ItemTableModel[]>([]);
@@ -225,14 +228,20 @@ export class EditOrderPageComponent implements OnInit {
   ];
 
   // Recipient address variables
-  recipientAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
-  recipientAddressFormGroup = new FormGroup({});
-  recipientAddressId?: number; // Stores the id of the selected recipient preferred address for the post
-  recipientHasPreferredAddress = false;
-  recipientAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
-  recipientInfoText = '';
-  selectedRecipientAddressIdFromTable: number | undefined; // Stores the id of the selected recipient address from the table
-  selectedRecipientPerson?: PersonWithFullName;
+  deliveryAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
+  deliveryAddressFormGroup = new FormGroup({});
+  deliveryAddressId?: number; // Stores the id of the selected recipient preferred address for the post
+  deliveryPersonHasPreferredAddress: boolean = false;
+  deliveryAddressOption: 'preferred' | 'existing' | 'new' | 'selected' =
+    'selected';
+  deliveryPersonHasExistingAddress: boolean = false;
+  selectedDeliveryPerson: PersonWithFullName | undefined;
+  deliveryInfoText = '';
+  selectedDeliveryAddressIdFromTable: number | undefined; // Stores the id of the selected recipient address from the table
+  isDeliveryPersonSelected: boolean = false;
+  deliveryPersonFormConfig = ORDER_DELIVERY_PERSON_FORM_CONFIG;
+  deliveryPersonFormGroup = new FormGroup({});
+  deliveryPersonConfigRefreshTrigger = signal(0);
   selectedInvoicePerson?: PersonWithFullName;
   filteredPersonsRecipient: PersonWithFullName[] = [];
   @ViewChild('inputRecipient', { static: false })
@@ -242,9 +251,14 @@ export class EditOrderPageComponent implements OnInit {
   invoiceAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
   invoiceAddressFormGroup = new FormGroup({});
   invoiceAddressId?: number; // Stores the id of the selected invoice person's preferred address
-  invoiceHasPreferredAddress = false;
-  invoiceAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
+  invoicePersonHasPreferredAddress: boolean = false;
+  invoiceAddressOption: 'preferred' | 'existing' | 'new' | 'selected' =
+    'selected';
+  invoicePersonHasExistingAddress: boolean = false;
   invoiceInfoText = '';
+  invoicePersonFormConfig = ORDER_INVOICE_PERSON_FORM_CONFIG;
+  invoicePersonFormGroup = new FormGroup({});
+  invoicePersonConfigRefreshTrigger = signal(0);
   selectedInvoiceAddressIdFromTable: number | undefined; // Stores the id of the selected invoice address from the table
   filteredPersonsInvoice: PersonWithFullName[] = [];
   @ViewChild('inputInvoice', { static: false })
@@ -297,6 +311,7 @@ export class EditOrderPageComponent implements OnInit {
   // Approval variables
   approvalFormConfig = ORDER_APPROVAL_FORM_CONFIG;
   approvalFormGroup = new FormGroup({});
+  approvals: ApprovalResponseDTO = {} as ApprovalResponseDTO;
   postApprovalDTO: ApprovalRequestDTO = {} as ApprovalRequestDTO;
 
   // Cost center variables
@@ -327,6 +342,9 @@ export class EditOrderPageComponent implements OnInit {
   // General form variables
   generalFormConfig = ORDER_GENERAL_FORM_CONFIG;
   generalFormGroup = new FormGroup({});
+
+  // Progress bar variables
+  currentProgressBarStepIndex = 3;
 
   async ngOnInit(): Promise<void> {
     // Load order data based on the id parameter in the route
@@ -384,7 +402,6 @@ export class EditOrderPageComponent implements OnInit {
     this.formatCostCenters();
     this.setCurrenciesDropdownOptions();
     this.loadAllOrderData();
-    this.formatOrderForFormInput();
   }
 
   /**
@@ -432,19 +449,32 @@ export class EditOrderPageComponent implements OnInit {
    * Loads all persons from the API and stores them in the component
    */
   private formatPersons() {
-    // fill the filteredPersons arrays with all persons initially for the autocomplete inputs
-    this.filteredPersonsRecipient = this.persons.slice();
-    this.filteredPersonsInvoice = this.persons.slice();
-    this.filteredPersonsQuery = this.persons.slice();
-
     // Configure the config for the queries person autocomplete input, as this field is handled in a seperate form component
-    const field = this.queriesPersonFormConfig.fields.find(
+    const queriesPersonField = this.queriesPersonFormConfig.fields.find(
       (field) => field.name === 'queries_person_id'
     );
-    if (!field) return;
-    field.options = this.persons.map((person) => ({
+    if (!queriesPersonField) return;
+    queriesPersonField.options = this.persons.map((person) => ({
       label: person.fullName, // Label shown in the dropdown of the autocomplete
       value: person.id, // value which is returned when selecting an option
+    }));
+
+    const deliveryPersonField = this.deliveryPersonFormConfig.fields.find(
+      (field) => field.name === 'delivery_person_id'
+    );
+    if (!deliveryPersonField) return;
+    deliveryPersonField.options = this.persons.map((person) => ({
+      label: person.fullName,
+      value: person.id,
+    }));
+
+    const invoicePersonField = this.invoicePersonFormConfig.fields.find(
+      (field) => field.name === 'invoice_person_id'
+    );
+    if (!invoicePersonField) return;
+    invoicePersonField.options = this.persons.map((person) => ({
+      label: person.fullName,
+      value: person.id,
     }));
   }
 
@@ -481,96 +511,14 @@ export class EditOrderPageComponent implements OnInit {
   }
 
   /**
-   * Controls how the person is displayed in the autocomplete input
-   * @param person The person object or string to display
-   * @returns The display string for the person
-   */
-  displayPerson(person: PersonWithFullName | string): string {
-    if (!person) return '';
-    return typeof person === 'string' ? person : person.fullName;
-  }
-
-  /** Handle selection of a person from the autocomplete options
-   * @param person The selected person from the autocomplete dropdown
-   * @param isRecipient Boolean flag indicating if the selected person is the recipient (true) or the invoice party (false)
-   */
-  async onPersonSelected(person: PersonWithFullName, isRecipient: boolean) {
-    // Locally track the selected person based on the context (recipient or invoice)
-    if (isRecipient) {
-      this.selectedRecipientPerson = person;
-    } else {
-      this.selectedInvoicePerson = person;
-    }
-
-    // Check if the selected person has a preferred address
-
-    if (person.address_id) {
-      const preferredAddress: AddressResponseDTO =
-        await this.personsWrapperService.getPersonAddressesById(person.id!);
-
-      if (isRecipient) {
-        this.recipientHasPreferredAddress = true;
-        this.recipientAddressOption = 'preferred';
-        this.recipientAddressId = preferredAddress.id;
-        this.recipientAddressFormGroup.patchValue(preferredAddress);
-        this.recipientAddressFormConfig.title =
-          'Hinterlegte bevorzugte Adresse';
-        this.recipientInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
-        this.recipientAddressFormGroup.disable();
-      } else {
-        this.invoiceHasPreferredAddress = true;
-        this.invoiceAddressOption = 'preferred';
-        this.invoiceAddressId = preferredAddress.id;
-        this.invoiceAddressFormGroup.patchValue(preferredAddress);
-        this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
-        this.invoiceInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
-        this.invoiceAddressFormGroup.disable();
-      }
-      // Load all addresses of any person into the address table for selection
-      if (this.personAddresses.length === 0) {
-        this.personAddresses =
-          await this.personsWrapperService.getAllPersonsAddresses();
-      }
-      this.addressTableDataSource.data = this.personAddresses;
-    }
-  }
-
-  /** Handle clearing of the autocomplete input
-   * @param isRecipient Boolean flag indicating if the cleared input is for the recipient (true) or the invoice party (false)
-   */
-  onPersonCleared(isRecipient: boolean) {
-    // Clear all locally stored data related to the previously selected person
-    // and reset the address form and related variables
-    if (isRecipient) {
-      this.selectedRecipientPerson = undefined;
-      this.recipientHasPreferredAddress = false;
-      this.recipientAddressOption = 'preferred';
-      this.recipientAddressId = undefined;
-      this.recipientAddressFormGroup.reset();
-      this.recipientInfoText = '';
-      this.recipientAddressFormConfig.title =
-        'Empfängeradresse auswählen oder erstellen';
-    } else {
-      this.selectedInvoicePerson = undefined;
-      this.invoiceHasPreferredAddress = false;
-      this.invoiceAddressOption = 'preferred';
-      this.invoiceAddressId = undefined;
-      this.invoiceAddressFormGroup.reset();
-      this.invoiceInfoText = '';
-      this.invoiceAddressFormConfig.title =
-        'Rechnungsadresse auswählen oder erstellen';
-    }
-  }
-
-  /**
    * Add a new quotation to the locally stored quotations list and update the table data source
    */
   onAddQuotation() {
     if (this.quotationFormGroup.valid) {
       const newQuotation = this.quotationFormGroup.value as QuotationTableModel;
-      newQuotation.price = this.orderWrapperService.formatPriceToGerman(newQuotation.price);
+      newQuotation.price = this.orderWrapperService.formatPriceToGerman(
+        newQuotation.price
+      );
       this.quotations.update((curr) => [...curr, newQuotation]);
       this.quotationFormGroup.reset(); // Reset the form
     } else {
@@ -591,62 +539,132 @@ export class EditOrderPageComponent implements OnInit {
   }
 
   /**
+   *
+   * @param person The event value of the autcomplete field
+   * @param isRecipient Boolean indicating which addressPerson got selected
+   * @returns
+   */
+  async onAddressPersonSelected(
+    field: { field: string; value: any },
+    isRecipient: boolean
+  ) {
+    const person = this.persons.filter((p) => p.id === field.value.value)[0];
+    if (isRecipient) {
+      this.selectedDeliveryPerson = person;
+    } else {
+      this.selectedInvoicePerson = person;
+    }
+    // Check if the selected person has a preferred address
+    if (person.address_id) {
+      const preferredAddress: AddressResponseDTO =
+        await this.personsWrapperService.getPersonAddressesById(person.id!);
+
+      if (isRecipient) {
+        this.deliveryPersonHasPreferredAddress = true;
+        this.deliveryAddressOption = 'preferred';
+        this.deliveryAddressFormGroup.patchValue(preferredAddress);
+        this.deliveryAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+        this.deliveryInfoText =
+          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
+        this.deliveryAddressFormGroup.disable();
+      } else {
+        this.invoicePersonHasPreferredAddress = true;
+        this.invoiceAddressOption = 'preferred';
+        this.invoiceAddressId = preferredAddress.id;
+        this.invoiceAddressFormGroup.patchValue(preferredAddress);
+        this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+        this.invoiceInfoText =
+          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
+        this.invoiceAddressFormGroup.disable();
+      }
+      // Load all addresses of any person into the address table for selection
+      if (this.personAddresses.length === 0) {
+        this.personAddresses =
+          await this.personsWrapperService.getAllPersonsAddresses();
+      }
+      this.addressTableDataSource.data = this.personAddresses;
+    }
+  }
+
+  /**
    * Handle selection of an address from the address table
    * @param address The selected address from the table
    * @param isRecipientAddress Boolean flag indicating if the address is for the recipient (true) or the invoice (false)
    */
-  onAddressSelected(address: AddressResponseDTO, isRecipientAddress: boolean) {
+  onAddressInTableSelected(
+    address: AddressResponseDTO,
+    isRecipientAddress: boolean
+  ) {
     // Wird aufgerufen, wenn in der Adress-Tabelle eine Zeile ausgewählt wird
     if (isRecipientAddress) {
-      this.recipientAddressFormGroup.patchValue(address);
-      this.selectedRecipientAddressIdFromTable = address.id;
+      this.deliveryAddressFormGroup.patchValue(address);
+      this.selectedDeliveryAddressIdFromTable = address.id;
     } else {
       this.invoiceAddressFormGroup.patchValue(address);
       this.selectedInvoiceAddressIdFromTable = address.id;
     }
   }
 
-  /** Handle change of address option (preferred, existing, new)
+  /** Handle change of address option (preferred, existing, new, selected)
    * @param option The selected address option
    * @param isRecipient Boolean flag indicating if the option change is for the recipient (true) or the invoice (false)
    */
-  onAddressOptionChange(option: string, isRecipient: boolean) {
-    // Recipient address mode has changed
+  onAddressOptionChanged(option: string, isRecipient: boolean) {
+    // Delivery address mode has changed
     if (isRecipient) {
-      if (option === 'preferred' && this.selectedRecipientPerson?.address_id) {
+      if (option === 'preferred' && this.selectedDeliveryPerson?.address_id) {
+        this.deliveryAddressFormGroup.enable();
         this.personsWrapperService
-          .getPersonAddressesById(this.selectedRecipientPerson.id!)
-          .then((addr) => this.recipientAddressFormGroup.patchValue(addr));
-        this.recipientInfoText =
+          .getPersonAddressesById(this.selectedDeliveryPerson.id!)
+          .then((addr) => this.deliveryAddressFormGroup.patchValue(addr));
+        this.deliveryInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
-        this.recipientAddressFormConfig.title =
-          'Hinterlegte bevorzugte Adresse';
-        this.recipientAddressFormGroup.disable();
+        this.deliveryAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+        this.deliveryAddressFormGroup.disable();
         if (
-          this.selectedRecipientAddressIdFromTable &&
-          this.recipientAddressOption === 'existing'
+          this.selectedDeliveryAddressIdFromTable &&
+          this.deliveryAddressOption === 'selected'
         ) {
-          this.selectedRecipientAddressIdFromTable = undefined; // Clear selected address if switching from existing to preferred
+          this.selectedDeliveryAddressIdFromTable = undefined; // Clear selected address if switching from existing to preferred
         }
-      } else if (option === 'existing') {
-        this.recipientAddressFormGroup.reset();
-        this.recipientAddressFormGroup.disable();
-        this.recipientAddressFormConfig.title = 'Bestehende Adresse überprüfen';
-        this.recipientInfoText = 'Adressdaten überprüfen';
+      } else if (option === 'selected') {
+        this.deliveryAddressFormGroup.reset();
+        this.deliveryAddressFormGroup.disable();
+        this.deliveryAddressFormConfig.title = 'Bestehende Adresse überprüfen';
+        this.deliveryInfoText =
+          'Wählen Sie eine Adresse aus der Tabelle aus und überprüfen Sie die Daten im Formular unterhalb.';
       } else if (option === 'new') {
-        this.recipientAddressFormGroup.reset();
-        this.recipientAddressFormGroup.enable();
-        this.recipientAddressFormConfig.title = 'Neue Adresse erstellen';
-        this.recipientInfoText =
+        this.deliveryAddressFormGroup.reset();
+        this.deliveryAddressFormGroup.enable();
+        this.deliveryAddressFormConfig.title = 'Neue Adresse erstellen';
+        this.deliveryInfoText =
           'Neue Adresse erstellen: bitte Formular ausfüllen.';
         if (
-          this.selectedRecipientAddressIdFromTable &&
-          this.recipientAddressOption === 'existing'
+          this.selectedDeliveryAddressIdFromTable &&
+          this.deliveryAddressOption === 'selected'
         ) {
-          this.selectedRecipientAddressIdFromTable = undefined; // Clear selected address if switching from existing to new
+          this.selectedDeliveryAddressIdFromTable = undefined; // Clear selected address in the table if switching from selected to new
+        }
+      } else if (
+        option === 'existing' &&
+        this.deliveryPersonHasExistingAddress
+      ) {
+        this.deliveryAddressFormGroup.reset();
+        this.deliveryAddressFormGroup.enable();
+        this.personsWrapperService
+          .getPersonAddressesById(this.formattedOrderDTO.delivery_address_id!)
+          .then((addr) => this.deliveryAddressFormGroup.patchValue(addr));
+        this.deliveryAddressFormGroup.disable();
+        this.deliveryAddressFormConfig.title = 'Aktuell gespeicherte Adresse';
+        this.deliveryInfoText =
+          'Dies ist die aktuell gespeicherte Lieferadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
+        if (
+          this.selectedDeliveryAddressIdFromTable &&
+          this.deliveryAddressOption === 'selected'
+        ) {
+          this.selectedDeliveryAddressIdFromTable = undefined; // Clear selected address in the table if switching from selected to new
         }
       }
-      this.recipientAddressOption = option as any;
     }
     // Invoice address mode has changed
     else {
@@ -660,11 +678,11 @@ export class EditOrderPageComponent implements OnInit {
         this.invoiceAddressFormGroup.disable();
         if (
           this.selectedInvoiceAddressIdFromTable &&
-          this.invoiceAddressOption === 'existing'
+          this.invoiceAddressOption === 'selected'
         ) {
-          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address if switching from existing to preferred
+          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address if switching from selected to preferred
         }
-      } else if (option === 'existing') {
+      } else if (option === 'selected') {
         this.invoiceAddressFormGroup.reset();
         this.invoiceAddressFormGroup.disable();
         this.invoiceAddressFormConfig.title = 'Bestehende Adresse überprüfen';
@@ -677,12 +695,30 @@ export class EditOrderPageComponent implements OnInit {
           'Neue Adresse erstellen: bitte Formular ausfüllen.';
         if (
           this.selectedInvoiceAddressIdFromTable &&
-          this.invoiceAddressOption === 'existing'
+          this.invoiceAddressOption === 'selected'
         ) {
-          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address if switching from existing to new
+          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address in the table if switching from selected to new
+        }
+      } else if (
+        option === 'existing' &&
+        this.invoicePersonHasExistingAddress
+      ) {
+        this.invoiceAddressFormGroup.reset();
+        this.invoiceAddressFormGroup.enable();
+        this.personsWrapperService
+          .getPersonAddressesById(this.formattedOrderDTO.invoice_address_id!)
+          .then((addr) => this.invoiceAddressFormGroup.patchValue(addr));
+        this.invoiceAddressFormGroup.disable();
+        this.invoiceAddressFormConfig.title = 'Aktuell gespeicherte Adresse';
+        this.invoiceInfoText =
+          'Dies ist die aktuell gespeicherte Rechnungsadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
+        if (
+          this.selectedInvoiceAddressIdFromTable &&
+          this.invoiceAddressOption === 'selected'
+        ) {
+          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address in the table if switching from selected to new
         }
       }
-      this.invoiceAddressOption = option as any;
     }
   }
 
@@ -692,8 +728,13 @@ export class EditOrderPageComponent implements OnInit {
    */
   async locallySaveAddressFormInput() {
     // Set recipient and invoice person
-    if (this.selectedRecipientPerson) {
-      this.patchOrderDTO.delivery_person_id = this.selectedRecipientPerson.id;
+    if (this.selectedDeliveryPerson) {
+      // retrieve selected recipient person from autocomplete input from field delivery_person_id
+      this.patchDtoWithAutocompleteValue(
+        this.patchOrderDTO,
+        this.deliveryPersonFormGroup,
+        'delivery_person_id'
+      );
     }
 
     // Is the invoice address and person the same as the recipient address?
@@ -703,7 +744,11 @@ export class EditOrderPageComponent implements OnInit {
     }
     // If not, check if an invoice person has been selected
     else if (this.selectedInvoicePerson) {
-      this.patchOrderDTO.invoice_person_id = this.selectedInvoicePerson.id;
+      this.patchDtoWithAutocompleteValue(
+        this.patchOrderDTO,
+        this.invoicePersonFormGroup,
+        'invoice_person_id'
+      );
     } else {
       this._notifications.open(
         'Bitte wählen Sie eine Person für die Rechnungsadresse aus (Feld: Rechnungsadresse).',
@@ -716,11 +761,11 @@ export class EditOrderPageComponent implements OnInit {
     // Handle address saving based on the selected addressModes
 
     // Recipient address
-    if (this.recipientAddressOption === 'new') {
-      this.recipientAddressFormGroup.markAllAsTouched();
-      if (this.recipientAddressFormGroup.valid) {
+    if (this.deliveryAddressOption === 'new') {
+      this.deliveryAddressFormGroup.markAllAsTouched();
+      if (this.deliveryAddressFormGroup.valid) {
         // If the form is valid, create a new address via the API and store the returned ID
-        const newAddress: AddressRequestDTO = this.recipientAddressFormGroup
+        const newAddress: AddressRequestDTO = this.deliveryAddressFormGroup
           .value as AddressRequestDTO;
         try {
           const createdAddress: AddressResponseDTO =
@@ -745,11 +790,11 @@ export class EditOrderPageComponent implements OnInit {
           { duration: 3000 }
         );
       }
-    } else if (this.recipientAddressOption === 'preferred') {
+    } else if (this.deliveryAddressOption === 'preferred') {
       // Use the stored selectedRecipientPerson to assign the preferred address to the delivery_address_id-field
-      if (this.selectedRecipientPerson?.address_id) {
+      if (this.selectedDeliveryPerson?.address_id) {
         this.patchOrderDTO.delivery_address_id =
-          this.selectedRecipientPerson.address_id;
+          this.selectedDeliveryPerson.address_id;
       } else {
         this._notifications.open(
           'Fehler beim Laden der bevorzugten Lieferadresse. Die Adresse konnte nicht gefunden werden. Bitte wählen Sie eine andere Adresse oder versuchen Sie es später erneut.',
@@ -760,9 +805,9 @@ export class EditOrderPageComponent implements OnInit {
       }
     } else {
       // Use the address id stored in selectedRecipientAddressId to assign to the postOrderDTO
-      if (this.selectedRecipientAddressIdFromTable) {
+      if (this.selectedDeliveryAddressIdFromTable) {
         this.patchOrderDTO.delivery_address_id =
-          this.selectedRecipientAddressIdFromTable;
+          this.selectedDeliveryAddressIdFromTable;
       } else {
         this._notifications.open(
           'Bitte wählen Sie eine Lieferadresse aus der Tabelle aus (Lieferadresse).',
@@ -828,9 +873,6 @@ export class EditOrderPageComponent implements OnInit {
         }
       }
     }
-    console.log('Recipient Address ID:', this.recipientAddressId);
-    console.log('Invoice Address ID:', this.invoiceAddressId);
-    console.log('PostOrderDTO:', this.patchOrderDTO);
   }
 
   /** Save the approval form inputs locally in the postApprovalDTO object
@@ -1011,40 +1053,6 @@ export class EditOrderPageComponent implements OnInit {
     }
   }
 
-  /**
-   * Filter persons for the recipient or invoice autocomplete input
-   * @param isRecipient boolean flag indicating if the filtering is for the recipient (true) or invoice (false)
-   */
-  filterPersons(isRecipient: boolean): void {
-    const inputEl = isRecipient
-      ? this.inputRecipient.nativeElement
-      : this.inputInvoice.nativeElement;
-
-    const value = inputEl.value.trim().toLowerCase();
-
-    // Wenn das Feld leer ist → Person-Cleared auslösen
-    if (value === '') {
-      this.onPersonCleared(isRecipient);
-      if (isRecipient) {
-        this.filteredPersonsRecipient = this.persons;
-      } else {
-        this.filteredPersonsInvoice = this.persons;
-      }
-      return;
-    }
-
-    // Normales Filtern
-    const filtered = this.persons.filter((p) =>
-      p.fullName.toLowerCase().includes(value)
-    );
-
-    if (isRecipient) {
-      this.filteredPersonsRecipient = filtered;
-    } else {
-      this.filteredPersonsInvoice = filtered;
-    }
-  }
-
   onQueriesPersonFormGroupChanged(field: { field: string; value: any }) {
     if (field.field === 'queries_person_id') {
       // If the field is cleared (null or empty), reset the selectedQueryPersonId and postOrderDTO.queries_person_id
@@ -1059,7 +1067,7 @@ export class EditOrderPageComponent implements OnInit {
   }
 
   async createOrder() {
-    // Implement the logic to create the order
+    /* // Implement the logic to create the order
     this.generalFormGroup.markAllAsTouched();
     if (!this.generalFormGroup.valid) {
       this._notifications.open(
@@ -1102,13 +1110,18 @@ export class EditOrderPageComponent implements OnInit {
         'Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.',
         undefined,
         { duration: 3000 }
-      );
+      ); */
   }
 
+  /**
+   * Loads all necessary order data, including formatted order details, items, and quotations.
+   * Then formats the order data for form input.
+   * @returns {Promise<void>}
+   */
   private async loadAllOrderData() {
     if (!this.editOrderDTO) return;
 
-    const [formattedOrder, mappedItems, quotations] = await Promise.all([
+    const [formattedOrder, mappedItems, quotations, approvals] = await Promise.all([
       this.orderWrapperService.getOrderByIDInFormFormat(this.editOrderDTO.id!),
 
       this.orderWrapperService
@@ -1124,11 +1137,14 @@ export class EditOrderPageComponent implements OnInit {
             responseQuotations
           )
         ),
+
+      this.orderWrapperService.getOrderApprovals(this.editOrderDTO.id!)
     ]);
 
     this.quotations.set(quotations);
     this.formattedOrderDTO = formattedOrder;
     this.items.set(mappedItems);
+    this.approvals = approvals;
 
     this.formatOrderForFormInput();
   }
@@ -1137,6 +1153,9 @@ export class EditOrderPageComponent implements OnInit {
     this.generalFormGroup.patchValue(this.formattedOrderDTO);
     this.mainOfferFormGroup.patchValue(this.formattedOrderDTO);
     this.supplierDecisionReasonFormGroup.patchValue(this.formattedOrderDTO);
+    this.approvalFormGroup.patchValue(this.approvals);
+
+    // Patch autocomplete fields in the form configs with the loaded order data
     this.patchConfigAutocompleteFieldsWithOrderData(
       'queries_person_id',
       this.formattedOrderDTO.queries_person_id,
@@ -1169,6 +1188,7 @@ export class EditOrderPageComponent implements OnInit {
         this.mainOfferConfigRefreshTrigger
       );
     }
+    this.setupAddressFormsWithOrderData();
   }
 
   private patchConfigAutocompleteFieldsWithOrderData(
@@ -1190,22 +1210,15 @@ export class EditOrderPageComponent implements OnInit {
     dto: T,
     formGroup: FormGroup,
     fieldName: string
-  ): T {
+  ): void {
     const fieldValue = formGroup.get(fieldName)?.value;
+    if (!fieldValue) return;
 
-    // Prüfen, ob das Feld im Autocomplete-Format { label, value } ist
     if (fieldValue && typeof fieldValue === 'object' && 'value' in fieldValue) {
-      return {
-        ...dto,
-        [fieldName]: fieldValue.value,
-      };
+      (dto as Record<string, any>)[fieldName] = fieldValue.value;
+    } else {
+      (dto as Record<string, any>)[fieldName] = fieldValue ?? null;
     }
-
-    // Falls kein Objekt mit value -> direkt übernehmen
-    return {
-      ...dto,
-      [fieldName]: fieldValue ?? null,
-    };
   }
 
   /**
@@ -1216,5 +1229,85 @@ export class EditOrderPageComponent implements OnInit {
     // Empty items and quotations marked as to be deleted
     this.deletedItems = [];
     this.deletedQuotations = [];
+  }
+
+  /**
+   * Decide how to setup the address forms based on the loaded order data
+   */
+  private async setupAddressFormsWithOrderData() {
+    if (this.personAddresses.length === 0) {
+      this.personAddresses =
+        await this.personsWrapperService.getAllPersonsAddresses();
+      this.addressTableDataSource.data = this.personAddresses;
+    }
+    // If any of the address fields are set, display them instead of the forms
+    if (this.formattedOrderDTO.delivery_person_id) {
+      this.patchConfigAutocompleteFieldsWithOrderData(
+        'delivery_person_id',
+        this.formattedOrderDTO.delivery_person_id,
+        { current: this.deliveryPersonFormConfig },
+        this.deliveryPersonConfigRefreshTrigger
+      );
+      this.selectedDeliveryPerson = this.persons.find(
+        (p) => p.id === this.formattedOrderDTO.delivery_person_id?.value
+      );
+      if (this.selectedDeliveryPerson?.address_id) {
+        this.deliveryPersonHasPreferredAddress = true;
+      }
+    }
+    if (this.formattedOrderDTO.delivery_address_id) {
+      const deliveryAddress =
+        await this.personsWrapperService.getPersonAddressesById(
+          this.formattedOrderDTO.delivery_address_id!
+        );
+      this.deliveryPersonHasExistingAddress = true;
+      this.deliveryAddressFormGroup.patchValue(deliveryAddress);
+      this.deliveryAddressFormConfig.title =
+        'Aktuell gespeicherte Lieferadresse';
+      this.deliveryAddressOption = 'existing';
+      this.deliveryAddressFormGroup.disable();
+      this.deliveryInfoText =
+        'Dies ist die aktuell gespeicherte Lieferaddresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
+    }
+
+    // If invoice person is set and different from delivery person, or the invoice address is different from the delivery address, set sameAsRecipient to false
+    if (
+      (this.formattedOrderDTO.invoice_person_id &&
+        this.formattedOrderDTO.delivery_person_id &&
+        this.formattedOrderDTO.invoice_person_id.value !==
+          this.formattedOrderDTO.delivery_person_id.value) ||
+      (this.formattedOrderDTO.invoice_address_id &&
+        this.formattedOrderDTO.invoice_address_id !==
+          this.formattedOrderDTO.delivery_address_id)
+    ) {
+      this.sameAsRecipient = false;
+    }
+
+    if (this.formattedOrderDTO.invoice_person_id) {
+      this.patchConfigAutocompleteFieldsWithOrderData(
+        'invoice_person_id',
+        this.formattedOrderDTO.invoice_person_id,
+        { current: this.invoicePersonFormConfig },
+        this.invoicePersonConfigRefreshTrigger
+      );
+      this.selectedInvoicePerson = this.persons.find(
+        (p) => p.id === this.formattedOrderDTO.invoice_person_id?.value
+      );
+      if (this.selectedInvoicePerson?.address_id) {
+        this.invoicePersonHasPreferredAddress = true;
+      }
+    }
+    if (this.formattedOrderDTO.invoice_address_id) {
+      const invoiceAddress =
+        await this.personsWrapperService.getPersonAddressesById(
+          this.formattedOrderDTO.invoice_address_id!
+        );
+      this.invoiceAddressFormGroup.patchValue(invoiceAddress);
+      this.invoiceAddressFormConfig.title = 'Aktuell gespeicherte Adresse';
+      this.invoiceAddressOption = 'existing';
+      this.invoiceAddressFormGroup.disable();
+      this.invoiceInfoText =
+        'Dies ist die aktuell gespeicherte Rechnungsadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
+    }
   }
 }
