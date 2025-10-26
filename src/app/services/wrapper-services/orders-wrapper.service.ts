@@ -45,13 +45,13 @@ export interface OrderResponseDTOFormatted {
   quote_number?: string; // Angebotsnummer
   quote_sign?: string;
   quote_date?: string;
-  quote_price?: number;
+  quote_price?: string;
   delivery_person_id?: FormattedPerson | undefined;
   invoice_person_id?: FormattedPerson | undefined;
   queries_person_id?: FormattedPerson | undefined;
   customer_id?: string;
   supplier_id?: SupplierFormatted | undefined;
-  secondary_cost_center_id?: CostCenterFormatted | string | undefined;
+  secondary_cost_center_id?: CostCenterFormatted | undefined;
   fixed_discount?: number;
   percentage_discount?: number;
   cash_discount?: number;
@@ -87,7 +87,7 @@ export class OrdersWrapperService {
    * @param bookingYears Filtert nach den letzten zwei Ziffern der Jahreszahl der Buchung. Achtung, diese muss ein String sein, z.B. "25".
    * @param createdAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt erstellt wurden.
    * @param createdBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt erstellt wurden.
-   * @param ownerIds Filtert nach IDs der Ersteller der Bestellung. Beinh
+   * @param ownerIds Filtert nach IDs der Ersteller der Bestellung. Beinhalt
    * @param statuses Filtert nach dem Bestellstatus. Beinhaltet default-mäßig alle Bestellstatus.
    * @param quotePriceMin Filtert nach quotePriceMin.
    * @param quotePriceMax Filtert nach quotePriceMax.
@@ -197,6 +197,22 @@ export class OrdersWrapperService {
     return this.formatOrderData(orderData);
   }
 
+  /**
+   * Maps an OrderResponseDTO to OrderResponseDTOFormatted by enriching it with formatted data
+   * @param order The OrderResponseDTO to format
+   * @returns Promise<OrderResponseDTOFormatted> The formatted order data
+   */
+  async mapOrderResponseToFormatted(
+    order: OrderResponseDTO
+  ): Promise<OrderResponseDTOFormatted> {
+    return this.formatOrderData(order);
+  }
+
+  /**
+   * Formats an OrderResponseDTO into an OrderResponseDTOFormatted
+   * @param order The order to be formatted
+   * @returns The formatted order data
+   */
   private async formatOrderData(
     order: OrderResponseDTO
   ): Promise<OrderResponseDTOFormatted> {
@@ -270,6 +286,7 @@ export class OrdersWrapperService {
       invoice_person_id: formatedInvoicePerson,
       queries_person_id: formatedQueriesPerson,
       supplier_id: formatedSupplier,
+      quote_price: this.formatPriceToGerman(order.quote_price ?? 0)
     };
   }
 
@@ -356,5 +373,68 @@ export class OrdersWrapperService {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     });
+  }
+
+  /**
+   * Maps an OrderResponseDTOFormatted to OrderRequestDTO for API submission
+   * @param formattedOrder The formatted order to convert
+   * @returns OrderRequestDTO The request DTO ready for API submission
+   */
+  mapFormattedOrderToRequest(
+    formattedOrder: OrderResponseDTOFormatted
+  ): OrderRequestDTO {
+    return {
+      primary_cost_center_id: formattedOrder.primary_cost_center_id?.value,
+      booking_year: formattedOrder.booking_year?.slice(-2), // Get last 2 digits
+      legacy_alias: formattedOrder.legacy_alias,
+      owner_id: formattedOrder.owner_id,
+      content_description: formattedOrder.content_description ?? '',
+      currency_short: formattedOrder.currency?.code,
+      comment: formattedOrder.comment,
+      comment_for_supplier: formattedOrder.comment_for_supplier,
+      quote_number: formattedOrder.quote_number,
+      quote_sign: formattedOrder.quote_sign,
+      quote_date: formattedOrder.quote_date,
+      quote_price: this.parseGermanPriceToNumber(formattedOrder.quote_price),
+      delivery_person_id: formattedOrder.delivery_person_id?.value,
+      invoice_person_id: formattedOrder.invoice_person_id?.value,
+      queries_person_id: formattedOrder.queries_person_id?.value,
+      customer_id: formattedOrder.customer_id,
+      supplier_id: formattedOrder.supplier_id?.value,
+      secondary_cost_center_id: formattedOrder.secondary_cost_center_id?.value,
+      fixed_discount: formattedOrder.fixed_discount,
+      percentage_discount: formattedOrder.percentage_discount,
+      cashback_percentage: formattedOrder.cash_discount, // Map cash_discount to cashback_percentage
+      cashback_days: formattedOrder.cashback_days,
+      flag_decision_cheapest_offer: formattedOrder.flag_decision_cheapest_offer,
+      flag_decision_most_economical_offer:
+        formattedOrder.flag_decision_most_economical_offer,
+      flag_decision_sole_supplier: formattedOrder.flag_decision_sole_supplier,
+      flag_decision_contract_partner:
+        formattedOrder.flag_decision_contract_partner,
+      flag_decision_preferred_supplier_list:
+        formattedOrder.flag_decision_preferred_supplier_list,
+      flag_decision_other_reasons: formattedOrder.flag_decision_other_reasons,
+      decision_other_reasons_description:
+        formattedOrder.decision_other_reasons_description,
+      dfg_key: formattedOrder.dfg_key,
+      delivery_address_id: formattedOrder.delivery_address_id,
+      invoice_address_id: formattedOrder.invoice_address_id,
+    };
+  }
+
+  /**
+   * Parses a German formatted price string (e.g. "1.234,56") to a number
+   * @param price The German formatted price string
+   * @returns The parsed number or undefined if parsing fails
+   */
+  private parseGermanPriceToNumber(price?: string): number | undefined {
+    if (!price) return undefined;
+
+    // Remove thousand separators (.) and replace decimal comma with dot
+    const normalized = price.replace(/\./g, '').replace(',', '.');
+    const num = parseFloat(normalized);
+
+    return isNaN(num) ? undefined : num;
   }
 }

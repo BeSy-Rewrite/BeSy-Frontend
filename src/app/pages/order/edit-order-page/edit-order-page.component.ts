@@ -168,7 +168,7 @@ export class EditOrderPageComponent implements OnInit {
   editOrderId!: number;
   editOrderDTO!: OrderResponseDTO;
   formattedOrderDTO!: OrderResponseDTOFormatted;
-  postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
+  patchOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 
   // Item variables
   items = signal<ItemTableModel[]>([]);
@@ -693,17 +693,17 @@ export class EditOrderPageComponent implements OnInit {
   async locallySaveAddressFormInput() {
     // Set recipient and invoice person
     if (this.selectedRecipientPerson) {
-      this.postOrderDTO.delivery_person_id = this.selectedRecipientPerson.id;
+      this.patchOrderDTO.delivery_person_id = this.selectedRecipientPerson.id;
     }
 
     // Is the invoice address and person the same as the recipient address?
     if (this.sameAsRecipient) {
-      this.postOrderDTO.invoice_person_id =
-        this.postOrderDTO.delivery_person_id;
+      this.patchOrderDTO.invoice_person_id =
+        this.patchOrderDTO.delivery_person_id;
     }
     // If not, check if an invoice person has been selected
     else if (this.selectedInvoicePerson) {
-      this.postOrderDTO.invoice_person_id = this.selectedInvoicePerson.id;
+      this.patchOrderDTO.invoice_person_id = this.selectedInvoicePerson.id;
     } else {
       this._notifications.open(
         'Bitte wählen Sie eine Person für die Rechnungsadresse aus (Feld: Rechnungsadresse).',
@@ -725,7 +725,7 @@ export class EditOrderPageComponent implements OnInit {
         try {
           const createdAddress: AddressResponseDTO =
             await this.personsWrapperService.createPersonAddress(newAddress);
-          this.postOrderDTO.delivery_address_id = createdAddress.id;
+          this.patchOrderDTO.delivery_address_id = createdAddress.id;
           this._notifications.open(
             'Neue Lieferadresse wurde gespeichert.',
             undefined,
@@ -748,7 +748,7 @@ export class EditOrderPageComponent implements OnInit {
     } else if (this.recipientAddressOption === 'preferred') {
       // Use the stored selectedRecipientPerson to assign the preferred address to the delivery_address_id-field
       if (this.selectedRecipientPerson?.address_id) {
-        this.postOrderDTO.delivery_address_id =
+        this.patchOrderDTO.delivery_address_id =
           this.selectedRecipientPerson.address_id;
       } else {
         this._notifications.open(
@@ -761,7 +761,7 @@ export class EditOrderPageComponent implements OnInit {
     } else {
       // Use the address id stored in selectedRecipientAddressId to assign to the postOrderDTO
       if (this.selectedRecipientAddressIdFromTable) {
-        this.postOrderDTO.delivery_address_id =
+        this.patchOrderDTO.delivery_address_id =
           this.selectedRecipientAddressIdFromTable;
       } else {
         this._notifications.open(
@@ -775,8 +775,8 @@ export class EditOrderPageComponent implements OnInit {
 
     // Invoice address
     if (this.sameAsRecipient) {
-      this.postOrderDTO.invoice_address_id =
-        this.postOrderDTO.delivery_address_id;
+      this.patchOrderDTO.invoice_address_id =
+        this.patchOrderDTO.delivery_address_id;
     } else {
       if (this.invoiceAddressOption === 'new') {
         this.invoiceAddressFormGroup.markAllAsTouched();
@@ -787,7 +787,7 @@ export class EditOrderPageComponent implements OnInit {
           try {
             const createdAddress: AddressResponseDTO =
               await this.personsWrapperService.createPersonAddress(newAddress);
-            this.postOrderDTO.invoice_address_id = createdAddress.id;
+            this.patchOrderDTO.invoice_address_id = createdAddress.id;
           } catch (error) {
             this._notifications.open(
               'Fehler beim Speichern der Adresse. Bitte versuchen sie es später erneut.',
@@ -804,7 +804,7 @@ export class EditOrderPageComponent implements OnInit {
         }
       } else if (this.invoiceAddressOption === 'preferred') {
         if (this.selectedInvoicePerson?.address_id) {
-          this.postOrderDTO.invoice_address_id =
+          this.patchOrderDTO.invoice_address_id =
             this.selectedInvoicePerson.address_id;
         } else {
           this._notifications.open(
@@ -816,7 +816,7 @@ export class EditOrderPageComponent implements OnInit {
         }
       } else {
         if (this.selectedInvoiceAddressIdFromTable) {
-          this.postOrderDTO.invoice_address_id =
+          this.patchOrderDTO.invoice_address_id =
             this.selectedInvoiceAddressIdFromTable;
         } else {
           this._notifications.open(
@@ -830,7 +830,7 @@ export class EditOrderPageComponent implements OnInit {
     }
     console.log('Recipient Address ID:', this.recipientAddressId);
     console.log('Invoice Address ID:', this.invoiceAddressId);
-    console.log('PostOrderDTO:', this.postOrderDTO);
+    console.log('PostOrderDTO:', this.patchOrderDTO);
   }
 
   /** Save the approval form inputs locally in the postApprovalDTO object
@@ -1050,11 +1050,11 @@ export class EditOrderPageComponent implements OnInit {
       // If the field is cleared (null or empty), reset the selectedQueryPersonId and postOrderDTO.queries_person_id
       if (!field.value) {
         this.selectedQueryPersonId = undefined;
-        this.postOrderDTO.queries_person_id = undefined;
+        this.patchOrderDTO.queries_person_id = undefined;
         return;
       }
       this.selectedQueryPersonId = field.value;
-      this.postOrderDTO.queries_person_id = field.value.value;
+      this.patchOrderDTO.queries_person_id = field.value.value;
     }
   }
 
@@ -1072,8 +1072,8 @@ export class EditOrderPageComponent implements OnInit {
 
     const currencyValue =
       (this.mainOfferFormGroup.value as any)?.currency_short?.value ?? null;
-    this.postOrderDTO = {
-      ...this.postOrderDTO,
+    this.patchOrderDTO = {
+      ...this.patchOrderDTO,
       ...this.generalFormGroup.value,
       ...this.supplierDecisionReasonFormGroup.value,
       ...this.approvalFormGroup.value,
@@ -1081,15 +1081,15 @@ export class EditOrderPageComponent implements OnInit {
       currency_short: currencyValue,
     };
 
-    this.postOrderDTO = this.patchDtoWithAutocompleteValue(
-      this.postOrderDTO,
+    this.patchOrderDTO = this.patchDtoWithAutocompleteValue(
+      this.patchOrderDTO,
       this.queriesPersonFormGroup,
       'queries_person_id'
     );
 
-    console.log('PostOrderDTO vor Erstellung:', this.postOrderDTO);
+    console.log('PostOrderDTO vor Erstellung:', this.patchOrderDTO);
     const createdOrder = await this.orderWrapperService.createOrder(
-      this.postOrderDTO
+      this.patchOrderDTO
     );
     if (createdOrder) {
       this.orderWrapperService.getOrderById(createdOrder.id!);

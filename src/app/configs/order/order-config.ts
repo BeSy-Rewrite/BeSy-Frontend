@@ -117,7 +117,7 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
     {
       name: 'quote_price',
       label: 'Preis des Hauptangebots',
-      type: 'number',
+      type: 'text',
       required: false,
       editable: true,
       //validators: [Validators.pattern('^\\d+,\\d{2}$')]
