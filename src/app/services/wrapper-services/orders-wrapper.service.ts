@@ -6,12 +6,14 @@ import { CostCenterWrapperService } from './cost-centers-wrapper.service';
 import { Injectable } from '@angular/core';
 import {
   CurrencyResponseDTO,
+  ItemRequestDTO,
   ItemResponseDTO,
   OrderRequestDTO,
   OrderResponseDTO,
   OrdersService,
   OrderStatus,
   PagedOrderResponseDTO,
+  QuotationRequestDTO,
   QuotationResponseDTO,
 } from '../../api';
 import { CurrencyWithDisplayName } from './currencies-wrapper.service';
@@ -22,6 +24,10 @@ import {
   SuppliersWrapperService,
 } from './suppliers-wrapper.service';
 import { Form } from '@angular/forms';
+import {
+  ItemTableModel,
+  QuotationTableModel,
+} from '../../pages/order/edit-order-page/edit-order-page.component';
 
 export interface OrderResponseDTOFormatted {
   id?: number;
@@ -184,7 +190,9 @@ export class OrdersWrapperService {
     return await OrdersService.exportOrderToFormula(orderId);
   }
 
-  async getOrderByIDInFormFormat(orderId: number): Promise<OrderResponseDTOFormatted> {
+  async getOrderByIDInFormFormat(
+    orderId: number
+  ): Promise<OrderResponseDTOFormatted> {
     const orderData = await OrdersService.getOrderById(orderId);
     return this.formatOrderData(orderData);
   }
@@ -192,8 +200,7 @@ export class OrdersWrapperService {
   private async formatOrderData(
     order: OrderResponseDTO
   ): Promise<OrderResponseDTOFormatted> {
-    let formatedPrimaryCostCenter: CostCenterFormatted | undefined =
-      undefined;
+    let formatedPrimaryCostCenter: CostCenterFormatted | undefined = undefined;
     let formatedSecondaryCostCenter: CostCenterFormatted | undefined =
       undefined;
     let formatedDeliveryPerson: FormattedPerson | undefined = undefined;
@@ -209,7 +216,7 @@ export class OrdersWrapperService {
       formatedInvoicePerson,
       formatedQueriesPerson,
       formatedSupplier,
-      formatedCurrency
+      formatedCurrency,
     ] = await Promise.all([
       order.primary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
@@ -247,9 +254,7 @@ export class OrdersWrapperService {
           )
         : Promise.resolve(undefined),
       order.currency
-        ? this.currenciesWrapperService.formatCurrencyWithSymbol(
-            order.currency
-          )
+        ? this.currenciesWrapperService.formatCurrencyWithSymbol(order.currency)
         : Promise.resolve(undefined),
     ]);
 
@@ -266,5 +271,90 @@ export class OrdersWrapperService {
       queries_person_id: formatedQueriesPerson,
       supplier_id: formatedSupplier,
     };
+  }
+
+  mapItemResponseToTableModel(items: ItemResponseDTO[]): ItemTableModel[] {
+    return items.map((item) => ({
+      item_id: item.item_id,
+      name: item.name ?? '',
+      price_per_unit: item.price_per_unit ?? 0,
+      quantity: item.quantity ?? 0,
+      quantity_unit: item.quantity_unit,
+      article_id: item.article_id,
+      comment: item.comment,
+      vat_value: item.vat?.value?.toString(),
+      preferred_list: item.preferred_list,
+      preferred_list_number: item.preferred_list_number,
+      vat_type: item.vat_type ?? 'netto',
+    }));
+  }
+
+  mapItemRequestToTableModel(item: ItemRequestDTO): ItemTableModel {
+    return {
+      name: item.name,
+      price_per_unit: item.price_per_unit,
+      quantity: item.quantity,
+      quantity_unit: item.quantity_unit,
+      article_id: item.article_id,
+      comment: item.comment,
+      vat_value: item.vat_value,
+      preferred_list: item.preferred_list,
+      preferred_list_number: item.preferred_list_number,
+      vat_type: item.vat_type,
+    };
+  }
+
+  mapQuotationResponseToTableModel(
+    quotations: QuotationResponseDTO[]
+  ): QuotationTableModel[] {
+    return quotations.map((q) => ({
+      index: q.index ?? 0,
+      quote_date: q.quote_date ?? '',
+      price: this.formatPriceToGerman(q.price ?? 0),
+      company_name: q.company_name ?? '',
+      company_city: q.company_city ?? '',
+    }));
+  }
+
+  mapQuotationRequestToTableModel(
+    quotations: QuotationRequestDTO[]
+  ): QuotationTableModel[] {
+    return quotations.map((q) => ({
+      quote_date: q.quote_date,
+      price: this.formatPriceToGerman(q.price),
+      company_name: q.company_name,
+      company_city: q.company_city,
+    }));
+  }
+
+  /**
+   * Transforms a number or string into a German formatted price string, e.g. "1234.5" → "1.234,50"
+   * Supports both dot and comma as decimal separators in the input.
+   * @param value The number or string to format.
+   * @returns The formatted price string in German format.
+   */
+  formatPriceToGerman(value: string | number): string {
+    if (value === null || value === undefined) return '0,00';
+
+    // Als String konvertieren und Leerzeichen entfernen
+    let str = String(value).trim();
+
+    // Falls beides vorkommt (Punkt und Komma), nur das letzte als Dezimaltrennzeichen interpretieren
+    const lastComma = str.lastIndexOf(',');
+    const lastDot = str.lastIndexOf('.');
+    if (lastComma > lastDot) {
+      str = str.replace(/\./g, '').replace(',', '.'); // deutsches Format → normalisieren
+    } else {
+      str = str.replace(/,/g, ''); // falls nur Punkt-Format vorhanden ist
+    }
+
+    const num = parseFloat(str);
+    if (isNaN(num)) return '0,00';
+
+    // Deutsch formatieren
+    return num.toLocaleString('de-DE', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   }
 }

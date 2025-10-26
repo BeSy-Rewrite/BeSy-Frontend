@@ -16,6 +16,7 @@ import {
   signal,
   computed,
   WritableSignal,
+  effect,
 } from '@angular/core';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import { MatDivider } from '@angular/material/divider';
@@ -82,9 +83,43 @@ import {
   CurrencyWithDisplayName,
 } from '../../../services/wrapper-services/currencies-wrapper.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import { OrderResponseDTOFormatted, OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import {
+  OrderResponseDTOFormatted,
+  OrdersWrapperService,
+} from '../../../services/wrapper-services/orders-wrapper.service';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
+
+/**
+ * Model for the items table used in the order edit/create page.
+ * Intermediate model between ItemRequestDTO and ItemResponseDTO
+ */
+export interface ItemTableModel {
+  item_id?: number;
+  name: string;
+  price_per_unit: number;
+  quantity: number;
+  quantity_unit?: string;
+  article_id?: string;
+  comment?: string;
+  vat_value?: string; // aus RequestDTO
+  vat?: VatResponseDTO; // aus ResponseDTO
+  preferred_list?: 'RZ' | 'TA';
+  preferred_list_number?: string;
+  vat_type: 'netto' | 'brutto';
+}
+
+/**
+ * Model for the quotations table used in the order edit/create page
+ */
+export interface QuotationTableModel {
+  index?: number;
+  quote_date: string;
+  price: string;
+  company_name: string;
+  company_city: string;
+}
+
 @Component({
   selector: 'app-create-order-page',
   imports: [
@@ -121,7 +156,14 @@ export class EditOrderPageComponent implements OnInit {
     private vatWrapperService: VatWrapperService,
     private costCenterWrapperService: CostCenterWrapperService,
     private route: ActivatedRoute
-  ) {}
+  ) {
+    effect(() => {
+      this.itemTableDataSource.data = this.items();
+    });
+    effect(() => {
+      this.quotationTableDataSource.data = this.quotations();
+    });
+  }
 
   editOrderId!: number;
   editOrderDTO!: OrderResponseDTO;
@@ -129,11 +171,11 @@ export class EditOrderPageComponent implements OnInit {
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 
   // Item variables
-  items = signal<ItemRequestDTO[]>([]);
-  itemTableDataSource = new MatTableDataSource<ItemRequestDTO>([]);
+  items = signal<ItemTableModel[]>([]);
+  private deletedItems: number[] = []; // Store IDs of deleted items for API call
+  itemTableDataSource = new MatTableDataSource<ItemTableModel>([]);
   orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
   orderItemFormGroup = new FormGroup({});
-
 
   vatOptions: VatResponseDTO[] = [];
   // Track the currently selected currency for formatting the total sum in the items table footer
@@ -161,9 +203,10 @@ export class EditOrderPageComponent implements OnInit {
     return `Gesamt: ${formatted}`;
   });
 
-  orderItemColumns: TableColumn<ItemRequestDTO>[] = [
+  orderItemColumns: TableColumn<ItemTableModel>[] = [
     { id: 'name', label: 'Artikelbezeichnung' },
     { id: 'quantity', label: 'Anzahl' },
+    { id: 'vat_type', label: 'MwSt. Typ' },
     { id: 'comment', label: 'Kommentar' },
     {
       id: 'price_per_unit',
@@ -232,12 +275,10 @@ export class EditOrderPageComponent implements OnInit {
   // Quotation variables
   quotationFormConfig = ORDER_QUOTATION_FORM_CONFIG;
   quotationFormGroup = new FormGroup({});
-  existingQuotations: QuotationResponseDTO[] = [];
-  newQuotations: QuotationRequestDTO[] = [];
-  quotationTableDataSource = new MatTableDataSource<QuotationRequestDTO>(
-    this.newQuotations
-  );
-  orderQuotationColumns: TableColumn<QuotationRequestDTO>[] = [
+  quotations = signal<QuotationTableModel[]>([]);
+  deletedQuotations: number[] = []; // Store IDs of deleted quotations for API call
+  quotationTableDataSource = new MatTableDataSource<QuotationTableModel>([]);
+  orderQuotationColumns: TableColumn<QuotationTableModel>[] = [
     { id: 'index', label: 'Nummer' },
     { id: 'price', label: 'Preis' },
     { id: 'company_name', label: 'Anbieter' },
@@ -249,7 +290,7 @@ export class EditOrderPageComponent implements OnInit {
       label: 'Delete',
       buttonType: 'filled',
       color: ButtonColor.WARN,
-      action: (row: QuotationRequestDTO) => this.deleteQuotation(row),
+      action: (row: QuotationTableModel) => this.deleteQuotation(row),
     },
   ];
 
@@ -365,9 +406,12 @@ export class EditOrderPageComponent implements OnInit {
    * Deletes an item from the locally stored items list and updates the table data source
    * @param item The item to be deleted from the items list
    */
-  deleteItem(item: ItemRequestDTO) {
+  deleteItem(item: ItemTableModel) {
+    // If the item has an item_id, it means it exists in the backend and should be deleted there as well
+    if (item.item_id) {
+      this.deletedItems.push(item.item_id);
+    }
     this.items.update((curr) => curr.filter((i) => i !== item));
-    this.itemTableDataSource.data = this.items(); // Aktualisiere die Datenquelle der Tabelle
   }
 
   /**
@@ -525,8 +569,9 @@ export class EditOrderPageComponent implements OnInit {
    */
   onAddQuotation() {
     if (this.quotationFormGroup.valid) {
-      const newQuotation = this.quotationFormGroup.value as QuotationRequestDTO;
-      this.newQuotations.push(newQuotation);
+      const newQuotation = this.quotationFormGroup.value as QuotationTableModel;
+      newQuotation.price = this.orderWrapperService.formatPriceToGerman(newQuotation.price);
+      this.quotations.update((curr) => [...curr, newQuotation]);
       this.quotationFormGroup.reset(); // Reset the form
     } else {
       this.quotationFormGroup.markAllAsTouched(); // Mark all fields as touched to show validation errors
@@ -537,9 +582,12 @@ export class EditOrderPageComponent implements OnInit {
    * Remove a quotation from the locally stored quotations list and update the table data source
    * @param quotation The quotation to be deleted
    */
-  deleteQuotation(quotation: QuotationRequestDTO) {
-    this.newQuotations = this.newQuotations.filter((q) => q !== quotation);
-    this.quotationTableDataSource.data = this.newQuotations; // Update the table data source
+  deleteQuotation(quotation: QuotationTableModel) {
+    // If the quotation has an id, it means it exists in the backend and should be deleted there as well
+    if (quotation.index !== undefined) {
+      this.deletedQuotations.push(quotation.index);
+    }
+    this.quotations.update((curr) => curr.filter((q) => q !== quotation));
   }
 
   /**
@@ -1060,24 +1108,35 @@ export class EditOrderPageComponent implements OnInit {
   private async loadAllOrderData() {
     if (!this.editOrderDTO) return;
 
-    [this.formattedOrderDTO, this.existingQuotations] = await Promise.all([
-      this.orderWrapperService.getOrderByIDInFormFormat(
-        this.editOrderDTO.id!
-      ),
+    const [formattedOrder, mappedItems, quotations] = await Promise.all([
+      this.orderWrapperService.getOrderByIDInFormFormat(this.editOrderDTO.id!),
 
-      this.orderWrapperService.getOrderQuotations(
-        this.editOrderDTO.id!
-      ),
+      this.orderWrapperService
+        .getOrderItems(this.editOrderDTO.id!)
+        .then((responseItems) =>
+          this.orderWrapperService.mapItemResponseToTableModel(responseItems)
+        ),
+
+      this.orderWrapperService
+        .getOrderQuotations(this.editOrderDTO.id!)
+        .then((responseQuotations) =>
+          this.orderWrapperService.mapQuotationResponseToTableModel(
+            responseQuotations
+          )
+        ),
     ]);
+
+    this.quotations.set(quotations);
+    this.formattedOrderDTO = formattedOrder;
+    this.items.set(mappedItems);
+
     this.formatOrderForFormInput();
   }
 
   private formatOrderForFormInput() {
     this.generalFormGroup.patchValue(this.formattedOrderDTO);
     this.mainOfferFormGroup.patchValue(this.formattedOrderDTO);
-    this.supplierDecisionReasonFormGroup.patchValue(
-      this.formattedOrderDTO
-    );
+    this.supplierDecisionReasonFormGroup.patchValue(this.formattedOrderDTO);
     this.patchConfigAutocompleteFieldsWithOrderData(
       'queries_person_id',
       this.formattedOrderDTO.queries_person_id,
@@ -1102,7 +1161,7 @@ export class EditOrderPageComponent implements OnInit {
       { current: this.mainOfferFormConfig },
       this.mainOfferConfigRefreshTrigger
     );
-    if(this.formattedOrderDTO.currency) {
+    if (this.formattedOrderDTO.currency) {
       this.patchConfigAutocompleteFieldsWithOrderData(
         'currency_short',
         this.formattedOrderDTO.currency,
@@ -1147,5 +1206,15 @@ export class EditOrderPageComponent implements OnInit {
       ...dto,
       [fieldName]: fieldValue ?? null,
     };
+  }
+
+  /**
+   * Revert all changes made to the order and reset the forms to its default state
+   *! ToDO: Implement the reset functionality
+   */
+  private onResetToDefault() {
+    // Empty items and quotations marked as to be deleted
+    this.deletedItems = [];
+    this.deletedQuotations = [];
   }
 }

@@ -27,6 +27,7 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
         { label: 'Brutto', value: 'brutto' },
       ],
       defaultValue: 'brutto',
+      tooltip: 'Geben Sie an, ob der Stückpreis als Netto- oder Bruttopreis verstanden werden soll.',
     },
     {
       name: 'quantity',

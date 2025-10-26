@@ -340,7 +340,7 @@ export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
       required: true,
       editable: false,
       validators: [Validators.maxLength(100)],
-      tooltip: 'Name der Bestellung, unter diesem Namen wird die Bestellung in der Übersicht angezeigt.'
+      tooltip: 'Name der Bestellung, unter diesem Namen wird die Bestellung in der Übersicht angezeigt.',
     },
     {
       name: 'booking_year',

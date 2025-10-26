@@ -27,12 +27,14 @@
         <app-form-component
           [config]="generalFormConfig"
           [formGroup]="generalFormGroup"
+          [editMode]="true"
         ></app-form-component>
         <div class="cost-center-container">
           <app-form-component
             [config]="primaryCostCenterFormConfig"
             [formGroup]="primaryCostCenterFormGroup"
             [refreshTrigger]="primaryCostCenterConfigRefreshTrigger()"
+            [editMode]="true"
           ></app-form-component>
 
           <app-form-component
