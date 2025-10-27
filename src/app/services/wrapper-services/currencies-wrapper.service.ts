@@ -6,6 +6,11 @@ export interface CurrencyWithDisplayName extends CurrencyResponseDTO {
   displayName: string; // field combining name with the currency symbol, e.g. "Euro (€)"
 }
 
+export interface FormattedCurrency {
+  label: string;
+  value: string
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -99,5 +104,16 @@ export class CurrenciesWrapperService {
       symbol,
       displayName: `${currency.name} (${symbol})`,
     };
+  }
+
+  /**
+   * Format currencies for autocomplete components.
+   */
+  formatCurrencyForAutocomplete(currency: CurrencyResponseDTO): FormattedCurrency {
+    const formatted = this.formatCurrencyWithSymbol(currency);
+    return {
+      label: formatted.displayName,
+      value: formatted.code ?? '',
+    }
   }
 }

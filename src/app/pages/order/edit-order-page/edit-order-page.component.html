@@ -48,16 +48,15 @@
             [config]="queriesPersonFormConfig"
             [formGroup]="queriesPersonFormGroup"
             [refreshTrigger]="queriesPersonConfigRefreshTrigger()"
-            (valueChanged)="onQueriesPersonFormGroupChanged($event)"
           ></app-form-component>
         </div>
         <button
           mat-raised-button
           class="w-full"
           color="primary"
-          (click)="createOrder()"
+          (click)="patchOrderFromForm('All')"
         >
-          Bestellung anlegen
+          Ganze Bestellung speichern
         </button>
       </div>
     </mat-tab>
@@ -296,7 +295,7 @@
             mat-raised-button
             class="mb-4 mt-4 w-full"
             color="primary"
-            (click)="locallySaveAddressFormInput()"
+            (click)="patchOrderFromForm('Address')"
           >
             Adressdaten speichern
           </button>

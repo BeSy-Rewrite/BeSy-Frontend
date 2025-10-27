@@ -429,7 +429,7 @@ export class OrdersService {
     ): CancelablePromise<ApprovalResponseDTO> {
         return __request(OpenAPI, {
             method: 'PATCH',
-            url: '/orders/{order-id}/approval',
+            url: '/orders/{order-id}/approvals',
             path: {
                 'order-id': orderId,
             },

@@ -6,7 +6,6 @@ import { CostCenterWrapperService } from './cost-centers-wrapper.service';
 import { Injectable } from '@angular/core';
 import {
   ApprovalResponseDTO,
-  CurrencyResponseDTO,
   ItemRequestDTO,
   ItemResponseDTO,
   OrderRequestDTO,
@@ -18,14 +17,13 @@ import {
   QuotationRequestDTO,
   QuotationResponseDTO,
 } from '../../api';
-import { CurrencyWithDisplayName } from './currencies-wrapper.service';
+import { CurrencyWithDisplayName, FormattedCurrency } from './currencies-wrapper.service';
 import { CurrenciesWrapperService } from './currencies-wrapper.service';
 import { CostCenterFormatted } from './cost-centers-wrapper.service';
 import {
   SupplierFormatted,
   SuppliersWrapperService,
 } from './suppliers-wrapper.service';
-import { Form } from '@angular/forms';
 import {
   ItemTableModel,
   QuotationTableModel,
@@ -42,8 +40,9 @@ export interface OrderResponseDTOFormatted {
   legacy_alias?: string;
   owner_id?: number;
   content_description?: string; // Beschreibung der Bestellung
-  status?: OrderResponseDTO.status;
-  currency?: CurrencyWithDisplayName | undefined;
+  status?: OrderStatus;
+  currency?: FormattedCurrency | undefined;
+  currency_short?: FormattedCurrency | undefined;
   comment?: string;
   comment_for_supplier?: string;
   quote_number?: string; // Angebotsnummer
@@ -247,7 +246,7 @@ export class OrdersWrapperService {
     let formatedDeliveryPerson: FormattedPerson | undefined = undefined;
     let formatedInvoicePerson: FormattedPerson | undefined = undefined;
     let formatedQueriesPerson: FormattedPerson | undefined = undefined;
-    let formatedCurrency: CurrencyWithDisplayName | undefined = undefined;
+    let formatedCurrency: FormattedCurrency | undefined = undefined;
     let formatedSupplier: SupplierFormatted | undefined = undefined;
 
     [
@@ -295,7 +294,7 @@ export class OrdersWrapperService {
           )
         : Promise.resolve(undefined),
       order.currency
-        ? this.currenciesWrapperService.formatCurrencyWithSymbol(order.currency)
+        ? this.currenciesWrapperService.formatCurrencyForAutocomplete(order.currency)
         : Promise.resolve(undefined),
     ]);
 
@@ -346,6 +345,28 @@ export class OrdersWrapperService {
     };
   }
 
+  mapItemTableModelToItemRequestDTO(item: ItemTableModel): ItemRequestDTO {
+    // Ensure vat_value is always a string (use vat_value, fallback to vat?.value, fallback '0')
+    const vatValue =
+      item.vat_value ??
+      (item.vat && item.vat.value !== undefined ? String(item.vat.value) : '0');
+
+    return {
+      name: item.name,
+      price_per_unit: item.price_per_unit ?? 0,
+      quantity: item.quantity ?? 0,
+      quantity_unit: item.quantity_unit,
+      article_id: item.article_id,
+      comment: item.comment,
+      vat_value: vatValue,
+      // preferred_list is optional in both models; cast to match generated enum type
+      preferred_list: item.preferred_list as ItemRequestDTO.preferred_list | undefined,
+      preferred_list_number: item.preferred_list_number,
+      // cast vat_type to the generated enum type ('netto' | 'brutto')
+      vat_type: item.vat_type as ItemRequestDTO.vat_type,
+    };
+  }
+
   mapQuotationResponseToTableModel(
     quotations: QuotationResponseDTO[]
   ): QuotationTableModel[] {
@@ -367,6 +388,17 @@ export class OrdersWrapperService {
       company_name: q.company_name,
       company_city: q.company_city,
     }));
+  }
+
+  mapQuotationTableModelToQuotationRequestDTO(
+    quotation: QuotationTableModel
+  ): QuotationRequestDTO {
+    return {
+      quote_date: quotation.quote_date,
+      price: this.parseGermanPriceToNumber(quotation.price) ?? 0,
+      company_name: quotation.company_name,
+      company_city: quotation.company_city,
+    };
   }
 
   /**
@@ -414,7 +446,7 @@ export class OrdersWrapperService {
       legacy_alias: formattedOrder.legacy_alias,
       owner_id: formattedOrder.owner_id,
       content_description: formattedOrder.content_description ?? '',
-      currency_short: formattedOrder.currency?.code,
+      currency_short: formattedOrder.currency?.value,
       comment: formattedOrder.comment,
       comment_for_supplier: formattedOrder.comment_for_supplier,
       quote_number: formattedOrder.quote_number,
@@ -462,4 +494,79 @@ export class OrdersWrapperService {
 
     return isNaN(num) ? undefined : num;
   }
+
+  /**
+   * Compares two order objects and returns the fields that have changed
+   * @param original The original order object
+   * @param modified The modified order object
+   * @returns An object containing the changed fields
+   */
+  compareOrdersAndReturnChangedFields(
+  original: OrderResponseDTOFormatted,
+  modified: OrderResponseDTOFormatted
+): Partial<OrderRequestDTO> {
+  const changedFields: Partial<OrderRequestDTO> = {};
+
+  // --- Currency comparison ---
+  const origCurrency = original.currency;
+  const modCurrencyShort = modified.currency_short;
+
+  // Compare currency in original and currency_short in modified, because the modified value is written in currency_short field
+  if (
+    origCurrency?.value !== modCurrencyShort?.value ||
+    origCurrency?.label !== modCurrencyShort?.label
+  ) {
+    console.log('Currency differs:');
+    console.log('original:', origCurrency);
+    console.log('modified:', modCurrencyShort);
+    changedFields.currency_short = modCurrencyShort?.value;
+  }
+
+  // --- Iterate through all fields except currency & currency_short ---
+  for (const key in modified) {
+    if (!Object.prototype.hasOwnProperty.call(modified, key)) continue;
+    if (key === 'currency' || key === 'currency_short') continue; // Skip currency fields as handled above
+
+    const originalValue = (original as any)[key];
+    const modifiedValue = (modified as any)[key];
+
+    if (
+      typeof originalValue === 'object' &&
+      originalValue !== null &&
+      typeof modifiedValue === 'object' &&
+      modifiedValue !== null
+    ) {
+      // prefer comparing .value when available
+      if ('value' in originalValue || 'value' in modifiedValue) {
+        const orig = (originalValue as any).value;
+        const mod = (modifiedValue as any).value;
+        if (orig !== mod) {
+          (changedFields as any)[key] = mod;
+        }
+      } else {
+        // fallback to deep compare
+        if (JSON.stringify(originalValue) !== JSON.stringify(modifiedValue)) {
+          (changedFields as any)[key] = modifiedValue;
+        }
+      }
+    } else if (
+      typeof modifiedValue === 'object' &&
+      modifiedValue !== null &&
+      'value' in modifiedValue
+    ) {
+      const mod = (modifiedValue as any).value;
+      const orig = originalValue;
+      if (orig !== mod) {
+        (changedFields as any)[key] = mod;
+      }
+    } else {
+      if (originalValue !== modifiedValue) {
+        (changedFields as any)[key] = modifiedValue;
+      }
+    }
+  }
+
+  return changedFields;
+}
+
 }

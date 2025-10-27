@@ -128,8 +128,6 @@ export class FormComponent implements OnInit {
   }
 
   private filterOptions(field: FormField, value: any) {
-    console.log(`Filtering options for field ${field.name} with value`, value);
-
     let filterValue = '';
 
     if (typeof value === 'string') {

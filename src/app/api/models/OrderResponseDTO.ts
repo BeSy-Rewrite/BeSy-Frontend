@@ -5,7 +5,7 @@
 import type { CurrencyResponseDTO } from './CurrencyResponseDTO';
 import { OrderStatus } from './OrderStatus';
 export type OrderResponseDTO = {
-    id?: number;
+    id: number;
     primary_cost_center_id?: string;
     booking_year?: string;
     auto_index?: number;

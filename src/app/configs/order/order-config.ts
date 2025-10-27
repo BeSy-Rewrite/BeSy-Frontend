@@ -116,11 +116,12 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
     },
     {
       name: 'quote_price',
-      label: 'Preis des Hauptangebots',
+      label: 'Preis des Hauptangebots (netto)',
       type: 'text',
       required: false,
       editable: true,
       //validators: [Validators.pattern('^\\d+,\\d{2}$')]
+      tooltip: 'Der Preis des Hauptangebots ist der Gesamtpreis (netto) des Angebots, welches für die Bestellung zugrunde gelegt wird.'
     },
     {
       name: 'currency_short',

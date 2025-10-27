@@ -49,6 +49,7 @@ import {
   CustomerIdResponseDTO,
   OrderResponseDTO,
   ApprovalResponseDTO,
+  OrderStatus,
 } from '../../../api';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
@@ -400,7 +401,7 @@ export class EditOrderPageComponent implements OnInit {
     if (this.orderItemFormGroup.valid) {
       const newItem = this.orderItemFormGroup.value as ItemRequestDTO;
       console.log('Neuer Artikel:', newItem);
-      this.items.update((curr) => [...curr, newItem]);
+      this.items.update((curr) => [...curr, newItem as ItemTableModel]);
       this.itemTableDataSource.data = this.items(); // Update the table data source
       this.orderItemFormGroup.reset(); // Formular zurücksetzen
     } else {
@@ -715,15 +716,12 @@ export class EditOrderPageComponent implements OnInit {
    * Save the address form inputs locally in the postOrderDTO object
    * @returns A promise that resolves when the operation is complete
    */
-  async locallySaveAddressFormInput() {
+  async patchAddressOrder(): Promise<boolean> {
     // Set recipient and invoice person
     if (this.selectedDeliveryPerson) {
       // retrieve selected recipient person from autocomplete input from field delivery_person_id
-      this.patchDtoWithAutocompleteValue(
-        this.patchOrderDTO,
-        this.deliveryPersonFormGroup,
-        'delivery_person_id'
-      );
+      this.patchOrderDTO.delivery_person_id =
+        this.deliveryPersonFormGroup.get('delivery_person_id')!.value;
     }
 
     // Is the invoice address and person the same as the recipient address?
@@ -733,21 +731,22 @@ export class EditOrderPageComponent implements OnInit {
     }
     // If not, check if an invoice person has been selected
     else if (this.selectedInvoicePerson) {
-      this.patchDtoWithAutocompleteValue(
-        this.patchOrderDTO,
-        this.invoicePersonFormGroup,
-        'invoice_person_id'
-      );
+      this.patchOrderDTO.invoice_person_id =
+        this.invoicePersonFormGroup.get('invoice_person_id')!.value;
     } else {
       this._notifications.open(
         'Bitte wählen Sie eine Person für die Rechnungsadresse aus (Feld: Rechnungsadresse).',
         undefined,
         { duration: 3000 }
       );
-      return;
+      return false;
     }
 
     // Handle address saving based on the selected addressModes
+
+    // If the address options didn't change, return
+    if(this.deliveryAddressOption === 'existing' && this.sameAsRecipient) return true;
+    else if (this.deliveryAddressOption === 'existing' && this.invoiceAddressOption === 'existing') return true;
 
     // Recipient address
     if (this.deliveryAddressOption === 'new') {
@@ -790,7 +789,7 @@ export class EditOrderPageComponent implements OnInit {
           undefined,
           { duration: 3000 }
         );
-        return;
+        return false;
       }
     } else {
       // Use the address id stored in selectedRecipientAddressId to assign to the postOrderDTO
@@ -803,7 +802,7 @@ export class EditOrderPageComponent implements OnInit {
           undefined,
           { duration: 3000 }
         );
-        return;
+        return false;
       }
     }
 
@@ -846,7 +845,7 @@ export class EditOrderPageComponent implements OnInit {
             undefined,
             { duration: 3000 }
           );
-          return;
+          return false;
         }
       } else {
         if (this.selectedInvoiceAddressIdFromTable) {
@@ -858,10 +857,11 @@ export class EditOrderPageComponent implements OnInit {
             undefined,
             { duration: 3000 }
           );
-          return;
+          return false;
         }
       }
     }
+    return true;
   }
 
   /** Save the approval form inputs locally in the postApprovalDTO object
@@ -1042,66 +1042,6 @@ export class EditOrderPageComponent implements OnInit {
     }
   }
 
-  onQueriesPersonFormGroupChanged(field: { field: string; value: any }) {
-    if (field.field === 'queries_person_id') {
-      // If the field is cleared (null or empty), reset the selectedQueryPersonId and postOrderDTO.queries_person_id
-      if (!field.value) {
-        this.selectedQueryPersonId = undefined;
-        this.patchOrderDTO.queries_person_id = undefined;
-        return;
-      }
-      this.selectedQueryPersonId = field.value;
-      this.patchOrderDTO.queries_person_id = field.value.value;
-    }
-  }
-
-  async createOrder() {
-    /* // Implement the logic to create the order
-    this.generalFormGroup.markAllAsTouched();
-    if (!this.generalFormGroup.valid) {
-      this._notifications.open(
-        'Bitte überprüfen Sie die Eingaben im Formular. Alle Pflichtfelder müssen ausgefüllt sein.',
-        undefined,
-        { duration: 3000 }
-      );
-      return;
-    }
-
-    const currencyValue =
-      (this.mainOfferFormGroup.value as any)?.currency_short?.value ?? null;
-    this.patchOrderDTO = {
-      ...this.patchOrderDTO,
-      ...this.generalFormGroup.value,
-      ...this.supplierDecisionReasonFormGroup.value,
-      ...this.approvalFormGroup.value,
-      ...this.mainOfferFormGroup.value,
-      currency_short: currencyValue,
-    };
-
-    this.patchOrderDTO = this.patchDtoWithAutocompleteValue(
-      this.patchOrderDTO,
-      this.queriesPersonFormGroup,
-      'queries_person_id'
-    );
-
-    console.log('PostOrderDTO vor Erstellung:', this.patchOrderDTO);
-    const createdOrder = await this.orderWrapperService.createOrder(
-      this.patchOrderDTO
-    );
-    if (createdOrder) {
-      this.orderWrapperService.getOrderById(createdOrder.id!);
-      this._notifications.open('Bestellung wurde erstellt.', undefined, {
-        duration: 3000,
-      });
-      console.log('Erstellte Bestellung:', createdOrder);
-    } else
-      this._notifications.open(
-        'Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.',
-        undefined,
-        { duration: 3000 }
-      ); */
-  }
-
   /**
    * Loads all necessary order data, including formatted order details, items, and quotations.
    * Then formats the order data for form input.
@@ -1110,25 +1050,28 @@ export class EditOrderPageComponent implements OnInit {
   private async loadAllOrderData() {
     if (!this.editOrderDTO) return;
 
-    const [formattedOrder, mappedItems, quotations, approvals] = await Promise.all([
-      this.orderWrapperService.getOrderByIDInFormFormat(this.editOrderDTO.id!),
-
-      this.orderWrapperService
-        .getOrderItems(this.editOrderDTO.id!)
-        .then((responseItems) =>
-          this.orderWrapperService.mapItemResponseToTableModel(responseItems)
+    const [formattedOrder, mappedItems, quotations, approvals] =
+      await Promise.all([
+        this.orderWrapperService.getOrderByIDInFormFormat(
+          this.editOrderDTO.id!
         ),
 
-      this.orderWrapperService
-        .getOrderQuotations(this.editOrderDTO.id!)
-        .then((responseQuotations) =>
-          this.orderWrapperService.mapQuotationResponseToTableModel(
-            responseQuotations
-          )
-        ),
+        this.orderWrapperService
+          .getOrderItems(this.editOrderDTO.id!)
+          .then((responseItems) =>
+            this.orderWrapperService.mapItemResponseToTableModel(responseItems)
+          ),
 
-      this.orderWrapperService.getOrderApprovals(this.editOrderDTO.id!)
-    ]);
+        this.orderWrapperService
+          .getOrderQuotations(this.editOrderDTO.id!)
+          .then((responseQuotations) =>
+            this.orderWrapperService.mapQuotationResponseToTableModel(
+              responseQuotations
+            )
+          ),
+
+        this.orderWrapperService.getOrderApprovals(this.editOrderDTO.id!),
+      ]);
 
     this.quotations.set(quotations);
     this.formattedOrderDTO = formattedOrder;
@@ -1299,5 +1242,302 @@ export class EditOrderPageComponent implements OnInit {
       this.invoiceInfoText =
         'Dies ist die aktuell gespeicherte Rechnungsadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
     }
+  }
+
+  // ToDo!: Implement tab switching based on form name
+  switchToTab(formName: string) {}
+
+  /**
+   * Patches the order with the data from the form based on the form type.
+   *
+   * @param formType String indicating which part of the order to patch
+   */
+  async patchOrderFromForm(
+    formType:
+      | 'General'
+      | 'MainOffer'
+      | 'Items'
+      | 'Quotations'
+      | 'Address'
+      | 'Approvals'
+      | 'All'
+  ) {
+    this.patchOrderDTO = {};
+
+    const formOrder = [
+      'General',
+      'MainOffer',
+      'Items',
+      'Quotations',
+      'Address',
+      'Approvals',
+    ] as const;
+
+    const formsToPatch = formType === 'All' ? formOrder : [formType];
+
+    for (const form of formsToPatch) {
+      const success = await this.executeFormPatch(form);
+
+      if (!success) {
+        // Fehlerhafte Form gefunden
+        this.switchToTab(form); // Tabs anhand Formname wechseln
+        return; // abbrechen, kein Patch-Request
+      }
+    }
+
+    // Falls alles valide ist, sende Patch
+    await this.submitOrderPatch();
+  }
+
+  private async executeFormPatch(
+    formType: Exclude<Parameters<typeof this.patchOrderFromForm>[0], 'All'>
+  ): Promise<boolean> {
+    switch (formType) {
+      case 'General':
+        return this.patchGeneralOrder();
+
+      case 'MainOffer':
+        return this.patchMainOfferOrder();
+
+      case 'Items':
+        return this.patchItemsOrder();
+
+      case 'Quotations':
+        return this.patchQuotationsOrder();
+
+      case 'Address':
+        return this.patchAddressOrder();
+
+      case 'Approvals':
+        return this.patchApprovalsOrder();
+
+      default:
+        return true;
+    }
+  }
+
+  patchGeneralOrder(): boolean {
+    if (
+      !this.generalFormGroup.valid &&
+      !this.primaryCostCenterFormGroup.valid &&
+      !this.secondaryCostCenterFormGroup.valid &&
+      !this.queriesPersonFormGroup.valid
+    ) {
+      this.generalFormGroup.markAllAsTouched();
+      return false;
+    }
+    this.patchOrderDTO = {
+      ...this.patchOrderDTO,
+      ...this.generalFormGroup.value,
+      primary_cost_center_id: this.primaryCostCenterFormGroup.get(
+        'primary_cost_center_id'
+      )?.value,
+      secondary_cost_center_id: this.secondaryCostCenterFormGroup.get(
+        'secondary_cost_center_id'
+      )?.value,
+      queries_person_id:
+        this.queriesPersonFormGroup.get('queries_person_id')?.value,
+    };
+    return true;
+  }
+
+  patchMainOfferOrder(): boolean {
+    if (!this.mainOfferFormGroup.valid) {
+      this.mainOfferFormGroup.markAllAsTouched();
+      return false;
+    }
+    this.patchOrderDTO = {
+      ...this.patchOrderDTO,
+      ...this.mainOfferFormGroup.value,
+      supplier_id: this.mainOfferFormGroup.get('supplier_id')?.value,
+      currency: this.mainOfferFormGroup.get('currency_short')?.value,
+    };
+    return true;
+  }
+
+  async patchItemsOrder(): Promise<boolean> {
+    // prepare items that need to be created (no item_id -> new)
+    const itemsToCreate = this.items()
+      .filter((item) => !item.item_id)
+      .map((item) =>
+        this.orderWrapperService.mapItemTableModelToItemRequestDTO(item)
+      );
+
+    // create all new items sequentially and bail out on first failure
+    for (const item of itemsToCreate) {
+      try {
+        await this.orderWrapperService.createOrderItems(
+          this.editOrderDTO!.id!,
+          [item]
+        );
+      } catch (error) {
+        console.error('Fehler beim Erstellen von Items:', error);
+        this._notifications.open(
+          'Fehler beim Erstellen von Artikeln. Bitte versuchen Sie es später erneut.',
+          undefined,
+          { duration: 5000 }
+        );
+        return false;
+      }
+    }
+
+    // refresh items from backend if any were created
+    if (itemsToCreate.length > 0) {
+      try {
+        const updatedItems = await this.orderWrapperService.getOrderItems(
+          this.editOrderDTO!.id!
+        );
+        this.items.set(
+          this.orderWrapperService.mapItemResponseToTableModel(updatedItems)
+        );
+      } catch (error) {
+        console.error('Fehler beim Laden aktualisierter Items:', error);
+        this._notifications.open(
+          'Fehler beim Aktualisieren der Artikelliste. Bitte versuchen Sie es später erneut.',
+          undefined,
+          { duration: 5000 }
+        );
+        return false;
+      }
+    }
+
+    // delete items marked for deletion, bail out on first failure
+    for (const deletedItemId of this.deletedItems) {
+      try {
+        await this.orderWrapperService.deleteItemOfOrder(
+          this.editOrderDTO!.id!,
+          deletedItemId
+        );
+      } catch (error) {
+        console.error('Fehler beim Löschen eines Artikels:', error);
+        this._notifications.open(
+          'Fehler beim Löschen eines Artikels. Bitte versuchen Sie es später erneut.',
+          undefined,
+          { duration: 5000 }
+        );
+        return false;
+      }
+    }
+
+    // all requests succeeded
+    // clear deletedItems since they've been removed on the backend
+    this.deletedItems = [];
+    return true;
+  }
+
+  async patchQuotationsOrder(): Promise<boolean> {
+    // prepare quotations that need to be created (no quotation_index -> new)
+    const quotationsToCreate = this.quotations()
+      .filter((quotation) => !quotation.index)
+      .map((quotation) =>
+        this.orderWrapperService.mapQuotationTableModelToQuotationRequestDTO(
+          quotation
+        )
+      );
+    // create all new quotations sequentially and bail out on first failure
+    for (const quotation of quotationsToCreate) {
+      try {
+        await this.orderWrapperService.createOrderQuotations(
+          this.editOrderDTO!.id!,
+          [quotation]
+        );
+      } catch (error) {
+        console.error('Fehler beim Erstellen von Angeboten:', error);
+        this._notifications.open(
+          'Fehler beim Erstellen von Angeboten. Bitte versuchen Sie es später erneut.',
+          undefined,
+          { duration: 5000 }
+        );
+        return false;
+      }
+
+      // refresh quotations from backend if any were created
+      if (quotationsToCreate.length > 0) {
+        try {
+          const updatedQuotations =
+            await this.orderWrapperService.getOrderQuotations(
+              this.editOrderDTO!.id!
+            );
+          this.quotations.set(
+            this.orderWrapperService.mapQuotationResponseToTableModel(
+              updatedQuotations
+            )
+          );
+        } catch (error) {
+          console.error('Fehler beim Laden aktualisierter Angebote:', error);
+          this._notifications.open(
+            'Fehler beim Aktualisieren der Angebotsliste. Bitte versuchen Sie es später erneut.',
+            undefined,
+            { duration: 5000 }
+          );
+          return false;
+        }
+
+        // delete quotations marked for deletion, bail out on first failure
+        for (const deletedQuotationIndex of this.deletedQuotations) {
+          try {
+            await this.orderWrapperService.deleteQuotationOfOrder(
+              this.editOrderDTO!.id!,
+              deletedQuotationIndex
+            );
+          } catch (error) {
+            console.error('Fehler beim Löschen eines Angebots:', error);
+            this._notifications.open(
+              'Fehler beim Löschen eines Angebots. Bitte versuchen Sie es später erneut.',
+              undefined,
+              { duration: 5000 }
+            );
+            return false;
+          }
+        }
+      }
+    }
+
+    // all requests succeeded
+    // clear deletedQuotations since they've been removed on the backend
+    this.deletedQuotations = [];
+    return true;
+  }
+
+  private async patchApprovalsOrder(): Promise<boolean> {
+
+    // If order is not in status completed, the approvals can't be changed
+    if(this.editOrderDTO.status !== OrderStatus.COMPLETED) return true;
+
+    this.locallySaveApprovalFormInput();
+    // Send the approval patch to the backend
+    try {
+      await this.orderWrapperService.patchOrderApprovals(
+        this.editOrderDTO!.id!,
+        this.postApprovalDTO
+      );
+      this._notifications.open(
+        'Zustimmungen wurden erfolgreich gespeichert.',
+        undefined,
+        { duration: 3000 }
+      );
+      return true;
+    } catch (error) {
+      console.error('Fehler beim Speichern der Zustimmungen:', error);
+      this._notifications.open(
+        'Fehler beim Speichern der Zustimmungen. Bitte versuchen Sie es später erneut.',
+        undefined,
+        { duration: 5000 }
+      );
+      return false;
+    }
+  }
+
+  // ToDo!: Implement order patching
+  private async submitOrderPatch() {
+    // Check which fields have been modified and prepare the patch DTO accordingly
+    console.log('Order before excluding fields which haven\'t changed:', this.patchOrderDTO);
+    const changedFields  = this.orderWrapperService.compareOrdersAndReturnChangedFields(
+      this.formattedOrderDTO,
+      this.patchOrderDTO
+    );
+  console.log('Changed fields to be patched:', changedFields);
+  const orderRequest = this.orderWrapperService.mapFormattedOrderToRequest(this.patchOrderDTO);
+  console.log('Patch Order DTO after formatting:', orderRequest);
   }
 }

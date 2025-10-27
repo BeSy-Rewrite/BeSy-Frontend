@@ -102,7 +102,7 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
 
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
-    this.ordersService.getOrderItems(this.orderData().order.id?.toString() ?? '').then(items => {
+    this.ordersService.getOrderItems(this.orderData().order.id).then(items => {
       this.fetchedItems.set(items);
 
       this.currencyCode = this.orderData().order.currency?.code ?? 'EUR';
