@@ -1,19 +1,18 @@
 import { Injectable } from '@angular/core';
-import { InsyService } from '../../api';
+import { InsyService } from '../../apiv2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class InsyWrapperService {
+  constructor(private readonly insyService: InsyService) { }
 
   /**
-     * Sendet eine Bestellung anhand der Bestell-ID an das Insy-System.
-     * @param orderId ID der zu sendenden Bestellung.
-     * @returns any Bestellung erfolgreich an Insy gesendet.
-     * @throws ApiError
+     * Sends an order to Insy.
+     * @param orderId The ID of the order to be sent.
+     * @returns Observable with the result of the operation.
      */
-  async postOrderToInsy(orderId: number) {
-    const response = await InsyService.postOrderToInsy(orderId);
-    return response;
+  postOrderToInsy(orderId: number) {
+    return this.insyService.postOrderToInsy(orderId);
   }
 }
