@@ -1,37 +1,34 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import {
   CostCenterRequestDTO,
   CostCenterResponseDTO,
-  SupplierResponseDTO,
 } from '../../../api';
-import { ButtonColor, TableActionButton } from '../../../models/generic-table';
-import { MatTabGroup } from '@angular/material/tabs';
-import { MatTab } from '@angular/material/tabs';
-import { MatDivider } from '@angular/material/divider';
-import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { FormComponent } from '../../../components/form-component/form-component.component';
+import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { COST_CENTER_FORM_CONFIG } from '../../../configs/cost-center-config';
-import { FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 
 @Component({
   selector: 'app-cost-center-component',
   imports: [
-    MatTabGroup,
-    MatTab,
-    MatDivider,
+    MatTabsModule,
+    MatDividerModule,
+    MatButtonModule,
     GenericTableComponent,
     FormComponent,
-    MatButtonModule,
   ],
   templateUrl: './cost-center-page.component.html',
   styleUrl: './cost-center-page.component.scss',
 })
 export class CostCentersPageComponent implements OnInit {
-  constructor(private _notifications: MatSnackBar, private costCenterWrapperService: CostCenterWrapperService) {}
+  constructor(private readonly _notifications: MatSnackBar, private readonly costCenterWrapperService: CostCenterWrapperService) { }
 
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
   // Data source to be displayed in the cost-center-table component
@@ -58,56 +55,54 @@ export class CostCentersPageComponent implements OnInit {
     },
   ];
 
-  async ngOnInit() {
+  ngOnInit() {
     // Initialization logic here
-    this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(
-      // Format cost center date from ISO format yyyy-MM-dd to dd.MM.yyyy
-      (await this.costCenterWrapperService.getAllCostCenters()).map((cc) => ({
-        ...cc,
-        begin_date: cc.begin_date ? this.formatDate(cc.begin_date) : undefined,
-        end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
-      }))
-    );
+    // Format cost center date from ISO format yyyy-MM-dd to dd.MM.yyyy
+    (this.costCenterWrapperService.getAllCostCenters()).subscribe(costCenters => {
+      this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(
+        costCenters.map(cc => ({
+          ...cc,
+          begin_date: cc.begin_date ? this.formatDate(cc.begin_date) : undefined,
+          end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined
+        }))
+      );
+    });
   }
 
-  viewCostCenter(row: CostCenterResponseDTO) {
+  viewCostCenter(_row: CostCenterResponseDTO) {
     // Implement view logic here
   }
 
   async onSubmit() {
     if (this.costCenterForm.valid) {
       const costCenterData = this.costCenterForm.value as CostCenterRequestDTO;
-      try {
-        await this.costCenterWrapperService.createCostCenter(costCenterData);
-        this._notifications.open(
-          'Kostenstelle erfolgreich erstellt',
-          'Schließen',
-          {
-            duration: 3000,
-          }
-        );
 
-        // Refresh the data source to include the newly created cost center
-        this.costCentersDataSource =
-          new MatTableDataSource<CostCenterResponseDTO>(
-            (await this.costCenterWrapperService.getAllCostCenters()).map((cc) => ({
-              ...cc,
-              begin_date: cc.begin_date
-                ? this.formatDate(cc.begin_date)
-                : undefined,
-              end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
-            }))
+      this.costCenterWrapperService.createCostCenter(costCenterData).subscribe({
+        next: (_createdCostCenter) => {
+          this._notifications.open(
+            'Kostenstelle erfolgreich erstellt',
+            'Schließen',
+            {
+              duration: 3000,
+            }
           );
-        this.tabGroup.selectedIndex = 0; // Switch to the first tab
-      } catch (error) {
-        this._notifications.open(
-          'Fehler beim Erstellen der Kostenstelle',
-          'Schließen',
-          {
-            duration: 3000,
-          }
-        );
-      }
+
+          // Refresh the data source to include the newly created cost center
+          this.ngOnInit();
+
+          this.tabGroup.selectedIndex = 0; // Switch to the first tab
+        },
+        error: (_error) => {
+          this._notifications.open(
+            'Fehler beim Erstellen der Kostenstelle',
+            'Schließen',
+            {
+              duration: 3000,
+            }
+          );
+        }
+      });
+
     } else {
       // Handle invalid form case
       this.costCenterForm.markAllAsTouched();

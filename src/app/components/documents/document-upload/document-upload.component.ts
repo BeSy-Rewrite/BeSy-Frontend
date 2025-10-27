@@ -10,10 +10,10 @@ import { concat, merge, startWith } from 'rxjs';
 import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../../configs/document-upload-config';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
+import { FileInputComponent } from '../../file-input/file-input.component';
 import { FormComponent, FormConfig } from "../../form-component/form-component.component";
 import { ProcessingIndicatorComponent } from '../../processing-indicator/processing-indicator.component';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
-import { FileInputComponent } from '../../file-input/file-input.component';
 
 export interface DocumentUploadData {
   orderId: number;
@@ -89,7 +89,7 @@ export class DocumentUploadComponent implements OnInit {
    * Initializes the component by loading cost centers for the form.
    */
   ngOnInit(): void {
-    this.costCentersService.getAllCostCenters().then(costCenters => {
+    this.costCentersService.getAllCostCenters().subscribe(costCenters => {
       const costCenterField = this.documentFormConfig.fields.find(field => field.name === 'costCenterId');
       if (costCenterField) {
         costCenterField.options = costCenters.map(center => ({
@@ -187,7 +187,7 @@ export class DocumentUploadComponent implements OnInit {
         this.processingIndicator?.close();
         this.dialogRef.close(true);
       },
-      error: (error) => {
+      error: () => {
         this.snackBar.open('Fehler beim Hochladen des Dokuments. Bitte versuchen Sie es erneut.', 'Schließen', {
           duration: 5000
         });

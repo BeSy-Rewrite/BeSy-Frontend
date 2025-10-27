@@ -178,7 +178,6 @@ export class FilterMenuComponent implements OnInit {
     private readonly usersService: UsersWrapperService,
     private readonly personsService: PersonsWrapperService,
     private readonly suppliersService: SuppliersWrapperService,
-    private readonly router: Router,
     readonly dialog: MatDialog
   ) {
     effect(() => {
@@ -201,7 +200,7 @@ export class FilterMenuComponent implements OnInit {
         this.defaultPresets = this.defaultPresets.filter(preset =>
           !preset.appliedFilters.some(filter => {
             if ('chipIds' in filter) {
-              return filter.chipIds?.includes('CURRENT_USER')
+              return filter.chipIds?.includes('CURRENT_USER');
             }
             return false;
           })
@@ -297,7 +296,7 @@ export class FilterMenuComponent implements OnInit {
    * Loads and sets up cost center chips.
    */
   setupCostCenters() {
-    return from(this.costCentersService.getAllCostCenters()).pipe(
+    return this.costCentersService.getAllCostCenters().pipe(
       tap((costCenters: CostCenterResponseDTO[]) => {
         const costCenterChips = costCenters.map(
           center => ({
@@ -426,7 +425,7 @@ export class FilterMenuComponent implements OnInit {
    */
   editFilterPresets() {
     const dialogRef = this.dialog.open(FilterPresetsEditComponent);
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe(() => {
       this.loadSavedFilterPresets();
     });
   }
