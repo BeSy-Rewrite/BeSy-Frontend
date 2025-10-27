@@ -14,7 +14,6 @@ import {
   Component,
   ElementRef,
   ViewChild,
-  Signal,
   signal,
   computed,
   WritableSignal,
@@ -37,7 +36,6 @@ import {
   TableActionButton,
   TableColumn,
 } from '../../../models/generic-table';
-import { AbstractControl, ValidationErrors } from '@angular/forms';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
@@ -45,19 +43,11 @@ import {
   AddressResponseDTO,
   ApprovalRequestDTO,
   CostCenterResponseDTO,
-  CostCentersService,
   ItemRequestDTO,
-  CurrencyResponseDTO,
-  OrderRequestDTO,
-  OrdersService,
-  PersonResponseDTO,
-  QuotationRequestDTO,
   VatResponseDTO,
   SupplierResponseDTO,
   CustomerIdResponseDTO,
   OrderResponseDTO,
-  QuotationResponseDTO,
-  ItemResponseDTO,
   ApprovalResponseDTO,
 } from '../../../api';
 import {
@@ -68,7 +58,6 @@ import {
   ORDER_QUOTATION_FORM_CONFIG,
   ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
 } from '../../../configs/order/order-config';
-import { map, Observable, of, startWith } from 'rxjs';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
@@ -1153,6 +1142,7 @@ export class EditOrderPageComponent implements OnInit {
     this.generalFormGroup.patchValue(this.formattedOrderDTO);
     this.mainOfferFormGroup.patchValue(this.formattedOrderDTO);
     this.supplierDecisionReasonFormGroup.patchValue(this.formattedOrderDTO);
+    console.log('Approvals loaded:', this.approvals);
     this.approvalFormGroup.patchValue(this.approvals);
 
     // Patch autocomplete fields in the form configs with the loaded order data

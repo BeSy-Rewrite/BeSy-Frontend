@@ -242,7 +242,7 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
   title: 'Zustimmung(en) hinzufügen',
   fields: [
     {
-      name: 'flagEdvPermission',
+      name: 'flag_edv_permission',
       label: 'Beschaffung von Soft-/Hardware mit Rechenzentrum abgeklärt',
       type: 'checkbox',
       required: false,
@@ -250,7 +250,7 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       tooltip: 'Für Hardware und Software, die in der Vorzugsliste des Rechenzentrums - RZ nicht enthalten ist, ist die Beschaffung mit dem RZ geklärt und liegt dieser Bestellung bei'
     },
     {
-      name: 'flagFurniturePermission',
+      name: 'flag_furniture_permission',
       label: 'Beschaffung von Möbeln mit Gebäudemanagement abgeklärt',
       type: 'checkbox',
       required: false,
@@ -258,7 +258,7 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       tooltip: 'Für Möbel, die in der Vorzugsliste des Facility Managements nicht enthalten sind, ist die Beschaffung mit dem Facility Management geklärt und liegt dieser Bestellung bei'
     },
     {
-      name: 'flagFurnitureRoom',
+      name: 'flag_furniture_room',
       label: 'Erforderlicher Raum für die Möbel steht zur Verfügung',
       type: 'checkbox',
       required: false,
@@ -266,7 +266,7 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       tooltip: 'Der erforderliche Raum für die Aufnahme der Möbel steht zur Verfügung'
     },
     {
-      name: 'flagInvestmentRoom',
+      name: 'flag_investment_room',
       label: 'Erforderlicher Raum für die Geräte steht zur Verfügung',
       type: 'checkbox',
       required: false,
@@ -274,7 +274,7 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       tooltip: 'Der erforderliche Raum für die Aufnahme der Geräte steht zur Verfügung'
     },
     {
-      name: 'flagInvestmentStructuralMeasures',
+      name: 'flag_investment_structural_measures',
       label: 'Erforderliche bauliche Maßnahmen sind beauftragt',
       type: 'checkbox',
       required: false,
@@ -282,7 +282,7 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       tooltip: 'Für Gegenstände, die in der Vorzugsliste des Facility Managements nicht enthalten sind, ist die Beschaffung mit dem FM geklärt und liegt dieser Bestellung bei.'
     },
     {
-      name: 'flagMediaPermission',
+      name: 'flag_media_permission',
       label: 'Beschaffung mit Medientechnik abgesprochen',
       type: 'checkbox',
       required: false,
