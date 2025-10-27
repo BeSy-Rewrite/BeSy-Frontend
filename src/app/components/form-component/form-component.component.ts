@@ -10,19 +10,20 @@ import {
 } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from "@angular/material/datepicker";
+import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIconModule } from '@angular/material/icon';
 import { MatInput, MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCardModule } from '@angular/material/card';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatTooltip } from '@angular/material/tooltip';
 import { MatTableDataSource } from '@angular/material/table';
+import { MatTooltip } from '@angular/material/tooltip';
 import { CustomerIdResponseDTO } from '../../api';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
-import { MatIconModule } from '@angular/material/icon';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 export interface FormField {
@@ -79,12 +80,13 @@ export interface FormConfig {
     MatIconModule,
     MatCheckboxModule,
     MatAutocompleteModule,
+    MatDatepickerModule
   ],
   templateUrl: './form-component.component.html',
   styleUrls: ['./form-component.component.scss'],
 })
 export class FormComponent implements OnInit {
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder) { }
 
   @Input() config!: FormConfig;
   @Input() formGroup!: FormGroup;

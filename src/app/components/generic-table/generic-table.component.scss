@@ -1,40 +1,32 @@
+@use "sass:color";
+
 tr:nth-child(2n) {
-    background-color: #f0f0f0;
+  background-color: #f0f0f0;
 }
 
 th {
-    white-space: normal;
-    word-wrap: break-word;
-    hyphens: auto;
-    padding-top: 8px;
-    padding-bottom: 8px;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+td {
+  white-space: normal;
+  word-wrap: break-word;
+  hyphens: auto;
+  padding-top: 8px;
+  padding-bottom: 8px;
 }
 
 table {
-    width: 100%;
+  width: 100%;
 }
 
 .mat-column-actions {
-    width: 1%;
-    white-space: nowrap;
+  width: 1%;
+  white-space: nowrap;
 }
 
-// Container mit lila Rahmen und runden Ecken
-.overflow-x-auto {
-  border: 2px solid #6aafef; // table frame color
-  border-radius: 8px;
-  overflow: hidden; // damit die Border nicht "durchscheint"
-  //background-image: linear-gradient(to bottom, #70b8fc, #7da0ed, #8d86d8);
-}
-
-
-.mat-mdc-header-cell {
-  color: rgba(255, 255, 255, 0.759); // Column header font color
-  font-weight: 600;
-  font-size: 0.875rem;
-  letter-spacing: 0.05em;
-  padding: 16px;
-}
+$color: #193058;
 
 // Data-Zeilen
 .mat-mdc-row {
@@ -42,29 +34,30 @@ table {
   height: 48px;
   border-bottom: 1px solid #e0e0e0;
 
+  &.selected {
+    // background-color: #ede7f6; // selected row color
+    background-color: color.adjust($color, $lightness: 60%); // selected row color
+  }
+
   &:hover {
-    background-color: #c4c4c4; // row hover color
+    background-color: color.adjust($color, $lightness: 65%); // row hover color
     cursor: pointer;
   }
 
-  &.selected {
-    // background-color: #ede7f6; // selected row color
-    background-color: rgba(199, 226, 255, 0.99); // selected row color
+  &.selected:hover {
+    background-color: color.adjust($color, $lightness: 55%); // selected row hover color
   }
 }
 
 .mat-mdc-cell {
-  color: #333;
-  font-family: 'Roboto', sans-serif;
-  font-weight: 400;
-  font-size: 0.875rem;
   padding: 16px;
 }
 
 tr.mat-mdc-footer-row td {
-  font-weight: bold;
+  font-weight: 600;
+  color: var(--color-he-darkblue);
 }
 
 tr.mat-mdc-header-row th {
-  font-weight: bold;
+  font-weight: 600;
 }

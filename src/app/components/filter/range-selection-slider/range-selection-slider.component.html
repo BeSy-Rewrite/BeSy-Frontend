@@ -1,0 +1,23 @@
+<form [formGroup]="formGroup">
+
+    <section class="flex gap-4" formGroupName="input">
+
+        <mat-form-field class="w-full">
+            <mat-label>Von</mat-label>
+            <input matInput type="number" [min]="minValue()" formControlName="start">
+        </mat-form-field>
+
+        <mat-form-field class="w-full">
+            <mat-label>Bis</mat-label>
+            <input matInput type="number" formControlName="end">
+        </mat-form-field>
+
+    </section>
+
+
+    <mat-slider [min]="minValue()" [max]="internalMaxValue()" formGroupName="slider">
+        <input formControlName="start" matSliderStartThumb>
+        <input formControlName="end" matSliderEndThumb>
+    </mat-slider>
+
+</form>

@@ -2,6 +2,9 @@
 /* istanbul ignore file */
 /* tslint:disable */
 /* eslint-disable */
+import type { CancelablePromise } from '../core/CancelablePromise';
+import { OpenAPI } from '../core/OpenAPI';
+import { request as __request } from '../core/request';
 import type { ApprovalRequestDTO } from '../models/ApprovalRequestDTO';
 import type { ApprovalResponseDTO } from '../models/ApprovalResponseDTO';
 import type { InvoiceResponseDTO } from '../models/InvoiceResponseDTO';
@@ -12,9 +15,6 @@ import type { OrderStatus } from '../models/OrderStatus';
 import type { OrderStatusHistoryResponseDTO } from '../models/OrderStatusHistoryResponseDTO';
 import type { PagedOrderResponseDTO } from '../models/PagedOrderResponseDTO';
 import type { QuotationResponseDTO } from '../models/QuotationResponseDTO';
-import type { CancelablePromise } from '../core/CancelablePromise';
-import { OpenAPI } from '../core/OpenAPI';
-import { request as __request } from '../core/request';
 export class OrdersService {
     /**
      * @param page Seitenzahl für die Paginierung (beginnend bei 0).
@@ -401,7 +401,7 @@ export class OrdersService {
      * @returns ApprovalResponseDTO Zustimmungen erfolgreich abgerufen.
      * @throws ApiError
      */
-    public static getOrdersApproval(
+    public static getOrdersApprovals(
         orderId: number,
     ): CancelablePromise<ApprovalResponseDTO> {
         return __request(OpenAPI, {

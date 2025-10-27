@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { PersonResponseDTO, PersonsService } from '../../api';
+import { from, map } from 'rxjs';
 
 // Interface for person with full name
 export interface PersonWithFullName extends PersonResponseDTO {
@@ -15,7 +16,7 @@ export interface FormattedPerson {
   providedIn: 'root'
 })
 export class PersonsWrapperService {
-  constructor() {}
+  constructor() { }
 
   async getAllPersons() {
     const persons = await PersonsService.getAllPersons();
@@ -42,7 +43,7 @@ export class PersonsWrapperService {
     const personsWithFullName = persons.map((person) => {
       return {
         ...person,
-        fullName: `${person.name}` + " " + `${person.surname}` as string,
+        fullName: [person.name, person.surname].filter(Boolean).join(' '),
       };
     });
     return personsWithFullName as PersonWithFullName[];
@@ -87,4 +88,11 @@ export class PersonsWrapperService {
       value: person.id!,
     };
   }
+
+  getAddress(addressId: number) {
+    return from(PersonsService.getPersonsAddresses()).pipe(
+      map(addresses => addresses.find(addr => addr.id === addressId))
+    );
+  }
 }
+

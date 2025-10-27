@@ -1,0 +1,30 @@
+.open {
+    translate: 0 0;
+    transition: all 0.3s ease;
+}
+
+.closed {
+    translate: -25rem 0;
+    transition: all 0.3s ease;
+}
+
+.expanded {
+    translate: 0 0;
+    width: 100%;
+    transition: all 0.3s ease;
+}
+
+.collapsed {
+    translate: 25rem 0;
+    width: calc(100% - 25rem);
+    transition: all 0.3s ease;
+}
+
+.mat-mdc-select {
+    color: white;
+}
+
+// FAB always on top, even above autocomplete dropdowns
+.mdc-fab {
+    z-index: 10000;
+}

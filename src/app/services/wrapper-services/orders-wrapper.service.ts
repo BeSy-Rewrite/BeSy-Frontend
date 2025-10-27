@@ -13,6 +13,7 @@ import {
   OrderResponseDTO,
   OrdersService,
   OrderStatus,
+  OrderStatusHistoryResponseDTO,
   PagedOrderResponseDTO,
   QuotationRequestDTO,
   QuotationResponseDTO,
@@ -29,7 +30,9 @@ import {
   ItemTableModel,
   QuotationTableModel,
 } from '../../pages/order/edit-order-page/edit-order-page.component';
-
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 export interface OrderResponseDTOFormatted {
   id?: number;
   primary_cost_center_id?: CostCenterFormatted | undefined;
@@ -77,8 +80,10 @@ export class OrdersWrapperService {
     private costCenterWrapperService: CostCenterWrapperService,
     private personsWrapperService: PersonsWrapperService,
     private currenciesWrapperService: CurrenciesWrapperService,
-    private suppliersWrapperService: SuppliersWrapperService
+    private suppliersWrapperService: SuppliersWrapperService,
+    private readonly http: HttpClient
   ) {}
+
   /**
    * @param page Seitenzahl für die Paginierung (beginnend bei 0).
    * @param size Anzahl der Elemente pro Seite.
@@ -187,8 +192,20 @@ export class OrdersWrapperService {
     return await OrdersService.deleteQuotationOfOrder(orderId, quotationId);
   }
 
-  async exportOrderToFormula(orderId: string): Promise<any> {
-    return await OrdersService.exportOrderToFormula(orderId);
+  exportOrderToDocument(orderId: string): Observable<Blob> {
+    return this.http.get(`${environment.apiUrl}/orders/${orderId}/export`, { responseType: 'blob' });
+  }
+
+  async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
+    return await OrdersService.getOrdersApprovals(orderId);
+  }
+
+  async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistoryResponseDTO[]> {
+    return await OrdersService.getOrdersStatusHistory(orderId);
+  }
+
+  async putOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
+    return await OrdersService.putOrdersStatus(orderId, newState);
   }
 
   async getOrderByIDInFormFormat(
@@ -196,10 +213,6 @@ export class OrdersWrapperService {
   ): Promise<OrderResponseDTOFormatted> {
     const orderData = await OrdersService.getOrderById(orderId);
     return this.formatOrderData(orderData);
-  }
-
-  async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
-    return await OrdersService.getOrdersApproval(orderId);
   }
 
   async patchOrderApprovals(

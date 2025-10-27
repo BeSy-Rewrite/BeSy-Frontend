@@ -1,0 +1,58 @@
+<div class="flex flex-col md:flex-row gap-24 mb-12">
+
+    <div class="grid grid-cols-[max-content_1fr] gap-x-16 gap-y-4">
+        @for (field of generalDetailsFields; track $index) {
+        <h3 class="font-semibold">{{orderFieldLabels[field]}}:</h3>
+        <p>{{orderData().orderDisplay[field]}}</p>
+        }
+    </div>
+
+    <div class="flex flex-wrap md:flex-col gap-16 md:gap-8">
+        <div>
+            <h3 class="font-semibold text-lg mb-2">Lieferadresse:</h3>
+            <app-address-display [addressId]="orderData().order.delivery_address_id ?? -1" />
+        </div>
+        <div>
+            <h3 class="font-semibold text-lg mb-2">Rechnungsadresse:</h3>
+            <app-address-display [addressId]="orderData().order.invoice_address_id ?? -1" />
+        </div>
+    </div>
+
+</div>
+
+
+<div class="flex flex-col my-2">
+
+    <div class="mb-3">
+        <h3 class="text-2xl mb-2">Hauptangebot</h3>
+        <mat-divider class="bg-he-red-200" />
+    </div>
+
+    <div class="grid grid-cols-[max-content_1fr] h-fit gap-x-16 gap-y-2 mb-4">
+        @for (key of additionalInfoKeys; track $index) {
+        <h3 class="font-semibold">{{ orderFieldLabels[key] }}:</h3>
+
+        <p>
+            {{ orderData().orderDisplay[key] }}
+
+            @if (key === 'quote_price') {
+            @if (isQuotePriceProbablyBrutto()) {
+            (brutto)
+            } @else if (isQuotePriceProbablyNetto()) {
+            (netto)
+            } @else {
+            - Berechnete Summen: {{ totalPriceFormatted() }} / {{ totalNetPriceFormatted() }}<br />
+            }
+            }
+        </p>
+        }
+    </div>
+
+
+    @if (fetchedItems().length > 0) {
+    <app-generic-table [dataSource]="items" [columns]="displayedColumns"></app-generic-table>
+    } @else {
+    <span class="text-gray-600">Keine Artikel vorhanden.</span>
+    }
+
+</div>
