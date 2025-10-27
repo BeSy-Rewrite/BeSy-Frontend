@@ -13,6 +13,7 @@ import { InvoicesWrapperServiceService } from '../../../services/wrapper-service
 import { FormComponent, FormConfig } from "../../form-component/form-component.component";
 import { ProcessingIndicatorComponent } from '../../processing-indicator/processing-indicator.component';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
+import { FileInputComponent } from '../../file-input/file-input.component';
 
 export interface DocumentUploadData {
   orderId: number;
@@ -39,6 +40,7 @@ export interface InvoiceRequestDTO {
     MatInputModule,
     MatRadioModule,
     FormComponent,
+    FileInputComponent
   ],
   templateUrl: './document-upload.component.html',
   styleUrl: './document-upload.component.scss'
