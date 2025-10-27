@@ -1,0 +1,17 @@
+export * from './costCenters.service';
+import { CostCentersService } from './costCenters.service';
+export * from './currencies.service';
+import { CurrenciesService } from './currencies.service';
+export * from './insy.service';
+import { InsyService } from './insy.service';
+export * from './orders.service';
+import { OrdersService } from './orders.service';
+export * from './persons.service';
+import { PersonsService } from './persons.service';
+export * from './suppliers.service';
+import { SuppliersService } from './suppliers.service';
+export * from './users.service';
+import { UsersService } from './users.service';
+export * from './vats.service';
+import { VatsService } from './vats.service';
+export const APIS = [CostCentersService, CurrenciesService, InsyService, OrdersService, PersonsService, SuppliersService, UsersService, VatsService];
