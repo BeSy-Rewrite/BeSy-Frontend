@@ -1,10 +1,11 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
-import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
-import { statusDisplayNames, statusIcons } from '../display-name-mappings/status-names';
-import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../models/filter-presets';
+import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, ItemResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
+import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
+import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../models/filter/filter-presets';
 import { OrderDisplayData } from '../models/order-display-data';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
+import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-names';
 
 /**
  * Union of identifier types used to look up subresources.
@@ -47,10 +48,10 @@ class ResourceFormatter<T extends IdAble> {
       .subscribe(() =>
         this.fetchAll().then(resources => {
           const map = new Map<numberOrString, T>();
-          resources.forEach(resource => {
+          for (const resource of resources) {
             if ('id' in resource && resource.id) map.set(resource.id.toString().trim(), resource);
             if ('code' in resource && resource.code) map.set(resource.code.toString().trim(), resource);
-          });
+          }
           this.fetchInProgress = false;
           this.mapping.next(map);
           this.mapping.complete();
@@ -173,7 +174,7 @@ export class OrderSubresourceResolverService {
     data.legacy_alias = order.legacy_alias ?? '';
     data.owner_id = '';
     data.content_description = order.content_description ?? '';
-    data.status = statusIcons.get(order.status ?? '') ?? order.status ?? '';
+    data.status = STATE_ICONS.get(order.status ?? '') ?? order.status ?? '';
     data.currency = '';
     data.comment = order.comment ?? '';
     data.comment_for_supplier = order.comment_for_supplier ?? '';
@@ -193,11 +194,15 @@ export class OrderSubresourceResolverService {
     data.cashback_days = order.cashback_days?.toString() ?? '';
     data.last_updated_time = this.formatDate(order.last_updated_time);
     data.flag_decision_cheapest_offer = order.flag_decision_cheapest_offer ? 'Ja' : 'Nein';
+    data.flag_decision_most_economical_offer = order.flag_decision_most_economical_offer ? 'Ja' : 'Nein';
     data.flag_decision_sole_supplier = order.flag_decision_sole_supplier ? 'Ja' : 'Nein';
     data.flag_decision_contract_partner = order.flag_decision_contract_partner ? 'Ja' : 'Nein';
+    data.flag_decision_preferred_supplier_list = order.flag_decision_preferred_supplier_list ? 'Ja' : 'Nein';
     data.flag_decision_other_reasons = order.flag_decision_other_reasons ? 'Ja' : 'Nein';
     data.decision_other_reasons_description = order.decision_other_reasons_description ?? '';
     data.dfg_key = order.dfg_key ?? '';
+    data.delivery_address_id = order.delivery_address_id;
+    data.invoice_address_id = order.invoice_address_id;
 
     data.tooltips = this.getTooltips(order);
 
@@ -261,9 +266,7 @@ export class OrderSubresourceResolverService {
    * Returns a human-readable label for a person (e.g., "p42 – John Doe").
    */
   formatPerson = (person: PersonResponseDTO) => {
-    const names = [person.title ?? ''];
-    names.push(person.name ?? '');
-    names.push(person.surname ?? '');
+    const names = [person.title ?? '', person.name ?? '', person.surname ?? ''];
     return names.filter(name => name && name.trim().length > 0).join(' ');
   }
 
@@ -274,10 +277,97 @@ export class OrderSubresourceResolverService {
     return `${center.id} - ${center.name}`;
   }
 
+  /**
+   * Formats the preferred list enum into a human-readable string.
+   * @param preferredList The preferred list enum value.
+   * @returns The formatted preferred list string.
+   */
+  formatPreferredList(preferredList: ItemResponseDTO.preferred_list | undefined): string {
+    switch (preferredList) {
+      case ItemResponseDTO.preferred_list.RZ:
+        return PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.RZ) ?? 'RZ';
+      case ItemResponseDTO.preferred_list.TA:
+        return PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.TA) ?? 'TA';
+      default:
+        return 'Keine bevorzugte Liste';
+    }
+  }
+
+  /**
+   * Calculates the net price from a gross price and VAT percentage.
+   * If VAT is zero or negative, returns the gross price unchanged.
+   * @param grossPrice The gross price including VAT.
+   * @param vatPercent The VAT percentage to apply. E.g., 19 for 19% VAT.
+   * @returns The calculated net price.
+   */
+  calculateNetPrice(grossPrice: number, vatPercent: number): number {
+    if (vatPercent <= 0) return grossPrice;
+    return grossPrice / (1 + vatPercent / 100);
+  }
+
+  /**
+   * Calculates the gross price from a net price and VAT percentage.
+   * If VAT is zero or negative, returns the net price unchanged.
+   * @param netPrice The net price excluding VAT.
+   * @param vatPercent The VAT percentage to apply. E.g., 19 for 19% VAT.
+   * @returns The calculated gross price.
+   */
+  calculateGrossPrice(netPrice: number, vatPercent: number): number {
+    if (vatPercent <= 0) return netPrice;
+    return netPrice * (1 + vatPercent / 100);
+  }
+  
+  /**
+   * Calculates the total net price for a list of items.
+   * @param items The list of items to calculate the total net price for.
+   * @returns The total net price.
+   */
+  calculateTotalNetPrice(items: ItemResponseDTO[]): number {
+    let totalNetPrice = 0;
+    for (const item of items) {
+      let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
+      if (item.vat_type === ItemResponseDTO.vat_type.BRUTTO) {
+        price = this.calculateNetPrice(price, item.vat?.value ?? 0);
+      }
+      totalNetPrice += price;
+    }
+    return totalNetPrice;
+  }
+
+  /**
+   * Calculates the total gross price for a list of items.
+   * @param items The list of items to calculate the total gross price for.
+   * @returns The total gross price.
+   */
+  calculateTotalGrossPrice(items: ItemResponseDTO[]): number {
+    let totalGrossPrice = 0;
+    for (const item of items) {
+      let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
+      if (item.vat_type === ItemResponseDTO.vat_type.NETTO) {
+        price = this.calculateGrossPrice(price, item.vat?.value ?? 0);
+      }
+      totalGrossPrice += price;
+    }
+    return totalGrossPrice;
+  }
+  
+  /**
+   * Calculates the total quantity of items.
+   * @param items The list of items to calculate the total quantity for.
+   * @returns The total quantity.
+   */
+  calculateTotalQuantity(items: ItemResponseDTO[]): number {
+    let totalQuantity = 0;
+    for (const item of items) {
+      totalQuantity += item.quantity ?? 0;
+    }
+    return totalQuantity;
+  }
+
   /** Returns tooltip texts for specific fields in the order display data. */
   getTooltips(order: OrderResponseDTO): { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string } {
     return {
-      status: statusDisplayNames.get(order.status ?? '') ?? order.status ?? '',
+      status: STATE_DISPLAY_NAMES.get(order.status ?? '') ?? order.status ?? '',
     }
   }
 

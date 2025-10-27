@@ -1,0 +1,28 @@
+<div class="flex flex-col relative">
+
+    @if (documents.length > 0) {
+    <app-generic-table
+        [dataSource]="dataSource"
+        [columns]="columns"
+        [actions]="actions"
+    />
+    } @else {
+    <span class="text-gray-600 my-2">Es sind noch keine Dokumente für diese Bestellung vorhanden.</span>
+    }
+
+
+    @if (order().status === 'IN_PROGRESS') {
+    <button
+        matFab
+        extended
+        color="primary"
+        (click)="openUploadDialog()"
+        aria-label="Dokument hochladen"
+        class="!w-fit"
+        [ngClass]="documents.length > 0 ? '!absolute right-4 top-1' : ''"
+    >
+        <mat-icon>upload</mat-icon>
+        <span>hochladen</span>
+    </button>
+    }
+</div>

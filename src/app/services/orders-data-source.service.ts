@@ -7,8 +7,8 @@ import { BehaviorSubject, debounceTime, forkJoin, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api';
 import { DataSourceSorting } from '../models/datasource-sorting';
-import { ActiveFilters } from '../models/filter-menu-types';
-import { FilterRequestParams } from '../models/filter-request-params';
+import { ActiveFilters } from '../models/filter/filter-menu-types';
+import { FilterRequestParams } from '../models/filter/filter-request-params';
 import { OrderDisplayData } from '../models/order-display-data';
 import { CachedOrdersService } from './cached-orders.service';
 import { OrderSubresourceResolverService } from './order-subresource-resolver.service';
@@ -81,11 +81,11 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       this._data.next([]);
       return;
     }
-    data.forEach(order => {
+    for (const order of data) {
       if (order) {
         displayData.push(this.subresourceResolver.resolveOrderSubresources(order));
       }
-    });
+    }
     forkJoin(displayData).subscribe(resolvedData => {
       this._data.next(resolvedData);
     });
@@ -220,7 +220,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * @returns The converted camelCase string.
    */
   private snakeToCamel(s: string): string {
-    return s.replace(/(_\w)/g, m => m[1].toUpperCase());
+    return s.replaceAll(/(_\w)/g, m => m[1].toUpperCase());
   }
 
   /**
@@ -229,7 +229,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * @returns The converted snake_case string.
    */
   private camelToSnake(s: string): string {
-    return s.replace(/([A-Z])/g, '_$1').toLowerCase();
+    return s.replaceAll(/([A-Z])/g, '_$1').toLowerCase();
   }
 
   /**

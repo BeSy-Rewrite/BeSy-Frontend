@@ -1,12 +1,13 @@
-import { Component, Input, NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { MatIconModule } from "@angular/material/icon";
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { Component, input } from '@angular/core';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface Step {
-  label: string;     // "Step 1", "Step 2" etc. (kannst du später ersetzen)
-  tooltip: string;   // Hilfetext beim Hover
-  icon?: string;     // Optional: Icon-Namen, falls du statt Zahlen Icons willst
+  label: string;
+  subLabel?: string;
+  tooltip: string;
+  icon?: string;
 }
 
 @Component({
@@ -14,9 +15,48 @@ export interface Step {
   standalone: true,
   templateUrl: './progress-bar.component.html',
   styleUrls: ['./progress-bar.component.scss'],
-  imports: [MatIconModule, MatTooltipModule, CommonModule]
+  imports: [MatIconModule, MatTooltipModule, CommonModule],
 })
 export class ProgressBarComponent {
-  @Input() steps: Step[] = [];
-  @Input() currentStepIndex = 0; // welcher Step ist aktuell
+  /**
+   * Steps to be displayed in the progress bar.
+   */
+  steps = input<Step[]>([]);
+  /**
+   * Index of the current active step.
+   */
+  currentStepIndex = input<number>(0);
+
+  /**
+   * Check if the step at index i is completed.
+   * @param i Index of the step.
+   * @returns True if the step is completed, false otherwise.
+   */
+  isCompleted(i: number) {
+    return i < this.currentStepIndex();
+  }
+
+  /**
+   * Check if the step at index i is the active step.
+   * @param i Index of the step.
+   * @returns True if the step is active, false otherwise.
+   */
+  isActive(i: number) {
+    return i === this.currentStepIndex();
+  }
+
+  /**
+   * Get the color class for a step based on its index.
+   * @param i Index of the step.
+   * @returns The corresponding color class.
+   */
+  getColorClass(i: number): string {
+    if (this.isActive(i)) {
+      return 'bg-blue-600';
+    } else if (this.isCompleted(i)) {
+      return 'bg-green-600';
+    } else {
+      return 'bg-gray-500';
+    }
+  }
 }

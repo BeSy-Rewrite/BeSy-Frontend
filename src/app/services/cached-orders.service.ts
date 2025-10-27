@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { from, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { OrdersService, PagedOrderResponseDTO } from '../api';
-import { FilterRequestParams } from '../models/filter-request-params';
+import { FilterRequestParams } from '../models/filter/filter-request-params';
 
 type CacheEntry = {
   response: PagedOrderResponseDTO;
@@ -118,12 +118,12 @@ export class CachedOrdersService {
    * This method removes stale cache entries based on the defined cache duration.
    */
   private cleanCache(): void {
-    this.cache.forEach((entry, key) => {
-      const cacheAge = new Date().getTime() - entry.createdAt.getTime();
+    for (const [key, entry] of this.cache) {
+      const cacheAge = Date.now() - entry.createdAt.getTime();
       if (cacheAge > this.cacheDurationMs) {
         this.cache.delete(key);
       }
-    });
+    }
   }
 
   /**

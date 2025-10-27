@@ -1,0 +1,17 @@
+<div class="flex flex-col">
+    <p class="text-xl ml-1.5">{{getFullName()}}</p>
+
+    <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="personData.get('email') ?? ''"
+        matTooltip="Kopieren">
+        <u>{{personData.get('email')}}</u>
+    </button>
+</div>
+
+@if (!isUserId()) {
+<div class="grid grid-cols-[max-content_1fr] gap-x-8 gap-y-2 mt-2 ml-2">
+    @for (field of personData; track $index) {
+    <h3 class="font-semibold">{{personFieldLabels[field[0]]}}:</h3>
+    <p>{{field[1]}}</p>
+    }
+</div>
+}

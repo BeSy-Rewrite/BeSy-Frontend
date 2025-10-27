@@ -1,0 +1,9 @@
+@if (address()) {
+<p>{{ address()!.building_name }}</p>
+<p>{{ address()!.street }} {{ address()!.building_number }}</p>
+<p>{{ address()!.postal_code }} {{ address()!.town }}</p>
+<p>{{ address()!.county }}</p>
+<p>{{ address()!.country }}</p>
+} @else {
+<p>Keine Adresse gefunden.</p>
+}

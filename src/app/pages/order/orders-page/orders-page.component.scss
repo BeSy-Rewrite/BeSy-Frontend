@@ -23,3 +23,8 @@
 .mat-mdc-select {
     color: white;
 }
+
+// FAB always on top, even above autocomplete dropdowns
+.mdc-fab {
+    z-index: 10000;
+}

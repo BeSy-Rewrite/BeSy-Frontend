@@ -11,13 +11,13 @@ import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, ActivatedRouteSnapshot, Params, Router } from '@angular/router';
-import { FilterMenuComponent } from '../../../components/filter-menu/filter-menu.component';
+import { FilterMenuComponent } from '../../../components/filter/filter-menu/filter-menu.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
-import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-filter-menu-config';
-import { ordersTableConfig } from '../../../configs/orders-table-config';
+import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-table/orders-filter-menu-config';
+import { ordersTableConfig } from '../../../configs/orders-table/orders-table-config';
 import { DataSourceSorting } from '../../../models/datasource-sorting';
-import { ActiveFilters } from '../../../models/filter-menu-types';
-import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetParams, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter-presets';
+import { ActiveFilters } from '../../../models/filter/filter-menu-types';
+import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetParams, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
 import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
@@ -82,13 +82,14 @@ export class OrdersPageComponent implements OnInit {
   ) {
     this.routeSnapshot = route.snapshot;
     // Set actions for specific columns in the table.
-    ordersTableConfig.filter(col => ['id', 'besy_number'].includes(col.id))
-      .forEach(col => col.action = (row) => this.onViewOrder(row));
+    for (const col of ordersTableConfig.filter(col => ['id', 'besy_number'].includes(col.id))) {
+      col.action = (row) => this.onViewOrder(row);
+    }
 
     if (Object.keys(this.routeSnapshot.queryParams).length > 0) {
       const presetParams: Params = {};
       for (const key of Object.keys(this.routeSnapshot.queryParams)) {
-        if (ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)) {
+        if (ORDERS_FILTER_MENU_CONFIG.some(f => f.key === key)) {
           presetParams[key] = this.routeSnapshot.queryParams[key];
         }
       }
@@ -189,8 +190,8 @@ export class OrdersPageComponent implements OnInit {
    * @returns An object containing pageIndex and pageSize.
    */
   parsePaginationFromUrlParams(params: Params): { pageIndex: number; pageSize: number } {
-    const pageIndex = params['page'] ? parseInt(params['page'], 10) : 0;
-    const pageSize = params['page_size'] ? parseInt(params['page_size'], 10) : 25;
+    const pageIndex = params['page'] ? Number.parseInt(params['page'], 10) ?? 0 : 0;
+    const pageSize = params['page_size'] ? Number.parseInt(params['page_size'], 10) ?? 25 : 25;
     return { pageIndex, pageSize };
   }
 
@@ -263,7 +264,7 @@ export class OrdersPageComponent implements OnInit {
   /** Parses range filter parameters from the URL. */
   parseRangeParams(key: string, value: string): RangeFilterPreset | undefined {
     if (value) {
-      const [start, end] = value.split('-').map((v: string) => parseFloat(v));
+      const [start, end] = value.split('-').map((v: string) => Number.parseFloat(v));
 
       return {
         id: key as keyof ActiveFilters,
@@ -279,7 +280,8 @@ export class OrdersPageComponent implements OnInit {
    */
   getFiltersAsParams(): FilterPresetParams {
     const params: FilterPresetParams = {} as any;
-    this.filterMenu().activeFiltersSignal().appliedFilters.forEach(filter => {
+
+    for (const filter of this.filterMenu().activeFiltersSignal().appliedFilters) {
       if ('chipIds' in filter) {
         params[filter.id] = filter.chipIds.join(',');
       } else if ('range' in filter) {
@@ -301,7 +303,7 @@ export class OrdersPageComponent implements OnInit {
       if ([undefined, null, '', '-', '_'].includes(params[filter.id])) {
         delete params[filter.id];
       }
-    });
+    }
     return params;
   }
 

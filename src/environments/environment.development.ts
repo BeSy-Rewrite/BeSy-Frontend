@@ -1,10 +1,11 @@
 export const environment = {
     production: false,
     apiUrl: 'http://localhost:3000/api/v1',
+    paperlessUrl: 'http://localhost:8000',
 
     // Keycloak configuration
     identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
-    clientId: 'besy-dev',
+    clientId: 'angular-app-dev',
     requiredRole: "besy",
     approveOrdersRole: "dekanat",
 

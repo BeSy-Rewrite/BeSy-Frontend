@@ -4,6 +4,11 @@ tr:nth-child(2n) {
   background-color: #f0f0f0;
 }
 
+th {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
 td {
   white-space: normal;
   word-wrap: break-word;
@@ -21,17 +26,7 @@ table {
   white-space: nowrap;
 }
 
-
-
-.mat-mdc-header-cell {
-  font-weight: 600;
-  font-size: 0.875rem;
-  letter-spacing: 0.05em;
-  padding: 16px;
-}
-
-
-$color: #00AADC;
+$color: #193058;
 
 // Data-Zeilen
 .mat-mdc-row {
@@ -41,32 +36,28 @@ $color: #00AADC;
 
   &.selected {
     // background-color: #ede7f6; // selected row color
-    background-color: color.adjust($color, $lightness: 35%); // selected row color
+    background-color: color.adjust($color, $lightness: 60%); // selected row color
   }
 
   &:hover {
-    background-color: color.adjust($color, $lightness: 45%); // row hover color
+    background-color: color.adjust($color, $lightness: 65%); // row hover color
     cursor: pointer;
   }
 
   &.selected:hover {
-    background-color: color.adjust($color, $lightness: 40%); // selected row hover color
+    background-color: color.adjust($color, $lightness: 55%); // selected row hover color
   }
 }
 
 .mat-mdc-cell {
-  color: #333;
-  font-family: 'Roboto', sans-serif;
-  font-weight: 400;
-  font-size: 0.875rem;
   padding: 16px;
 }
 
 tr.mat-mdc-footer-row td {
-  font-weight: bold;
-  color: var(--color-he-grey);
+  font-weight: 600;
+  color: var(--color-he-darkblue);
 }
 
 tr.mat-mdc-header-row th {
-  font-weight: bold;
+  font-weight: 600;
 }

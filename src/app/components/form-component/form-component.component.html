@@ -189,8 +189,14 @@
               matInput
               [formControlName]="field.name"
               [required]="field.required"
-              type="date"
+              [matDatepicker]="picker"
             />
+            <mat-hint>TT.MM.JJJJ</mat-hint>
+            <mat-datepicker-toggle
+              matIconSuffix
+              [for]="picker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #picker></mat-datepicker>
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
             <mat-error>Bitte gültigen Wert eingeben!</mat-error>

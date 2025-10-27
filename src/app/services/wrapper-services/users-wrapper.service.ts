@@ -1,5 +1,7 @@
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { from, map, Observable } from 'rxjs';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { UserResponseDTO, UsersService } from '../../api';
 import { AuthenticationService } from '../authentication.service';
 
@@ -8,7 +10,7 @@ import { AuthenticationService } from '../authentication.service';
 })
 export class UsersWrapperService {
 
-  constructor(private readonly authService: AuthenticationService) { }
+  constructor(private readonly authService: AuthenticationService, private readonly http: HttpClient) { }
 
   /**
      * @returns UserResponseDTO OK
@@ -35,13 +37,6 @@ export class UsersWrapperService {
    * @returns An observable of the resolved UserResponseDTO or undefined if not found.
    */
   getCurrentUser(): Observable<UserResponseDTO | undefined> {
-    const currentUsername = this.authService.getUsername();
-
-    return from(UsersService.getAllUsers()).pipe(
-      map(users => users.find(user => {
-        const fullName = `${user.name} ${user.surname}`.trim().toLowerCase();
-        return fullName === currentUsername?.trim().toLowerCase();
-      }))
-    );
+    return this.http.get<UserResponseDTO>(`${environment.apiUrl}/users/me`);
   }
 }
