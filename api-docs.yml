@@ -1496,13 +1496,7 @@ components:
         content_description:
           type: string
         status:
-          type: string
-          enum:
-            - ABR
-            - ABS
-            - ARC
-            - DEL
-            - INB
+          $ref: '#/components/schemas/OrderStatus'
         currency:
           $ref: '#/components/schemas/CurrencyResponseDTO'
         comment:

@@ -7,6 +7,7 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { OrderStatus } from './orderStatus';
 import { CurrencyResponseDTO } from './currencyResponseDTO';
 
 
@@ -19,7 +20,7 @@ export interface OrderResponseDTO {
     legacy_alias?: string;
     owner_id?: number;
     content_description?: string;
-    status?: OrderResponseDTO.StatusEnum;
+    status?: OrderStatus;
     currency?: CurrencyResponseDTO;
     comment?: string;
     comment_for_supplier?: string;
@@ -50,14 +51,6 @@ export interface OrderResponseDTO {
     invoice_address_id?: number;
 }
 export namespace OrderResponseDTO {
-    export const StatusEnum = {
-        Abr: 'ABR',
-        Abs: 'ABS',
-        Arc: 'ARC',
-        Del: 'DEL',
-        Inb: 'INB'
-    } as const;
-    export type StatusEnum = typeof StatusEnum[keyof typeof StatusEnum];
 }
 
 
