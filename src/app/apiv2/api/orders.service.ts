@@ -132,10 +132,10 @@ export class OrdersService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createOrder(orderRequestDTO: OrderRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<OrderResponseDTO>;
-    public createOrder(orderRequestDTO: OrderRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<OrderResponseDTO>>;
-    public createOrder(orderRequestDTO: OrderRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<OrderResponseDTO>>;
-    public createOrder(orderRequestDTO: OrderRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public createOrder(orderRequestDTO: OrderRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<OrderResponseDTO>;
+    public createOrder(orderRequestDTO: OrderRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<OrderResponseDTO>>;
+    public createOrder(orderRequestDTO: OrderRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<OrderResponseDTO>>;
+    public createOrder(orderRequestDTO: OrderRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (orderRequestDTO === null || orderRequestDTO === undefined) {
             throw new Error('Required parameter orderRequestDTO was null or undefined when calling createOrder.');
         }
@@ -143,7 +143,7 @@ export class OrdersService extends BaseService {
         let localVarHeaders = this.defaultHeaders;
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            '*/*'
+            'application/json'
         ]);
         if (localVarHttpHeaderAcceptSelected !== undefined) {
             localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
@@ -197,10 +197,10 @@ export class OrdersService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<Array<ItemResponseDTO>>;
-    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<ItemResponseDTO>>>;
-    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<ItemResponseDTO>>>;
-    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<ItemResponseDTO>>;
+    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<ItemResponseDTO>>>;
+    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<ItemResponseDTO>>>;
+    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (orderId === null || orderId === undefined) {
             throw new Error('Required parameter orderId was null or undefined when calling createOrderItems.');
         }
@@ -211,7 +211,7 @@ export class OrdersService extends BaseService {
         let localVarHeaders = this.defaultHeaders;
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            '*/*'
+            'application/json'
         ]);
         if (localVarHttpHeaderAcceptSelected !== undefined) {
             localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
@@ -265,10 +265,10 @@ export class OrdersService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<Array<QuotationResponseDTO>>;
-    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<QuotationResponseDTO>>>;
-    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<QuotationResponseDTO>>>;
-    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<QuotationResponseDTO>>;
+    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<QuotationResponseDTO>>>;
+    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<QuotationResponseDTO>>>;
+    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (orderId === null || orderId === undefined) {
             throw new Error('Required parameter orderId was null or undefined when calling createOrderQuotations.');
         }
@@ -279,7 +279,7 @@ export class OrdersService extends BaseService {
         let localVarHeaders = this.defaultHeaders;
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            '*/*'
+            'application/json'
         ]);
         if (localVarHttpHeaderAcceptSelected !== undefined) {
             localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
@@ -571,10 +571,10 @@ export class OrdersService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<PagedOrderResponseDTO>;
-    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PagedOrderResponseDTO>>;
-    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PagedOrderResponseDTO>>;
-    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PagedOrderResponseDTO>;
+    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PagedOrderResponseDTO>>;
+    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PagedOrderResponseDTO>>;
+    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -667,7 +667,7 @@ export class OrdersService extends BaseService {
         let localVarHeaders = this.defaultHeaders;
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            '*/*'
+            'application/json'
         ]);
         if (localVarHttpHeaderAcceptSelected !== undefined) {
             localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
@@ -763,10 +763,10 @@ export class OrdersService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getOrderById(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<OrderResponseDTO>;
-    public getOrderById(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<OrderResponseDTO>>;
-    public getOrderById(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<OrderResponseDTO>>;
-    public getOrderById(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: '*/*', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getOrderById(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<OrderResponseDTO>;
+    public getOrderById(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<OrderResponseDTO>>;
+    public getOrderById(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<OrderResponseDTO>>;
+    public getOrderById(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (orderId === null || orderId === undefined) {
             throw new Error('Required parameter orderId was null or undefined when calling getOrderById.');
         }
@@ -774,7 +774,7 @@ export class OrdersService extends BaseService {
         let localVarHeaders = this.defaultHeaders;
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            '*/*'
+            'application/json'
         ]);
         if (localVarHttpHeaderAcceptSelected !== undefined) {
             localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);

@@ -116,7 +116,6 @@ export class OrdersWrapperService {
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
     return this.ordersService.exportOrderToFormula(orderId);
-    // TODO: see if needed return this.http.get(`${environment.apiUrl}/orders/${orderId}/export`, { responseType: 'blob' });
   }
 
   getOrderApprovals(orderId: number) {

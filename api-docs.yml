@@ -16,7 +16,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -36,7 +36,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: '#/components/schemas/PersonResponseDTO'
         '500':
@@ -57,7 +57,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: '#/components/schemas/PersonResponseDTO'
         '404':
@@ -84,7 +84,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: '#/components/schemas/PersonResponseDTO'
         '409':
@@ -529,7 +529,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: '#/components/schemas/PagedOrderResponseDTO'
     post:
@@ -548,7 +548,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: '#/components/schemas/OrderResponseDTO'
         '409':
@@ -572,7 +572,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                   $ref: '#/components/schemas/OrderResponseDTO'
         '404':
@@ -681,7 +681,7 @@ paths:
         '201':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 items:
                   $ref: '#/components/schemas/ItemResponseDTO'
@@ -768,7 +768,7 @@ paths:
         '201':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 items:
                   $ref: '#/components/schemas/QuotationResponseDTO'
@@ -1132,7 +1132,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -1151,7 +1151,7 @@ paths:
         '201':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: '#/components/schemas/CostCenterResponseDTO'
         '409':
@@ -1166,7 +1166,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -1180,7 +1180,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -1195,7 +1195,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
@@ -1238,7 +1238,7 @@ paths:
         '200':
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 $ref: '#/components/schemas/UserResponseDTO'
   /users/me:

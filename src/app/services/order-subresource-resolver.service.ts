@@ -117,19 +117,19 @@ export class OrderSubresourceResolverService {
   ) {
 
     this.currencyFormatter = new ResourceFormatter<CurrencyResponseDTO>(
-      (c) => this.formatCurrency(c), this.currenciesService.getAllCurrencies
+      (c) => this.formatCurrency(c), () => this.currenciesService.getAllCurrencies()
     );
     this.userFormatter = new ResourceFormatter<UserResponseDTO>(
-      (u) => this.formatUser(u), this.usersService.getAllUsers
+      (u) => this.formatUser(u), () => this.usersService.getAllUsers()
     );
     this.personFormatter = new ResourceFormatter<PersonResponseDTO>(
-      (p) => this.formatPerson(p), this.personsService.getAllPersons
+      (p) => this.formatPerson(p), () => this.personsService.getAllPersons()
     );
     this.costCenterFormatter = new ResourceFormatter<CostCenterResponseDTO>(
-      (c) => this.formatCostCenter(c), this.costCentersService.getAllCostCenters
+      (c) => this.formatCostCenter(c), () => this.costCentersService.getAllCostCenters()
     );
     this.supplierFormatter = new ResourceFormatter<SupplierResponseDTO>(
-      (s) => this.formatSupplier(s), this.suppliersService.getAllSuppliers
+      (s) => this.formatSupplier(s), () => this.suppliersService.getAllSuppliers()
     );
 
   }
