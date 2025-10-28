@@ -10,7 +10,7 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
 import { environment } from "../../../../environments/environment";
-import { OrderStatus, UserResponseDTO } from '../../../api';
+import { OrderStatus, UserResponseDTO } from '../../../apiv2';
 import { setupDialog } from "../../../components/dialog/dialog.component";
 import { OrderDocumentsComponent } from "../../../components/documents/order-documents/order-documents.component";
 import { ApprovalsComponent } from '../../../components/order-display/approvals/approvals.component';
@@ -131,7 +131,7 @@ export class ViewOrderPageComponent implements OnInit {
       this.snackBar.open('Bestellung hat keine gültige ID und kann nicht exportiert werden.', 'Schließen', { duration: 5000 });
       return;
     }
-    if (this.internalOrder().order.status !== OrderStatus.COMPLETED) {
+    if (this.internalOrder().order.status !== OrderStatus.Completed) {
       this.snackBar.open('Bestellung kann nur im Status "Abgeschlossen" exportiert werden.', 'Schließen', { duration: 5000 });
       return;
     }
@@ -165,15 +165,15 @@ export class ViewOrderPageComponent implements OnInit {
   createStateChangeButtons(): void {
     this.stateChangeButtons = [];
     for (const state of this.getNextAllowedStates()) {
-      if (state === OrderStatus.APPROVED && !this.authService.isAuthorizedFor(environment.approveOrdersRole)) {
+      if (state === OrderStatus.Approved && !this.authService.isAuthorizedFor(environment.approveOrdersRole)) {
         continue;
       }
       let color;
       switch (state) {
-        case OrderStatus.DELETED:
+        case OrderStatus.Deleted:
           color = 'warn';
           break;
-        case OrderStatus.APPROVED:
+        case OrderStatus.Approved:
           color = 'accent';
           break;
         default:
@@ -205,7 +205,7 @@ export class ViewOrderPageComponent implements OnInit {
       return;
     }
 
-    if (newState === OrderStatus.IN_PROGRESS) {
+    if (newState === OrderStatus.InProgress) {
       this.ordersService.putOrderState(this.internalOrder().order.id!, newState).subscribe({
         next: () => {
           this.snackBar.open(`Bestellungsstatus erfolgreich zu '${STATE_DISPLAY_NAMES.get(newState) ?? newState}' geändert.`, 'Schließen', { duration: 5000 });
@@ -218,7 +218,7 @@ export class ViewOrderPageComponent implements OnInit {
       return;
     }
 
-    if (newState === OrderStatus.DELETED) {
+    if (newState === OrderStatus.Deleted) {
       this.handleDeleteOrder();
       return;
     }

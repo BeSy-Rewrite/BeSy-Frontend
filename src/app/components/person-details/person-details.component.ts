@@ -3,7 +3,7 @@ import { Component, input, OnInit, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { PersonResponseDTO, UserResponseDTO } from '../../api';
+import { PersonResponseDTO, UserResponseDTO } from '../../apiv2';
 import { PERSON_FIELD_NAMES } from '../../display-name-mappings/person-names';
 import { PersonsWrapperService } from '../../services/wrapper-services/persons-wrapper.service';
 import { UsersWrapperService } from '../../services/wrapper-services/users-wrapper.service';
@@ -42,7 +42,7 @@ export class PersonDetailsComponent implements OnInit {
         this.setupPersonData();
       });
     } else {
-      this.personsService.getPersonById(this.personId()).then(person => {
+      this.personsService.getPersonById(this.personId()).subscribe(person => {
         this.person = person;
         this.setupPersonData();
       });

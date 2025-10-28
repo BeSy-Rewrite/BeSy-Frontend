@@ -1,31 +1,27 @@
 import { Injectable } from '@angular/core';
-import { SuppliersService } from '../../api';
+import { SuppliersService } from '../../apiv2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SuppliersWrapperService {
 
-  async getAllSuppliers() {
-    const suppliers = await SuppliersService.getAllSuppliers();
-    return suppliers;
+  constructor(private readonly suppliersService: SuppliersService) { }
+
+  getAllSuppliers() {
+    return this.suppliersService.getAllSuppliers();
   }
 
-  async getSupplierById(id: number) {
-    const supplier = await SuppliersService.getSupplierById(id);
-    return supplier;
+  getSupplierById(id: number) {
+    return this.suppliersService.getSupplierById(id);
   }
 
-  async createSupplier(supplier: any) {
-    const createdSupplier = await SuppliersService.createSupplier(supplier);
-    console.log("Created supplier:", createdSupplier);
-    return createdSupplier;
+  createSupplier(supplier: any) {
+    return this.suppliersService.createSupplier(supplier);
   }
 
-  async updateSupplier(id: number, supplier: any) {
-    const updatedSupplier = await SuppliersService.updateSupplierById(id, supplier);
-    console.log("Updated supplier:", updatedSupplier);
-    return updatedSupplier;
+  updateSupplier(id: number, supplier: any) {
+    return this.suppliersService.updateSupplierById(id, supplier);
   }
 
   /**
@@ -33,24 +29,19 @@ export class SuppliersWrapperService {
      * @returns CustomerIdResponseDTO Liste der Kundennummern eines Lieferanten.
      * @throws ApiError
      */
-  async getCustomersIdBySupplier(supplierId: number) {
-    const customerId = await SuppliersService.getCustomerIdsOfOrder(supplierId);
-    return customerId;
+  getCustomersIdBySupplier(supplierId: number) {
+    return this.suppliersService.getCustomerIdsOfOrder(supplierId);
   }
 
-  async createSupplierCustomerId(supplierId: number, customerId: any) {
-    const createdCustomerId = await SuppliersService.createSupplierCustomerId(supplierId, customerId);
-    console.log("Created customer ID:", createdCustomerId);
-    return createdCustomerId;
+  createSupplierCustomerId(supplierId: number, customerId: any) {
+    return this.suppliersService.createSupplierCustomerId(supplierId, customerId);
   }
 
-  async getSuppliersAddresses() {
-    const addresses = await SuppliersService.getSuppliersAddresses();
-    return addresses;
+  getSuppliersAddresses() {
+    return this.suppliersService.suppliersAddressesGet();
   }
 
-  async getSupplierAddress(id: number) {
-    const address = await SuppliersService.getSuppliersAddress(id);
-    return address;
+  getSupplierAddress(id: number) {
+    return this.suppliersService.suppliersSupplierIdAddressGet(id);
   }
 }

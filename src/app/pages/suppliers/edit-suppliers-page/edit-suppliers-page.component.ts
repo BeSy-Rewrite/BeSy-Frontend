@@ -1,22 +1,21 @@
-import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import { SupplierResponseDTO } from '../../../api/models/SupplierResponseDTO';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { EDIT_SUPPLIER_FORM_CONFIG } from '../../../configs/edit/edit-supplier-config';
-import { MatDivider } from '@angular/material/divider';
-import { FormComponent } from '../../../components/form-component/form-component.component';
-import { AddressFormComponent } from '../../../components/address-form/address-form.component';
-import { EDIT_ADDRESS_FORM_CONFIG } from '../../../configs/edit/edit-address-config';
-import { MatTableDataSource } from '@angular/material/table';
-import {
-  AddressResponseDTO,
-  CustomerIdRequestDTO,
-  CustomerIdResponseDTO,
-} from '../../../api';
-import { EDIT_CUSTOMER_ID_FORM_CONFIG } from '../../../configs/edit/edit-customer-id-config';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDivider } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import {
+  CustomerIdRequestDTO,
+  CustomerIdResponseDTO
+} from '../../../api';
+import { AddressFormComponent } from '../../../components/address-form/address-form.component';
+import { FormComponent } from '../../../components/form-component/form-component.component';
+import { EDIT_ADDRESS_FORM_CONFIG } from '../../../configs/edit/edit-address-config';
+import { EDIT_CUSTOMER_ID_FORM_CONFIG } from '../../../configs/edit/edit-customer-id-config';
+import { EDIT_SUPPLIER_FORM_CONFIG } from '../../../configs/edit/edit-supplier-config';
+import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 @Component({
   selector: 'app-edit-suppliers-page',
   imports: [MatDivider, FormComponent, AddressFormComponent, MatButtonModule],
@@ -25,13 +24,13 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class EditSuppliersPageComponent implements OnInit {
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private _notifications: MatSnackBar,
-    private suppliersWrapperService: SuppliersWrapperService
-  ) {}
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly _notifications: MatSnackBar,
+    private readonly suppliersWrapperService: SuppliersWrapperService
+  ) { }
 
-  supplierId!: number | unknown; // ID of the supplier being edited
+  supplierId!: number; // ID of the supplier being edited
   supplierName = ''; // Placeholder variable for the supplier name in the customer-id-form title
 
   supplierForm = new FormGroup({});
@@ -56,7 +55,7 @@ export class EditSuppliersPageComponent implements OnInit {
       const id = Number(params.get('id'));
 
       // Check if id is a valid number
-      if (isNaN(id)) {
+      if (Number.isNaN(id)) {
         this.router.navigate(['/not-found'], { skipLocationChange: true });
         return;
       }
@@ -67,41 +66,35 @@ export class EditSuppliersPageComponent implements OnInit {
   }
 
   // * Load supplier data by ID
-  async loadSupplierData(id: number) {
-    try {
-      // Load supplier data
-      const supplier: SupplierResponseDTO =
-        await this.suppliersWrapperService.getSupplierById(id);
+  loadSupplierData(id: number) {
+    forkJoin({
+      supplier: this.suppliersWrapperService.getSupplierById(id),
+      address: this.suppliersWrapperService.getSupplierAddress(id),
+      customer_ids: this.suppliersWrapperService.getCustomersIdBySupplier(id)
+    }).subscribe({
+      next: ({ supplier, address, customer_ids }) => {
+        this.supplierForm.patchValue(supplier);
+        this.addressForm.patchValue(address);
+        this.customerIdTableDataSource = new MatTableDataSource<CustomerIdResponseDTO>(customer_ids);
 
-      // Patch supplier form with loaded data
-      this.supplierForm.patchValue(supplier);
-
-      // Load address data
-      const address: AddressResponseDTO =
-        await this.suppliersWrapperService.getSupplierAddress(id);
-      this.addressForm.patchValue(address);
-
-      // Load customer ID data and patch it into the table
-      const customer_ids = await this.suppliersWrapperService.getCustomersIdBySupplier(id);
-      this.customerIdTableDataSource =
-        new MatTableDataSource<CustomerIdResponseDTO>(customer_ids);
-
-      // Replace supplier name placeholder in customer ID form config
-      // so the supplier name is displayed in the title
-      this.customerIdFormConfig = {
-        ...EDIT_CUSTOMER_ID_FORM_CONFIG,
-        title: EDIT_CUSTOMER_ID_FORM_CONFIG.title.replace(
-          '{Lieferantenname}',
-          this.supplierForm.get('name')?.value || '---'
-        ),
-      };
-    } catch (error) {
-      // Handle error in any API call
-      this._notifications.open('Fehler beim Laden der Daten', undefined, {
-        duration: 3000,
-      });
-      this.router.navigate(['/not-found'], { skipLocationChange: true });
-    }
+        // Replace supplier name placeholder in customer ID form config
+        // so the supplier name is displayed in the title
+        this.customerIdFormConfig = {
+          ...EDIT_CUSTOMER_ID_FORM_CONFIG,
+          title: EDIT_CUSTOMER_ID_FORM_CONFIG.title.replace(
+            '{Lieferantenname}',
+            this.supplierForm.get('name')?.value ?? '---'
+          ),
+        };
+      },
+      error: () => {
+        // Handle error in any API call
+        this._notifications.open('Fehler beim Laden der Daten', undefined, {
+          duration: 3000,
+        });
+        this.router.navigate(['/not-found'], { skipLocationChange: true });
+      }
+    });
   }
 
   // * Handle back navigation
@@ -126,22 +119,24 @@ export class EditSuppliersPageComponent implements OnInit {
     // Prepare form data for submission
     const formData = this.customerIdForm.value as CustomerIdRequestDTO;
 
-    try {
-      // Create supplier customer ID
-      await this.suppliersWrapperService.createSupplierCustomerId(
-        this.supplierId as number,
-        formData
-      );
-      this._notifications.open('Kundennummer erstellt', undefined, {
-        duration: 3000,
-      });
-    } catch (error) {
-      // Handle error in API call
-      this._notifications.open(
-        'Fehler beim Erstellen der Kundennummer',
-        undefined,
-        { duration: 3000 }
-      );
-    }
+    // Create supplier customer ID
+    this.suppliersWrapperService.createSupplierCustomerId(
+      this.supplierId,
+      formData
+    ).subscribe({
+      next: () => {
+        this._notifications.open('Kundennummer erstellt', undefined, {
+          duration: 3000,
+        });
+      },
+      error: () => {
+        // Handle error in API call
+        this._notifications.open(
+          'Fehler beim Erstellen der Kundennummer',
+          undefined,
+          { duration: 3000 }
+        );
+      }
+    });
   }
 }

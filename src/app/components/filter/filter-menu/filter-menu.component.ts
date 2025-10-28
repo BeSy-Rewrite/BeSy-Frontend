@@ -12,7 +12,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { debounceTime, finalize, forkJoin, from, Observable, of, tap } from 'rxjs';
-import { CostCenterResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../../../api';
+import { CostCenterResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../../../apiv2';
 import { ORDERS_FILTER_PRESETS } from '../../../configs/orders-table/order-filter-presets-config';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-table/orders-filter-menu-config';
 import { ordersTableConfig } from '../../../configs/orders-table/orders-table-config';
