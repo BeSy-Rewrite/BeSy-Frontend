@@ -12,7 +12,7 @@ export const USED_STATES: state[] = [
     state.Archived
 ];
 
-export const STATE_DISPLAY_NAMES = new Map<state | string, string>([
+export const STATE_DISPLAY_NAMES = new Map<state, string>([
     [state.InProgress, `In${NBSP}Bearbeitung`],
     [state.Completed, 'Fertiggestellt'],
     [state.ApprovalsReceived, `Genehmigungen${NBSP}erhalten`],
@@ -24,7 +24,7 @@ export const STATE_DISPLAY_NAMES = new Map<state | string, string>([
     [state.Deleted, 'Gelöscht']
 ]);
 
-export const STATE_ICONS = new Map<state | string, string>([
+export const STATE_ICONS = new Map<state, string>([
     [state.InProgress, '⏳'],
     [state.Completed, '✔️'],
     [state.ApprovalsReceived, '🆗'],
@@ -36,7 +36,7 @@ export const STATE_ICONS = new Map<state | string, string>([
     [state.Deleted, '🗑️']
 ]);
 
-export const STATE_FONT_ICONS = new Map<state | string, string>([
+export const STATE_FONT_ICONS = new Map<state, string>([
     [state.InProgress, 'hourglass_top'],
     [state.Completed, 'check_circle'],
     [state.ApprovalsReceived, 'task_alt'],
@@ -48,7 +48,7 @@ export const STATE_FONT_ICONS = new Map<state | string, string>([
     [state.Deleted, 'delete']
 ]);
 
-export const STATE_DESCRIPTIONS = new Map<state | string, string>([
+export const STATE_DESCRIPTIONS = new Map<state, string>([
     [state.InProgress, 'Die Bestellung kann derzeit bearbeitet werden.'],
     [state.Completed, 'Die Bearbeitung der Bestellung ist abgeschlossen.'],
     [state.ApprovalsReceived, 'Die erforderlichen Genehmigungen wurden erhalten.'],
@@ -60,7 +60,7 @@ export const STATE_DESCRIPTIONS = new Map<state | string, string>([
     [state.Deleted, 'Die Bestellung wurde gelöscht.']
 ]);
 
-export const STATE_CHANGE_TO_NAMES = new Map<state | string, string>([
+export const STATE_CHANGE_TO_NAMES = new Map<state, string>([
     [state.InProgress, "Auf 'In Bearbeitung' setzen"],
     [state.Completed, 'Fertigstellen'],
     [state.ApprovalsReceived, 'Genehmigungen erhalten'],

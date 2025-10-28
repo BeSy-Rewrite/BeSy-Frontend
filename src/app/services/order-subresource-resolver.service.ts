@@ -184,7 +184,7 @@ export class OrderSubresourceResolverService {
     data.legacy_alias = order.legacy_alias ?? '';
     data.owner_id = '';
     data.content_description = order.content_description ?? '';
-    data.status = STATE_ICONS.get(order.status ?? '') ?? order.status ?? '';
+    data.status = order.status ? (STATE_ICONS.get(order.status) ?? order.status) : '';
     data.currency = '';
     data.comment = order.comment ?? '';
     data.comment_for_supplier = order.comment_for_supplier ?? '';
@@ -377,7 +377,7 @@ export class OrderSubresourceResolverService {
   /** Returns tooltip texts for specific fields in the order display data. */
   getTooltips(order: OrderResponseDTO): { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string } {
     return {
-      status: STATE_DISPLAY_NAMES.get(order.status ?? '') ?? order.status ?? '',
+      status: order.status ? (STATE_DISPLAY_NAMES.get(order.status) ?? order.status) : '',
     };
   }
 

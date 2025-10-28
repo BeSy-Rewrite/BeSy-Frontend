@@ -44,7 +44,7 @@ export class StateHistoryComponent implements OnInit, OnChanges {
     this.ordersService.getOrderStatusHistory(this.order().id ?? 0).subscribe(history => {
       this.stateHistory = history;
       const formattedHistory = this.stateHistory.map(entry => ({
-        status: `${this.stateIcons.get(entry.status ?? '') ?? ''} ${this.stateNames.get(entry.status ?? '') ?? entry.status}`,
+        status: `${entry.status ? (this.stateIcons.get(entry.status) ?? '') : ''} ${entry.status ? (this.stateNames.get(entry.status) ?? entry.status) : ''}`,
         timestamp: new Date(entry.timestamp ?? '').toLocaleString()
       }));
       this.dataSource = new MatTableDataSource(formattedHistory);
