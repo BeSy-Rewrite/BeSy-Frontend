@@ -20,11 +20,11 @@ export interface InvoiceRequestDTO {
     /**
      * ID der zugehörigen Kostenstelle
      */
-    costCenterId: string;
+    cost_center_id: number;
     /**
      * Referenz auf die zugehörige Bestellung
      */
-    orderId: number;
+    order_id: number;
     /**
      * Rechnungsbetrag
      */
@@ -40,6 +40,6 @@ export interface InvoiceRequestDTO {
     /**
      * Referenz auf ein Dokument im papierlosen System
      */
-    paperlessId?: number;
+    paperless_id?: number;
 }
 

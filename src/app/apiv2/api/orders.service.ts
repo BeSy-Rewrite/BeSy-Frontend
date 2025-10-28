@@ -110,7 +110,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/invoices`;
+        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/invoices`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<InvoiceResponseDTO>('post', `${basePath}${localVarPath}`,
             {
@@ -743,7 +743,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/invoices`;
+        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/invoices`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<InvoiceResponseDTO>>('get', `${basePath}${localVarPath}`,
             {

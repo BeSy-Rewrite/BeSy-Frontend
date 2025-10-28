@@ -6,6 +6,7 @@ import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
 import { environment } from '../environments/environment';
+import { provideApi } from './apiv2';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -18,6 +19,7 @@ export const appConfig: ApplicationConfig = {
       withFetch(),
       withInterceptorsFromDi(),
     ),
+    provideApi(environment.apiUrl),
     provideOAuthClient({
       resourceServer: {
         allowedUrls: [environment.apiUrl],
@@ -36,7 +38,7 @@ export const authCodeFlowConfig: AuthConfig = {
   issuer: environment.identityProviderUrl,
 
   // URL of the SPA to redirect the user after login
-  redirectUri: window.location.origin + '/',
+  redirectUri: globalThis.location.origin + '/',
 
   // The SPA's id. The SPA is registerd with this id at the auth-server
   // clientId: 'server.code',
