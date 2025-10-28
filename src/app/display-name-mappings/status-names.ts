@@ -12,6 +12,11 @@ export const USED_STATES: state[] = [
     state.Archived
 ];
 
+export const STATE_ALLOW_PDF_EXPORT: state[] = [
+    state.Settled,
+    state.Archived
+];
+
 export const STATE_DISPLAY_NAMES = new Map<state, string>([
     [state.InProgress, `In${NBSP}Bearbeitung`],
     [state.Completed, 'Fertiggestellt'],

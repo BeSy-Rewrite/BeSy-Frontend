@@ -21,7 +21,7 @@ import { StateHistoryComponent } from "../../../components/order-display/state-h
 import { Step } from "../../../components/progress-bar/progress-bar.component";
 import { StateDisplayComponent } from "../../../components/state-display/state-display.component";
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
-import { STATE_CHANGE_TO_NAMES, STATE_DISPLAY_NAMES, STATE_ICONS } from "../../../display-name-mappings/status-names";
+import { STATE_ALLOW_PDF_EXPORT, STATE_CHANGE_TO_NAMES, STATE_DISPLAY_NAMES, STATE_ICONS } from "../../../display-name-mappings/status-names";
 import { AllowedStateTransitions } from "../../../models/allowed-states-transitions";
 import { DisplayableOrder } from '../../../models/displayable-order';
 import { AuthenticationService } from "../../../services/authentication.service";
@@ -85,6 +85,7 @@ export class ViewOrderPageComponent implements OnInit {
   ];
 
   states: Step[] = [];
+  allowPdfExportStates = STATE_ALLOW_PDF_EXPORT;
 
   owner: UserResponseDTO | undefined;
 
@@ -131,20 +132,26 @@ export class ViewOrderPageComponent implements OnInit {
       this.snackBar.open('Bestellung hat keine gültige ID und kann nicht exportiert werden.', 'Schließen', { duration: 5000 });
       return;
     }
-    if (this.internalOrder().order.status !== OrderStatus.Completed) {
-      this.snackBar.open('Bestellung kann nur im Status "Abgeschlossen" exportiert werden.', 'Schließen', { duration: 5000 });
+
+    if (!this.allowPdfExportStates.includes(this.internalOrder().order.status!)) {
+      this.snackBar.open(`Bestellung kann nur in den Statusen ${this.allowPdfExportStates.map(state => STATE_DISPLAY_NAMES.get(state)).join(', ')} exportiert werden.`, 'Schließen', { duration: 5000 });
       return;
     }
 
-    this.ordersService.exportOrderToDocument(this.internalOrder().order.id?.toString()!).subscribe(blob => {
-      const link = document.createElement('a');
-      const objectUrl = URL.createObjectURL(blob);
-      link.href = objectUrl;
-      link.download = `Bestellung-${this.internalOrder().orderDisplay.besy_number}.pdf`;
-      link.click();
-      URL.revokeObjectURL(objectUrl);
+    this.ordersService.exportOrderToDocument(this.internalOrder().order.id?.toString()!).subscribe({
+      next: (blob) => {
+        const link = document.createElement('a');
+        const objectUrl = URL.createObjectURL(blob);
+        link.href = objectUrl;
+        link.download = `Bestellung-${this.internalOrder().orderDisplay.besy_number}.pdf`;
+        link.click();
+        URL.revokeObjectURL(objectUrl);
 
-      this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
+        this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
+      },
+      error: () => {
+        this.snackBar.open('Fehler beim Exportieren der Bestellung.', 'Schließen', { duration: 5000 });
+      }
     });
   }
 

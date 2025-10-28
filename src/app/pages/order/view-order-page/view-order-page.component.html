@@ -11,22 +11,22 @@
         <span class="min-w-fit">
             Erstellt von:
             <button matButton color="primary" class="w-fit"
-                [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
-                [cdkCopyToClipboard]="owner?.email ?? ''">
+                    [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
+                    [cdkCopyToClipboard]="owner?.email ?? ''">
                 {{owner?.name}} {{owner?.surname}}
             </button>
         </span>
         <span class="min-w-fit">
             Bestellnummer:
             <button matButton color="primary" class="w-fit"
-                [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number" matTooltip="Bestellnummer kopieren">
+                    [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number" matTooltip="Bestellnummer kopieren">
                 {{internalOrder().orderDisplay.besy_number}}
             </button>
         </span>
         <span class="min-w-fit">
             ID:
             <button matButton color="primary" class="w-fit" [cdkCopyToClipboard]="currentUrl()"
-                matTooltip="Link kopieren">
+                    matTooltip="Link kopieren">
                 #&nbsp;{{internalOrder().order.id}}
                 <mat-icon iconPositionEnd>link</mat-icon>
             </button>
@@ -35,7 +35,8 @@
     </div>
 
     <div class="sticky top-0 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
-        @if (internalOrder().order.status === orderStates.Completed) {
+        @if (internalOrder().order.status === orderStates.Settled || internalOrder().order.status ===
+        orderStates.Archived) {
         <button mat-raised-button color="primary" (click)="export()">
             <mat-icon iconPositionStart>download</mat-icon>
             Exportieren
@@ -43,13 +44,13 @@
         }
         @if (internalOrder().order.status === orderStates.InProgress) {
         <a mat-raised-button color="primary" [routerLink]="['/orders', internalOrder().order.id, 'edit']"
-            [disabled]="internalOrder().order.status !== orderStates.InProgress">
+           [disabled]="internalOrder().order.status !== orderStates.InProgress">
             Bearbeiten
         </a>
         }
         @for (state of stateChangeButtons; track $index) {
         <button mat-raised-button [color]="state.color" (click)="changeOrderState(state.state)"
-            [matTooltip]="state.tooltip">
+                [matTooltip]="state.tooltip">
             {{ state.label }} {{ state.icon }}
         </button>
         }
