@@ -1,4 +1,4 @@
-import { OrderStatus } from "../../api";
+import { OrderStatus } from "../../apiv2";
 import { OrdersFilterPreset } from "../../models/filter/filter-presets";
 
 
@@ -33,7 +33,7 @@ export const ORDERS_FILTER_PRESETS: OrdersFilterPreset[] = [
             {
                 id: "status",
                 chipIds: [
-                    OrderStatus.APPROVALS_RECEIVED
+                    OrderStatus.ApprovalsReceived
                 ]
             }
         ]

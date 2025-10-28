@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { DomSanitizer } from '@angular/platform-browser';
 import { environment } from '../../../../environments/environment';
-import { InvoiceResponseDTO, OrderResponseDTO } from '../../../api';
+import { InvoiceResponseDTO, OrderResponseDTO } from '../../../apiv2';
 import { INVOICE_FIELD_NAMES } from '../../../display-name-mappings/invoice-names';
 import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
@@ -134,9 +134,9 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       return;
     }
     this.invoicesService.downloadDocument(row.id).subscribe(blob => {
-      const link = document.createElement('a')
-      const objectUrl = URL.createObjectURL(blob)
-      link.href = objectUrl
+      const link = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
       link.download = `Dokument-${row.id}_Bestellung-${row.order_id}_Paperless-${row.paperless_id}_${row.comment}.pdf`;
       link.click();
       URL.revokeObjectURL(objectUrl);

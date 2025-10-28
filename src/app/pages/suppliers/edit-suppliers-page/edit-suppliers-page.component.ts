@@ -9,7 +9,7 @@ import { forkJoin } from 'rxjs';
 import {
   CustomerIdRequestDTO,
   CustomerIdResponseDTO
-} from '../../../api';
+} from '../../../apiv2';
 import { AddressFormComponent } from '../../../components/address-form/address-form.component';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { EDIT_ADDRESS_FORM_CONFIG } from '../../../configs/edit/edit-address-config';

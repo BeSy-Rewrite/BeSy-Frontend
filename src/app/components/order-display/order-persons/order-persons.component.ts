@@ -1,5 +1,5 @@
 import { Component, input, OnChanges, OnInit } from '@angular/core';
-import { OrderResponseDTO } from '../../../api';
+import { OrderResponseDTO } from '../../../apiv2';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { PersonDetailsComponent } from '../../person-details/person-details.component';
 

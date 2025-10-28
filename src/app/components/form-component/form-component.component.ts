@@ -13,7 +13,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
-import { CustomerIdResponseDTO } from '../../api';
+import { CustomerIdResponseDTO } from '../../apiv2';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
 
 export interface FormField {
@@ -33,7 +33,7 @@ export interface FormField {
   | 'textarea';
   required: boolean;
   defaultValue?: any;
-  options?: { label: string; value: any }[];
+  options?: { label: string; value: any; }[];
   validators?: any[];
   emitAsSignal?: boolean;
   loadFromApi?: boolean;
@@ -82,9 +82,9 @@ export class FormComponent implements OnInit {
     new MatTableDataSource<CustomerIdResponseDTO>([]);
 
   // Columns to be displayed in the address table
-  @Input() tableColumns: { id: string; label: string }[] = [];
+  @Input() tableColumns: { id: string; label: string; }[] = [];
 
-  valueChanged = output<{ field: string; value: any }>();
+  valueChanged = output<{ field: string; value: any; }>();
 
   ngOnInit() {
     this.config.fields.forEach((field) => {

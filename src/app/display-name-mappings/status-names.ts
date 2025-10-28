@@ -1,73 +1,73 @@
-import { OrderStatus as state } from '../api';
+import { OrderStatus as state } from '../apiv2';
 
 const NBSP = '\u00A0';
 
 export const USED_STATES: state[] = [
-    state.IN_PROGRESS,
-    state.COMPLETED,
-    state.APPROVALS_RECEIVED,
-    state.APPROVED,
-    state.SENT,
-    state.SETTLED,
-    state.ARCHIVED
+    state.InProgress,
+    state.Completed,
+    state.ApprovalsReceived,
+    state.Approved,
+    state.Sent,
+    state.Settled,
+    state.Archived
 ];
 
 export const STATE_DISPLAY_NAMES = new Map<state | string, string>([
-    [state.IN_PROGRESS, `In${NBSP}Bearbeitung`],
-    [state.COMPLETED, 'Fertiggestellt'],
-    [state.APPROVALS_RECEIVED, `Genehmigungen${NBSP}erhalten`],
-    [state.APPROVED, 'Genehmigt'],
-    [state.REJECTED, 'Abgelehnt'],
-    [state.SENT, 'Abgesendet'],
-    [state.SETTLED, 'Abgeschlossen'],
-    [state.ARCHIVED, 'Archiviert'],
-    [state.DELETED, 'Gelöscht']
+    [state.InProgress, `In${NBSP}Bearbeitung`],
+    [state.Completed, 'Fertiggestellt'],
+    [state.ApprovalsReceived, `Genehmigungen${NBSP}erhalten`],
+    [state.Approved, 'Genehmigt'],
+    [state.Rejected, 'Abgelehnt'],
+    [state.Sent, 'Abgesendet'],
+    [state.Settled, 'Abgeschlossen'],
+    [state.Archived, 'Archiviert'],
+    [state.Deleted, 'Gelöscht']
 ]);
 
 export const STATE_ICONS = new Map<state | string, string>([
-    [state.IN_PROGRESS, '⏳'],
-    [state.COMPLETED, '✔️'],
-    [state.APPROVALS_RECEIVED, '🆗'],
-    [state.APPROVED, '👌'],
-    [state.REJECTED, '❌'],
-    [state.SENT, '📤'],
-    [state.SETTLED, '✅'],
-    [state.ARCHIVED, '📦'],
-    [state.DELETED, '🗑️']
+    [state.InProgress, '⏳'],
+    [state.Completed, '✔️'],
+    [state.ApprovalsReceived, '🆗'],
+    [state.Approved, '👌'],
+    [state.Rejected, '❌'],
+    [state.Sent, '📤'],
+    [state.Settled, '✅'],
+    [state.Archived, '📦'],
+    [state.Deleted, '🗑️']
 ]);
 
 export const STATE_FONT_ICONS = new Map<state | string, string>([
-    [state.IN_PROGRESS, 'hourglass_top'],
-    [state.COMPLETED, 'check_circle'],
-    [state.APPROVALS_RECEIVED, 'task_alt'],
-    [state.APPROVED, 'thumb_up'],
-    [state.REJECTED, 'thumb_down'],
-    [state.SENT, 'send'],
-    [state.SETTLED, 'verified'],
-    [state.ARCHIVED, 'archive'],
-    [state.DELETED, 'delete']
+    [state.InProgress, 'hourglass_top'],
+    [state.Completed, 'check_circle'],
+    [state.ApprovalsReceived, 'task_alt'],
+    [state.Approved, 'thumb_up'],
+    [state.Rejected, 'thumb_down'],
+    [state.Sent, 'send'],
+    [state.Settled, 'verified'],
+    [state.Archived, 'archive'],
+    [state.Deleted, 'delete']
 ]);
 
 export const STATE_DESCRIPTIONS = new Map<state | string, string>([
-    [state.IN_PROGRESS, 'Die Bestellung kann derzeit bearbeitet werden.'],
-    [state.COMPLETED, 'Die Bearbeitung der Bestellung ist abgeschlossen.'],
-    [state.APPROVALS_RECEIVED, 'Die erforderlichen Genehmigungen wurden erhalten.'],
-    [state.APPROVED, 'Die Bestellung wurde vom Dekanat genehmigt.'],
-    [state.REJECTED, 'Die Bestellung wurde abgelehnt.'],
-    [state.SENT, 'Die Bestellung wurde versendet.'],
-    [state.SETTLED, 'Die Bestellung wurde abgeschlossen.'],
-    [state.ARCHIVED, 'Die Bestellung wurde archiviert.'],
-    [state.DELETED, 'Die Bestellung wurde gelöscht.']
+    [state.InProgress, 'Die Bestellung kann derzeit bearbeitet werden.'],
+    [state.Completed, 'Die Bearbeitung der Bestellung ist abgeschlossen.'],
+    [state.ApprovalsReceived, 'Die erforderlichen Genehmigungen wurden erhalten.'],
+    [state.Approved, 'Die Bestellung wurde vom Dekanat genehmigt.'],
+    [state.Rejected, 'Die Bestellung wurde abgelehnt.'],
+    [state.Sent, 'Die Bestellung wurde versendet.'],
+    [state.Settled, 'Die Bestellung wurde abgeschlossen.'],
+    [state.Archived, 'Die Bestellung wurde archiviert.'],
+    [state.Deleted, 'Die Bestellung wurde gelöscht.']
 ]);
 
 export const STATE_CHANGE_TO_NAMES = new Map<state | string, string>([
-    [state.IN_PROGRESS, "Auf 'In Bearbeitung' setzen"],
-    [state.COMPLETED, 'Fertigstellen'],
-    [state.APPROVALS_RECEIVED, 'Genehmigungen erhalten'],
-    [state.APPROVED, 'Genehmigen'],
-    [state.REJECTED, 'Ablehnen'],
-    [state.SENT, 'Als Abgesendet markieren'],
-    [state.SETTLED, 'Abschließen'],
-    [state.ARCHIVED, 'Archivieren'],
-    [state.DELETED, 'Löschen']
+    [state.InProgress, "Auf 'In Bearbeitung' setzen"],
+    [state.Completed, 'Fertigstellen'],
+    [state.ApprovalsReceived, 'Genehmigungen erhalten'],
+    [state.Approved, 'Genehmigen'],
+    [state.Rejected, 'Ablehnen'],
+    [state.Sent, 'Als Abgesendet markieren'],
+    [state.Settled, 'Abschließen'],
+    [state.Archived, 'Archivieren'],
+    [state.Deleted, 'Löschen']
 ]);

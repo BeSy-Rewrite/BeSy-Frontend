@@ -16,7 +16,7 @@ import { SUPPLIER_FORM_CONFIG } from '../../../configs/create-supplier-config';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
-import { VatResponseDTO } from './../../../api/models/VatResponseDTO';
+import { VatResponseDTO } from './../../../apiv2';
 
 @Component({
   selector: 'app-suppliers-page',

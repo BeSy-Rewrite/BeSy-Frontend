@@ -531,9 +531,7 @@ paths:
           content:
             '*/*':
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PagedOrderResponseDTO'
+                $ref: '#/components/schemas/PagedOrderResponseDTO'
     post:
       tags:
         - Orders

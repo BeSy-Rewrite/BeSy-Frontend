@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { from, of, tap } from 'rxjs';
+import { of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { OrdersService, PagedOrderResponseDTO } from '../api';
+import { OrdersService, PagedOrderResponseDTO } from '../apiv2';
 import { FilterRequestParams } from '../models/filter/filter-request-params';
 
 type CacheEntry = {
@@ -24,6 +24,8 @@ export class CachedOrdersService {
   private readonly cacheDurationMs: number = environment.cacheDurationMs ?? 5 * 60 * 1000; // 5 minutes default
 
   private readonly cache: Map<string, CacheEntry> = new Map();
+
+  constructor(private readonly ordersService: OrdersService) { }
 
   /**
    * Fetch orders from the API and cache the result.
@@ -77,7 +79,7 @@ export class CachedOrdersService {
     filters: FilterRequestParams,
     searchTerm: string = ''
   ) {
-    return from(OrdersService.getAllOrders(
+    return this.ordersService.getAllOrders(
       page,
       size,
       sort,
@@ -97,7 +99,7 @@ export class CachedOrdersService {
       filters?.secondaryCostCenters,
       filters?.lastUpdatedTimeAfter,
       filters?.lastUpdatedTimeBefore
-    )).pipe(
+    ).pipe(
       tap((pageResponse: PagedOrderResponseDTO) => {
 
         if (pageResponse.total_elements !== undefined &&

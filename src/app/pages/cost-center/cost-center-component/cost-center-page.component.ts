@@ -8,7 +8,7 @@ import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import {
   CostCenterRequestDTO,
   CostCenterResponseDTO,
-} from '../../../api';
+} from '../../../apiv2';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { COST_CENTER_FORM_CONFIG } from '../../../configs/cost-center-config';
