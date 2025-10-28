@@ -3,7 +3,7 @@ import { Component, computed, input, OnChanges, OnInit, signal } from '@angular/
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTableDataSource } from '@angular/material/table';
-import { ItemResponseDTO } from '../../../api';
+import { ItemResponseDTO } from '../../../apiv2';
 import { ITEM_FIELD_NAMES } from '../../../display-name-mappings/item-names';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayItem } from '../../../models/display-item';
@@ -102,7 +102,7 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
 
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
-    this.ordersService.getOrderItems(this.orderData().order.id?.toString() ?? '').then(items => {
+    this.ordersService.getOrderItems(this.orderData().order.id?.toString() ?? '').subscribe(items => {
       this.fetchedItems.set(items);
 
       this.currencyCode = this.orderData().order.currency?.code ?? 'EUR';
@@ -132,7 +132,7 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
         preferred_list: this.subresourceService.formatPreferredList(item.preferred_list),
         price_total: `Gesamtbruttopreis für Menge: ${quantity.trim()}`
       }
-    }
+    };
   }
 
   /**

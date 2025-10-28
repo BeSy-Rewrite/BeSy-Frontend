@@ -1,7 +1,7 @@
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { forkJoin } from 'rxjs';
-import { OrderResponseDTO, OrderStatus, OrderStatusHistoryResponseDTO } from '../../api';
+import { OrderResponseDTO, OrderStatus, OrderStatusHistoryResponseDTO } from '../../apiv2';
 import { STATE_DESCRIPTIONS, STATE_DISPLAY_NAMES, STATE_FONT_ICONS, STATE_ICONS } from '../../display-name-mappings/status-names';
 import { AllowedStateTransitions } from '../../models/allowed-states-transitions';
 import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
@@ -49,7 +49,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
     })
       .subscribe(({ transitions, history }) => {
         this.allowedStateTransitions = transitions;
-        this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+        this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
 
         this.generateLinearStates();
         this.generateSteps();
@@ -57,8 +57,8 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges() {
-    this.ordersService.getOrderStatusHistory(this.order().id!).then(history => {
-      this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+    this.ordersService.getOrderStatusHistory(this.order().id!).subscribe(history => {
+      this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
       this.generateLinearStates();
       this.generateSteps();
     });
@@ -90,7 +90,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   generateLinearStates() {
     this.setupStateHistory();
 
-    const futureStates = [OrderStatus.IN_PROGRESS];
+    const futureStates: OrderStatus[] = [OrderStatus.InProgress];
     let nextState: OrderStatus | undefined;
 
     do {
@@ -100,7 +100,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
       }
     } while (nextState);
 
-    if (this.order().status === OrderStatus.DELETED) return;
+    if (this.order().status === OrderStatus.Deleted) return;
 
     this.states = [...this.states, ...futureStates.splice(futureStates.indexOf(this.order().status!) + 1)];
     this.currentStepIndex = this.states.lastIndexOf(this.order().status!);
@@ -110,7 +110,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    * Setup the initial state history for the progress bar.
    */
   private setupStateHistory() {
-    this.states = this.orderStatusHistory.map(h => h.status).slice();
+    this.states = this.orderStatusHistory.map(h => h.status).filter(s => s !== undefined);
     if (this.states.at(-1) !== this.order().status) {
       this.states.push(this.order().status!);
     }
@@ -130,7 +130,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
       return undefined;
     }
     return this.allowedStateTransitions[lastState]?.find((nextState) =>
-      nextState !== OrderStatus.DELETED && nextState !== OrderStatus.IN_PROGRESS
+      nextState !== OrderStatus.Deleted && nextState !== OrderStatus.InProgress
     );
   }
 }

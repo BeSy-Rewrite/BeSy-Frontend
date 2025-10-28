@@ -1,7 +1,7 @@
-import { OrderResponseDTO } from "../api"
-import { OrderDisplayData } from "./order-display-data"
+import { OrderResponseDTO } from "../apiv2";
+import { OrderDisplayData } from "./order-display-data";
 
 export type DisplayableOrder = {
     order: OrderResponseDTO,
-    orderDisplay: OrderDisplayData
-}
+    orderDisplay: OrderDisplayData;
+};

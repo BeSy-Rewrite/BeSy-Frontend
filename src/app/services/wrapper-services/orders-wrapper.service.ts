@@ -1,15 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { ApprovalResponseDTO, ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, OrderStatusHistoryResponseDTO, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api';
+import { ItemRequestDTO, OrderRequestDTO, OrdersService, OrderStatus } from '../../apiv2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrdersWrapperService {
 
-  constructor(private readonly http: HttpClient) { }
+  constructor(private readonly http: HttpClient, private readonly ordersService: OrdersService) { }
 
   /**
      * @param page Seitenzahl für die Paginierung (beginnend bei 0).
@@ -35,7 +34,7 @@ export class OrdersWrapperService {
      * @returns PagedOrderResponseDTO OK
      * @throws ApiError
      */
-  async getAllOrders(
+  getAllOrders(
     page?: number,
     size: number = 20,
     sort?: Array<string>,
@@ -55,8 +54,8 @@ export class OrdersWrapperService {
     secondaryCostCenters?: Array<string>,
     lastUpdatedTimeAfter?: string,
     lastUpdatedTimeBefore?: string
-  ): Promise<PagedOrderResponseDTO> {
-    return await OrdersService.getAllOrders(
+  ) {
+    return this.ordersService.getAllOrders(
       page,
       size,
       sort,
@@ -79,55 +78,56 @@ export class OrdersWrapperService {
     );
   }
 
-  async createOrder(request: OrderRequestDTO): Promise<OrderResponseDTO> {
-    return await OrdersService.createOrder(request);
+  createOrder(request: OrderRequestDTO) {
+    return this.ordersService.createOrder(request);
   }
 
-  async getOrderById(orderId: number): Promise<OrderResponseDTO> {
-    return await OrdersService.getOrderById(orderId);
+  getOrderById(orderId: number) {
+    return this.ordersService.getOrderById(orderId);
   }
 
-  async deleteOrder(orderId: number): Promise<void> {
-    return await OrdersService.deleteOrder(orderId);
+  deleteOrder(orderId: number) {
+    return this.ordersService.deleteOrder(orderId);
   }
 
-  async getOrderItems(orderId: string): Promise<ItemResponseDTO[]> {
-    return await OrdersService.getOrderItems(orderId);
+  getOrderItems(orderId: string) {
+    return this.ordersService.getOrderItems(orderId);
   }
 
-  async createOrderItems(orderId: number, requestBody: any): Promise<any> {
-    return await OrdersService.createOrderItems(orderId, requestBody);
+  createOrderItems(orderId: number, itemRequestDTOs: ItemRequestDTO[]) {
+    return this.ordersService.createOrderItems(orderId, itemRequestDTOs);
   }
 
-  async deleteItemOfOrder(orderId: number, itemId: number): Promise<void> {
-    return await OrdersService.deleteItemOfOrder(orderId, itemId);
+  deleteItemOfOrder(orderId: number, itemId: number) {
+    return this.ordersService.deleteItemOfOrder(orderId, itemId);
   }
 
-  async getOrderQuotations(orderId: string): Promise<QuotationResponseDTO[]> {
-    return await OrdersService.getOrderQuotations(orderId);
+  getOrderQuotations(orderId: string) {
+    return this.ordersService.getOrderQuotations(orderId);
   }
 
-  async createOrderQuotations(orderId: number, requestBody: any): Promise<any> {
-    return await OrdersService.createOrderQuotations(orderId, requestBody);
+  createOrderQuotations(orderId: number, requestBody: any) {
+    return this.ordersService.createOrderQuotations(orderId, requestBody);
   }
 
-  async deleteQuotationOfOrder(orderId: number, quotationId: number): Promise<void> {
-    return await OrdersService.deleteQuotationOfOrder(orderId, quotationId);
+  deleteQuotationOfOrder(orderId: number, quotationId: number) {
+    return this.ordersService.deleteQuotationOfOrder(orderId, quotationId);
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
-    return this.http.get(`${environment.apiUrl}/orders/${orderId}/export`, { responseType: 'blob' });
+    return this.ordersService.exportOrderToFormula(orderId);
+    // TODO: see if needed return this.http.get(`${environment.apiUrl}/orders/${orderId}/export`, { responseType: 'blob' });
   }
 
-  async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
-    return await OrdersService.getOrdersApprovals(orderId);
+  getOrderApprovals(orderId: number) {
+    return this.ordersService.ordersOrderIdApprovalGet(orderId);
   }
 
-  async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistoryResponseDTO[]> {
-    return await OrdersService.getOrdersStatusHistory(orderId);
+  getOrderStatusHistory(orderId: number) {
+    return this.ordersService.ordersOrderIdStatusHistoryGet(orderId);
   }
 
-  async putOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
-    return await OrdersService.putOrdersStatus(orderId, newState);
+  putOrderState(orderId: number, newState: OrderStatus) {
+    return this.ordersService.ordersOrderIdStatusPut(orderId, newState);
   }
 }

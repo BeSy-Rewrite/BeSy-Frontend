@@ -37,7 +37,7 @@ export class ApprovalsComponent implements OnInit, OnChanges {
   }
 
   fetchData(): void {
-    this.ordersService.getOrderApprovals(this.orderId()).then(approvals => {
+    this.ordersService.getOrderApprovals(this.orderId()).subscribe(approvals => {
       for (const [key, value] of Object.entries(approvals)) {
         if (typeof value !== 'boolean') continue;
         this.approvals().set(key, value);

@@ -4,7 +4,7 @@ import {
   Resolve,
   RouterStateSnapshot
 } from '@angular/router';
-import { from, map, Observable, switchMap } from 'rxjs';
+import { map, Observable, switchMap } from 'rxjs';
 import { DisplayableOrder } from '../models/displayable-order';
 import { OrderSubresourceResolverService } from '../services/order-subresource-resolver.service';
 import { OrdersWrapperService } from '../services/wrapper-services/orders-wrapper.service';
@@ -17,9 +17,9 @@ export class OrderResolver implements Resolve<DisplayableOrder> {
     private readonly orderDisplayService: OrderSubresourceResolverService
   ) { }
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<DisplayableOrder> {
-    const id = parseInt(route.paramMap.get('id')!);
-    return from(this.ordersService.getOrderById(id)).pipe(
+  resolve(route: ActivatedRouteSnapshot, _state: RouterStateSnapshot): Observable<DisplayableOrder> {
+    const id = Number.parseInt(route.paramMap.get('id')!);
+    return this.ordersService.getOrderById(id).pipe(
       switchMap(order =>
         this.orderDisplayService.resolveOrderSubresources(order).pipe(
           map(orderDisplay => ({ order, orderDisplay }))

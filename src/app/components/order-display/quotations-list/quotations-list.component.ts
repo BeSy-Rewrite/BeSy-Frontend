@@ -1,7 +1,7 @@
 import { DataSource } from '@angular/cdk/table';
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { QuotationResponseDTO } from '../../../api';
+import { QuotationResponseDTO } from '../../../apiv2';
 import { QUOTATION_FIELD_NAMES } from '../../../display-name-mappings/quotation-names';
 import { DisplayQuotation } from '../../../models/display-quotation';
 import { TableColumn } from '../../../models/generic-table';
@@ -46,7 +46,7 @@ export class QuotationsListComponent implements OnInit, OnChanges {
   }
 
   setup() {
-    this.ordersService.getOrderQuotations(this.orderId().toString()).then(quotations => {
+    this.ordersService.getOrderQuotations(this.orderId().toString()).subscribe(quotations => {
       this.quotations = quotations;
 
       this.quotationsDataSource = new MatTableDataSource<DisplayQuotation>(
@@ -71,7 +71,7 @@ export class QuotationsListComponent implements OnInit, OnChanges {
       price: (quotation.price?.toString() ?? '0') + ' €',
       company_name: quotation.company_name ?? '-',
       company_city: quotation.company_city ?? '-'
-    }
+    };
   }
 
 }

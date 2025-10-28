@@ -1,7 +1,7 @@
 import { DataSource } from '@angular/cdk/table';
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { OrderResponseDTO, OrderStatusHistoryResponseDTO } from '../../../api';
+import { OrderResponseDTO, OrderStatusHistoryResponseDTO } from '../../../apiv2';
 import { STATE_HISTORY_FIELD_NAMES } from '../../../display-name-mappings/state-history-names';
 import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../../../display-name-mappings/status-names';
 import { TableColumn } from '../../../models/generic-table';
@@ -22,7 +22,7 @@ export class StateHistoryComponent implements OnInit, OnChanges {
   stateNames = STATE_DISPLAY_NAMES;
   stateIcons = STATE_ICONS;
 
-  dataSource: DataSource<{ status: string; timestamp: string }> = new MatTableDataSource();
+  dataSource: DataSource<{ status: string; timestamp: string; }> = new MatTableDataSource();
   columns: TableColumn[] = [
     { id: 'timestamp', label: this.stateHistoryFieldNames['timestamp'] },
     { id: 'status', label: this.stateHistoryFieldNames['status'] }
@@ -41,11 +41,11 @@ export class StateHistoryComponent implements OnInit, OnChanges {
   }
 
   fetchStateHistory(): void {
-    this.ordersService.getOrderStatusHistory(this.order().id ?? 0).then(history => {
+    this.ordersService.getOrderStatusHistory(this.order().id ?? 0).subscribe(history => {
       this.stateHistory = history;
       const formattedHistory = this.stateHistory.map(entry => ({
-        status: `${this.stateIcons.get(entry.status) ?? ''} ${this.stateNames.get(entry.status) ?? entry.status}`,
-        timestamp: new Date(entry.timestamp).toLocaleString()
+        status: `${this.stateIcons.get(entry.status ?? '') ?? ''} ${this.stateNames.get(entry.status ?? '') ?? entry.status}`,
+        timestamp: new Date(entry.timestamp ?? '').toLocaleString()
       }));
       this.dataSource = new MatTableDataSource(formattedHistory);
     });

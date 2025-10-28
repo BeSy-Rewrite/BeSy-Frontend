@@ -137,9 +137,9 @@ export class ViewOrderPageComponent implements OnInit {
     }
 
     this.ordersService.exportOrderToDocument(this.internalOrder().order.id?.toString()!).subscribe(blob => {
-      const link = document.createElement('a')
-      const objectUrl = URL.createObjectURL(blob)
-      link.href = objectUrl
+      const link = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
       link.download = `Bestellung-${this.internalOrder().orderDisplay.besy_number}.pdf`;
       link.click();
       URL.revokeObjectURL(objectUrl);
@@ -206,14 +206,15 @@ export class ViewOrderPageComponent implements OnInit {
     }
 
     if (newState === OrderStatus.IN_PROGRESS) {
-      this.ordersService.putOrderState(this.internalOrder().order.id!, newState).then(() => {
-        this.snackBar.open(`Bestellungsstatus erfolgreich zu '${STATE_DISPLAY_NAMES.get(newState) ?? newState}' geändert.`, 'Schließen', { duration: 5000 });
-        this.updateOrderState(newState);
-      },
-        () => {
+      this.ordersService.putOrderState(this.internalOrder().order.id!, newState).subscribe({
+        next: () => {
+          this.snackBar.open(`Bestellungsstatus erfolgreich zu '${STATE_DISPLAY_NAMES.get(newState) ?? newState}' geändert.`, 'Schließen', { duration: 5000 });
+          this.updateOrderState(newState);
+        },
+        error: () => {
           this.snackBar.open('Fehler beim Ändern des Bestellungsstatus.', 'Schließen', { duration: 5000 });
         }
-      );
+      });
       return;
     }
 
@@ -250,7 +251,7 @@ export class ViewOrderPageComponent implements OnInit {
     };
     setupDialog(this.dialog, data, (result: boolean) => {
       if (result) {
-        this.ordersService.deleteOrder(this.internalOrder().order.id!).then(() => {
+        this.ordersService.deleteOrder(this.internalOrder().order.id!).subscribe(() => {
           this.snackBar.open('Bestellung erfolgreich gelöscht.', 'Schließen', { duration: 5000 });
           this.router.navigate(['/orders']);
         });
