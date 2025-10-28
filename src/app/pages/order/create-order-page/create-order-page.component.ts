@@ -26,14 +26,12 @@ import {
   AddressResponseDTO,
   ApprovalRequestDTO,
   CostCenterResponseDTO,
-  CostCentersService,
   ItemRequestDTO,
   OrderRequestDTO,
-  OrdersService,
   PersonResponseDTO,
   QuotationRequestDTO,
-  VatResponseDTO,
-} from '../../../api';
+  VatResponseDTO
+} from '../../../apiv2';
 import { FormComponent, FormConfig } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
@@ -48,8 +46,10 @@ import {
   TableActionButton,
   TableColumn,
 } from '../../../models/generic-table';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
+import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import { PersonsWrapperService } from '../../../services/wrapper-services/persons-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
-import { PersonsWrapperService } from './../../../services/wrapper-services/persons-wrapper.service';
 
 @Component({
   selector: 'app-create-order-page',
@@ -75,7 +75,13 @@ import { PersonsWrapperService } from './../../../services/wrapper-services/pers
   styleUrl: './create-order-page.component.scss',
 })
 export class CreateOrderPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) { }
+  constructor(private readonly router: Router,
+    private readonly _notifications: MatSnackBar,
+    private readonly personsService: PersonsWrapperService,
+    private readonly vatService: VatWrapperService,
+    private readonly costCentersService: CostCenterWrapperService,
+    private readonly ordersService: OrdersWrapperService
+  ) { }
 
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 
@@ -209,14 +215,17 @@ export class CreateOrderPageComponent implements OnInit {
 
   // Currency and VAT variables
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit() {
     // Load initial data for the VAT options field in the form
-    const vatOptions = await VatWrapperService.getAllVats();
-    this.setDropdownVatOptions(vatOptions);
+    this.vatService.getAllVats().subscribe(vatOptions => {
+      this.setDropdownVatOptions(vatOptions);
+    });
 
     // Initialize the person dropdown in the address form with data from the api
     // and set up filtering for the autocomplete inputs
-    this.persons = await this.personsWrapperService.getAllPersons();
+    this.personsService.getAllPersons().subscribe((persons) => {
+      this.persons = persons;
+    });
     this.filteredPersonsRecipient =
       this.personControlRecipient.valueChanges.pipe(
         startWith(''),
@@ -241,7 +250,9 @@ export class CreateOrderPageComponent implements OnInit {
       })
     );
 
-    this.costCenters = await CostCentersService.getCostCenters();
+    this.costCentersService.getAllCostCenters().subscribe(costCenters => {
+      this.costCenters = costCenters;
+    });
     this.filteredPrimaryCostCenters =
       this.primaryCostCenterControl.valueChanges.pipe(
         startWith(''),
@@ -348,7 +359,7 @@ export class CreateOrderPageComponent implements OnInit {
    * @param person The selected person from the autocomplete dropdown
    * @param isRecipient Boolean flag indicating if the selected person is the recipient (true) or the invoice party (false)
    */
-  async onPersonSelected(person: PersonResponseDTO, isRecipient: boolean) {
+  onPersonSelected(person: PersonResponseDTO, isRecipient: boolean) {
     // Locally track the selected person based on the context (recipient or invoice)
     if (isRecipient) {
       this.selectedRecipientPerson = person;
@@ -361,32 +372,34 @@ export class CreateOrderPageComponent implements OnInit {
     // Check if the selected person has a preferred address
 
     if (person.address_id) {
-      const preferredAddress: AddressResponseDTO =
-        await this.personsWrapperService.getPersonAddressesById(person.id!);
+      this.personsService.getPersonAddressesById(person.id!).subscribe(async preferredAddress => {
 
-      if (isRecipient) {
-        this.recipientHasPreferredAddress = true;
-        this.recipientAddressOption = 'preferred';
-        this.recipientAddressId = preferredAddress.id;
-        this.recipientAddressFormGroup.patchValue(preferredAddress);
-        this.recipientAddressFormConfig.title =
-          'Hinterlegte bevorzugte Adresse';
-        this.recipientInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
-        this.recipientAddressFormGroup.disable();
-      } else {
-        this.invoiceHasPreferredAddress = true;
-        this.invoiceAddressOption = 'preferred';
-        this.invoiceAddressId = preferredAddress.id;
-        this.invoiceAddressFormGroup.patchValue(preferredAddress);
-        this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
-        this.invoiceInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
-        this.invoiceAddressFormGroup.disable();
-      }
-      // Load all addresses of any person into the address table for selection
-      this.addressTableDataSource.data =
-        await this.personsWrapperService.getAllPersonsAddresses();
+        if (isRecipient) {
+          this.recipientHasPreferredAddress = true;
+          this.recipientAddressOption = 'preferred';
+          this.recipientAddressId = preferredAddress.id;
+          this.recipientAddressFormGroup.patchValue(preferredAddress);
+          this.recipientAddressFormConfig.title =
+            'Hinterlegte bevorzugte Adresse';
+          this.recipientInfoText =
+            'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
+          this.recipientAddressFormGroup.disable();
+        } else {
+          this.invoiceHasPreferredAddress = true;
+          this.invoiceAddressOption = 'preferred';
+          this.invoiceAddressId = preferredAddress.id;
+          this.invoiceAddressFormGroup.patchValue(preferredAddress);
+          this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+          this.invoiceInfoText =
+            'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
+          this.invoiceAddressFormGroup.disable();
+        }
+        // Load all addresses of any person into the address table for selection
+        this.personsService.getAllPersonsAddresses().subscribe(addresses => {
+          this.addressTableDataSource.data = addresses;
+        });
+      });
+
     }
   }
 
@@ -438,7 +451,7 @@ export class CreateOrderPageComponent implements OnInit {
       this.recipientAddressOption = option as any;
 
       if (option === 'preferred' && this.selectedRecipientPerson?.address_id) {
-        this.personsWrapperService.getPersonAddressesById(this.selectedRecipientPerson.id!).then(
+        this.personsService.getPersonAddressesById(this.selectedRecipientPerson.id!).subscribe(
           (addr) => this.recipientAddressFormGroup.patchValue(addr)
         );
         this.recipientInfoText =
@@ -464,7 +477,7 @@ export class CreateOrderPageComponent implements OnInit {
       this.invoiceAddressOption = option as any;
 
       if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
-        this.personsWrapperService.getPersonAddressesById(this.selectedInvoicePerson.id!).then(
+        this.personsService.getPersonAddressesById(this.selectedInvoicePerson.id!).subscribe(
           (addr) => this.invoiceAddressFormGroup.patchValue(addr)
         );
         this.invoiceInfoText =
@@ -522,17 +535,18 @@ export class CreateOrderPageComponent implements OnInit {
         // If the form is valid, create a new address via the API and store the returned ID
         const newAddress: AddressRequestDTO = this.recipientAddressFormGroup
           .value as AddressRequestDTO;
-        try {
-          const createdAddress: AddressResponseDTO =
-            await this.personsWrapperService.createPersonAddress(newAddress);
-          this.postOrderDTO.delivery_address_id = createdAddress.id;
-        } catch (error) {
-          this._notifications.open(
-            'Fehler beim Speichern der Lieferadresse. Bitte überprüfen Sie die Eingaben im Lieferadress-Formular und versuchen Sie es später erneut.',
-            undefined,
-            { duration: 3000 }
-          );
-        }
+        this.personsService.createPersonAddress(newAddress).subscribe({
+          next: (createdAddress) => {
+            this.postOrderDTO.delivery_address_id = createdAddress.id;
+          },
+          error: () => {
+            this._notifications.open(
+              'Fehler beim Speichern der Lieferadresse. Bitte überprüfen Sie die Eingaben im Lieferadress-Formular und versuchen Sie es später erneut.',
+              undefined,
+              { duration: 3000 }
+            );
+          }
+        });
       } else {
         this._notifications.open(
           'Bitte überprüfen Sie die Eingaben im Lieferadress-Formular. Alle Pflichtfelder müssen ausgefüllt sein.',
@@ -553,73 +567,69 @@ export class CreateOrderPageComponent implements OnInit {
         );
         return;
       }
-    } else {
+    } else if (this.recipientAddressId) {
       // Use the address id stored in recipientAddressId to assign to the postOrderDTO
-      if (this.recipientAddressId) {
-        this.postOrderDTO.delivery_address_id = this.recipientAddressId;
-      } else {
-        this._notifications.open(
-          'Bitte wählen Sie eine Lieferadresse aus der Tabelle aus (Lieferadresse).',
-          undefined,
-          { duration: 3000 }
-        );
-        return;
-      }
+      this.postOrderDTO.delivery_address_id = this.recipientAddressId;
+    } else {
+      this._notifications.open(
+        'Bitte wählen Sie eine Lieferadresse aus der Tabelle aus (Lieferadresse).',
+        undefined,
+        { duration: 3000 }
+      );
+      return;
     }
+
 
     // Invoice address
     if (this.sameAsRecipient) {
       this.postOrderDTO.invoice_address_id =
         this.postOrderDTO.delivery_address_id;
-    } else {
-      if (this.invoiceAddressOption === 'new') {
-        this.invoiceAddressFormGroup.markAllAsTouched();
-        if (this.invoiceAddressFormGroup.valid) {
-          // If the form is valid, create a new address via the API and store the returned ID
-          const newAddress: AddressRequestDTO = this.invoiceAddressFormGroup
-            .value as AddressRequestDTO;
-          try {
-            const createdAddress: AddressResponseDTO =
-              await this.personsWrapperService.createPersonAddress(newAddress);
+    } else if (this.invoiceAddressOption === 'new') {
+      this.invoiceAddressFormGroup.markAllAsTouched();
+      if (this.invoiceAddressFormGroup.valid) {
+        // If the form is valid, create a new address via the API and store the returned ID
+        const newAddress: AddressRequestDTO = this.invoiceAddressFormGroup
+          .value as AddressRequestDTO;
+        this.personsService.createPersonAddress(newAddress).subscribe({
+          next: createdAddress => {
             this.postOrderDTO.invoice_address_id = createdAddress.id;
-          } catch (error) {
+          },
+          error: () => {
             this._notifications.open(
               'Fehler beim Speichern der Adresse. Bitte versuchen sie es später erneut.',
               undefined,
               { duration: 3000 }
             );
           }
-        } else {
-          this._notifications.open(
-            'Bitte überprüfen Sie die Eingaben in dem Adressfeld.',
-            undefined,
-            { duration: 3000 }
-          );
-        }
-      } else if (this.invoiceAddressOption === 'preferred') {
-        if (this.selectedInvoicePerson?.address_id) {
-          this.postOrderDTO.invoice_address_id =
-            this.selectedInvoicePerson.address_id;
-        } else {
-          this._notifications.open(
-            'Fehler beim Laden der bevorzugten Adresse. Die präferierte Adresse konnte nicht gefunden werden. Bitte versuchen sie es später erneut',
-            undefined,
-            { duration: 3000 }
-          );
-          return;
-        }
+        });
       } else {
-        if (this.invoiceAddressId) {
-          this.postOrderDTO.invoice_address_id = this.invoiceAddressId;
-        } else {
-          this._notifications.open(
-            'Bitte wählen Sie eine Adresse aus der Tabelle aus.',
-            undefined,
-            { duration: 3000 }
-          );
-          return;
-        }
+        this._notifications.open(
+          'Bitte überprüfen Sie die Eingaben in dem Adressfeld.',
+          undefined,
+          { duration: 3000 }
+        );
       }
+    } else if (this.invoiceAddressOption === 'preferred') {
+      if (this.selectedInvoicePerson?.address_id) {
+        this.postOrderDTO.invoice_address_id =
+          this.selectedInvoicePerson.address_id;
+      } else {
+        this._notifications.open(
+          'Fehler beim Laden der bevorzugten Adresse. Die präferierte Adresse konnte nicht gefunden werden. Bitte versuchen sie es später erneut',
+          undefined,
+          { duration: 3000 }
+        );
+        return;
+      }
+    } else if (this.invoiceAddressId) {
+      this.postOrderDTO.invoice_address_id = this.invoiceAddressId;
+    } else {
+      this._notifications.open(
+        'Bitte wählen Sie eine Adresse aus der Tabelle aus.',
+        undefined,
+        { duration: 3000 }
+      );
+      return;
     }
   }
 
@@ -684,22 +694,23 @@ export class CreateOrderPageComponent implements OnInit {
 
   saveOrder() {
     console.log('PostOrderDTO vor dem Speichern:', this.postOrderDTO);
-    OrdersService.createOrder(this.postOrderDTO)
-      .then((order) => {
+    this.ordersService.createOrder(this.postOrderDTO).subscribe({
+      next: (order) => {
         this._notifications.open(
           'Bestellung erfolgreich erstellt.',
           undefined,
           { duration: 3000 }
         );
         this.router.navigate(['/orders', order.id]);
-      })
-      .catch((error) => {
+      },
+      error: (error) => {
         console.error('Fehler beim Erstellen der Bestellung:', error);
         this._notifications.open(
           'Fehler beim Erstellen der Bestellung. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.',
           undefined,
           { duration: 5000 }
         );
-      });
+      }
+    });
   }
 }
