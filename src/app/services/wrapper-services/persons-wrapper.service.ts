@@ -1,31 +1,38 @@
 import { Injectable } from '@angular/core';
-import { from, map } from 'rxjs';
-import { PersonsService } from '../../api';
+import { map } from 'rxjs';
+import { PersonRequestDTO, PersonResponseDTO, PersonsService } from '../../apiv2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PersonsWrapperService {
-  constructor() { }
+  constructor(private readonly personsService: PersonsService) { }
 
-  async getAllPersons() {
-    const persons = await PersonsService.getAllPersons();
-    return persons;
+  getAllPersons() {
+    return this.personsService.getAllPersons();
   }
 
-  async getPersonById(id: number) {
-    const person = await PersonsService.getPersonById(id);
-    return person;
+  getPersonById(id: number) {
+    return this.personsService.getPersonById(id);
   }
 
-  async createPerson(person: any) {
-    const createdPerson = await PersonsService.createPerson(person);
-    console.log("Created person:", createdPerson);
-    return createdPerson;
+  createPerson(person: PersonRequestDTO) {
+    return this.personsService.createPerson(person);
   }
 
-  async getAllPersonsWithFullName() {
-    const persons = await PersonsService.getAllPersons();
+  /**
+   * Retrieves all persons and adds a fullName property to each.
+   */
+  getAllPersonsWithFullName() {
+    return this.personsService.getAllPersons().pipe(
+      map(persons => this.addFullNameToPersons(persons))
+    );
+  }
+
+  /**
+   * Adds a full name property to each person object.
+   */
+  private addFullNameToPersons(persons: PersonResponseDTO[]) {
     const personsWithFullName = persons.map((person) => {
       return {
         ...person,
@@ -35,23 +42,30 @@ export class PersonsWrapperService {
     return personsWithFullName;
   }
 
-  async getAllPersonsAddresses() {
-    const addresses = await PersonsService.getPersonsAddresses();
-    return addresses;
+  getAllPersonsAddresses() {
+    return this.personsService.personsAddressesGet();
   }
 
-  async getPersonAddressesById(id: number) {
-    const addresses = await PersonsService.getPersonsAddress(id);
-    return addresses;
+  /**
+   * Retrieves the address for a specific person by their ID.
+   * @param id The ID of the person whose address is to be retrieved.
+   * @returns An address object associated with the person.
+   */
+  getPersonAddressesById(id: number) {
+    return this.personsService.personsPersonIdAddressGet(id);
   }
 
-  async createPersonAddress(address: any) {
-    const createdAddress = await PersonsService.createPersonAddress(address);
-    return createdAddress;
+  createPersonAddress(address: any) {
+    return this.personsService.createPersonAddress(address);
   }
 
-  getAddress(addressId: number) {
-    return from(PersonsService.getPersonsAddresses()).pipe(
+  /**
+   * Retrieves a specific address by its ID.
+   * @param addressId The ID of the address to retrieve.
+   * @returns The address object if found, otherwise undefined.
+   */
+  getAddressById(addressId: number) {
+    return this.personsService.personsAddressesGet().pipe(
       map(addresses => addresses.find(addr => addr.id === addressId))
     );
   }

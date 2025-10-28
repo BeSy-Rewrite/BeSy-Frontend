@@ -21,7 +21,7 @@ export class AddressDisplayComponent implements OnInit {
   constructor(private readonly personsService: PersonsWrapperService) { }
 
   ngOnInit(): void {
-    this.personsService.getAddress(this.addressId()).subscribe(address => {
+    this.personsService.getAddressById(this.addressId()).subscribe(address => {
       const addressDisplay: DisplayAddress = {};
 
       for (const [key, value] of Object.entries(address ?? {})) {
