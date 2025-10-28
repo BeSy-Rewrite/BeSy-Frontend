@@ -112,7 +112,7 @@ export class ViewOrderPageComponent implements OnInit {
 
     const ownerId = this.internalOrder().order.owner_id;
     if (ownerId) {
-      this.usersService.getUserById(ownerId.toString()).then(user => {
+      this.usersService.getUserById(ownerId.toString()).subscribe(user => {
         this.owner = user;
       });
     }

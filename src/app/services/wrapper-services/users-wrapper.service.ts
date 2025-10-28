@@ -1,42 +1,34 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { UserResponseDTO, UsersService } from '../../api';
-import { AuthenticationService } from '../authentication.service';
+import { UserResponseDTO, UsersService } from '../../apiv2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UsersWrapperService {
 
-  constructor(private readonly authService: AuthenticationService, private readonly http: HttpClient) { }
+  constructor(private readonly usersService: UsersService) { }
 
   /**
-     * @returns UserResponseDTO OK
-     * @throws ApiError
-     */
-  async getAllUsers() {
-    const users = await UsersService.getAllUsers();
-    return users;
+   * @returns Array<UserResponseDTO> OK
+   */
+  getAllUsers() {
+    return this.usersService.getAllUsers();
   }
 
   /**
-     * @param id
-     * @returns UserResponseDTO OK
-     * @throws ApiError
-     */
-  async getUserById(id: string) {
-    const user = await UsersService.getUser(id);
-    return user;
+   * @param id The ID of the user to retrieve.
+   * @returns UserResponseDTO OK
+   */
+  getUserById(id: string) {
+    return this.usersService.getUser(id);
   }
 
   /**
    * Resolves the current user in the given filter presets.
-   * @param filterPresets The array of OrdersFilterPreset to resolve the current user in.
-   * @returns An observable of the resolved UserResponseDTO or undefined if not found.
+   * @returns An observable of the resolved UserResponseDTO.
    */
-  getCurrentUser(): Observable<UserResponseDTO | undefined> {
-    return this.http.get<UserResponseDTO>(`${environment.apiUrl}/users/me`);
+  getCurrentUser(): Observable<UserResponseDTO> {
+    return this.usersService.getCurrentUser();
   }
 }

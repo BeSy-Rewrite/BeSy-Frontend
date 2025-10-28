@@ -37,7 +37,7 @@ export class PersonDetailsComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.isUserId()) {
-      this.usersService.getUserById(this.personId().toString()).then(user => {
+      this.usersService.getUserById(this.personId().toString()).subscribe(user => {
         this.person = this.userToPerson(user);
         this.setupPersonData();
       });
