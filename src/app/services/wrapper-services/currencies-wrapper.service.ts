@@ -1,16 +1,13 @@
 import { Injectable } from '@angular/core';
-import { CurrenciesService } from '../../api';
+import { CurrenciesService } from '../../apiv2';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CurrencyWrapperService {
+  constructor(private readonly currenciesService: CurrenciesService) { }
+
   getAllCurrencies() {
-    try {
-      return CurrenciesService.getAllCurrencies();
-    } catch (error) {
-      console.error('Error fetching currencies:', error);
-      throw error;
-    }
+    return this.currenciesService.getAllCurrencies();
   }
 }
