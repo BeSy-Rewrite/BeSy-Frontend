@@ -1,28 +1,22 @@
-import { VatResponseDTO } from './../../../api/models/VatResponseDTO';
 import { Component, OnInit, ViewChild } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDivider } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
-import { ButtonColor, TableActionButton } from '../../../models/generic-table';
-import {
-  AddressRequestDTO,
-  AddressResponseDTO,
-  CustomerIdRequestDTO,
-  SupplierRequestDTO,
-  SupplierResponseDTO,
-  SuppliersService,
-} from '../../../api';
-import { MatTableDataSource } from '@angular/material/table';
-import { SUPPLIER_FORM_CONFIG } from '../../../configs/create-supplier-config';
-import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
-import { FormGroup } from '@angular/forms';
-import { MatDivider } from '@angular/material/divider';
-import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
-import { FormComponent } from '../../../components/form-component/form-component.component';
+import { AddressRequestDTO, AddressResponseDTO, CustomerIdRequestDTO, SupplierRequestDTO, SupplierResponseDTO } from '../../../apiv2';
 import { AddressFormComponent } from '../../../components/address-form/address-form.component';
-import { MatButtonModule } from '@angular/material/button';
+import { FormComponent } from '../../../components/form-component/form-component.component';
+import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
 import { CUSTOMER_ID_FORM_CONFIG } from '../../../configs/create-customer-id-config';
+import { SUPPLIER_FORM_CONFIG } from '../../../configs/create-supplier-config';
+import { ButtonColor, TableActionButton } from '../../../models/generic-table';
+import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { VatResponseDTO } from './../../../api/models/VatResponseDTO';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -39,7 +33,11 @@ import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapp
   styleUrl: './suppliers-page.component.scss',
 })
 export class SuppliersPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar) {}
+  constructor(private readonly router: Router,
+    private readonly _notifications: MatSnackBar,
+    private readonly suppliersService: SuppliersWrapperService,
+    private readonly vatService: VatWrapperService
+  ) { }
 
   // ! ID of the selected address in the table. Keep default undefinded!
   selectedAddressId: number | undefined = undefined;
@@ -111,22 +109,23 @@ export class SuppliersPageComponent implements OnInit {
   // * Used to decide which form to display & which API endpoint to call in which order
   addressMode: string | undefined = undefined;
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit() {
     // Load initial data for the supplier table
-    const suppliers = await SuppliersService.getAllSuppliers();
-    this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(
-      suppliers
-    );
+    this.suppliersService.getAllSuppliers().subscribe(suppliers => {
+      this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(suppliers);
+    });
 
     // Load initial data for the address table
-    const addresses = await SuppliersService.getSuppliersAddresses();
-    this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(
-      addresses
-    );
+    this.suppliersService.getSuppliersAddresses().subscribe(addresses => {
+      this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(
+        addresses
+      );
+    });
 
     // Load initial data for the VAT options field in the form
-    const vatOptions = await VatWrapperService.getAllVats();
-    this.setDropdownOptions(vatOptions);
+    this.vatService.getAllVats().subscribe(vatOptions => {
+      this.setDropdownOptions(vatOptions);
+    });
   }
 
   // * Handle edit action
@@ -135,7 +134,7 @@ export class SuppliersPageComponent implements OnInit {
   }
 
   // ToDo: Implement delete logic
-  deleteSupplier(row: SupplierResponseDTO) {
+  deleteSupplier(_row: SupplierResponseDTO) {
     // Implement delete logic here
   }
 
@@ -145,14 +144,14 @@ export class SuppliersPageComponent implements OnInit {
   }
 
   // Signals to be handled coming from the supplier-form-component
-  onFormValueChanged(event: { field: string; value: any }) {
+  onFormValueChanged(_event: { field: string; value: any; }) {
     /* if (event.field === 'addressMode') {
       this.addressMode = event.value;
     } */
   }
 
   // Signals to be handled coming from the address-form-component
-  onAddressFormValueChanged(event: { field: string; value: any }) {
+  onAddressFormValueChanged(event: { field: string; value: any; }) {
     // Handle address form value changes if needed
     if (event.field === 'addressMode') {
       this.addressMode = event.value;
@@ -180,40 +179,40 @@ export class SuppliersPageComponent implements OnInit {
         delete addressFormValue.existingAddresses;
       }
 
-      try {
-        // create Supplier
-        const response = await SuppliersService.createSupplier({
-          ...supplierFormValue,
-          address: addressFormValue as AddressRequestDTO,
-        });
-
-        // create Customer-Id if customer_id field is not empty and supplier-create response is valid
-        if (customerIdValue.customer_id?.trim() && response.id !== undefined) {
-          try {
-            await SuppliersService.createSupplierCustomerId(response.id, {
+      // create Supplier
+      this.suppliersService.createSupplier({
+        ...supplierFormValue,
+        address: addressFormValue,
+      }).subscribe({
+        next: response => {
+          // create Customer-Id if customer_id field is not empty and supplier-create response is valid
+          if (customerIdValue.customer_id?.trim() && response.id !== undefined) {
+            this.suppliersService.createSupplierCustomerId(response.id, {
               ...customerIdValue,
+            }).subscribe({
+              error: () => {
+                this._notifications.open(
+                  'Fehler beim Erstellen der Kundennummer',
+                  undefined,
+                  { duration: 3000 }
+                );
+              }
             });
-          } catch (error) {
-            this._notifications.open(
-              'Fehler beim Erstellen der Kundennummer',
-              undefined,
-              { duration: 3000 }
-            );
           }
+          // Show success notification
+          this._notifications.open('Lieferant erfolgreich erstellt', undefined, {
+            duration: 3000,
+          });
+        },
+        error: () => {
+          // Show error notification
+          this._notifications.open(
+            'Fehler beim Erstellen des Lieferanten',
+            undefined,
+            { duration: 3000 }
+          );
         }
-
-        // Show success notification
-        this._notifications.open('Lieferant erfolgreich erstellt', undefined, {
-          duration: 3000,
-        });
-      } catch (error) {
-        // Show error notification
-        this._notifications.open(
-          'Fehler beim Erstellen des Lieferanten',
-          undefined,
-          { duration: 3000 }
-        );
-      }
+      });
     } else {
       // Handle form errors
       this.supplierForm.markAllAsTouched();

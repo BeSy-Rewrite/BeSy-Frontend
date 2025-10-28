@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
-import { VatSService } from '../../api';
+import { VatsService } from '../../apiv2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class VatWrapperService {
 
-  static async getAllVats() {
-    const vats = await VatSService.getAllVats();
-    return vats;
+  constructor(private readonly vatsService: VatsService) { }
+
+  getAllVats() {
+    return this.vatsService.getAllVats();
   }
 }
