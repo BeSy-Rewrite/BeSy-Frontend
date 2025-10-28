@@ -1,7 +1,7 @@
 import { CollectionViewer } from '@angular/cdk/collections';
 import { DataSource } from '@angular/cdk/table';
 import { computed, Injectable, signal } from '@angular/core';
-import { MatPaginator } from '@angular/material/paginator';
+import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { BehaviorSubject, debounceTime, forkJoin, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -107,7 +107,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    */
   set paginator(paginator: MatPaginator) {
     this._paginator = paginator;
-    this._paginator.page.subscribe(() => {
+    this._paginator.page.subscribe((_page: PageEvent) => {
       this._requestFetch?.next();
     });
   }
