@@ -13,7 +13,7 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
     {
       name: 'price_per_unit',
       label: 'Stückpreis',
-      type: 'number',
+      type: 'text',
       required: true,
       validators: [Validators.pattern(/^\d+([.,]\d{2})?$/)], // Validates numbers with optional two decimal places (comma as separator)
     },
@@ -37,18 +37,6 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
       defaultValue: 1,
       validators: [Validators.min(1), Validators.pattern(/^\d+$/)],
     },
-    {
-      name: 'quantity_unit',
-      label: 'Einheit',
-      type: 'autocomplete',
-      requireSelection: true,
-      required: false,
-      filterable: true,
-      // Will be loaded from currencies api
-      options:[],
-      defaultValue: { label: 'Euro', value: 'EUR' }
-    },
-
     {
       name: 'vat_value',
       label: 'Mehrwertsteuersatz',

@@ -187,7 +187,7 @@ export const ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG: FormConfig = {
       defaultValue: false
     },
     {
-      name: 'flag_decision_preffered_supplier_list',
+      name: 'flag_decision_preferred_supplier_list',
       label: 'Lieferant aus der Vorzugsliste',
       type: 'checkbox',
       required: false,
@@ -395,6 +395,7 @@ export const ORDER_DELIVERY_PERSON_FORM_CONFIG: FormConfig = {
 };
 
 export const ORDER_INVOICE_PERSON_FORM_CONFIG: FormConfig = {
+  title: 'Rechnungsempfänger festlegen',
   fields: [
     {
       name: 'invoice_person_id',

@@ -17,7 +17,10 @@ import {
   QuotationRequestDTO,
   QuotationResponseDTO,
 } from '../../api';
-import { CurrencyWithDisplayName, FormattedCurrency } from './currencies-wrapper.service';
+import {
+  CurrencyWithDisplayName,
+  FormattedCurrency,
+} from './currencies-wrapper.service';
 import { CurrenciesWrapperService } from './currencies-wrapper.service';
 import { CostCenterFormatted } from './cost-centers-wrapper.service';
 import {
@@ -192,18 +195,25 @@ export class OrdersWrapperService {
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
-    return this.http.get(`${environment.apiUrl}/orders/${orderId}/export`, { responseType: 'blob' });
+    return this.http.get(`${environment.apiUrl}/orders/${orderId}/export`, {
+      responseType: 'blob',
+    });
   }
 
   async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
     return await OrdersService.getOrdersApprovals(orderId);
   }
 
-  async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistoryResponseDTO[]> {
+  async getOrderStatusHistory(
+    orderId: number
+  ): Promise<OrderStatusHistoryResponseDTO[]> {
     return await OrdersService.getOrdersStatusHistory(orderId);
   }
 
-  async putOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
+  async putOrderState(
+    orderId: number,
+    newState: OrderStatus
+  ): Promise<OrderStatus> {
     return await OrdersService.putOrdersStatus(orderId, newState);
   }
 
@@ -219,6 +229,13 @@ export class OrdersWrapperService {
     requestBody: any
   ): Promise<ApprovalResponseDTO> {
     return await OrdersService.patchOrdersApproval(orderId, requestBody);
+  }
+
+  async patchOrderById(
+    orderId: number,
+    requestBody: any
+  ): Promise<OrderResponseDTO> {
+    return await OrdersService.updateOrder(orderId, requestBody);
   }
 
   /**
@@ -294,7 +311,9 @@ export class OrdersWrapperService {
           )
         : Promise.resolve(undefined),
       order.currency
-        ? this.currenciesWrapperService.formatCurrencyForAutocomplete(order.currency)
+        ? this.currenciesWrapperService.formatCurrencyForAutocomplete(
+            order.currency
+          )
         : Promise.resolve(undefined),
     ]);
 
@@ -310,7 +329,7 @@ export class OrdersWrapperService {
       invoice_person_id: formatedInvoicePerson,
       queries_person_id: formatedQueriesPerson,
       supplier_id: formatedSupplier,
-      quote_price: this.formatPriceToGerman(order.quote_price ?? 0)
+      quote_price: this.formatPriceToGerman(order.quote_price ?? 0),
     };
   }
 
@@ -318,7 +337,7 @@ export class OrdersWrapperService {
     return items.map((item) => ({
       item_id: item.item_id,
       name: item.name ?? '',
-      price_per_unit: item.price_per_unit ?? 0,
+      price_per_unit: this.formatPriceToGerman(item.price_per_unit!) ?? 0,
       quantity: item.quantity ?? 0,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -333,7 +352,7 @@ export class OrdersWrapperService {
   mapItemRequestToTableModel(item: ItemRequestDTO): ItemTableModel {
     return {
       name: item.name,
-      price_per_unit: item.price_per_unit,
+      price_per_unit: this.formatPriceToGerman(item.price_per_unit),
       quantity: item.quantity,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -353,14 +372,16 @@ export class OrdersWrapperService {
 
     return {
       name: item.name,
-      price_per_unit: item.price_per_unit ?? 0,
+      price_per_unit: this.parseGermanPriceToNumber(item.price_per_unit) ?? 0,
       quantity: item.quantity ?? 0,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
       comment: item.comment,
       vat_value: vatValue,
       // preferred_list is optional in both models; cast to match generated enum type
-      preferred_list: item.preferred_list as ItemRequestDTO.preferred_list | undefined,
+      preferred_list: item.preferred_list as
+        | ItemRequestDTO.preferred_list
+        | undefined,
       preferred_list_number: item.preferred_list_number,
       // cast vat_type to the generated enum type ('netto' | 'brutto')
       vat_type: item.vat_type as ItemRequestDTO.vat_type,
@@ -372,7 +393,7 @@ export class OrdersWrapperService {
   ): QuotationTableModel[] {
     return quotations.map((q) => ({
       index: q.index ?? 0,
-      quote_date: q.quote_date ?? '',
+      quote_date: this.formatISODateTimeToDateString(q.quote_date!) ?? '',
       price: this.formatPriceToGerman(q.price ?? 0),
       company_name: q.company_name ?? '',
       company_city: q.company_city ?? '',
@@ -394,7 +415,7 @@ export class OrdersWrapperService {
     quotation: QuotationTableModel
   ): QuotationRequestDTO {
     return {
-      quote_date: quotation.quote_date,
+      quote_date: this.formatLocalDateTimeToISO(new Date(quotation.quote_date)),
       price: this.parseGermanPriceToNumber(quotation.price) ?? 0,
       company_name: quotation.company_name,
       company_city: quotation.company_city,
@@ -485,7 +506,7 @@ export class OrdersWrapperService {
    * @param price The German formatted price string
    * @returns The parsed number or undefined if parsing fails
    */
-  private parseGermanPriceToNumber(price?: string): number | undefined {
+  parseGermanPriceToNumber(price?: string): number | undefined {
     if (!price) return undefined;
 
     // Remove thousand separators (.) and replace decimal comma with dot
@@ -502,71 +523,66 @@ export class OrdersWrapperService {
    * @returns An object containing the changed fields
    */
   compareOrdersAndReturnChangedFields(
-  original: OrderResponseDTOFormatted,
-  modified: OrderResponseDTOFormatted
-): Partial<OrderRequestDTO> {
-  const changedFields: Partial<OrderRequestDTO> = {};
+    original: OrderResponseDTOFormatted,
+    modified: OrderResponseDTOFormatted
+  ): Partial<OrderResponseDTOFormatted> {
+    const changedFields: Partial<OrderResponseDTOFormatted> = {};
 
-  // --- Currency comparison ---
-  const origCurrency = original.currency;
-  const modCurrencyShort = modified.currency_short;
+    // --- Iterate through all fields except currency & currency_short ---
+    for (const key in modified) {
+      if (!Object.prototype.hasOwnProperty.call(modified, key)) continue;
+      if (key === 'currency' || key === 'currency_short') continue; // Skip currency fields as handled above
 
-  // Compare currency in original and currency_short in modified, because the modified value is written in currency_short field
-  if (
-    origCurrency?.value !== modCurrencyShort?.value ||
-    origCurrency?.label !== modCurrencyShort?.label
-  ) {
-    console.log('Currency differs:');
-    console.log('original:', origCurrency);
-    console.log('modified:', modCurrencyShort);
-    changedFields.currency_short = modCurrencyShort?.value;
-  }
+      const originalValue = (original as any)[key];
+      const modifiedValue = (modified as any)[key];
 
-  // --- Iterate through all fields except currency & currency_short ---
-  for (const key in modified) {
-    if (!Object.prototype.hasOwnProperty.call(modified, key)) continue;
-    if (key === 'currency' || key === 'currency_short') continue; // Skip currency fields as handled above
-
-    const originalValue = (original as any)[key];
-    const modifiedValue = (modified as any)[key];
-
-    if (
-      typeof originalValue === 'object' &&
-      originalValue !== null &&
-      typeof modifiedValue === 'object' &&
-      modifiedValue !== null
-    ) {
-      // prefer comparing .value when available
-      if ('value' in originalValue || 'value' in modifiedValue) {
-        const orig = (originalValue as any).value;
+      if (
+        typeof originalValue === 'object' &&
+        originalValue !== null &&
+        typeof modifiedValue === 'object' &&
+        modifiedValue !== null
+      ) {
+        // prefer comparing .value when available
+        if ('value' in originalValue || 'value' in modifiedValue) {
+          const orig = (originalValue as any).value;
+          const mod = (modifiedValue as any).value;
+          if (orig !== mod) {
+            (changedFields as any)[key] = mod;
+          }
+        } else {
+          // fallback to deep compare
+          if (JSON.stringify(originalValue) !== JSON.stringify(modifiedValue)) {
+            (changedFields as any)[key] = modifiedValue;
+          }
+        }
+      } else if (
+        typeof modifiedValue === 'object' &&
+        modifiedValue !== null &&
+        'value' in modifiedValue
+      ) {
         const mod = (modifiedValue as any).value;
+        const orig = originalValue;
         if (orig !== mod) {
           (changedFields as any)[key] = mod;
         }
       } else {
-        // fallback to deep compare
-        if (JSON.stringify(originalValue) !== JSON.stringify(modifiedValue)) {
+        if (originalValue !== modifiedValue) {
           (changedFields as any)[key] = modifiedValue;
         }
       }
-    } else if (
-      typeof modifiedValue === 'object' &&
-      modifiedValue !== null &&
-      'value' in modifiedValue
-    ) {
-      const mod = (modifiedValue as any).value;
-      const orig = originalValue;
-      if (orig !== mod) {
-        (changedFields as any)[key] = mod;
-      }
-    } else {
-      if (originalValue !== modifiedValue) {
-        (changedFields as any)[key] = modifiedValue;
-      }
     }
+
+    return changedFields;
   }
 
-  return changedFields;
-}
+  private formatLocalDateTimeToISO(date: Date): string {
+    if (!date) return '';
+    // example input: 2200-12-08T00:00:00.000+01:00
+    return date.toISOString();
+  }
 
+  private formatISODateTimeToDateString(dateString: string): string {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString('de-DE');
+  }
 }

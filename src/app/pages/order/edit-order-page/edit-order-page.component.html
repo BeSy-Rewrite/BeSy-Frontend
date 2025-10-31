@@ -1,5 +1,5 @@
 <div class="create-order-page h-auto overflow-visible">
-  <div class="progress-bar-container bg-gray-200 sticky py-2 top-0 z-10">
+  <div class="progress-bar-container bg-gray-200 py-2 top-0 z-10">
     <app-progress-bar
       [steps]="[
         { label: 'Bestellung erstellen', tooltip: 'Beschreibung für Step 1' },
@@ -15,10 +15,11 @@
   </div>
   <mat-divider></mat-divider>
   <mat-tab-group
-    #tabGroup
     mat-stretch-tabs="true"
     mat-align-tabs="start"
-    class="mb-4"
+    class="mb-4 overflow-hidden"
+    [selectedIndex]="selectedTabIndex()"
+    (selectedTabChange)="onTabIndexChange($event.index)"
   >
     <!-- General Information -->
     <mat-tab label="Bestellung erstellen">
@@ -50,20 +51,30 @@
             [refreshTrigger]="queriesPersonConfigRefreshTrigger()"
           ></app-form-component>
         </div>
+      </div>
+      <div class="button container w-fit flex flex-row ml-auto gap-2">
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="patchOrderFromForm('General')"
+        >
+          Speichern und weiter
+        </button>
         <button
           mat-raised-button
           class="w-full"
           color="primary"
           (click)="patchOrderFromForm('All')"
         >
-          Ganze Bestellung speichern
+          Alles speichern
         </button>
-      </div>
+        </div>
     </mat-tab>
     <mat-tab label="Hauptangebot festlegen">
       <mat-divider class="tab-divider"></mat-divider>
       <div
-        class="flex flex-col items-center justify-center min-h-full w-full overflow-y-auto"
+        class="flex flex-col items-center justify-center min-h-full w-full"
       >
         <!-- Hauptangebot -->
         <div class="main-offer-container justify-center">
@@ -137,9 +148,17 @@
     </mat-tab>
     <mat-tab label="Adressdaten">
       <mat-divider class="tab-divider"></mat-divider>
+      <div class="sticky top-0 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
+        <a
+            mat-raised-button
+            color="primary"
+            (click)="patchOrderFromForm('Addresses')"
+            class="overflow-auto"
+        >
+            Bearbeiten
+        </a>
+      </div>
       <div class="address-container">
-        <div class="text-2xl font-bold mb-4 mt-4 ml-8">
-          Adressdaten
           <div class="recipient-container flex flex-col mb-4">
             <app-form-component
               [config]="deliveryPersonFormConfig"
@@ -147,12 +166,8 @@
               (valueChanged)="onAddressPersonSelected($event, true)"
               [refreshTrigger]="deliveryPersonConfigRefreshTrigger()"
             ></app-form-component>
-
-            <!-- Info Text -->
-            <p class="mt-2 mb-2 text-sm text-red-700">
-              {{ deliveryInfoText }}
-            </p>
-
+          </div>
+          <div class="delivery-address-container mt-4">
             <mat-button-toggle-group
               name="deliveryAddressOptions"
               [(ngModel)]="deliveryAddressOption"
@@ -182,11 +197,16 @@
                 Neue Adresse erstellen
               </mat-button-toggle>
             </mat-button-toggle-group>
-
+            <div class="delivery-info mt-4">
+              <!-- Info Text -->
+              <p class="mt-2 mb-2 text-sm text-red-700">
+                {{ deliveryInfoText }}
+              </p>
+          </div>
             <div class="spacing-container my-4"></div>
             <!-- Table for existing addresses -->
             @if (deliveryAddressOption === 'selected') {
-            <div class="table-container w-full">
+            <div class="table-container w-full my-4">
               @if (addressTableDataSource.data.length > 0) {
               <app-generic-table
                 [dataSource]="addressTableDataSource"
@@ -205,7 +225,6 @@
               [config]="deliveryAddressFormConfig"
               [formGroup]="deliveryAddressFormGroup"
             ></app-form-component>
-          </div>
           @if (selectedDeliveryPerson) {
           <div class="flex flex-col">
             <label class="block mb-2 text-sm font-semibold text-gray-700">
@@ -220,12 +239,10 @@
               <mat-radio-button [value]="false">Nein</mat-radio-button>
             </mat-radio-group>
           </div>
-
-          <!-- Rechnungsadresse -->
-          } @if(!sameAsRecipient && selectedDeliveryPerson) {
+          }
+        <!-- Rechnungsadresse -->
+          @if(!sameAsRecipient && selectedDeliveryPerson) {
           <div class="invoice-address-container mt-4">
-            <h3 class="text-xl font-bold mb-4">Rechnungsadresse</h3>
-
             <app-form-component
               [config]="invoicePersonFormConfig"
               [formGroup]="invoicePersonFormGroup"
@@ -233,10 +250,6 @@
               [refreshTrigger]="invoicePersonConfigRefreshTrigger()"
             ></app-form-component>
 
-            <!-- Info Text -->
-            <p class="mt-2 mb-2 text-sm text-red-700">
-              {{ invoiceInfoText }}
-            </p>
             @if (selectedInvoicePerson) {
             <mat-button-toggle-group
               name="invoiceAddressOptions"
@@ -265,6 +278,13 @@
                 Neue Adresse erstellen
               </mat-button-toggle>
             </mat-button-toggle-group>
+
+            <div class="invoice-info mt-4">
+              <!-- Info Text -->
+              <p class="mt-2 mb-2 text-sm text-red-700">
+                {{ invoiceInfoText }}
+              </p>
+            </div>
 
             <!-- Table for existing addresses -->
             @if (invoiceAddressOption === 'selected') {
@@ -295,7 +315,7 @@
             mat-raised-button
             class="mb-4 mt-4 w-full"
             color="primary"
-            (click)="patchOrderFromForm('Address')"
+            (click)="patchOrderFromForm('Addresses')"
           >
             Adressdaten speichern
           </button>

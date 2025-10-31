@@ -102,8 +102,10 @@ export class FormComponent implements OnInit {
   // Trigger to refresh the form controls (e.g. when options are loaded from API or the config changes)
   @Input() refreshTrigger?: any;
 
+  // Signal emitted when a form field with emitAsSignal=true changes its value
   valueChanged = output<{ field: string; value: any }>();
 
+  // Filtered options for autocomplete fields
   filteredOptions: { [fieldName: string]: { label: string; value: any }[] } =
     {};
   @ViewChildren('autoInput') autoInputs!: QueryList<
@@ -147,7 +149,7 @@ export class FormComponent implements OnInit {
     );
   }
 
-  // displayWith: zeigt das Label für einen gespeicherten value an
+  // display function for autocomplete to show label instead of object
   displayFn = (val: any) => {
     if (!val) return '';
     return typeof val === 'object' ? val.label : val;

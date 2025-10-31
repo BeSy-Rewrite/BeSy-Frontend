@@ -18,6 +18,7 @@ import {
   computed,
   WritableSignal,
   effect,
+  Input,
 } from '@angular/core';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import { MatDivider } from '@angular/material/divider';
@@ -70,7 +71,7 @@ import {
   MatButtonToggleGroup,
 } from '@angular/material/button-toggle';
 import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
   CurrenciesWrapperService,
   CurrencyWithDisplayName,
@@ -82,6 +83,7 @@ import {
 } from '../../../services/wrapper-services/orders-wrapper.service';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
+import { MatIcon } from '@angular/material/icon';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -90,7 +92,7 @@ import { CostCenterWrapperService } from '../../../services/wrapper-services/cos
 export interface ItemTableModel {
   item_id?: number;
   name: string;
-  price_per_unit: number;
+  price_per_unit: string;
   quantity: number;
   quantity_unit?: string;
   article_id?: string;
@@ -134,6 +136,8 @@ export interface QuotationTableModel {
     MatRadioModule,
     MatTabGroup,
     MatTabsModule,
+    MatIcon,
+    RouterModule,
   ],
   templateUrl: './edit-order-page.component.html',
   styleUrl: './edit-order-page.component.scss',
@@ -158,8 +162,28 @@ export class EditOrderPageComponent implements OnInit {
     });
   }
 
+  selectedTabIndex = signal<number>(0);
+  // Tab-Definitionen (Reihenfolge = Tab-Reihenfolge im Template)
+  private readonly tabOrder = [
+    'General',
+    'MainOffer',
+    'Items',
+    'Addresses',
+    'Quotations',
+    'Approvals',
+  ] as const;
+
+  // Mapping von Tab-Name zu Index
+  private readonly tabMap: Record<(typeof this.tabOrder)[number], number> = {
+    General: 0,
+    MainOffer: 1,
+    Items: 2,
+    Addresses: 3,
+    Quotations: 4,
+    Approvals: 5,
+  };
+
   editOrderId!: number;
-  editOrderDTO!: OrderResponseDTO;
   formattedOrderDTO!: OrderResponseDTOFormatted;
   patchOrderDTO: OrderResponseDTOFormatted = {} as OrderResponseDTOFormatted;
 
@@ -176,7 +200,10 @@ export class EditOrderPageComponent implements OnInit {
   // Compute the footer content for the items table, showing the total sum of all items
   footerContent = computed(() => {
     const sum = this.items().reduce((total, item) => {
-      const price = item.price_per_unit ?? 0;
+      const price =
+        this.orderWrapperService.parseGermanPriceToNumber(
+          item.price_per_unit
+        ) ?? 0;
       const quantity = item.quantity ?? 0;
 
       const vat = Number(item.vat_value) || 0;
@@ -213,7 +240,7 @@ export class EditOrderPageComponent implements OnInit {
       label: 'Delete',
       buttonType: 'filled',
       color: ButtonColor.WARN,
-      action: (row: ItemRequestDTO) => this.deleteItem(row),
+      action: (row: ItemTableModel) => this.deleteItem(row),
     },
   ];
 
@@ -234,8 +261,6 @@ export class EditOrderPageComponent implements OnInit {
   deliveryPersonConfigRefreshTrigger = signal(0);
   selectedInvoicePerson?: PersonWithFullName;
   filteredPersonsRecipient: PersonWithFullName[] = [];
-  @ViewChild('inputRecipient', { static: false })
-  inputRecipient!: ElementRef<HTMLInputElement>;
 
   // Invoice address variables
   invoiceAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
@@ -251,8 +276,6 @@ export class EditOrderPageComponent implements OnInit {
   invoicePersonConfigRefreshTrigger = signal(0);
   selectedInvoiceAddressIdFromTable: number | undefined; // Stores the id of the selected invoice address from the table
   filteredPersonsInvoice: PersonWithFullName[] = [];
-  @ViewChild('inputInvoice', { static: false })
-  inputInvoice!: ElementRef<HTMLInputElement>;
 
   // Queries person variables
   selectedQueryPersonId: number | undefined = undefined;
@@ -283,10 +306,10 @@ export class EditOrderPageComponent implements OnInit {
   deletedQuotations: number[] = []; // Store IDs of deleted quotations for API call
   quotationTableDataSource = new MatTableDataSource<QuotationTableModel>([]);
   orderQuotationColumns: TableColumn<QuotationTableModel>[] = [
-    { id: 'index', label: 'Nummer' },
     { id: 'price', label: 'Preis' },
     { id: 'company_name', label: 'Anbieter' },
     { id: 'company_city', label: 'Ort' },
+    { id: 'quote_date', label: 'Angebotsdatum' },
   ];
   orderQuotationTableActions: TableActionButton[] = [
     {
@@ -322,7 +345,6 @@ export class EditOrderPageComponent implements OnInit {
   mainOfferFormConfig = ORDER_MAIN_OFFER_FORM_CONFIG;
   mainOfferFormGroup = new FormGroup({});
   suppliers: Array<SupplierResponseDTO> = []; // Will be loaded from API
-  customerIds: Array<CustomerIdResponseDTO> = []; // Will be loaded from API
 
   // Supplier decision reason variables
   supplierDecisionReasonFormConfig = ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG;
@@ -349,8 +371,7 @@ export class EditOrderPageComponent implements OnInit {
 
       try {
         // try to load the order data
-        const order = await this.orderWrapperService.getOrderById(id);
-        this.editOrderDTO = order;
+        const formattedOrder = await this.orderWrapperService.getOrderById(id);
         this.editOrderId = id;
       } catch (error: any) {
         // Api-call returns 404 if order not found
@@ -370,7 +391,18 @@ export class EditOrderPageComponent implements OnInit {
       }
     });
 
-    // Load initial data for the VAT options field in the form
+    // Check for 'tab' query parameter to set the initial tab
+    this.route.queryParamMap.subscribe((params) => {
+      const requestedTab = params.get('tab');
+      if (requestedTab && this.isTabName(requestedTab)) {
+        this.switchToTab(requestedTab, { updateUrl: false });
+      }
+      else {
+        this.switchToTab('General', { updateUrl: true });
+      }
+    });
+
+    // Load initial data for form dropdowns and autocompletes
     [
       this.vatOptions,
       this.persons,
@@ -391,17 +423,19 @@ export class EditOrderPageComponent implements OnInit {
     this.formatSuppliers();
     this.formatCostCenters();
     this.setCurrenciesDropdownOptions();
-    this.loadAllOrderData();
-  }
 
+    // Load all order data into the forms and tables
+    this.loadAllOrderData();
+
+  }
   /**
    * Adds a new item to the locally stored items list and updates the table data source
    */
   onAddItem() {
     if (this.orderItemFormGroup.valid) {
-      const newItem = this.orderItemFormGroup.value as ItemRequestDTO;
+      const newItem = this.orderItemFormGroup.value as ItemTableModel;
       console.log('Neuer Artikel:', newItem);
-      this.items.update((curr) => [...curr, newItem as ItemTableModel]);
+      this.items.update((curr) => [...curr, newItem]);
       this.itemTableDataSource.data = this.items(); // Update the table data source
       this.orderItemFormGroup.reset(); // Formular zurücksetzen
     } else {
@@ -585,7 +619,7 @@ export class EditOrderPageComponent implements OnInit {
     address: AddressResponseDTO,
     isRecipientAddress: boolean
   ) {
-    // Wird aufgerufen, wenn in der Adress-Tabelle eine Zeile ausgewählt wird
+    // Patch the selected address into the appropriate form group
     if (isRecipientAddress) {
       this.deliveryAddressFormGroup.patchValue(address);
       this.selectedDeliveryAddressIdFromTable = address.id;
@@ -714,7 +748,7 @@ export class EditOrderPageComponent implements OnInit {
 
   /**
    * Save the address form inputs locally in the postOrderDTO object
-   * @returns A promise that resolves when the operation is complete
+   * @returns {Promise<boolean>} Returns true if the address saving process was successful, false otherwise
    */
   async patchAddressOrder(): Promise<boolean> {
     // Set recipient and invoice person
@@ -745,8 +779,13 @@ export class EditOrderPageComponent implements OnInit {
     // Handle address saving based on the selected addressModes
 
     // If the address options didn't change, return
-    if(this.deliveryAddressOption === 'existing' && this.sameAsRecipient) return true;
-    else if (this.deliveryAddressOption === 'existing' && this.invoiceAddressOption === 'existing') return true;
+    if (this.deliveryAddressOption === 'existing' && this.sameAsRecipient)
+      return true;
+    else if (
+      this.deliveryAddressOption === 'existing' &&
+      this.invoiceAddressOption === 'existing'
+    )
+      return true;
 
     // Recipient address
     if (this.deliveryAddressOption === 'new') {
@@ -934,34 +973,17 @@ export class EditOrderPageComponent implements OnInit {
    * @param field The selected supplier with field name and value. Value can be either a number or null.
    */
   async onMainOfferFormGroupChanged(field: { field: string; value: any }) {
-    console.log('MainOfferFormGroup changed:', field);
     // Check if the changed field is the supplier_id
+    console.log('Main Offer Form Field changed');
     if (field.field === 'supplier_id' && field.value) {
-      try {
-        // Fetch customer IDs for the selected supplier
-        this.customerIds = await this.loadCustomerIdsForSupplier(
-          field.value.value
-        );
-        const customerIdField = this.mainOfferFormConfig.fields.find(
-          (f) => f.name === 'customer_id'
-        );
-        if (customerIdField) {
-          customerIdField.options = this.customerIds.map((c) => ({
-            label: c.customer_id ?? '', // Falls customer_identifier undefined -> leere Zeichenkette
-            value: c.customer_id ?? 0, // Falls id undefined -> 0
-          }));
-        }
-      } catch (error) {
-        console.error('Fehler beim Laden der Customer-IDs:', error);
-        this.customerIds = []; // Fallback, damit die UI nicht crasht
-        const customerIdField = this.mainOfferFormConfig.fields.find(
-          (f) => f.name === 'customer_id'
-        );
-        if (customerIdField) {
-          customerIdField.options = [
-            { label: 'Fehler beim Laden der Customer-IDs', value: undefined },
-          ];
-        }
+      this.setCustomerIdsForSupplier(field.value?.value);
+    } else if (field.field === 'supplier_id' && !field.value) {
+      // If supplier is deselected, clear customer IDs
+      const customerIdField = this.mainOfferFormConfig.fields.find(
+        (f) => f.name === 'customer_id'
+      );
+      if (customerIdField) {
+        customerIdField.options = [];
       }
     }
 
@@ -986,12 +1008,33 @@ export class EditOrderPageComponent implements OnInit {
    * @param supplierId The ID of the supplier to load customer IDs for
    * @returns A promise that resolves to an array of CustomerIdResponseDTO
    */
-  async loadCustomerIdsForSupplier(supplierId: number) {
-    const customerIds =
-      await this.suppliersWrapperService.getCustomersIdsBySupplierId(
-        supplierId
+  async setCustomerIdsForSupplier(supplierId: number) {
+    try {
+      // Fetch customer IDs for the selected supplier
+      const customerIds =
+        await this.suppliersWrapperService.getCustomersIdsBySupplierId(
+          supplierId
+        );
+      const customerIdField = this.mainOfferFormConfig.fields.find(
+        (f) => f.name === 'customer_id'
       );
-    return customerIds;
+      if (customerIdField) {
+        customerIdField.options = customerIds.map((c) => ({
+          label: c.customer_id ?? '', // Falls customer_identifier undefined -> leere Zeichenkette
+          value: c.customer_id ?? 0, // Falls id undefined -> 0
+        }));
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Customer-IDs:', error);
+      const customerIdField = this.mainOfferFormConfig.fields.find(
+        (f) => f.name === 'customer_id'
+      );
+      if (customerIdField) {
+        customerIdField.options = [
+          { label: 'Fehler beim Laden der Customer-IDs', value: undefined },
+        ];
+      }
+    }
   }
 
   /**
@@ -1008,11 +1051,11 @@ export class EditOrderPageComponent implements OnInit {
         // Add the decision_other_reason_description field if not already present
         if (
           !this.supplierDecisionReasonFormConfig.fields.find(
-            (f) => f.name === 'supplier_decision_reason'
+            (f) => f.name === 'decision_other_reasons_description'
           )
         ) {
           this.supplierDecisionReasonFormConfig.fields.push({
-            name: 'supplier_decision_reason',
+            name: 'decision_other_reasons_description',
             label: 'Begründung',
             type: 'textarea',
             required: true,
@@ -1020,7 +1063,7 @@ export class EditOrderPageComponent implements OnInit {
           } as FormField);
 
           this.supplierDecisionReasonFormGroup.addControl(
-            'supplier_decision_reason',
+            'decision_other_reasons_description',
             new FormControl('', Validators.required)
           );
         }
@@ -1028,14 +1071,14 @@ export class EditOrderPageComponent implements OnInit {
         // Remove the decision_other_reason_description field if it exists
         this.supplierDecisionReasonFormConfig.fields =
           this.supplierDecisionReasonFormConfig.fields.filter(
-            (f) => f.name !== 'supplier_decision_reason'
+            (f) => f.name !== 'decision_other_reasons_description'
           );
 
         if (
-          this.supplierDecisionReasonFormGroup.get('supplier_decision_reason')
+          this.supplierDecisionReasonFormGroup.get('decision_other_reasons_description')
         ) {
           this.supplierDecisionReasonFormGroup.removeControl(
-            'supplier_decision_reason'
+            'decision_other_reasons_description'
           );
         }
       }
@@ -1048,29 +1091,27 @@ export class EditOrderPageComponent implements OnInit {
    * @returns {Promise<void>}
    */
   private async loadAllOrderData() {
-    if (!this.editOrderDTO) return;
+    if (!this.editOrderId) return;
 
     const [formattedOrder, mappedItems, quotations, approvals] =
       await Promise.all([
-        this.orderWrapperService.getOrderByIDInFormFormat(
-          this.editOrderDTO.id!
-        ),
+        this.orderWrapperService.getOrderByIDInFormFormat(this.editOrderId),
 
         this.orderWrapperService
-          .getOrderItems(this.editOrderDTO.id!)
+          .getOrderItems(this.editOrderId)
           .then((responseItems) =>
             this.orderWrapperService.mapItemResponseToTableModel(responseItems)
           ),
 
         this.orderWrapperService
-          .getOrderQuotations(this.editOrderDTO.id!)
+          .getOrderQuotations(this.editOrderId)
           .then((responseQuotations) =>
             this.orderWrapperService.mapQuotationResponseToTableModel(
               responseQuotations
             )
           ),
 
-        this.orderWrapperService.getOrderApprovals(this.editOrderDTO.id!),
+        this.orderWrapperService.getOrderApprovals(this.editOrderId),
       ]);
 
     this.quotations.set(quotations);
@@ -1082,11 +1123,17 @@ export class EditOrderPageComponent implements OnInit {
   }
 
   private formatOrderForFormInput() {
+    this.patchGeneralFormGroupFromOrder();
+    this.patchMainOfferFormGroupFromOrder();
+    this.patchAddressFormsWithOrderData();
+    this.patchApprovalFormGroupFromOrder();
+  }
+
+  /**
+   * Patch the general form group with the loaded order data
+   */
+  patchGeneralFormGroupFromOrder() {
     this.generalFormGroup.patchValue(this.formattedOrderDTO);
-    this.mainOfferFormGroup.patchValue(this.formattedOrderDTO);
-    this.supplierDecisionReasonFormGroup.patchValue(this.formattedOrderDTO);
-    console.log('Approvals loaded:', this.approvals);
-    this.approvalFormGroup.patchValue(this.approvals);
 
     // Patch autocomplete fields in the form configs with the loaded order data
     this.patchConfigAutocompleteFieldsWithOrderData(
@@ -1107,12 +1154,19 @@ export class EditOrderPageComponent implements OnInit {
       { current: this.secondaryCostCenterFormConfig },
       this.secondaryCostCenterConfigRefreshTrigger
     );
+  }
+
+  private patchMainOfferFormGroupFromOrder() {
+    this.mainOfferFormGroup.patchValue(this.formattedOrderDTO);
+    this.supplierDecisionReasonFormGroup.patchValue(this.formattedOrderDTO);
+
     this.patchConfigAutocompleteFieldsWithOrderData(
       'supplier_id',
       this.formattedOrderDTO.supplier_id,
       { current: this.mainOfferFormConfig },
       this.mainOfferConfigRefreshTrigger
     );
+
     if (this.formattedOrderDTO.currency) {
       this.patchConfigAutocompleteFieldsWithOrderData(
         'currency_short',
@@ -1121,7 +1175,13 @@ export class EditOrderPageComponent implements OnInit {
         this.mainOfferConfigRefreshTrigger
       );
     }
-    this.setupAddressFormsWithOrderData();
+
+    // Set customer_id dropdown options based on the loaded supplier_id
+    /* if (this.formattedOrderDTO.supplier_id) {
+      this.setCustomerIdsForSupplier(
+        this.formattedOrderDTO.supplier_id.value as number
+      );
+    } */
   }
 
   private patchConfigAutocompleteFieldsWithOrderData(
@@ -1139,19 +1199,8 @@ export class EditOrderPageComponent implements OnInit {
     refreshTrigger.update((v) => v + 1); // Trigger a refresh by updating the signal
   }
 
-  private patchDtoWithAutocompleteValue<T extends Record<string, any>>(
-    dto: T,
-    formGroup: FormGroup,
-    fieldName: string
-  ): void {
-    const fieldValue = formGroup.get(fieldName)?.value;
-    if (!fieldValue) return;
-
-    if (fieldValue && typeof fieldValue === 'object' && 'value' in fieldValue) {
-      (dto as Record<string, any>)[fieldName] = fieldValue.value;
-    } else {
-      (dto as Record<string, any>)[fieldName] = fieldValue ?? null;
-    }
+  private patchApprovalFormGroupFromOrder() {
+    this.approvalFormGroup.patchValue(this.formattedOrderDTO);
   }
 
   /**
@@ -1167,7 +1216,7 @@ export class EditOrderPageComponent implements OnInit {
   /**
    * Decide how to setup the address forms based on the loaded order data
    */
-  private async setupAddressFormsWithOrderData() {
+  private async patchAddressFormsWithOrderData() {
     if (this.personAddresses.length === 0) {
       this.personAddresses =
         await this.personsWrapperService.getAllPersonsAddresses();
@@ -1244,8 +1293,55 @@ export class EditOrderPageComponent implements OnInit {
     }
   }
 
-  // ToDo!: Implement tab switching based on form name
-  switchToTab(formName: string) {}
+  private isTabName(value: string): value is (typeof this.tabOrder)[number] {
+    return (this.tabOrder as readonly string[]).includes(value);
+  }
+
+  /**
+   * Switches to the specified tab.
+   * @param tabName The name of the tab to switch to.
+   */
+  switchToTab(
+    tabName: (typeof this.tabOrder)[number],
+    options: { updateUrl?: boolean } = {}
+  ) {
+    const index = this.tabMap[tabName];
+    if (index !== undefined) {
+      this.selectedTabIndex.set(index);
+      if (options.updateUrl !== false) {
+        this.updateTabQueryParam(tabName);
+      }
+    }
+  }
+
+  onTabIndexChange(index: number) {
+    const tabName = this.tabOrder[index];
+    if (tabName) {
+      this.switchToTab(tabName);
+    }
+  }
+
+  private updateTabQueryParam(tabName: (typeof this.tabOrder)[number]) {
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { tab: tabName },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  /**
+   * Gets the next tab name based on the current tab.
+   * @param current The current tab name as string
+   * @returns The next tab name or null if there is no next tab
+   */
+  private getNextTab(
+    current: (typeof this.tabOrder)[number]
+  ): (typeof this.tabOrder)[number] | null {
+    const currentIndex = this.tabOrder.indexOf(current);
+    const next = this.tabOrder[currentIndex + 1];
+    return next ?? null;
+  }
 
   /**
    * Patches the order with the data from the form based on the form type.
@@ -1258,18 +1354,18 @@ export class EditOrderPageComponent implements OnInit {
       | 'MainOffer'
       | 'Items'
       | 'Quotations'
-      | 'Address'
+      | 'Addresses'
       | 'Approvals'
       | 'All'
   ) {
-    this.patchOrderDTO = {};
+    this.patchOrderDTO = this.formattedOrderDTO;
 
     const formOrder = [
       'General',
       'MainOffer',
       'Items',
       'Quotations',
-      'Address',
+      'Addresses',
       'Approvals',
     ] as const;
 
@@ -1279,14 +1375,24 @@ export class EditOrderPageComponent implements OnInit {
       const success = await this.executeFormPatch(form);
 
       if (!success) {
-        // Fehlerhafte Form gefunden
-        this.switchToTab(form); // Tabs anhand Formname wechseln
-        return; // abbrechen, kein Patch-Request
+        // Non valid form, switch to the tab and abort
+        this.switchToTab(form);
+        return;
       }
     }
 
-    // Falls alles valide ist, sende Patch
+    console.log('FormatOrderDTO vor Patch:', this.formattedOrderDTO);
+    console.log('Finales Patch DTO:', this.patchOrderDTO);
+    // Submit the order patch after all forms have been processed
     await this.submitOrderPatch();
+
+    // Switch to the next tab if applicable
+    if (formType !== 'All' && formType !== 'Approvals') {
+      const nextTab = this.getNextTab(formType);
+      if (nextTab) {
+        this.switchToTab(nextTab);
+      }
+    }
   }
 
   private async executeFormPatch(
@@ -1305,11 +1411,11 @@ export class EditOrderPageComponent implements OnInit {
       case 'Quotations':
         return this.patchQuotationsOrder();
 
-      case 'Address':
+      case 'Addresses':
         return this.patchAddressOrder();
 
       case 'Approvals':
-        return this.patchApprovalsOrder();
+        return this.submitApprovalPatch();
 
       default:
         return true;
@@ -1349,6 +1455,7 @@ export class EditOrderPageComponent implements OnInit {
     this.patchOrderDTO = {
       ...this.patchOrderDTO,
       ...this.mainOfferFormGroup.value,
+      ...this.supplierDecisionReasonFormGroup.value,
       supplier_id: this.mainOfferFormGroup.get('supplier_id')?.value,
       currency: this.mainOfferFormGroup.get('currency_short')?.value,
     };
@@ -1363,12 +1470,12 @@ export class EditOrderPageComponent implements OnInit {
         this.orderWrapperService.mapItemTableModelToItemRequestDTO(item)
       );
 
-    // create all new items sequentially and bail out on first failure
-    for (const item of itemsToCreate) {
+    // create all new items if any got added
+    if (itemsToCreate.length > 0) {
       try {
         await this.orderWrapperService.createOrderItems(
-          this.editOrderDTO!.id!,
-          [item]
+          this.editOrderId,
+          itemsToCreate
         );
       } catch (error) {
         console.error('Fehler beim Erstellen von Items:', error);
@@ -1379,13 +1486,11 @@ export class EditOrderPageComponent implements OnInit {
         );
         return false;
       }
-    }
 
-    // refresh items from backend if any were created
-    if (itemsToCreate.length > 0) {
+      // refresh items from backend if any were created
       try {
         const updatedItems = await this.orderWrapperService.getOrderItems(
-          this.editOrderDTO!.id!
+          this.editOrderId
         );
         this.items.set(
           this.orderWrapperService.mapItemResponseToTableModel(updatedItems)
@@ -1405,7 +1510,7 @@ export class EditOrderPageComponent implements OnInit {
     for (const deletedItemId of this.deletedItems) {
       try {
         await this.orderWrapperService.deleteItemOfOrder(
-          this.editOrderDTO!.id!,
+          this.editOrderId,
           deletedItemId
         );
       } catch (error) {
@@ -1434,12 +1539,12 @@ export class EditOrderPageComponent implements OnInit {
           quotation
         )
       );
-    // create all new quotations sequentially and bail out on first failure
-    for (const quotation of quotationsToCreate) {
+    // create all new quotations if any got added
+    if (quotationsToCreate.length > 0) {
       try {
         await this.orderWrapperService.createOrderQuotations(
-          this.editOrderDTO!.id!,
-          [quotation]
+          this.editOrderId,
+          quotationsToCreate
         );
       } catch (error) {
         console.error('Fehler beim Erstellen von Angeboten:', error);
@@ -1455,9 +1560,7 @@ export class EditOrderPageComponent implements OnInit {
       if (quotationsToCreate.length > 0) {
         try {
           const updatedQuotations =
-            await this.orderWrapperService.getOrderQuotations(
-              this.editOrderDTO!.id!
-            );
+            await this.orderWrapperService.getOrderQuotations(this.editOrderId);
           this.quotations.set(
             this.orderWrapperService.mapQuotationResponseToTableModel(
               updatedQuotations
@@ -1472,23 +1575,23 @@ export class EditOrderPageComponent implements OnInit {
           );
           return false;
         }
+      }
 
-        // delete quotations marked for deletion, bail out on first failure
-        for (const deletedQuotationIndex of this.deletedQuotations) {
-          try {
-            await this.orderWrapperService.deleteQuotationOfOrder(
-              this.editOrderDTO!.id!,
-              deletedQuotationIndex
-            );
-          } catch (error) {
-            console.error('Fehler beim Löschen eines Angebots:', error);
-            this._notifications.open(
-              'Fehler beim Löschen eines Angebots. Bitte versuchen Sie es später erneut.',
-              undefined,
-              { duration: 5000 }
-            );
-            return false;
-          }
+      // delete quotations marked for deletion, bail out on first failure
+      for (const deletedQuotationIndex of this.deletedQuotations) {
+        try {
+          await this.orderWrapperService.deleteQuotationOfOrder(
+            this.editOrderId,
+            deletedQuotationIndex
+          );
+        } catch (error) {
+          console.error('Fehler beim Löschen eines Angebots:', error);
+          this._notifications.open(
+            'Fehler beim Löschen eines Angebots. Bitte versuchen Sie es später erneut.',
+            undefined,
+            { duration: 5000 }
+          );
+          return false;
         }
       }
     }
@@ -1499,16 +1602,19 @@ export class EditOrderPageComponent implements OnInit {
     return true;
   }
 
-  private async patchApprovalsOrder(): Promise<boolean> {
-
+  /**
+   * Submits the approval patch to the backend.
+   * @returns {Promise<boolean>} Returns true if the patch was successful, false otherwise.
+   */
+  private async submitApprovalPatch(): Promise<boolean> {
     // If order is not in status completed, the approvals can't be changed
-    if(this.editOrderDTO.status !== OrderStatus.COMPLETED) return true;
+    if (this.formattedOrderDTO.status !== OrderStatus.COMPLETED) return true;
 
     this.locallySaveApprovalFormInput();
     // Send the approval patch to the backend
     try {
       await this.orderWrapperService.patchOrderApprovals(
-        this.editOrderDTO!.id!,
+        this.editOrderId,
         this.postApprovalDTO
       );
       this._notifications.open(
@@ -1531,13 +1637,39 @@ export class EditOrderPageComponent implements OnInit {
   // ToDo!: Implement order patching
   private async submitOrderPatch() {
     // Check which fields have been modified and prepare the patch DTO accordingly
-    console.log('Order before excluding fields which haven\'t changed:', this.patchOrderDTO);
-    const changedFields  = this.orderWrapperService.compareOrdersAndReturnChangedFields(
-      this.formattedOrderDTO,
-      this.patchOrderDTO
-    );
-  console.log('Changed fields to be patched:', changedFields);
-  const orderRequest = this.orderWrapperService.mapFormattedOrderToRequest(this.patchOrderDTO);
-  console.log('Patch Order DTO after formatting:', orderRequest);
+    const changedFields =
+      this.orderWrapperService.compareOrdersAndReturnChangedFields(
+        this.formattedOrderDTO,
+        this.patchOrderDTO
+      );
+    console.log('Changed fields to be patched:', changedFields);
+
+    // If no fields have changed, return
+    if (Object.keys(changedFields).length === 0) {
+      return;
+    }
+
+
+    try {
+      this.formattedOrderDTO =
+        await this.orderWrapperService.mapOrderResponseToFormatted(
+          await this.orderWrapperService.patchOrderById(
+            this.formattedOrderDTO!.id!,
+            changedFields
+          )
+        );
+      this._notifications.open(
+        'Bestellung wurde erfolgreich aktualisiert.',
+        undefined,
+        { duration: 3000 }
+      );
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der Bestellung:', error);
+      this._notifications.open(
+        'Fehler beim Aktualisieren der Bestellung. Bitte versuchen Sie es später erneut.',
+        undefined,
+        { duration: 5000 }
+      );
+    }
   }
 }
