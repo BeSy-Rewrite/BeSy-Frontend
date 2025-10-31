@@ -3,7 +3,7 @@ import { Validators } from '@angular/forms';
 
 
 export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
-  title: 'Adresse festlegen',
+  subtitle: 'Lieferadresse für die Bestellung',
   fields: [
     {
       name: 'street',
@@ -376,6 +376,7 @@ export const ORDER_QUERIES_PERSON_FORM_CONFIG: FormConfig = {
 };
 
 export const ORDER_DELIVERY_PERSON_FORM_CONFIG: FormConfig = {
+  title: 'Adressdaten',
   fields: [
     {
       name: 'delivery_person_id',

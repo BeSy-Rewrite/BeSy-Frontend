@@ -163,23 +163,23 @@ export class EditOrderPageComponent implements OnInit {
   }
 
   selectedTabIndex = signal<number>(0);
-  // Tab-Definitionen (Reihenfolge = Tab-Reihenfolge im Template)
+  // Define the order of the tabs
   private readonly tabOrder = [
     'General',
     'MainOffer',
     'Items',
-    'Addresses',
     'Quotations',
+    'Addresses',
     'Approvals',
   ] as const;
 
-  // Mapping von Tab-Name zu Index
+  // Mapping of tab names to their indices
   private readonly tabMap: Record<(typeof this.tabOrder)[number], number> = {
     General: 0,
     MainOffer: 1,
     Items: 2,
-    Addresses: 3,
-    Quotations: 4,
+    Quotations: 3,
+    Addresses: 4,
     Approvals: 5,
   };
 
@@ -587,7 +587,7 @@ export class EditOrderPageComponent implements OnInit {
         this.deliveryPersonHasPreferredAddress = true;
         this.deliveryAddressOption = 'preferred';
         this.deliveryAddressFormGroup.patchValue(preferredAddress);
-        this.deliveryAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+        this.deliveryAddressFormConfig.subtitle = 'Hinterlegte bevorzugte Adresse';
         this.deliveryInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
         this.deliveryAddressFormGroup.disable();
@@ -596,7 +596,7 @@ export class EditOrderPageComponent implements OnInit {
         this.invoiceAddressOption = 'preferred';
         this.invoiceAddressId = preferredAddress.id;
         this.invoiceAddressFormGroup.patchValue(preferredAddress);
-        this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+        this.invoiceAddressFormConfig.subtitle = 'Hinterlegte bevorzugte Adresse';
         this.invoiceInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
         this.invoiceAddressFormGroup.disable();
@@ -643,7 +643,7 @@ export class EditOrderPageComponent implements OnInit {
           .then((addr) => this.deliveryAddressFormGroup.patchValue(addr));
         this.deliveryInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
-        this.deliveryAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+        this.deliveryAddressFormConfig.subtitle = 'Hinterlegte bevorzugte Adresse';
         this.deliveryAddressFormGroup.disable();
         if (
           this.selectedDeliveryAddressIdFromTable &&
@@ -654,13 +654,13 @@ export class EditOrderPageComponent implements OnInit {
       } else if (option === 'selected') {
         this.deliveryAddressFormGroup.reset();
         this.deliveryAddressFormGroup.disable();
-        this.deliveryAddressFormConfig.title = 'Bestehende Adresse überprüfen';
+        this.deliveryAddressFormConfig.subtitle = 'Bestehende Adresse überprüfen';
         this.deliveryInfoText =
           'Wählen Sie eine Adresse aus der Tabelle aus und überprüfen Sie die Daten im Formular unterhalb.';
       } else if (option === 'new') {
         this.deliveryAddressFormGroup.reset();
         this.deliveryAddressFormGroup.enable();
-        this.deliveryAddressFormConfig.title = 'Neue Adresse erstellen';
+        this.deliveryAddressFormConfig.subtitle = 'Neue Adresse erstellen';
         this.deliveryInfoText =
           'Neue Adresse erstellen: bitte Formular ausfüllen.';
         if (
@@ -679,7 +679,7 @@ export class EditOrderPageComponent implements OnInit {
           .getPersonAddressesById(this.formattedOrderDTO.delivery_address_id!)
           .then((addr) => this.deliveryAddressFormGroup.patchValue(addr));
         this.deliveryAddressFormGroup.disable();
-        this.deliveryAddressFormConfig.title = 'Aktuell gespeicherte Adresse';
+        this.deliveryAddressFormConfig.subtitle = 'Aktuell gespeicherte Adresse';
         this.deliveryInfoText =
           'Dies ist die aktuell gespeicherte Lieferadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
         if (
@@ -698,7 +698,7 @@ export class EditOrderPageComponent implements OnInit {
           .then((addr) => this.invoiceAddressFormGroup.patchValue(addr));
         this.invoiceInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
-        this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
+        this.invoiceAddressFormConfig.subtitle = 'Hinterlegte bevorzugte Adresse';
         this.invoiceAddressFormGroup.disable();
         if (
           this.selectedInvoiceAddressIdFromTable &&
@@ -709,12 +709,12 @@ export class EditOrderPageComponent implements OnInit {
       } else if (option === 'selected') {
         this.invoiceAddressFormGroup.reset();
         this.invoiceAddressFormGroup.disable();
-        this.invoiceAddressFormConfig.title = 'Bestehende Adresse überprüfen';
+        this.invoiceAddressFormConfig.subtitle = 'Bestehende Adresse überprüfen';
         this.invoiceInfoText = 'Adressdaten überprüfen';
       } else if (option === 'new') {
         this.invoiceAddressFormGroup.reset();
         this.invoiceAddressFormGroup.enable();
-        this.invoiceAddressFormConfig.title = 'Neue Adresse erstellen';
+        this.invoiceAddressFormConfig.subtitle = 'Neue Adresse erstellen';
         this.invoiceInfoText =
           'Neue Adresse erstellen: bitte Formular ausfüllen.';
         if (
@@ -733,7 +733,7 @@ export class EditOrderPageComponent implements OnInit {
           .getPersonAddressesById(this.formattedOrderDTO.invoice_address_id!)
           .then((addr) => this.invoiceAddressFormGroup.patchValue(addr));
         this.invoiceAddressFormGroup.disable();
-        this.invoiceAddressFormConfig.title = 'Aktuell gespeicherte Adresse';
+        this.invoiceAddressFormConfig.subtitle = 'Aktuell gespeicherte Adresse';
         this.invoiceInfoText =
           'Dies ist die aktuell gespeicherte Rechnungsadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
         if (
@@ -1244,7 +1244,7 @@ export class EditOrderPageComponent implements OnInit {
         );
       this.deliveryPersonHasExistingAddress = true;
       this.deliveryAddressFormGroup.patchValue(deliveryAddress);
-      this.deliveryAddressFormConfig.title =
+      this.deliveryAddressFormConfig.subtitle =
         'Aktuell gespeicherte Lieferadresse';
       this.deliveryAddressOption = 'existing';
       this.deliveryAddressFormGroup.disable();
@@ -1285,7 +1285,7 @@ export class EditOrderPageComponent implements OnInit {
           this.formattedOrderDTO.invoice_address_id!
         );
       this.invoiceAddressFormGroup.patchValue(invoiceAddress);
-      this.invoiceAddressFormConfig.title = 'Aktuell gespeicherte Adresse';
+      this.invoiceAddressFormConfig.subtitle = 'Aktuell gespeicherte Adresse';
       this.invoiceAddressOption = 'existing';
       this.invoiceAddressFormGroup.disable();
       this.invoiceInfoText =
