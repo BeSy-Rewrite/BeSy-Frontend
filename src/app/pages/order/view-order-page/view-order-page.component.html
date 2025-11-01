@@ -100,6 +100,8 @@
                 <mat-divider class="bg-he-red-200 !mb-2" />
 
                 @switch (section.id) {
+                @case ('main-quote') { <app-order-main-quote [orderData]="internalOrder()" /> }
+                @case ('articles') { <app-order-article-list [order]="internalOrder().order" /> }
                 @case ('quotations') { <app-quotations-list [orderId]="internalOrder().order.id!" /> }
                 @case ('documents') { <app-order-documents [order]="internalOrder().order" /> }
                 @case ('contacts') { <app-order-persons [order]="internalOrder().order" /> }

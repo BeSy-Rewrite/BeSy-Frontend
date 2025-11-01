@@ -1,0 +1,19 @@
+<div class="grid grid-cols-[max-content_1fr] h-fit gap-x-16 gap-y-2">
+    @for (key of additionalInfoKeys; track $index) {
+    <h3 class="font-semibold">{{ orderFieldLabels[key] }}:</h3>
+
+    <p>
+        {{ orderData().orderDisplay[key] }}
+
+        @if (key === 'quote_price') {
+        @if (isPriceProbablyBrutto) {
+        (brutto)
+        } @else if (isPriceProbablyNetto) {
+        (netto)
+        } @else {
+        - Berechnete Summen: {{ totalGrossPriceFormatted }} / {{ totalNetPriceFormatted }}<br />
+        }
+        }
+    </p>
+    }
+</div>

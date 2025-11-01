@@ -14,7 +14,9 @@ import { OrderStatus, UserResponseDTO } from '../../../api';
 import { setupDialog } from "../../../components/dialog/dialog.component";
 import { OrderDocumentsComponent } from "../../../components/documents/order-documents/order-documents.component";
 import { ApprovalsComponent } from '../../../components/order-display/approvals/approvals.component';
+import { OrderArticleListComponent } from "../../../components/order-display/order-article-list/order-article-list.component";
 import { OrderMainInformationComponent } from '../../../components/order-display/order-main-information/order-main-information.component';
+import { OrderMainQuoteComponent } from "../../../components/order-display/order-main-quote/order-main-quote.component";
 import { OrderPersonsComponent } from "../../../components/order-display/order-persons/order-persons.component";
 import { QuotationsListComponent } from '../../../components/order-display/quotations-list/quotations-list.component';
 import { StateHistoryComponent } from "../../../components/order-display/state-history/state-history.component";
@@ -31,7 +33,7 @@ import { StateWrapperService } from "../../../services/wrapper-services/state-wr
 import { UsersWrapperService } from "../../../services/wrapper-services/users-wrapper.service";
 
 
-type SectionId = 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
+type SectionId = 'main-quote' | 'articles' | 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
 interface Section { id: SectionId; title: string; isFullWidth: boolean; }
 interface StateChangeButtons {
   label: string;
@@ -59,6 +61,8 @@ interface StateChangeButtons {
     StateHistoryComponent,
     StateDisplayComponent,
     OrderDocumentsComponent,
+    OrderMainQuoteComponent,
+    OrderArticleListComponent
   ],
   templateUrl: './view-order-page.component.html',
   styleUrl: './view-order-page.component.scss'
@@ -77,6 +81,8 @@ export class ViewOrderPageComponent implements OnInit {
   currentUrl = computed(() => globalThis.location.href);
 
   sections: Section[] = [
+    { id: 'main-quote', title: 'Hauptangebot', isFullWidth: true },
+    { id: 'articles', title: 'Artikelübersicht', isFullWidth: true },
     { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true },
     { id: 'documents', title: 'Dokumente', isFullWidth: true },
     { id: 'contacts', title: 'Kontaktdaten', isFullWidth: false },
