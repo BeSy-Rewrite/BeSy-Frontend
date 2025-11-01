@@ -1,89 +1,80 @@
-import {
-  ORDER_DELIVERY_PERSON_FORM_CONFIG,
-  ORDER_INVOICE_PERSON_FORM_CONFIG,
-  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
-  ORDER_QUERIES_PERSON_FORM_CONFIG,
-  ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
-} from '../../../configs/order/order-config';
-import {
-  PersonsWrapperService,
-  PersonWithFullName,
-} from '../../../services/wrapper-services/persons-wrapper.service';
-import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { CommonModule } from '@angular/common';
 import {
   Component,
-  ElementRef,
-  ViewChild,
-  signal,
   computed,
-  WritableSignal,
   effect,
-  Input,
+  OnInit,
+  signal,
+  WritableSignal
 } from '@angular/core';
-import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButton } from '@angular/material/button';
+import {
+  MatButtonToggle,
+  MatButtonToggleGroup,
+} from '@angular/material/button-toggle';
+import { MatOptionModule } from '@angular/material/core';
 import { MatDivider } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import {
+  AddressRequestDTO,
+  AddressResponseDTO,
+  ApprovalRequestDTO,
+  ApprovalResponseDTO,
+  CostCenterResponseDTO,
+  OrderStatus,
+  SupplierResponseDTO,
+  VatResponseDTO
+} from '../../../api';
 import {
   FormComponent,
+  FormConfig,
   FormField,
 } from '../../../components/form-component/form-component.component';
-import { OnInit } from '@angular/core';
-import { FormConfig } from '../../../components/form-component/form-component.component';
+import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
+import {
+  ORDER_ADDRESS_FORM_CONFIG,
+  ORDER_APPROVAL_FORM_CONFIG,
+  ORDER_DELIVERY_PERSON_FORM_CONFIG,
+  ORDER_GENERAL_FORM_CONFIG,
+  ORDER_INVOICE_PERSON_FORM_CONFIG,
+  ORDER_MAIN_OFFER_FORM_CONFIG,
+  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
+  ORDER_QUERIES_PERSON_FORM_CONFIG,
+  ORDER_QUOTATION_FORM_CONFIG,
+  ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
+  ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
+} from '../../../configs/order/order-config';
 import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
-import { FormControl, FormGroup, Validators } from '@angular/forms';
-import { MatButton } from '@angular/material/button';
-import { MatTableDataSource } from '@angular/material/table';
 import {
   ButtonColor,
   TableActionButton,
   TableColumn,
 } from '../../../models/generic-table';
-import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import {
-  AddressRequestDTO,
-  AddressResponseDTO,
-  ApprovalRequestDTO,
-  CostCenterResponseDTO,
-  ItemRequestDTO,
-  VatResponseDTO,
-  SupplierResponseDTO,
-  CustomerIdResponseDTO,
-  OrderResponseDTO,
-  ApprovalResponseDTO,
-  OrderStatus,
-} from '../../../api';
-import {
-  ORDER_ADDRESS_FORM_CONFIG,
-  ORDER_APPROVAL_FORM_CONFIG,
-  ORDER_GENERAL_FORM_CONFIG,
-  ORDER_MAIN_OFFER_FORM_CONFIG,
-  ORDER_QUOTATION_FORM_CONFIG,
-  ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
-} from '../../../configs/order/order-config';
-import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatOptionModule } from '@angular/material/core';
-import { CommonModule } from '@angular/common';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import {
-  MatButtonToggle,
-  MatButtonToggleGroup,
-} from '@angular/material/button-toggle';
-import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   CurrenciesWrapperService,
   CurrencyWithDisplayName,
 } from '../../../services/wrapper-services/currencies-wrapper.service';
-import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import {
   OrderResponseDTOFormatted,
   OrdersWrapperService,
 } from '../../../services/wrapper-services/orders-wrapper.service';
-import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
-import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
-import { MatIcon } from '@angular/material/icon';
+import {
+  PersonsWrapperService,
+  PersonWithFullName,
+} from '../../../services/wrapper-services/persons-wrapper.service';
+import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
+import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -103,6 +94,15 @@ export interface ItemTableModel {
   preferred_list_number?: string;
   vat_type: 'netto' | 'brutto';
 }
+
+export const ORDER_EDIT_TABS = [
+  'General',
+  'MainOffer',
+  'Items',
+  'Quotations',
+  'Addresses',
+  'Approvals',
+] as const;
 
 /**
  * Model for the quotations table used in the order edit/create page
@@ -164,14 +164,7 @@ export class EditOrderPageComponent implements OnInit {
 
   selectedTabIndex = signal<number>(0);
   // Define the order of the tabs
-  private readonly tabOrder = [
-    'General',
-    'MainOffer',
-    'Items',
-    'Quotations',
-    'Addresses',
-    'Approvals',
-  ] as const;
+  private readonly tabOrder = ORDER_EDIT_TABS;
 
   // Mapping of tab names to their indices
   private readonly tabMap: Record<(typeof this.tabOrder)[number], number> = {
@@ -1257,10 +1250,10 @@ export class EditOrderPageComponent implements OnInit {
       (this.formattedOrderDTO.invoice_person_id &&
         this.formattedOrderDTO.delivery_person_id &&
         this.formattedOrderDTO.invoice_person_id.value !==
-          this.formattedOrderDTO.delivery_person_id.value) ||
+        this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
         this.formattedOrderDTO.invoice_address_id !==
-          this.formattedOrderDTO.delivery_address_id)
+        this.formattedOrderDTO.delivery_address_id)
     ) {
       this.sameAsRecipient = false;
     }

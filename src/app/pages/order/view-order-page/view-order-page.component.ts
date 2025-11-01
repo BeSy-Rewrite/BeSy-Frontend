@@ -31,10 +31,16 @@ import { OrderSubresourceResolverService } from "../../../services/order-subreso
 import { OrdersWrapperService } from "../../../services/wrapper-services/orders-wrapper.service";
 import { StateWrapperService } from "../../../services/wrapper-services/state-wrapper.service";
 import { UsersWrapperService } from "../../../services/wrapper-services/users-wrapper.service";
+import { ORDER_EDIT_TABS } from "../edit-order-page/edit-order-page.component";
 
 
 type SectionId = 'main-quote' | 'articles' | 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
-interface Section { id: SectionId; title: string; isFullWidth: boolean; }
+interface Section {
+  id: SectionId;
+  title: string;
+  isFullWidth: boolean;
+  editTabId?: (typeof ORDER_EDIT_TABS)[number];
+}
 interface StateChangeButtons {
   label: string;
   icon: string;
@@ -81,12 +87,12 @@ export class ViewOrderPageComponent implements OnInit {
   currentUrl = computed(() => globalThis.location.href);
 
   sections: Section[] = [
-    { id: 'main-quote', title: 'Hauptangebot', isFullWidth: true },
-    { id: 'articles', title: 'Artikelübersicht', isFullWidth: true },
-    { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true },
+    { id: 'main-quote', title: 'Hauptangebot', isFullWidth: true, editTabId: "MainOffer" },
+    { id: 'articles', title: 'Artikelübersicht', isFullWidth: true, editTabId: "Items" },
+    { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true, editTabId: "Quotations" },
     { id: 'documents', title: 'Dokumente', isFullWidth: true },
     { id: 'contacts', title: 'Kontaktdaten', isFullWidth: false },
-    { id: 'approvals', title: 'Freigaben', isFullWidth: false },
+    { id: 'approvals', title: 'Freigaben', isFullWidth: false, editTabId: "Approvals" },
     { id: 'history', title: 'Statusverlauf', isFullWidth: false },
   ];
 
