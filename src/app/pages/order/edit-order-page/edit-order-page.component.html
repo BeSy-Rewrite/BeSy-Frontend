@@ -17,7 +17,7 @@
   <mat-tab-group
     mat-stretch-tabs="true"
     mat-align-tabs="start"
-    class="mb-4 overflow-hidden"
+    class="mb-4"
     [selectedIndex]="selectedTabIndex()"
     (selectedTabChange)="onTabIndexChange($event.index)"
   >
@@ -51,8 +51,10 @@
             [refreshTrigger]="queriesPersonConfigRefreshTrigger()"
           ></app-form-component>
         </div>
-      </div>
-      <div class="button container w-fit flex flex-row ml-auto gap-2">
+        <app-order-documents
+          [order]="order"
+        ></app-order-documents>
+        <div class="button container w-fit flex flex-row ml-auto gap-2">
         <button
           mat-raised-button
           class="w-full"
@@ -69,13 +71,12 @@
         >
           Alles speichern
         </button>
-        </div>
+      </div>
+      </div>
     </mat-tab>
     <mat-tab label="Hauptangebot festlegen">
       <mat-divider class="tab-divider"></mat-divider>
-      <div
-        class="flex flex-col items-center justify-center min-h-full w-full"
-      >
+      <div class="main-offer-tab-container">
         <!-- Hauptangebot -->
         <div class="main-offer-container justify-center">
           <app-form-component
@@ -87,13 +88,31 @@
         </div>
 
         <!-- Begründung der Lieferantenauswahl -->
-        <div class="supplier-decision-reason-container justify-center">
+        <div class="supplier-decision-reason-container justify-center mt-8">
           <app-form-component
             [config]="supplierDecisionReasonFormConfig"
             [formGroup]="supplierDecisionReasonFormGroup"
             (valueChanged)="onSupplierDecisionReasonChanged($event)"
           ></app-form-component>
         </div>
+        <div class="button container w-fit flex flex-row ml-auto gap-2 mt-2">
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="patchOrderFromForm('MainOffer')"
+        >
+          Speichern und weiter
+        </button>
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="patchOrderFromForm('All')"
+        >
+          Alles speichern
+        </button>
+      </div>
       </div>
     </mat-tab>
 
@@ -120,6 +139,24 @@
             [actions]="orderItemTableActions"
           ></app-generic-table>
         </div>
+        <div class="button container w-fit flex flex-row ml-auto gap-2 mt-2">
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="patchOrderFromForm('Items')"
+        >
+          Speichern und weiter
+        </button>
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="patchOrderFromForm('All')"
+        >
+          Alles speichern
+        </button>
+      </div>
       </div>
     </mat-tab>
     <mat-tab label="Vergleichsangebote">
@@ -144,87 +181,95 @@
             [actions]="orderQuotationTableActions"
           ></app-generic-table>
         </div>
+        <div class="button container w-fit flex flex-row ml-auto gap-2">
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="patchOrderFromForm('General')"
+        >
+          Speichern und weiter
+        </button>
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="patchOrderFromForm('Quotations')"
+        >
+          Alles speichern
+        </button>
+      </div>
       </div>
     </mat-tab>
     <mat-tab label="Adressdaten">
       <mat-divider class="tab-divider"></mat-divider>
-      <div class="sticky top-0 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
-        <a
-            mat-raised-button
-            color="primary"
-            (click)="patchOrderFromForm('Addresses')"
-            class="overflow-auto"
-        >
-            Bearbeiten
-        </a>
-      </div>
       <div class="address-container">
-          <div class="recipient-container flex flex-col mb-4">
-            <app-form-component
-              [config]="deliveryPersonFormConfig"
-              [formGroup]="deliveryPersonFormGroup"
-              (valueChanged)="onAddressPersonSelected($event, true)"
-              [refreshTrigger]="deliveryPersonConfigRefreshTrigger()"
-            ></app-form-component>
-          </div>
-          <div class="delivery-address-container mt-4">
-            <mat-button-toggle-group
-              name="deliveryAddressOptions"
-              [(ngModel)]="deliveryAddressOption"
-              (change)="onAddressOptionChanged($event.value, true)"
-              aria-label="Addressoption auswählen"
-              class="w-full flex"
+        <div class="recipient-container flex flex-col mb-4">
+          <app-form-component
+            [config]="deliveryPersonFormConfig"
+            [formGroup]="deliveryPersonFormGroup"
+            (valueChanged)="onAddressPersonSelected($event, true)"
+            [refreshTrigger]="deliveryPersonConfigRefreshTrigger()"
+          ></app-form-component>
+        </div>
+        <div class="delivery-address-container mt-4">
+          <mat-button-toggle-group
+            name="deliveryAddressOptions"
+            [(ngModel)]="deliveryAddressOption"
+            (change)="onAddressOptionChanged($event.value, true)"
+            aria-label="Addressoption auswählen"
+            class="w-full flex"
+          >
+            <!-- -->
+            @if(deliveryPersonHasExistingAddress) {
+            <mat-button-toggle value="existing" class="flex-1"
+              >Gespeicherte Lieferadresse</mat-button-toggle
             >
-              <!-- -->
-              @if(deliveryPersonHasExistingAddress) {
-              <mat-button-toggle value="existing" class="flex-1"
-                >Gespeicherte Lieferadresse</mat-button-toggle
-              >
-              }
-              <mat-button-toggle
-                value="preferred"
-                [disabled]="!deliveryPersonHasPreferredAddress"
-                class="flex-1"
-              >
-                Bevorzugte Adresse
-              </mat-button-toggle>
-
-              <mat-button-toggle value="selected" class="flex-1">
-                Bestehende Adresse auswählen
-              </mat-button-toggle>
-
-              <mat-button-toggle value="new" class="flex-1">
-                Neue Adresse erstellen
-              </mat-button-toggle>
-            </mat-button-toggle-group>
-            <div class="delivery-info mt-4">
-              <!-- Info Text -->
-              <p class="mt-2 mb-2 text-sm text-red-700">
-                {{ deliveryInfoText }}
-              </p>
-          </div>
-            <div class="spacing-container my-4"></div>
-            <!-- Table for existing addresses -->
-            @if (deliveryAddressOption === 'selected') {
-            <div class="table-container w-full my-4">
-              @if (addressTableDataSource.data.length > 0) {
-              <app-generic-table
-                [dataSource]="addressTableDataSource"
-                [columns]="addressTableColumns"
-                (rowClicked)="onAddressInTableSelected($event, true)"
-              ></app-generic-table>
-              } @else {
-              <p class="mt-2 mb-2 text-sm text-gray-700">
-                Fehler beim Laden der Adressen. Bitte versuchen Sie es später
-                erneut.
-              </p>
-              }
-            </div>
             }
-            <app-form-component
-              [config]="deliveryAddressFormConfig"
-              [formGroup]="deliveryAddressFormGroup"
-            ></app-form-component>
+            <mat-button-toggle
+              value="preferred"
+              [disabled]="!deliveryPersonHasPreferredAddress"
+              class="flex-1"
+            >
+              Bevorzugte Adresse
+            </mat-button-toggle>
+
+            <mat-button-toggle value="selected" class="flex-1">
+              Bestehende Adresse auswählen
+            </mat-button-toggle>
+
+            <mat-button-toggle value="new" class="flex-1">
+              Neue Adresse erstellen
+            </mat-button-toggle>
+          </mat-button-toggle-group>
+          <div class="delivery-info mt-4">
+            <!-- Info Text -->
+            <p class="mt-2 mb-2 text-sm text-red-700">
+              {{ deliveryInfoText }}
+            </p>
+          </div>
+          <div class="spacing-container my-4"></div>
+          <!-- Table for existing addresses -->
+          @if (deliveryAddressOption === 'selected') {
+          <div class="table-container w-full my-4">
+            @if (addressTableDataSource.data.length > 0) {
+            <app-generic-table
+              [dataSource]="addressTableDataSource"
+              [columns]="addressTableColumns"
+              (rowClicked)="onAddressInTableSelected($event, true)"
+            ></app-generic-table>
+            } @else {
+            <p class="mt-2 mb-2 text-sm text-gray-700">
+              Fehler beim Laden der Adressen. Bitte versuchen Sie es später
+              erneut.
+            </p>
+            }
+          </div>
+          }
+          <app-form-component
+            [config]="deliveryAddressFormConfig"
+            [formGroup]="deliveryAddressFormGroup"
+          ></app-form-component>
           @if (selectedDeliveryPerson) {
           <div class="flex flex-col">
             <label class="block mb-2 text-sm font-semibold text-gray-700">
@@ -240,7 +285,7 @@
             </mat-radio-group>
           </div>
           }
-        <!-- Rechnungsadresse -->
+          <!-- Rechnungsadresse -->
           @if(!sameAsRecipient && selectedDeliveryPerson) {
           <div class="invoice-address-container mt-4">
             <app-form-component
@@ -330,14 +375,24 @@
           [config]="approvalFormConfig"
           [formGroup]="approvalFormGroup"
         ></app-form-component>
+        <div class="button container w-fit flex flex-row ml-auto gap-2">
         <button
           mat-raised-button
-          class="ml-8 mb-4 mt-4 w-full"
+          class="w-full"
           color="primary"
-          (click)="locallySaveApprovalFormInput()"
+          (click)="patchOrderFromForm('Approvals')"
         >
-          Zustimmungen zwischenspeichern
+          Speichern
         </button>
+        <button
+          mat-raised-button
+          class="w-full"
+          color="primary"
+          (click)="patchOrderFromForm('All')"
+        >
+          Alles speichern
+        </button>
+      </div>
       </div>
     </mat-tab>
   </mat-tab-group>

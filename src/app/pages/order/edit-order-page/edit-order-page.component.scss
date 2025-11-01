@@ -5,13 +5,12 @@ $form-width: calc(6 / 10 * 100%); // 60% der Breite des Containers
   min-height: 100vh;
 }
 
-.main-offer-container,
-.supplier-decision-reason-container,
 .general-info-container,
 .item-container,
 .quotation-container,
 .recipient-container,
 .delivery-address-container,
+.main-offer-tab-container,
 .approval-container {
   width: $form-width;
   margin: 0 auto; // center the divs horizontally

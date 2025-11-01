@@ -12,13 +12,10 @@ import {
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 import {
   Component,
-  ElementRef,
-  ViewChild,
   signal,
   computed,
   WritableSignal,
   effect,
-  Input,
 } from '@angular/core';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import { MatDivider } from '@angular/material/divider';
@@ -44,13 +41,11 @@ import {
   AddressResponseDTO,
   ApprovalRequestDTO,
   CostCenterResponseDTO,
-  ItemRequestDTO,
   VatResponseDTO,
   SupplierResponseDTO,
-  CustomerIdResponseDTO,
-  OrderResponseDTO,
   ApprovalResponseDTO,
   OrderStatus,
+  OrderResponseDTO,
 } from '../../../api';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
@@ -84,6 +79,8 @@ import {
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { MatIcon } from '@angular/material/icon';
+import { OrderDocumentsComponent } from '../../../components/documents/order-documents/order-documents.component';
+import { EMPTY, from, switchMap, take, tap, catchError, map } from 'rxjs';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -138,6 +135,7 @@ export interface QuotationTableModel {
     MatTabsModule,
     MatIcon,
     RouterModule,
+    OrderDocumentsComponent
   ],
   templateUrl: './edit-order-page.component.html',
   styleUrl: './edit-order-page.component.scss',
@@ -186,6 +184,7 @@ export class EditOrderPageComponent implements OnInit {
   editOrderId!: number;
   formattedOrderDTO!: OrderResponseDTOFormatted;
   patchOrderDTO: OrderResponseDTOFormatted = {} as OrderResponseDTOFormatted;
+  order: OrderResponseDTO = {} as OrderResponseDTO;
 
   // Item variables
   items = signal<ItemTableModel[]>([]);
@@ -359,50 +358,47 @@ export class EditOrderPageComponent implements OnInit {
   currentProgressBarStepIndex = 3;
 
   async ngOnInit(): Promise<void> {
-    // Load order data based on the id parameter in the route
-    this.route.paramMap.subscribe(async (params) => {
-      const id = Number(params.get('id'));
-
-      // If id is not a number, navigate to not-found page
-      if (isNaN(id)) {
-        this.router.navigate(['/not-found'], { skipLocationChange: true });
-        return;
-      }
-
-      try {
-        // try to load the order data
-        const formattedOrder = await this.orderWrapperService.getOrderById(id);
-        this.editOrderId = id;
-      } catch (error: any) {
-        // Api-call returns 404 if order not found
-        if (error?.status === 404) {
-          this._notifications.open('Bestellung nicht gefunden', undefined, {
-            duration: 5000,
-          });
+    this.route.paramMap.pipe(
+      take(1),
+      map(params => Number(params.get('id'))),
+      tap(id => {
+        if (Number.isNaN(id)) {
           this.router.navigate(['/not-found'], { skipLocationChange: true });
-        } else {
-          this._notifications.open(
-            'Fehler beim Laden der Bestellung',
-            undefined,
-            { duration: 5000 }
-          );
-          console.error(error);
+          throw EMPTY;
         }
+        this.editOrderId = id;
+      }),
+      switchMap(id =>
+        from(this.orderWrapperService.getOrderById(id)).pipe(
+          catchError(error => {
+            if (error?.status === 404) {
+              this._notifications.open('Bestellung nicht gefunden', undefined, { duration: 5000 });
+              this.router.navigate(['/not-found'], { skipLocationChange: true });
+            } else {
+              this._notifications.open('Fehler beim Laden der Bestellung', undefined, { duration: 5000 });
+              console.error(error);
+            }
+            return EMPTY;
+          })
+        )
+      ),
+      switchMap(order =>
+        from(this.orderWrapperService.mapOrderResponseToFormatted(order)).pipe(
+          tap(formatted => {
+            this.order = order;
+            this.formattedOrderDTO = formatted;
+          })
+        )
+      )
+    ).subscribe({
+      next: async () => {
+        await this.initializeStaticData();
+        await this.loadAllOrderData();
       }
     });
+  }
 
-    // Check for 'tab' query parameter to set the initial tab
-    this.route.queryParamMap.subscribe((params) => {
-      const requestedTab = params.get('tab');
-      if (requestedTab && this.isTabName(requestedTab)) {
-        this.switchToTab(requestedTab, { updateUrl: false });
-      }
-      else {
-        this.switchToTab('General', { updateUrl: true });
-      }
-    });
-
-    // Load initial data for form dropdowns and autocompletes
+  private async initializeStaticData() {
     [
       this.vatOptions,
       this.persons,
@@ -416,17 +412,11 @@ export class EditOrderPageComponent implements OnInit {
       this.costCenterWrapperService.getAllCostCenters(),
       this.currenciesWrapperService.getAllCurrenciesWithSymbol(),
     ]);
-
-    // Initialize form configurations with loaded data
     this.formatPersons();
     this.setDropdownVatOptions();
     this.formatSuppliers();
     this.formatCostCenters();
     this.setCurrenciesDropdownOptions();
-
-    // Load all order data into the forms and tables
-    this.loadAllOrderData();
-
   }
   /**
    * Adds a new item to the locally stored items list and updates the table data source
@@ -1093,9 +1083,8 @@ export class EditOrderPageComponent implements OnInit {
   private async loadAllOrderData() {
     if (!this.editOrderId) return;
 
-    const [formattedOrder, mappedItems, quotations, approvals] =
+    const [mappedItems, quotations, approvals] =
       await Promise.all([
-        this.orderWrapperService.getOrderByIDInFormFormat(this.editOrderId),
 
         this.orderWrapperService
           .getOrderItems(this.editOrderId)
@@ -1115,7 +1104,6 @@ export class EditOrderPageComponent implements OnInit {
       ]);
 
     this.quotations.set(quotations);
-    this.formattedOrderDTO = formattedOrder;
     this.items.set(mappedItems);
     this.approvals = approvals;
 
@@ -1184,6 +1172,14 @@ export class EditOrderPageComponent implements OnInit {
     } */
   }
 
+  /**
+   * Patches the form config with the loaded order data
+   * @param fieldName The name of the field to patch
+   * @param value The value to set for the field
+   * @param configRef The form config reference
+   * @param refreshTrigger The refresh trigger signal
+   * @returns
+   */
   private patchConfigAutocompleteFieldsWithOrderData(
     fieldName: string,
     value: any,
@@ -1199,6 +1195,9 @@ export class EditOrderPageComponent implements OnInit {
     refreshTrigger.update((v) => v + 1); // Trigger a refresh by updating the signal
   }
 
+  /**
+   * Patch the approval form group with the loaded order data
+   */
   private patchApprovalFormGroupFromOrder() {
     this.approvalFormGroup.patchValue(this.formattedOrderDTO);
   }
@@ -1345,7 +1344,6 @@ export class EditOrderPageComponent implements OnInit {
 
   /**
    * Patches the order with the data from the form based on the form type.
-   *
    * @param formType String indicating which part of the order to patch
    */
   async patchOrderFromForm(
@@ -1369,6 +1367,7 @@ export class EditOrderPageComponent implements OnInit {
       'Approvals',
     ] as const;
 
+    // Determine which forms to patch based on the formType parameter
     const formsToPatch = formType === 'All' ? formOrder : [formType];
 
     for (const form of formsToPatch) {
@@ -1395,6 +1394,11 @@ export class EditOrderPageComponent implements OnInit {
     }
   }
 
+  /**
+   * Executes the form patch for the specified form type.
+   * @param formType The form type to patch.
+   * @returns A promise that resolves to true if the patch was successful, false otherwise.
+   */
   private async executeFormPatch(
     formType: Exclude<Parameters<typeof this.patchOrderFromForm>[0], 'All'>
   ): Promise<boolean> {
