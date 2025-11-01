@@ -82,40 +82,34 @@
     </div>
 
 
-
-
-    <div class="flex flex-col gap-12 mt-8 w-full">
+    <div class="flex flex-wrap gap-12 mt-8 w-full h-fit">
 
         <mat-divider class="bg-he-red-200 w-full" />
+        <app-order-main-information
+            [orderData]="internalOrder()"
+            class="w-full"
+        />
 
-        <app-order-main-information [orderData]="internalOrder()" />
 
+        @for (section of sections; track section.id) {
+        <div [class]="(section.isFullWidth ? 'w-full' : 'grow')">
 
-        <div class="flex flex-wrap gap-4 h-fit">
+            <h3 class="text-2xl mb-2">{{section.title}}</h3>
+            <mat-divider class="bg-he-red-200 !mb-2" />
 
-            @for (section of sections; track section.id) {
-            <div [class]="'mb-12 ' + (section.isFullWidth ? 'w-full' : 'grow')">
-
-                <h3 class="text-2xl mb-2">{{section.title}}</h3>
-                <mat-divider class="bg-he-red-200 !mb-2" />
-
-                @switch (section.id) {
-                @case ('main-quote') { <app-order-main-quote [orderData]="internalOrder()" /> }
-                @case ('articles') { <app-order-article-list [order]="internalOrder().order" /> }
-                @case ('quotations') { <app-quotations-list [orderId]="internalOrder().order.id!" /> }
-                @case ('documents') { <app-order-documents [order]="internalOrder().order" /> }
-                @case ('contacts') { <app-order-persons [order]="internalOrder().order" /> }
-                @case ('approvals') { <app-approvals [orderId]="internalOrder().order.id!" /> }
-                @case ('history') { <app-state-history [order]="internalOrder().order" /> }
-                }
-
-            </div>
+            @switch (section.id) {
+            @case ('main-quote') { <app-order-main-quote [orderData]="internalOrder()" /> }
+            @case ('articles') { <app-order-article-list [order]="internalOrder().order" /> }
+            @case ('quotations') { <app-quotations-list [orderId]="internalOrder().order.id!" /> }
+            @case ('documents') { <app-order-documents [order]="internalOrder().order" /> }
+            @case ('contacts') { <app-order-persons [order]="internalOrder().order" /> }
+            @case ('approvals') { <app-approvals [orderId]="internalOrder().order.id!" /> }
+            @case ('history') { <app-state-history [order]="internalOrder().order" /> }
             }
 
         </div>
-
+        }
 
     </div>
-
 
 </div>
