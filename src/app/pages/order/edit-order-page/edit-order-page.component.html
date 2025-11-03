@@ -51,27 +51,41 @@
             [refreshTrigger]="queriesPersonConfigRefreshTrigger()"
           ></app-form-component>
         </div>
-        <app-order-documents
-          [order]="order"
-        ></app-order-documents>
+        <app-order-documents [order]="order"></app-order-documents>
         <div class="button container w-fit flex flex-row ml-auto gap-2">
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('General')"
-        >
-          Speichern und weiter
-        </button>
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('All')"
-        >
-          Alles speichern
-        </button>
-      </div>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('General')"
+          >
+            Speichern und weiter
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('All')"
+          >
+            Alles speichern
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('General')"
+          >
+            Änderungen auf dieser Seite verwerfen
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('All')"
+          >
+            Alle Änderungen verwerfen
+          </button>
+        </div>
       </div>
     </mat-tab>
     <mat-tab label="Hauptangebot festlegen">
@@ -96,23 +110,39 @@
           ></app-form-component>
         </div>
         <div class="button container w-fit flex flex-row ml-auto gap-2 mt-2">
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('MainOffer')"
-        >
-          Speichern und weiter
-        </button>
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('All')"
-        >
-          Alles speichern
-        </button>
-      </div>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('MainOffer')"
+          >
+            Speichern und weiter
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('All')"
+          >
+            Alles speichern
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('MainOffer')"
+          >
+            Änderungen auf dieser Seite verwerfen
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('All')"
+          >
+            Alle Änderungen verwerfen
+          </button>
+        </div>
       </div>
     </mat-tab>
 
@@ -140,23 +170,39 @@
           ></app-generic-table>
         </div>
         <div class="button container w-fit flex flex-row ml-auto gap-2 mt-2">
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('Items')"
-        >
-          Speichern und weiter
-        </button>
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('All')"
-        >
-          Alles speichern
-        </button>
-      </div>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('Items')"
+          >
+            Speichern und weiter
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('All')"
+          >
+            Alles speichern
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('Items')"
+          >
+            Änderungen auf dieser Seite verwerfen
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('All')"
+          >
+            Alle Änderungen verwerfen
+          </button>
+        </div>
       </div>
     </mat-tab>
     <mat-tab label="Vergleichsangebote">
@@ -182,23 +228,39 @@
           ></app-generic-table>
         </div>
         <div class="button container w-fit flex flex-row ml-auto gap-2">
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('General')"
-        >
-          Speichern und weiter
-        </button>
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('Quotations')"
-        >
-          Alles speichern
-        </button>
-      </div>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('Quotations')"
+          >
+            Speichern und weiter
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('All')"
+          >
+            Alles speichern
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('Quotations')"
+          >
+            Änderungen auf dieser Seite verwerfen
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('All')"
+          >
+            Alle Änderungen verwerfen
+          </button>
+        </div>
       </div>
     </mat-tab>
     <mat-tab label="Adressdaten">
@@ -355,7 +417,7 @@
             ></app-form-component>
             }
           </div>
-          } @if (selectedDeliveryPerson) {
+          }
           <button
             mat-raised-button
             class="mb-4 mt-4 w-full"
@@ -364,7 +426,30 @@
           >
             Adressdaten speichern
           </button>
-          }
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('All')"
+          >
+            Alles speichern
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('MainOffer')"
+          >
+            Änderungen auf dieser Seite verwerfen
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('All')"
+          >
+            Alle Änderungen verwerfen
+          </button>
         </div>
       </div>
     </mat-tab>
@@ -376,23 +461,39 @@
           [formGroup]="approvalFormGroup"
         ></app-form-component>
         <div class="button container w-fit flex flex-row ml-auto gap-2">
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('Approvals')"
-        >
-          Speichern
-        </button>
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="patchOrderFromForm('All')"
-        >
-          Alles speichern
-        </button>
-      </div>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('Approvals')"
+          >
+            Speichern
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="primary"
+            (click)="patchOrderFromForm('All')"
+          >
+            Alles speichern
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('Approvals')"
+          >
+            Änderungen auf dieser Seite verwerfen
+          </button>
+          <button
+            mat-raised-button
+            class="w-full"
+            color="warn"
+            (click)="resetToDefault('All')"
+          >
+            Alle Änderungen verwerfen
+          </button>
+        </div>
       </div>
     </mat-tab>
   </mat-tab-group>

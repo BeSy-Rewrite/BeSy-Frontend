@@ -522,16 +522,33 @@ export class OrdersWrapperService {
    * @param modified The modified order object
    * @returns An object containing the changed fields
    */
-  compareOrdersAndReturnChangedFields(
+    compareOrdersAndReturnChangedFields(
     original: OrderResponseDTOFormatted,
     modified: OrderResponseDTOFormatted
   ): Partial<OrderResponseDTOFormatted> {
     const changedFields: Partial<OrderResponseDTOFormatted> = {};
 
+    const extractValue = (value: any): string | undefined => {
+      if (value === null || value === undefined) return undefined;
+      if (typeof value === 'string') return value;
+      if (typeof value === 'object' && 'value' in value) {
+        return (value as { value?: string }).value;
+      }
+      return undefined;
+    };
+
+    const originalCurrencyValue =
+      extractValue(original.currency) ?? extractValue((original as any).currency_short);
+    const modifiedCurrencyShortValue = extractValue((modified as any).currency_short);
+
+    if (originalCurrencyValue !== modifiedCurrencyShortValue) {
+      (changedFields as any).currency_short = modifiedCurrencyShortValue;
+    }
+
     // --- Iterate through all fields except currency & currency_short ---
     for (const key in modified) {
       if (!Object.prototype.hasOwnProperty.call(modified, key)) continue;
-      if (key === 'currency' || key === 'currency_short') continue; // Skip currency fields as handled above
+      if (key === 'currency' || key === 'currency_short') continue; // Skip currency fields (handled above)
 
       const originalValue = (original as any)[key];
       const modifiedValue = (modified as any)[key];

@@ -220,7 +220,7 @@ export class EditOrderPageComponent implements OnInit {
       currency,
     }).format(sum);
 
-    return `Gesamt: ${formatted}`;
+    return `Gesamt: ${formatted} (brutto)`;
   });
 
   orderItemColumns: TableColumn<ItemTableModel>[] = [
@@ -436,20 +436,6 @@ export class EditOrderPageComponent implements OnInit {
     this.setCurrenciesDropdownOptions();
   }
 
-  private syncTabWithQueryParam() {
-    this.tabSyncSub = this.route.queryParamMap.subscribe(params => {
-      const tabParam = params.get('tab');
-      if (this.isTabName(tabParam)) {
-        this.switchToTab(tabParam, { updateUrl: false });
-      }
-    });
-  }
-
-  private isTabName(
-    value: string | null
-  ): value is (typeof this.tabOrder)[number] {
-    return !!value && this.tabOrder.includes(value as any);
-  }
   /**
    * Adds a new item to the locally stored items list and updates the table data source
    */
@@ -1002,8 +988,8 @@ export class EditOrderPageComponent implements OnInit {
     if (!field) return;
 
     field.options = this.suppliers.map((s) => ({
-      label: s.name ?? '', // Falls name undefined -> leere Zeichenkette
-      value: s.id ?? 0, // Falls id undefined -> 0
+      label: s.name ?? '', // If name undefined -> empty string
+      value: s.id ?? 0, // If id undefined -> 0
     }));
   }
 
@@ -1193,6 +1179,9 @@ export class EditOrderPageComponent implements OnInit {
     );
   }
 
+  /**
+   * Patch the main offer form group with the loaded order data
+   */
   private patchMainOfferFormGroupFromOrder() {
     this.mainOfferFormGroup.patchValue(this.formattedOrderDTO);
     this.supplierDecisionReasonFormGroup.patchValue(this.formattedOrderDTO);
@@ -1205,6 +1194,7 @@ export class EditOrderPageComponent implements OnInit {
     );
 
     if (this.formattedOrderDTO.currency) {
+
       this.patchConfigAutocompleteFieldsWithOrderData(
         'currency_short',
         this.formattedOrderDTO.currency,
@@ -1212,13 +1202,14 @@ export class EditOrderPageComponent implements OnInit {
         this.mainOfferConfigRefreshTrigger
       );
     }
-
-    // Set customer_id dropdown options based on the loaded supplier_id
-    /* if (this.formattedOrderDTO.supplier_id) {
-      this.setCustomerIdsForSupplier(
-        this.formattedOrderDTO.supplier_id.value as number
-      );
-    } */
+    // Update the currency footer in the item table based on the loaded order currency
+    const selected = this.currencies.find(
+      (c) => c.code === this.formattedOrderDTO.currency?.value
+    );
+    this.selectedCurrency.set({
+      code: selected?.code ?? 'EUR',
+      symbol: selected?.symbol ?? '€',
+    });
   }
 
   /**
@@ -1255,9 +1246,64 @@ export class EditOrderPageComponent implements OnInit {
    * Revert all changes made to the order and reset the forms to its default state
    *! ToDO: Implement the reset functionality
    */
-  private onResetToDefault() {
-    // Empty items and quotations marked as to be deleted
+  resetToDefault(
+    formType:
+      | 'General'
+      | 'MainOffer'
+      | 'Items'
+      | 'Quotations'
+      | 'Addresses'
+      | 'Approvals'
+      | 'All'
+  ) {
+
+    // Display confirmation dialog before resetting
+    const confirmation = confirm(
+      'Möchten Sie wirklich alle Änderungen verwerfen und zum ursprünglichen Zustand zurückkehren?'
+    );
+    if (!confirmation) return;
+
+    const formsToReset = formType === 'All' ? this.tabOrder : [formType];
+
+    formsToReset.forEach((form) => {
+      switch (form) {
+        case 'General':
+          this.patchGeneralFormGroupFromOrder();
+          break;
+        case 'MainOffer':
+          this.patchMainOfferFormGroupFromOrder();
+          break;
+        case 'Items':
+          this.resetItems();
+          break;
+        case 'Quotations':
+          this.deletedQuotations = [];
+          this.resetQuotations();
+          break;
+        case 'Addresses':
+          this.patchAddressFormsWithOrderData();
+          break;
+        case 'Approvals':
+          this.patchApprovalFormGroupFromOrder();
+          break;
+      }
+    });
+  }
+
+  private resetItems() {
+    // Filter out all items that do not have an item_id (newly added items)
+    this.items.update((curr) =>
+      curr.filter((item) => item.item_id !== undefined)
+    );
+    this.orderItemFormGroup.reset();
     this.deletedItems = [];
+  }
+
+  private resetQuotations() {
+    this.quotations.update((curr) =>
+      curr.filter((quotation) => quotation.index !== undefined)
+    );
+    this.quotationFormGroup.reset();
     this.deletedQuotations = [];
   }
 
@@ -1420,17 +1466,8 @@ export class EditOrderPageComponent implements OnInit {
   ) {
     this.patchOrderDTO = this.formattedOrderDTO;
 
-    const formOrder = [
-      'General',
-      'MainOffer',
-      'Items',
-      'Quotations',
-      'Addresses',
-      'Approvals',
-    ] as const;
-
     // Determine which forms to patch based on the formType parameter
-    const formsToPatch = formType === 'All' ? formOrder : [formType];
+    const formsToPatch = formType === 'All' ? this.tabOrder : [formType];
 
     for (const form of formsToPatch) {
       const success = await this.executeFormPatch(form);
@@ -1523,11 +1560,15 @@ export class EditOrderPageComponent implements OnInit {
       ...this.mainOfferFormGroup.value,
       ...this.supplierDecisionReasonFormGroup.value,
       supplier_id: this.mainOfferFormGroup.get('supplier_id')?.value,
-      currency: this.mainOfferFormGroup.get('currency_short')?.value,
     };
+    console.log('Patch DTO nach Main Offer Patch:', this.patchOrderDTO);
     return true;
   }
 
+  /**
+   * Patches the items order.
+   * @returns A promise that resolves to true if the patch was successful, false otherwise.
+   */
   async patchItemsOrder(): Promise<boolean> {
     // prepare items that need to be created (no item_id -> new)
     const itemsToCreate = this.items()
@@ -1596,6 +1637,10 @@ export class EditOrderPageComponent implements OnInit {
     return true;
   }
 
+  /**
+   * Patches the quotations order.
+   * @returns A promise that resolves to true if the patch was successful, false otherwise.
+   */
   async patchQuotationsOrder(): Promise<boolean> {
     // prepare quotations that need to be created (no quotation_index -> new)
     const quotationsToCreate = this.quotations()
@@ -1700,7 +1745,10 @@ export class EditOrderPageComponent implements OnInit {
     }
   }
 
-  // ToDo!: Implement order patching
+  /**
+   * Retrieves the changed fields and submits the order patch to the backend.
+   * @returns A promise that resolves to true if the patch was successful, false otherwise.
+   */
   private async submitOrderPatch() {
     // Check which fields have been modified and prepare the patch DTO accordingly
     const changedFields =
@@ -1715,7 +1763,7 @@ export class EditOrderPageComponent implements OnInit {
       return;
     }
 
-
+    // Submit the patch to the backend and update the local formattedOrderDTO with the response
     try {
       this.formattedOrderDTO =
         await this.orderWrapperService.mapOrderResponseToFormatted(
