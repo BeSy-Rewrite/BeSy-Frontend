@@ -36,6 +36,12 @@ export const routes: Routes = [
         ]
     },
     {
+        title: 'Bestellung erstellen',
+        path: 'orders/create',
+        component: CreateOrderPageComponent,
+        canActivate: [DefaultGuard]
+    },
+    {
         title: 'Bestellungen',
         path: 'orders/:id',
         component: ViewOrderPageComponent,
@@ -58,12 +64,6 @@ export const routes: Routes = [
         title: 'Bestellungen',
         path: 'orders',
         component: OrdersPageComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Bestellung erstellen',
-        path: 'orders/create',
-        component: CreateOrderPageComponent,
         canActivate: [DefaultGuard]
     },
     {

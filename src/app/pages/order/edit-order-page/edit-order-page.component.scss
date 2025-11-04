@@ -23,3 +23,14 @@ $form-width: calc(6 / 10 * 100%); // 60% der Breite des Containers
   height: 2px;
 }
 
+::ng-deep .mat-mdc-tab-body-wrapper {
+  overflow: visible !important;
+}
+::ng-deep .mat-mdc-tab-body {
+  overflow: visible !important;
+}
+::ng-deep .mat-mdc-tab-body-content {
+  overflow: visible !important;
+}
+
+

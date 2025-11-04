@@ -330,6 +330,7 @@ export class OrdersWrapperService {
       queries_person_id: formatedQueriesPerson,
       supplier_id: formatedSupplier,
       quote_price: this.formatPriceToGerman(order.quote_price ?? 0),
+      currency_short: formatedCurrency
     };
   }
 
@@ -431,22 +432,22 @@ export class OrdersWrapperService {
   formatPriceToGerman(value: string | number): string {
     if (value === null || value === undefined) return '0,00';
 
-    // Als String konvertieren und Leerzeichen entfernen
+    // Convert to string and trim whitespace
     let str = String(value).trim();
 
-    // Falls beides vorkommt (Punkt und Komma), nur das letzte als Dezimaltrennzeichen interpretieren
+    // If both comma and dot are present, determine which is the decimal separator
     const lastComma = str.lastIndexOf(',');
     const lastDot = str.lastIndexOf('.');
     if (lastComma > lastDot) {
-      str = str.replace(/\./g, '').replace(',', '.'); // deutsches Format → normalisieren
+      str = str.replace(/\./g, '').replace(',', '.'); // remove dots and replace comma with dot as decimal separator
     } else {
-      str = str.replace(/,/g, ''); // falls nur Punkt-Format vorhanden ist
+      str = str.replace(/,/g, ''); // remove commas and keep dot as decimal separator
     }
 
     const num = parseFloat(str);
     if (isNaN(num)) return '0,00';
 
-    // Deutsch formatieren
+    // Format as German price string
     return num.toLocaleString('de-DE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -528,6 +529,10 @@ export class OrdersWrapperService {
   ): Partial<OrderResponseDTOFormatted> {
     const changedFields: Partial<OrderResponseDTOFormatted> = {};
 
+    console.log('Original Order:', original);
+    console.log('Modified Order:', modified);
+
+    // --- Special handling for currency and currency_short fields ---
     const extractValue = (value: any): string | undefined => {
       if (value === null || value === undefined) return undefined;
       if (typeof value === 'string') return value;
@@ -589,7 +594,13 @@ export class OrdersWrapperService {
       }
     }
 
-    return changedFields;
+    // Convert undefined values to null for API compatibility
+    return Object.fromEntries(
+      Object.entries(changedFields).map(([key, value]) => [
+        key,
+        value === undefined ? null : value,
+      ])
+    ) as Partial<OrderResponseDTOFormatted>;
   }
 
   private formatLocalDateTimeToISO(date: Date): string {

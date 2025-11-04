@@ -304,9 +304,6 @@ export const ORDER_PRIMARY_COST_CENTER_FORM_CONFIG: FormConfig = {
       editable: false,
       filterable: true,
       tooltip: 'Pflichtfeld',
-      options: [
-        { label: 'Fehler beim Laden der Kostenstellen', value: undefined }
-      ],
       defaultValue: []
     }
   ]
@@ -323,9 +320,6 @@ export const ORDER_SECONDARY_COST_CENTER_FORM_CONFIG: FormConfig = {
       editable: true,
       filterable: true,
       tooltip: 'Pflichtfeld',
-      options: [
-        { label: 'Fehler beim Laden der Kostenstellen', value: undefined }
-      ],
       defaultValue: []
     }
   ]
@@ -350,7 +344,7 @@ export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
       required: true,
       editable: false,
       validators: [Validators.pattern('^[0-9]{4}$')],
-      tooltip: 'Das Buchungsjahr gibt an, in welchem Jahr die Bestellung verbucht wird. Standardmäßig ist das aktuelle Jahr vorausgewählt.',
+      tooltip: 'Das Buchungsjahr gibt an, in welchem Jahr die Bestellung verbucht wird.',
       defaultValue: new Date().getFullYear().toString()
     }
   ]

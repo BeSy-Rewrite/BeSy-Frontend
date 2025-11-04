@@ -1,17 +1,17 @@
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, WritableSignal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { ProgressBarComponent } from '../../../../components/progress-bar/progress-bar.component';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatDivider } from '@angular/material/divider';
-import { FormComponent } from '../../../../components/form-component/form-component.component';
+import { FormComponent, FormConfig } from '../../../../components/form-component/form-component.component';
 import {
   ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_GENERAL_FORM_CONFIG,
   ORDER_QUERIES_PERSON_FORM_CONFIG,
   ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
 } from '../../../../configs/order/order-config';
-import { OrdersWrapperService } from '../../../../services/wrapper-services/orders-wrapper.service';
+import { OrderResponseDTOFormatted, OrdersWrapperService } from '../../../../services/wrapper-services/orders-wrapper.service';
 import { CostCenterResponseDTO, OrderRequestDTO } from '../../../../api';
 import { CostCenterWrapperService } from '../../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
@@ -39,7 +39,7 @@ import { Router } from '@angular/router';
 export class CreateOrderPageComponent implements OnInit {
   progressBarStepIndex = 0; // assigned based on the current status of the order
 
-  createOrderDTO: OrderRequestDTO = undefined as unknown as OrderRequestDTO;
+  postOrder: OrderResponseDTOFormatted = {};
 
   generalFormGroup = new FormGroup({});
   generalFormConfig = ORDER_GENERAL_FORM_CONFIG;
@@ -59,11 +59,11 @@ export class CreateOrderPageComponent implements OnInit {
     private costCenterWrapperService: CostCenterWrapperService,
     private personsWrapperService: PersonsWrapperService,
     private _notifications: MatSnackBar,
-    private orderService: OrdersWrapperService,
+    private orderWrapperService: OrdersWrapperService,
     private router: Router
   ) {}
 
-  async ngOnInit() {
+  async ngOnInit(): Promise<void> {
     // Load cost centers and persons
     [this.costCenters, this.persons] = await Promise.all([
       this.costCenterWrapperService.getAllCostCenters(),
@@ -100,11 +100,6 @@ export class CreateOrderPageComponent implements OnInit {
       label: cc.name ?? '', // If name undefined -> empty string
       value: cc.id ?? 0, // If id undefined -> 0
     }));
-
-    this.primaryCostCenterFormConfig = { ...this.primaryCostCenterFormConfig };
-    this.secondaryCostCenterFormConfig = {
-      ...this.secondaryCostCenterFormConfig,
-    };
   }
 
   /**
@@ -157,30 +152,21 @@ export class CreateOrderPageComponent implements OnInit {
       this.queriesPersonFormGroup.valid
     ) {
       // All forms are valid, normalize the autocomplete fields
-      const generalData = this.generalFormGroup.value;
-      const primaryCostCenterData = this.normalizeFormData(
-        this.primaryCostCenterFormGroup.value
-      );
-      const secondaryCostCenterData = this.normalizeFormData(
-        this.secondaryCostCenterFormGroup.value
-      );
-      const queriesPersonData = this.normalizeFormData(
-        this.queriesPersonFormGroup.value
-      );
+      this.postOrder = {
+        ...this.generalFormGroup.value,
+        ...this.primaryCostCenterFormGroup.value,
+        ...this.secondaryCostCenterFormGroup.value,
+        ...this.queriesPersonFormGroup.value,
+      } as OrderResponseDTOFormatted;
 
-      // Combine all form data into the createOrderDTO
-      this.createOrderDTO = {
-        ...generalData,
-        ...primaryCostCenterData,
-        ...secondaryCostCenterData,
-        ...queriesPersonData,
-      };
+      const requestOrder = this.orderWrapperService.mapFormattedOrderToRequest(this.postOrder);
 
       // Create order, show notifications based on the result
       // and navigate to the edit page of the newly created order
-      const createdOrder = await this.orderService.createOrder(
-        this.createOrderDTO
+      const createdOrder = await this.orderWrapperService.createOrder(
+        requestOrder
       );
+      console.log('Created Order:', createdOrder);
 
       if (createdOrder && createdOrder.id) {
         this._notifications.open(
@@ -199,6 +185,7 @@ export class CreateOrderPageComponent implements OnInit {
         });
       }
     } else {
+      this.generalFormGroup.markAllAsTouched();
       this._notifications.open(
         'Bitte füllen Sie alle Pflichtfelder aus.',
         'Schließen',

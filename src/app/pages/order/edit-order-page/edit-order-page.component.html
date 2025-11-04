@@ -14,6 +14,24 @@
     ></app-progress-bar>
   </div>
   <mat-divider></mat-divider>
+  <div class="sticky top-0 z-50 flex justify-between items-start mb-1 mt-2 px-4">
+    <button
+      mat-raised-button
+      color="warn"
+      (click)="resetToDefault('All')"
+    >
+      <mat-icon iconPositionStart>restore</mat-icon>
+      Alle Änderungen verwerfen
+    </button>
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="patchOrderFromForm('All')"
+    >
+      <mat-icon iconPositionStart>save</mat-icon>
+      Alle Änderungen speichern
+    </button>
+  </div>
   <mat-tab-group
     mat-stretch-tabs="true"
     mat-align-tabs="start"
@@ -52,26 +70,9 @@
           ></app-form-component>
         </div>
         <app-order-documents [order]="order"></app-order-documents>
-        <div class="button container w-fit flex flex-row ml-auto gap-2">
+        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
           <button
             mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('General')"
-          >
-            Speichern und weiter
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('All')"
-          >
-            Alles speichern
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
             color="warn"
             (click)="resetToDefault('General')"
           >
@@ -79,11 +80,10 @@
           </button>
           <button
             mat-raised-button
-            class="w-full"
-            color="warn"
-            (click)="resetToDefault('All')"
+            color="primary"
+            (click)="patchOrderFromForm('General')"
           >
-            Alle Änderungen verwerfen
+            Speichern und weiter
           </button>
         </div>
       </div>
@@ -109,26 +109,9 @@
             (valueChanged)="onSupplierDecisionReasonChanged($event)"
           ></app-form-component>
         </div>
-        <div class="button container w-fit flex flex-row ml-auto gap-2 mt-2">
+        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
           <button
             mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('MainOffer')"
-          >
-            Speichern und weiter
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('All')"
-          >
-            Alles speichern
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
             color="warn"
             (click)="resetToDefault('MainOffer')"
           >
@@ -136,11 +119,10 @@
           </button>
           <button
             mat-raised-button
-            class="w-full"
-            color="warn"
-            (click)="resetToDefault('All')"
+            color="primary"
+            (click)="patchOrderFromForm('MainOffer')"
           >
-            Alle Änderungen verwerfen
+            Speichern und weiter
           </button>
         </div>
       </div>
@@ -169,26 +151,9 @@
             [actions]="orderItemTableActions"
           ></app-generic-table>
         </div>
-        <div class="button container w-fit flex flex-row ml-auto gap-2 mt-2">
+        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
           <button
             mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('Items')"
-          >
-            Speichern und weiter
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('All')"
-          >
-            Alles speichern
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
             color="warn"
             (click)="resetToDefault('Items')"
           >
@@ -196,11 +161,10 @@
           </button>
           <button
             mat-raised-button
-            class="w-full"
-            color="warn"
-            (click)="resetToDefault('All')"
+            color="primary"
+            (click)="patchOrderFromForm('Items')"
           >
-            Alle Änderungen verwerfen
+            Speichern und weiter
           </button>
         </div>
       </div>
@@ -227,26 +191,9 @@
             [actions]="orderQuotationTableActions"
           ></app-generic-table>
         </div>
-        <div class="button container w-fit flex flex-row ml-auto gap-2">
+        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
           <button
             mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('Quotations')"
-          >
-            Speichern und weiter
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('All')"
-          >
-            Alles speichern
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
             color="warn"
             (click)="resetToDefault('Quotations')"
           >
@@ -254,11 +201,10 @@
           </button>
           <button
             mat-raised-button
-            class="w-full"
-            color="warn"
-            (click)="resetToDefault('All')"
+            color="primary"
+            (click)="patchOrderFromForm('Quotations')"
           >
-            Alle Änderungen verwerfen
+            Speichern und weiter
           </button>
         </div>
       </div>
@@ -418,38 +364,22 @@
             }
           </div>
           }
+          <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
           <button
             mat-raised-button
-            class="mb-4 mt-4 w-full"
-            color="primary"
-            (click)="patchOrderFromForm('Addresses')"
-          >
-            Adressdaten speichern
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('All')"
-          >
-            Alles speichern
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
             color="warn"
-            (click)="resetToDefault('MainOffer')"
+            (click)="resetToDefault('Addresses')"
           >
             Änderungen auf dieser Seite verwerfen
           </button>
           <button
             mat-raised-button
-            class="w-full"
-            color="warn"
-            (click)="resetToDefault('All')"
+            color="primary"
+            (click)="patchOrderFromForm('Addresses')"
           >
-            Alle Änderungen verwerfen
+            Speichern und weiter
           </button>
+        </div>
         </div>
       </div>
     </mat-tab>
@@ -460,26 +390,9 @@
           [config]="approvalFormConfig"
           [formGroup]="approvalFormGroup"
         ></app-form-component>
-        <div class="button container w-fit flex flex-row ml-auto gap-2">
+        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
           <button
             mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('Approvals')"
-          >
-            Speichern
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
-            color="primary"
-            (click)="patchOrderFromForm('All')"
-          >
-            Alles speichern
-          </button>
-          <button
-            mat-raised-button
-            class="w-full"
             color="warn"
             (click)="resetToDefault('Approvals')"
           >
@@ -487,11 +400,10 @@
           </button>
           <button
             mat-raised-button
-            class="w-full"
-            color="warn"
-            (click)="resetToDefault('All')"
+            color="primary"
+            (click)="patchOrderFromForm('Approvals')"
           >
-            Alle Änderungen verwerfen
+            Speichern und weiter
           </button>
         </div>
       </div>

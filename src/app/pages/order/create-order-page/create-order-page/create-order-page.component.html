@@ -14,46 +14,36 @@
     ></app-progress-bar>
   </div>
   <mat-divider></mat-divider>
-  <mat-tab-group
-    #tabGroup
-    mat-stretch-tabs="true"
-    mat-align-tabs="start"
-    class="mb-4"
-  >
-    <!-- General Information -->
-    <mat-tab label="Bestellung erstellen">
-      <mat-divider class="tab-divider"></mat-divider>
-      <div class="general-info-container">
-        <app-form-component
-          [config]="generalFormConfig"
-          [formGroup]="generalFormGroup"
-        ></app-form-component>
-        <div class="cost-center-container">
-          <app-form-component
-            [config]="primaryCostCenterFormConfig"
-            [formGroup]="primaryCostCenterFormGroup"
-          ></app-form-component>
+  <mat-divider class="tab-divider"></mat-divider>
+  <div class="general-info-container">
+    <app-form-component
+      [config]="generalFormConfig"
+      [formGroup]="generalFormGroup"
+    ></app-form-component>
+    <div class="cost-center-container">
+      <app-form-component
+        [config]="primaryCostCenterFormConfig"
+        [formGroup]="primaryCostCenterFormGroup"
+      ></app-form-component>
 
-          <app-form-component
-            [config]="secondaryCostCenterFormConfig"
-            [formGroup]="secondaryCostCenterFormGroup"
-          ></app-form-component>
-        </div>
-        <div class="queries-person-container">
-          <app-form-component
-            [config]="queriesPersonFormConfig"
-            [formGroup]="queriesPersonFormGroup"
-          ></app-form-component>
-        </div>
-        <button
-          mat-raised-button
-          class="w-full"
-          color="primary"
-          (click)="createOrder()"
-        >
-          Bestellung anlegen
-        </button>
-      </div>
-    </mat-tab>
-  </mat-tab-group>
+      <app-form-component
+        [config]="secondaryCostCenterFormConfig"
+        [formGroup]="secondaryCostCenterFormGroup"
+      ></app-form-component>
+    </div>
+    <div class="queries-person-container">
+      <app-form-component
+        [config]="queriesPersonFormConfig"
+        [formGroup]="queriesPersonFormGroup"
+      ></app-form-component>
+    </div>
+    <button
+      mat-raised-button
+      class="w-full"
+      color="primary"
+      (click)="createOrder()"
+    >
+      Bestellung anlegen
+    </button>
+  </div>
 </div>
