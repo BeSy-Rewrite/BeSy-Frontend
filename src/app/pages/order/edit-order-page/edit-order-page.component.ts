@@ -27,7 +27,12 @@ import {
 import { OnInit } from '@angular/core';
 import { FormConfig } from '../../../components/form-component/form-component.component';
 import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
-import { AbstractControl, FormControl, FormGroup, Validators } from '@angular/forms';
+import {
+  AbstractControl,
+  FormControl,
+  FormGroup,
+  Validators,
+} from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatTableDataSource } from '@angular/material/table';
 import {
@@ -597,10 +602,9 @@ export class EditOrderPageComponent implements OnInit {
   }
 
   /**
-   *
-   * @param person The event value of the autcomplete field
-   * @param isRecipient Boolean indicating which addressPerson got selected
-   * @returns
+   * Handle selection of a person from the autocomplete input
+   * @param field The form field containing the selected person
+   * @param isRecipient Boolean flag indicating if the selected person is the delivery_person (true) or the invoice_person (false)
    */
   async onAddressPersonSelected(
     field: { field: string; value: any },
@@ -623,7 +627,14 @@ export class EditOrderPageComponent implements OnInit {
       const preferredAddress = this.personAddresses.find(
         (addr) => addr.id === person.address_id
       );
-      if (!preferredAddress) return;
+      if (!preferredAddress) {
+        if (isRecipient) {
+          this.deliveryPersonHasPreferredAddress = false;
+        } else {
+          this.invoicePersonHasPreferredAddress = false;
+        }
+        return;
+      }
 
       // Patch the preferred address into the appropriate form group
       if (isRecipient) {
@@ -645,9 +656,16 @@ export class EditOrderPageComponent implements OnInit {
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
         this.invoiceAddressFormGroup.disable();
       }
-      // Load all addresses of any person into the address table for selection
-      this.addressTableDataSource.data = this.personAddresses;
+    } else {
+      // Person has no prefrerred address, deactivate preferred address option
+      if (isRecipient) {
+        this.deliveryPersonHasPreferredAddress = false;
+      } else {
+        this.invoicePersonHasPreferredAddress = false;
+      }
     }
+    // Load all addresses of any person into the address table for selection
+      this.addressTableDataSource.data = this.personAddresses;
   }
 
   /**
@@ -1549,13 +1567,13 @@ export class EditOrderPageComponent implements OnInit {
       ...this.patchOrderDTO,
       ...this.generalFormGroup.value,
       queries_person_id: this.readAutocompleteValue(
-        this.queriesPersonFormGroup.get('queries_person_id'),
+        this.queriesPersonFormGroup.get('queries_person_id')
       ),
       primary_cost_center_id: this.readAutocompleteValue(
-        this.primaryCostCenterFormGroup.get('primary_cost_center_id'),
+        this.primaryCostCenterFormGroup.get('primary_cost_center_id')
       ),
       secondary_cost_center_id: this.readAutocompleteValue(
-        this.secondaryCostCenterFormGroup.get('secondary_cost_center_id'),
+        this.secondaryCostCenterFormGroup.get('secondary_cost_center_id')
       ),
     };
     console.log('Patch DTO nach General Patch:', this.patchOrderDTO);
@@ -1807,12 +1825,8 @@ export class EditOrderPageComponent implements OnInit {
         return undefined;
       }
 
-      if (
-        typeof value === 'object' &&
-        value !== null &&
-        'value' in value
-      ) {
-        const extracted = (value as { value: unknown })
+      if (typeof value === 'object' && value !== null && 'value' in value) {
+        const extracted = value as { value: unknown };
         return extracted === undefined || extracted === null ? null : extracted;
       }
 

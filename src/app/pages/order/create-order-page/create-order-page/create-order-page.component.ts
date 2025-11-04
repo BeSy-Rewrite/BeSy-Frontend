@@ -4,14 +4,20 @@ import { FormGroup } from '@angular/forms';
 import { ProgressBarComponent } from '../../../../components/progress-bar/progress-bar.component';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatDivider } from '@angular/material/divider';
-import { FormComponent, FormConfig } from '../../../../components/form-component/form-component.component';
+import {
+  FormComponent,
+  FormConfig,
+} from '../../../../components/form-component/form-component.component';
 import {
   ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_GENERAL_FORM_CONFIG,
   ORDER_QUERIES_PERSON_FORM_CONFIG,
   ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
 } from '../../../../configs/order/order-config';
-import { OrderResponseDTOFormatted, OrdersWrapperService } from '../../../../services/wrapper-services/orders-wrapper.service';
+import {
+  OrderResponseDTOFormatted,
+  OrdersWrapperService,
+} from '../../../../services/wrapper-services/orders-wrapper.service';
 import { CostCenterResponseDTO, OrderRequestDTO } from '../../../../api';
 import { CostCenterWrapperService } from '../../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
@@ -159,7 +165,9 @@ export class CreateOrderPageComponent implements OnInit {
         ...this.queriesPersonFormGroup.value,
       } as OrderResponseDTOFormatted;
 
-      const requestOrder = this.orderWrapperService.mapFormattedOrderToRequest(this.postOrder);
+      const requestOrder = this.orderWrapperService.mapFormattedOrderToRequest(
+        this.postOrder
+      );
 
       // Create order, show notifications based on the result
       // and navigate to the edit page of the newly created order
@@ -180,9 +188,13 @@ export class CreateOrderPageComponent implements OnInit {
         // Navigate to the edit page of the newly created order
         this.router.navigate(['/orders', createdOrder.id, 'edit']);
       } else {
-        this._notifications.open('Interner Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.', 'Schließen', {
-          duration: 5000,
-        });
+        this._notifications.open(
+          'Interner Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.',
+          'Schließen',
+          {
+            duration: 5000,
+          }
+        );
       }
     } else {
       this.generalFormGroup.markAllAsTouched();
