@@ -1,7 +1,7 @@
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { forkJoin } from 'rxjs';
-import { OrderResponseDTO, OrderStatus, OrderStatusHistoryResponseDTO } from '../../api';
+import { OrderResponseDTO, OrderStatus, OrderStatusHistoryResponseDTO } from '../../api-services-v2';
 import { STATE_DESCRIPTIONS, STATE_DISPLAY_NAMES, STATE_FONT_ICONS, STATE_ICONS } from '../../display-name-mappings/status-names';
 import { AllowedStateTransitions } from '../../models/allowed-states-transitions';
 import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
@@ -49,7 +49,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
     })
       .subscribe(({ transitions, history }) => {
         this.allowedStateTransitions = transitions;
-        this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+        this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
 
         this.generateLinearStates();
         this.generateSteps();
@@ -58,7 +58,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
 
   ngOnChanges() {
     this.ordersService.getOrderStatusHistory(this.order().id!).then(history => {
-      this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
+      this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
       this.generateLinearStates();
       this.generateSteps();
     });
@@ -90,7 +90,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   generateLinearStates() {
     this.setupStateHistory();
 
-    const futureStates = [OrderStatus.IN_PROGRESS];
+    const futureStates: OrderStatus[] = [OrderStatus.IN_PROGRESS];
     let nextState: OrderStatus | undefined;
 
     do {
@@ -110,7 +110,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    * Setup the initial state history for the progress bar.
    */
   private setupStateHistory() {
-    this.states = this.orderStatusHistory.map(h => h.status).slice();
+    this.states = this.orderStatusHistory.map(h => h.status).filter(status => status !== undefined);
     if (this.states.at(-1) !== this.order().status) {
       this.states.push(this.order().status!);
     }

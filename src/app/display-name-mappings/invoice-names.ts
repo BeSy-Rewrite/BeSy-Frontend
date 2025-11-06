@@ -1,4 +1,4 @@
-import { InvoiceResponseDTO } from "../api";
+import { InvoiceResponseDTO } from "../api-services-v2";
 
 export const INVOICE_FIELD_NAMES: Record<keyof InvoiceResponseDTO, string> = {
     id: 'Dokumenten-ID',

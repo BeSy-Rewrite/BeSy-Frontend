@@ -1,4 +1,4 @@
-import { OrderStatus } from "../../api";
+import { OrderStatus } from "../../api-services-v2";
 import { OrdersFilterPreset } from "../../models/filter/filter-presets";
 
 
