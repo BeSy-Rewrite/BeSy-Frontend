@@ -129,6 +129,7 @@ export class DocumentUploadComponent implements OnInit {
 
   /**
    * Constructs an InvoiceRequestDTO from the form values.
+   * If no date is provided, the current date is used.
    * @returns The constructed InvoiceRequestDTO.
    */
   getInvoice(): InvoiceRequestDTO {
