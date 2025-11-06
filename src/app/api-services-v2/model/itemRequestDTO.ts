@@ -23,13 +23,13 @@ export interface ItemRequestDTO {
 }
 export namespace ItemRequestDTO {
     export const PreferredListEnum = {
-        Rz: 'RZ',
-        Ta: 'TA'
+        RZ: 'RZ',
+        TA: 'TA'
     } as const;
     export type PreferredListEnum = typeof PreferredListEnum[keyof typeof PreferredListEnum];
     export const VatTypeEnum = {
-        Netto: 'netto',
-        Brutto: 'brutto'
+        NETTO: 'netto',
+        BRUTTO: 'brutto'
     } as const;
     export type VatTypeEnum = typeof VatTypeEnum[keyof typeof VatTypeEnum];
 }

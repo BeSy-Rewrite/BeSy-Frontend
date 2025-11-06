@@ -10,15 +10,15 @@
 
 
 export const OrderStatus = {
-    InProgress: 'IN_PROGRESS',
-    Completed: 'COMPLETED',
-    ApprovalsReceived: 'APPROVALS_RECEIVED',
-    Approved: 'APPROVED',
-    Rejected: 'REJECTED',
-    Sent: 'SENT',
-    Settled: 'SETTLED',
-    Archived: 'ARCHIVED',
-    Deleted: 'DELETED'
+    IN_PROGRESS: 'IN_PROGRESS',
+    COMPLETED: 'COMPLETED',
+    APPROVALS_RECEIVED: 'APPROVALS_RECEIVED',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED',
+    SENT: 'SENT',
+    SETTLED: 'SETTLED',
+    ARCHIVED: 'ARCHIVED',
+    DELETED: 'DELETED'
 } as const;
 export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
 
