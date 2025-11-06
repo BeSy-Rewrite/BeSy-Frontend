@@ -91,7 +91,7 @@ export class ViewOrderPageComponent implements OnInit {
     { id: 'articles', title: 'Artikelübersicht', isFullWidth: true, editTabId: "Items" },
     { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true, editTabId: "Quotations" },
     { id: 'documents', title: 'Dokumente', isFullWidth: true },
-    { id: 'contacts', title: 'Kontaktdaten', isFullWidth: false },
+    { id: 'contacts', title: 'Kontaktdaten', isFullWidth: false, editTabId: "General" },
     { id: 'approvals', title: 'Freigaben', isFullWidth: false, editTabId: "Approvals" },
     { id: 'history', title: 'Statusverlauf', isFullWidth: false },
   ];
@@ -136,15 +136,11 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /**
-   * Exports the order as a PDF document if it is in the COMPLETED state.
+   * Exports the order as a PDF document.
    */
   export(): void {
     if (!this.internalOrder().order.id) {
       this.snackBar.open('Bestellung hat keine gültige ID und kann nicht exportiert werden.', 'Schließen', { duration: 5000 });
-      return;
-    }
-    if (this.internalOrder().order.status !== OrderStatus.COMPLETED) {
-      this.snackBar.open('Bestellung kann nur im Status "Abgeschlossen" exportiert werden.', 'Schließen', { duration: 5000 });
       return;
     }
 
