@@ -1,56 +1,46 @@
 import { Injectable } from '@angular/core';
-import { SuppliersService } from '../../api';
+import { lastValueFrom } from 'rxjs';
+import { SuppliersService } from '../../api-services-v2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class SuppliersWrapperService {
+  constructor(private readonly suppliersService: SuppliersService) { }
 
   async getAllSuppliers() {
-    const suppliers = await SuppliersService.getAllSuppliers();
-    return suppliers;
+    return lastValueFrom(this.suppliersService.getAllSuppliers());
   }
 
   async getSupplierById(id: number) {
-    const supplier = await SuppliersService.getSupplierById(id);
-    return supplier;
+    return lastValueFrom(this.suppliersService.getSupplierById(id));
   }
 
   async createSupplier(supplier: any) {
-    const createdSupplier = await SuppliersService.createSupplier(supplier);
-    console.log("Created supplier:", createdSupplier);
-    return createdSupplier;
+    return lastValueFrom(this.suppliersService.createSupplier(supplier));
   }
 
   async updateSupplier(id: number, supplier: any) {
-    const updatedSupplier = await SuppliersService.updateSupplierById(id, supplier);
-    console.log("Updated supplier:", updatedSupplier);
-    return updatedSupplier;
+    return lastValueFrom(this.suppliersService.updateSupplierById(id, supplier));
   }
 
   /**
-     * @param supplierId Die eindeutige ID des Lieferanten, für welchen die Kundennummern abgerufen werden sollen.
-     * @returns CustomerIdResponseDTO Liste der Kundennummern eines Lieferanten.
-     * @throws ApiError
-     */
+   * @param supplierId Die eindeutige ID des Lieferanten.
+   * @returns Liste der Kundennummern eines Lieferanten.
+   */
   async getCustomersIdBySupplier(supplierId: number) {
-    const customerId = await SuppliersService.getCustomerIdsOfOrder(supplierId);
-    return customerId;
+    return lastValueFrom(this.suppliersService.getCustomerIdsOfOrder(supplierId));
   }
 
   async createSupplierCustomerId(supplierId: number, customerId: any) {
-    const createdCustomerId = await SuppliersService.createSupplierCustomerId(supplierId, customerId);
-    console.log("Created customer ID:", createdCustomerId);
-    return createdCustomerId;
+    return lastValueFrom(this.suppliersService.createSupplierCustomerId(supplierId, customerId));
   }
 
   async getSuppliersAddresses() {
-    const addresses = await SuppliersService.getSuppliersAddresses();
-    return addresses;
+    return lastValueFrom(this.suppliersService.getAllSupplierAddresses());
   }
 
   async getSupplierAddress(id: number) {
-    const address = await SuppliersService.getSuppliersAddress(id);
-    return address;
+    return lastValueFrom(this.suppliersService.getSupplierAddress(id));
   }
 }

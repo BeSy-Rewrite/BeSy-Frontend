@@ -1,58 +1,45 @@
 import { Injectable } from '@angular/core';
-import { from, map } from 'rxjs';
-import { PersonsService } from '../../api';
+import { lastValueFrom, map } from 'rxjs';
+import { PersonsService } from '../../api-services-v2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class PersonsWrapperService {
-  constructor() { }
+  constructor(private readonly personsService: PersonsService) { }
 
   async getAllPersons() {
-    const persons = await PersonsService.getAllPersons();
-    return persons;
+    return lastValueFrom(this.personsService.getAllPersons());
   }
 
   async getPersonById(id: number) {
-    const person = await PersonsService.getPersonById(id);
-    return person;
+    return lastValueFrom(this.personsService.getPersonById(id));
   }
 
   async createPerson(person: any) {
-    const createdPerson = await PersonsService.createPerson(person);
-    console.log("Created person:", createdPerson);
-    return createdPerson;
+    return lastValueFrom(this.personsService.createPerson(person));
   }
 
   async getAllPersonsWithFullName() {
-    const persons = await PersonsService.getAllPersons();
-    const personsWithFullName = persons.map((person) => {
-      return {
-        ...person,
-        fullName: [person.name, person.surname].filter(Boolean).join(' '),
-      };
-    });
-    return personsWithFullName;
+    return lastValueFrom(this.personsService.getAllPersons().pipe(
+      map(persons =>
+        persons.map(person => ({
+          ...person,
+          fullName: [person.name, person.surname].filter(Boolean).join(' ')
+        }))
+      )
+    ));
   }
 
   async getAllPersonsAddresses() {
-    const addresses = await PersonsService.getPersonsAddresses();
-    return addresses;
+    return lastValueFrom(this.personsService.getAllPersonAddresses());
   }
 
-  async getPersonAddressesById(id: number) {
-    const addresses = await PersonsService.getPersonsAddress(id);
-    return addresses;
+  async getPersonAddressById(id: number) {
+    return lastValueFrom(this.personsService.getPersonAddress(id));
   }
 
   async createPersonAddress(address: any) {
-    const createdAddress = await PersonsService.createPersonAddress(address);
-    return createdAddress;
-  }
-
-  getAddress(addressId: number) {
-    return from(PersonsService.getPersonsAddresses()).pipe(
-      map(addresses => addresses.find(addr => addr.id === addressId))
-    );
+    return lastValueFrom(this.personsService.createPersonAddress(address));
   }
 }
