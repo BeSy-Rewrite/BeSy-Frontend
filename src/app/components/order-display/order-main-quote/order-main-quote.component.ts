@@ -1,7 +1,9 @@
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatDividerModule } from "@angular/material/divider";
 import { from } from 'rxjs';
+import { OrderResponseDTO } from '../../../api';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
 import { OrderDisplayData } from '../../../models/order-display-data';
@@ -12,7 +14,8 @@ import { OrdersWrapperService } from '../../../services/wrapper-services/orders-
   selector: 'app-order-main-quote',
   imports: [
     MatDividerModule,
-    MatButtonModule
+    MatButtonModule,
+    MatCheckboxModule
   ],
   templateUrl: './order-main-quote.component.html',
   styleUrl: './order-main-quote.component.scss'
@@ -37,6 +40,15 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
     'quote_price',
     'quote_sign',
     'currency',
+  ];
+
+  decisionFlags: (keyof OrderResponseDTO)[] = [
+    'flag_decision_cheapest_offer',
+    'flag_decision_most_economical_offer',
+    'flag_decision_sole_supplier',
+    'flag_decision_contract_partner',
+    'flag_decision_preferred_supplier_list',
+    'flag_decision_other_reasons',
   ];
 
   constructor(private readonly ordersService: OrdersWrapperService,
