@@ -36,10 +36,6 @@ export class SuppliersWrapperService {
     return lastValueFrom(this.suppliersService.createSupplierCustomerId(supplierId, customerId));
   }
 
-  async getSuppliersAddresses() {
-    return lastValueFrom(this.suppliersService.getAllSupplierAddresses());
-  }
-
   async getSupplierAddress(id: number) {
     return lastValueFrom(this.suppliersService.getSupplierAddress(id));
   }

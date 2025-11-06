@@ -2,24 +2,14 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { lastValueFrom, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import {
-  ApprovalResponseDTO,
-  ItemResponseDTO,
-  OrderRequestDTO,
-  OrderResponseDTO,
-  OrdersService,
-  OrderStatus,
-  OrderStatusHistoryResponseDTO,
-  PagedOrderResponseDTO,
-  QuotationResponseDTO
-} from '../../api-services-v2';
+import { ApprovalResponseDTO, ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, OrderStatusHistoryResponseDTO, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api-services-v2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrdersWrapperService {
-  constructor(
-    private readonly http: HttpClient,
+
+  constructor(private readonly http: HttpClient,
     private readonly ordersService: OrdersService
   ) { }
 
@@ -92,39 +82,39 @@ export class OrdersWrapperService {
   }
 
   async createOrder(request: OrderRequestDTO): Promise<OrderResponseDTO> {
-    return lastValueFrom(this.ordersService.createOrder(request));
+    return await lastValueFrom(this.ordersService.createOrder(request));
   }
 
   async getOrderById(orderId: number): Promise<OrderResponseDTO> {
-    return lastValueFrom(this.ordersService.getOrderById(orderId));
+    return await lastValueFrom(this.ordersService.getOrderById(orderId));
   }
 
   async deleteOrder(orderId: number): Promise<void> {
-    return lastValueFrom(this.ordersService.deleteOrder(orderId));
+    return await lastValueFrom(this.ordersService.deleteOrder(orderId));
   }
 
   async getOrderItems(orderId: string): Promise<ItemResponseDTO[]> {
-    return lastValueFrom(this.ordersService.getOrderItems(orderId));
+    return await lastValueFrom(this.ordersService.getOrderItems(orderId));
   }
 
   async createOrderItems(orderId: number, requestBody: any): Promise<any> {
-    return lastValueFrom(this.ordersService.createOrderItems(orderId, requestBody));
+    return await lastValueFrom(this.ordersService.createOrderItems(orderId, requestBody));
   }
 
   async deleteItemOfOrder(orderId: number, itemId: number): Promise<void> {
-    return lastValueFrom(this.ordersService.deleteOrderItem(orderId, itemId));
+    return await lastValueFrom(this.ordersService.deleteOrderItem(orderId, itemId));
   }
 
   async getOrderQuotations(orderId: string): Promise<QuotationResponseDTO[]> {
-    return lastValueFrom(this.ordersService.getOrderQuotations(orderId));
+    return await lastValueFrom(this.ordersService.getOrderQuotations(orderId));
   }
 
   async createOrderQuotations(orderId: number, requestBody: any): Promise<any> {
-    return lastValueFrom(this.ordersService.createOrderQuotations(orderId, requestBody));
+    return await lastValueFrom(this.ordersService.createOrderQuotations(orderId, requestBody));
   }
 
   async deleteQuotationOfOrder(orderId: number, quotationId: number): Promise<void> {
-    return lastValueFrom(this.ordersService.deleteOrderQuotation(orderId, quotationId));
+    return await lastValueFrom(this.ordersService.deleteOrderQuotation(orderId, quotationId));
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
@@ -132,14 +122,14 @@ export class OrdersWrapperService {
   }
 
   async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
-    return lastValueFrom(this.ordersService.getOrderApprovals(orderId));
+    return await lastValueFrom(this.ordersService.getOrderApprovals(orderId));
   }
 
   async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistoryResponseDTO[]> {
-    return lastValueFrom(this.ordersService.getOrderStatusHistory(orderId));
+    return await lastValueFrom(this.ordersService.getOrderStatusHistory(orderId));
   }
 
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
-    return lastValueFrom(this.ordersService.updateOrderStatus(orderId, newState));
+    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, newState));
   }
 }

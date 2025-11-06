@@ -39,7 +39,7 @@ export class AuthenticationService {
    * The user will be redirected back to the application after successful login.
    */
   login(): void {
-    this.oAuthService.initCodeFlow(window.location.pathname);
+    this.oAuthService.initCodeFlow(globalThis.location.pathname);
   }
 
   /**
