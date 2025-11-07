@@ -91,7 +91,7 @@
                     class="text-2xl mb-2">{{section.title}}
                 </h3>
 
-                @if (section.editTabId) {
+                @if (showEditButton(section)) {
                 <a
                    matButton
                    color="primary"

@@ -266,4 +266,12 @@ export class ViewOrderPageComponent implements OnInit {
     });
   }
 
+  showEditButton(section: Section): boolean {
+    if (!section.editTabId) return false;
+
+    const status = this.internalOrder().order.status;
+    return status === OrderStatus.IN_PROGRESS ||
+      (status === OrderStatus.COMPLETED && section.editTabId === "Approvals");
+  }
+
 }
