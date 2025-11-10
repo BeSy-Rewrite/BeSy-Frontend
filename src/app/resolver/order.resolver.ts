@@ -18,7 +18,7 @@ export class OrderResolver implements Resolve<DisplayableOrder> {
   ) { }
 
   resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<DisplayableOrder> {
-    const id = parseInt(route.paramMap.get('id')!);
+    const id = Number.parseInt(route.paramMap.get('id')!);
     return from(this.ordersService.getOrderById(id)).pipe(
       switchMap(order =>
         this.orderDisplayService.resolveOrderSubresources(order).pipe(

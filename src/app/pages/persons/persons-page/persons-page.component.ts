@@ -1,24 +1,23 @@
-import { MatDividerModule } from '@angular/material/divider';
-import { Router } from '@angular/router';
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
-import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { FormGroup } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { Router } from '@angular/router';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
   PersonRequestDTO,
   PersonResponseDTO,
-} from '../../../api';
-import { ButtonColor, TableActionButton } from '../../../models/generic-table';
-import { MatTabGroup } from '@angular/material/tabs';
-import { MatTableDataSource } from '@angular/material/table';
-import { MatTabsModule } from '@angular/material/tabs';
-import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
-import { FormComponent } from '../../../components/form-component/form-component.component';
-import { PERSON_FORM_CONFIG } from '../../../configs/person-form';
-import { FormGroup } from '@angular/forms';
+} from '../../../api-services-v2';
 import { AddressFormComponent } from '../../../components/address-form/address-form.component';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { FormComponent } from '../../../components/form-component/form-component.component';
+import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
+import { PERSON_FORM_CONFIG } from '../../../configs/person-form';
+import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { PersonsWrapperService } from '../../../services/wrapper-services/persons-wrapper.service';
 
 @Component({
@@ -37,7 +36,7 @@ import { PersonsWrapperService } from '../../../services/wrapper-services/person
   encapsulation: ViewEncapsulation.None,
 })
 export class PersonsPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) {}
+  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) { }
 
   // Selected address ID in the address-form-table. Used to create a person with this address-id
   selectedAddressId: number | undefined = undefined;

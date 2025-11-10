@@ -13,7 +13,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
-import { CustomerIdResponseDTO } from '../../api';
+import { CustomerIdResponseDTO } from '../../api-services-v2';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
 
 export interface FormField {
@@ -71,7 +71,7 @@ export interface FormConfig {
   styleUrls: ['./form-component.component.scss'],
 })
 export class FormComponent implements OnInit {
-  constructor(private fb: FormBuilder) { }
+  constructor(private readonly fb: FormBuilder) { }
 
   @Input() config!: FormConfig;
   @Input() formGroup!: FormGroup;

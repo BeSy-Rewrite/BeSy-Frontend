@@ -13,14 +13,14 @@ paths:
 
       operationId: getAllPersons
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/PersonResponseDTO'
+                  $ref: "#/components/schemas/PersonResponseDTO"
     post:
       tags:
         - Persons
@@ -30,16 +30,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PersonRequestDTO'
+              $ref: "#/components/schemas/PersonRequestDTO"
         required: true
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
-                $ref: '#/components/schemas/PersonResponseDTO'
-        '500':
+                $ref: "#/components/schemas/PersonResponseDTO"
+        "500":
           description: Interner Serverfehler.
   /persons/{id}:
     get:
@@ -54,15 +54,15 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
-                $ref: '#/components/schemas/PersonResponseDTO'
-        '404':
+                $ref: "#/components/schemas/PersonResponseDTO"
+        "404":
           description: Person nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
     put:
       tags:
@@ -72,7 +72,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PersonRequestDTO'
+              $ref: "#/components/schemas/PersonRequestDTO"
       parameters:
         - name: id
           in: path
@@ -81,30 +81,31 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
-                $ref: '#/components/schemas/PersonResponseDTO'
-        '409':
+                $ref: "#/components/schemas/PersonResponseDTO"
+        "409":
           description: Verweis auf eine nicht existierende Entität.
-        '500':
+        "500":
           description: Interner Serverfehler.
   /persons/addresses:
     get:
       tags:
         - Persons
+      operationId: getAllPersonAddresses
       description: Gibt eine Liste aller Adressen zurück, die Personen zugeordnet sind.
       responses:
-        '200':
+        "200":
           description: Erfolgreich – Liste der Personenadressen
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AddressResponseDTO'
+                  $ref: "#/components/schemas/AddressResponseDTO"
     post:
       tags:
         - Persons
@@ -114,23 +115,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddressRequestDTO'
+              $ref: "#/components/schemas/AddressRequestDTO"
       responses:
-        '201':
+        "201":
           description: Adresse erfolgreich erstellt.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddressResponseDTO'
-        '400':
+                $ref: "#/components/schemas/AddressResponseDTO"
+        "400":
           description: Ungültige Eingabe(n).
-        '500':
+        "500":
           description: Interner Serverfehler.
 
   /persons/{person-id}/address:
     get:
       tags:
         - Persons
+      operationId: getPersonAddress
       description: Gibt die Adresse der angegebenen Person zurück.
       parameters:
         - name: person-id
@@ -141,13 +143,13 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
+        "200":
           description: Erfolgreich – Adresse der Person
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddressResponseDTO'
-        '404':
+                $ref: "#/components/schemas/AddressResponseDTO"
+        "404":
           description: Person nicht gefunden. Diese Person besitzt keine Adresse.
   /suppliers:
     get:
@@ -155,14 +157,14 @@ paths:
         - Suppliers
       operationId: getAllSuppliers
       responses:
-        '200':
+        "200":
           description: Liste von Lieferanten
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/SupplierResponseDTO'
+                  $ref: "#/components/schemas/SupplierResponseDTO"
     post:
       tags:
         - Suppliers
@@ -172,17 +174,17 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SupplierRequestDTO'
+              $ref: "#/components/schemas/SupplierRequestDTO"
       responses:
-        '201':
+        "201":
           description: Lieferant erfolgreich erstellt.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SupplierResponseDTO'
-        '400':
+                $ref: "#/components/schemas/SupplierResponseDTO"
+        "400":
           description: Ungültige Eingabe(n).
-        '500':
+        "500":
           description: Interner Serverfehler.
   /suppliers/{supplier-id}:
     get:
@@ -198,13 +200,13 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
+        "200":
           description: Lieferant gefunden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SupplierResponseDTO'
-        '404':
+                $ref: "#/components/schemas/SupplierResponseDTO"
+        "404":
           description: Lieferant nicht gefunden.
     put:
       tags:
@@ -215,7 +217,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SupplierRequestDTO'
+              $ref: "#/components/schemas/SupplierRequestDTO"
       parameters:
         - name: supplier-id
           in: path
@@ -225,15 +227,15 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
+        "200":
           description: Lieferant gefunden.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SupplierResponseDTO'
-        '404':
+                $ref: "#/components/schemas/SupplierResponseDTO"
+        "404":
           description: Lieferant nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
   /suppliers/{supplier-id}/customer_ids:
     get:
@@ -249,15 +251,15 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
+        "200":
           description: Liste der Kundennummern eines Lieferanten.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CustomerIdResponseDTO'
-        '404':
+                  $ref: "#/components/schemas/CustomerIdResponseDTO"
+        "404":
           description: Lieferant nicht gefunden.
     post:
       tags:
@@ -276,41 +278,43 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CustomerIdRequestDTO'
+              $ref: "#/components/schemas/CustomerIdRequestDTO"
       responses:
-        '201':
+        "201":
           description: Kundennummer erfolgreich erstellt.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CustomerIdResponseDTO'
-        '404':
+                $ref: "#/components/schemas/CustomerIdResponseDTO"
+        "404":
           description: Lieferant nicht gefunden.
-        '409':
+        "409":
           description: |
             Lieferantennummer bereits vorhanden für diesen Lieferanten.
             Verweis auf eine nicht existierende Entität.
-        '500':
+        "500":
           description: Interner Serverfehler.
   /suppliers/addresses:
     get:
       tags:
         - Suppliers
+      operationId: getAllSupplierAddresses
       deprecated: true
       responses:
-        '200':
+        "200":
           description: Liste aller Adressen.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/AddressResponseDTO'
+                  $ref: "#/components/schemas/AddressResponseDTO"
 
   /suppliers/{supplier-id}/address:
     get:
       tags:
         - Suppliers
+      operationId: getSupplierAddress
       parameters:
         - name: supplier-id
           in: path
@@ -318,13 +322,13 @@ paths:
           schema:
             type: integer
       responses:
-        '200':
+        "200":
           description: Adresse des Lieferanten.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddressResponseDTO'
-        '404':
+                $ref: "#/components/schemas/AddressResponseDTO"
+        "404":
           description: Lieferant nicht gefunden. Dieser Lieferant besitzt keine Adresse.
   /orders:
     get:
@@ -351,7 +355,7 @@ paths:
         - name: sort
           in: query
           description: >
-            Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B. 
+            Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.
             `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend),
             dann nach `id` (aufsteigend).
           required: false
@@ -400,7 +404,7 @@ paths:
 
         - name: ownerIds
           in: query
-          description: Filtert nach IDs der Ersteller der Bestellung. Beinh
+          description: Filtert nach IDs der Ersteller der Bestellung.
           required: false
           schema:
             type: array
@@ -415,7 +419,7 @@ paths:
           schema:
             type: array
             items:
-              $ref: '#/components/schemas/OrderStatus'
+              $ref: "#/components/schemas/OrderStatus"
         - name: quotePriceMin
           in: query
           description: Filtert nach quotePriceMin.
@@ -526,14 +530,12 @@ paths:
             format: int32
             example: 200
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PagedOrderResponseDTO'
+                $ref: "#/components/schemas/PagedOrderResponseDTO"
     post:
       tags:
         - Orders
@@ -544,18 +546,18 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrderRequestDTO'
+              $ref: "#/components/schemas/OrderRequestDTO"
         required: true
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
-                $ref: '#/components/schemas/OrderResponseDTO'
-        '409':
+                $ref: "#/components/schemas/OrderResponseDTO"
+        "409":
           description: Verweis auf eine nicht existierende Entität.
-        '500':
+        "500":
           description: Interner Serverfehler.
   /orders/{order-id}:
     get:
@@ -571,13 +573,13 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
-                  $ref: '#/components/schemas/OrderResponseDTO'
-        '404':
+                $ref: "#/components/schemas/OrderResponseDTO"
+        "404":
           description: Bestellung nicht gefunden.
     patch:
       tags:
@@ -596,7 +598,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrderRequestDTO'
+              $ref: "#/components/schemas/OrderRequestDTO"
         required: true
       responses:
         200:
@@ -609,7 +611,7 @@ paths:
           description: "Bestellstatus befindet sich nicht in Bearbeitung (`IN_PROGRESS`)!"
         404:
           description: "Bestellung nicht gefunden."
-        '409':
+        "409":
           description: "Verweis auf eine nicht existierende Entität."
         500:
           description: "Interner Serverfehler."
@@ -627,13 +629,13 @@ paths:
           schema:
             type: number
       responses:
-        '204':
+        "204":
           description: Bestellung erfolgreich gelöscht (No Content).
         400:
           description: Bestellstatus befindet sich nicht in gültigem Bestellstatus!
-        '404':
+        "404":
           description: Bestellung mit der angegebenen ID nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
   /orders/{order-id}/items:
     get:
@@ -648,15 +650,15 @@ paths:
             type: string
           description: Die eindeutige ID der Bestellung, für welche die Artikel abgerufen werden sollen.
       responses:
-        '200':
+        "200":
           description: Erfolgreich abgerufene Artikel einer Bestellung.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ItemResponseDTO'
-        '404':
+                  $ref: "#/components/schemas/ItemResponseDTO"
+        "404":
           description: Bestellung nicht gefunden.
     post:
       tags:
@@ -677,27 +679,27 @@ paths:
           application/json:
             schema:
               items:
-                $ref: '#/components/schemas/ItemRequestDTO'
+                $ref: "#/components/schemas/ItemRequestDTO"
         required: true
       responses:
-        '201':
+        "201":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/ItemResponseDTO'
+                  $ref: "#/components/schemas/ItemResponseDTO"
         400:
           description: "Bestellstatus befindet sich nicht in Bearbeitung (`IN_PROGRESS`)!"
-        '404':
+        "404":
           description: Bestellung nicht gefunden.
-        '409':
+        "409":
           description: Zugehöriger Artikel mit Artikelnummer `article_id` existiert bereits.
   /orders/{order-id}/items/{item-id}:
     delete:
       tags:
         - Orders
-      operationId: deleteItemOfOrder
+      operationId: deleteOrderItem
       description: >
         Löscht einen Artikel einer bestehenden Bestellung (`order-id`) anhand der `item-id` (Hard Delete).
       parameters:
@@ -714,13 +716,13 @@ paths:
           schema:
             type: number
       responses:
-        '204':
+        "204":
           description: Bestellung erfolgreich gelöscht (No Content).
         400:
           description: "Bestellstatus befindet sich nicht in Bearbeitung (`IN_PROGRESS`)!"
-        '404':
+        "404":
           description: Bestellung nicht gefunden. Artikel nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
   /orders/{order-id}/quotations:
     get:
@@ -735,15 +737,15 @@ paths:
             type: string
           description: Die eindeutige ID der Bestellung, für welche die Vergleichsangebote abgerufen werden sollen.
       responses:
-        '200':
+        "200":
           description: Erfolgreich abgerufene Vergleichsangebote einer Bestellung.
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/QuotationResponseDTO'
-        '404':
+                  $ref: "#/components/schemas/QuotationResponseDTO"
+        "404":
           description: Bestellung nicht gefunden.
     post:
       tags:
@@ -764,27 +766,27 @@ paths:
           application/json:
             schema:
               items:
-                $ref: '#/components/schemas/QuotationRequestDTO'
+                $ref: "#/components/schemas/QuotationRequestDTO"
         required: true
       responses:
-        '201':
+        "201":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 items:
-                  $ref: '#/components/schemas/QuotationResponseDTO'
+                  $ref: "#/components/schemas/QuotationResponseDTO"
         400:
           description: "Bestellstatus befindet sich nicht in Bearbeitung (`IN_PROGRESS`)!"
-        '404':
+        "404":
           description: Bestellung nicht gefunden.
-        '409':
+        "409":
           description: Zugehöriges Vergleichsangebot mit dem Index `index` existiert bereits.
   /orders/{order-id}/quotations/{quotation-id}:
     delete:
       tags:
         - Orders
-      operationId: deleteQuotationOfOrder
+      operationId: deleteOrderQuotation
       description: >
         Löscht ein Vergleichsangebot einer bestehenden Bestellung (`order-id`) anhand der `quotation-id` (Hard Delete).
       parameters:
@@ -801,16 +803,16 @@ paths:
           schema:
             type: number
       responses:
-        '204':
+        "204":
           description: Vergleichsartikel erfolgreich gelöscht (No Content).
         400:
           description: "Bestellstatus befindet sich nicht in Bearbeitung (`IN_PROGRESS`)!"
-        '404':
+        "404":
           description: Bestellung nicht gefunden. Vergleichsartikel nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
 
-  /{order-id}/invoices:
+  /orders/{order-id}/invoices:
     get:
       tags:
         - Orders
@@ -824,15 +826,15 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
+        "200":
           description: Liste der zugehörigen Rechnungen
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/InvoiceResponseDTO'
-        '404':
+                  $ref: "#/components/schemas/InvoiceResponseDTO"
+        "404":
           description: Bestellung nicht gefunden.
 
     post:
@@ -852,27 +854,28 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/InvoiceRequestDTO'
+              $ref: "#/components/schemas/InvoiceRequestDTO"
       responses:
-        '200':
+        "200":
           description: Rechnung erfolgreich erstellt
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InvoiceResponseDTO'
-        '400':
+                $ref: "#/components/schemas/InvoiceResponseDTO"
+        "400":
           description: Ungültige Anfrage (z.B. falscher Bestellstatus).
-        '404':
+        "404":
           description: Bestellung oder Kostenstelle nicht gefunden.
-        '409':
+        "409":
           description: Rechnung existiert bereits.
-        '500':
+        "500":
           description: Interner Serverfehler.
 
   /orders/invoice/{invoice-id}/document:
     get:
       tags:
         - Orders
+      operationId: getInvoiceDocument
       description: Gibt das vollständige PDF-Dokument zur angegebenen Rechnung zurück.
       parameters:
         - name: invoice-id
@@ -882,16 +885,16 @@ paths:
             type: string
           description: ID der Rechnung, für die das PDF heruntergeladen wird.
       responses:
-        '200':
+        "200":
           description: PDF erfolgreich zurückgegeben
           content:
             application/pdf:
               schema:
                 type: string
                 format: binary
-        '404':
+        "404":
           description: Rechnung nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
     post:
       tags:
@@ -918,22 +921,23 @@ paths:
                   format: binary
                   description: Die hochzuladende PDF-Datei
       responses:
-        '200':
+        "200":
           description: Dokument erfolgreich hochgeladen und mit der Rechnung verknüpft
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/InvoiceResponseDTO'
-        '400':
+                $ref: "#/components/schemas/InvoiceResponseDTO"
+        "400":
           description: Diese Rechnung besitzt bereits ein verknüpftes Dokument mit der id `paperless_id`.
-        '404':
+        "404":
           description: Rechnung nicht gefunden.
-        '500':
+        "500":
           description: Fehler beim Hochladen des Dokumentes. Interner Serverfehler.
   /orders/invoice/{invoice-id}/document/preview:
     get:
       tags:
         - Orders
+      operationId: getInvoiceDocumentPreview
       description: Gibt eine Vorschau des PDF-Dokuments als IMG-Datei zur angegebenen Rechnung zurück.
       parameters:
         - name: invoice-id
@@ -943,20 +947,21 @@ paths:
             type: string
           description: ID der Rechnung, für die die PDF-Vorschau abgerufen wird.
       responses:
-        '200':
+        "200":
           description: PDF-Vorschau erfolgreich zurückgegeben
           content:
             application/pdf:
               schema:
                 type: string
                 format: binary
-        '404':
+        "404":
           description: Rechnung nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
 
-  /orders/{order-id}/approval:
+  /orders/{order-id}/approvals:
     get:
+      operationId: getOrderApprovals
       description: Gibt die Zustimmungen für die angegebene Bestellung zurück.
       tags:
         - Orders
@@ -968,17 +973,18 @@ paths:
             type: integer
           description: ID der Bestellung, deren Zustimmungen abgerufen wird.
       responses:
-        '200':
+        "200":
           description: Zustimmungen erfolgreich abgerufen.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApprovalResponseDTO'
-        '404':
+                $ref: "#/components/schemas/ApprovalResponseDTO"
+        "404":
           description: Bestellung nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
     patch:
+      operationId: updateOrderApprovals
       description: Aktualisiert Felder der Zustimmungen für die angegebene Bestellung. Nur nicht-leere Felder im Request-Body werden übernommen.
       tags:
         - Orders
@@ -994,29 +1000,29 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ApprovalRequestDTO'
+              $ref: "#/components/schemas/ApprovalRequestDTO"
       responses:
-        '200':
+        "200":
           description: Approval successfully updated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApprovalResponseDTO'
+                $ref: "#/components/schemas/ApprovalResponseDTO"
         400:
           description: "Bestellstatus befindet sich nicht auf fertiggestellt (`COMPLETED`)!"
-        '404':
+        "404":
           description: Bestellung nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
-
 
   /orders/statuses:
     get:
       tags:
         - Orders
+      operationId: getOrderStatusTransitions
       description: Gibt eine Map zurück, die jedem OrderStatus die erlaubten nächsten OrderStatus-Werte zuordnet.
       responses:
-        '200':
+        "200":
           description: Erfolgreiche Abfrage der Order-Status-Matrix.
           content:
             application/json:
@@ -1025,12 +1031,12 @@ paths:
                 additionalProperties:
                   type: array
                   items:
-                    $ref: '#/components/schemas/OrderStatus'
+                    $ref: "#/components/schemas/OrderStatus"
               example:
                 APPROVALS_RECEIVED:
                   - APPROVED
                   - DELETED
-                REJECTED: [ ]
+                REJECTED: []
                 SENT:
                   - SETTLED
                 APPROVED:
@@ -1041,7 +1047,7 @@ paths:
                 IN_PROGRESS:
                   - COMPLETED
                   - DELETED
-                ARCHIVED: [ ]
+                ARCHIVED: []
                 DELETED:
                   - IN_PROGRESS
                 COMPLETED:
@@ -1051,8 +1057,9 @@ paths:
 
   /orders/{order-id}/status:
     put:
+      operationId: updateOrderStatus
       description: >
-        Aktualisiert den Bestellstatus (`status`) mit der angegebenen `order-id`.  
+        Aktualisiert den Bestellstatus (`status`) mit der angegebenen `order-id`.
         Wirft einen Fehler, wenn der neue Status `DELETED` ist — bitte stattdessen den DELETE-Endpunkt verwenden.
       tags:
         - Orders
@@ -1068,20 +1075,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/OrderStatus'
+              $ref: "#/components/schemas/OrderStatus"
       responses:
-        '200':
+        "200":
           description: Bestellstatus erfolgreich aktualisiert.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/OrderStatus'
-        '400':
+                $ref: "#/components/schemas/OrderStatus"
+        "400":
           description: Löschen nicht erlaubt, nutze DELETE endpoint! Ungültiger Statusübergang von `old_status` zu `new_status`. primary_cost_center_id darf nicht null sein.
-
 
   /orders/{order-id}/status/history:
     get:
+      operationId: getOrderStatusHistory
       description: Gibt eine Liste des Verlaufes des Bestellstatus einer Bestellung zurück.
       tags:
         - Orders
@@ -1093,15 +1100,15 @@ paths:
             type: integer
           description: ID der Bestellung, deren Bestellstatus-Historie abgerufen werden soll.
       responses:
-        '200':
+        "200":
           description: Liste des Statusverlaufs erfolgreich abgerufen
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/OrderStatusHistoryResponseDTO'
-        '404':
+                  $ref: "#/components/schemas/OrderStatusHistoryResponseDTO"
+        "404":
           description: Bestellung nicht gefunden.
 
   /orders/{order-id}/export:
@@ -1117,13 +1124,12 @@ paths:
             type: string
           description: Die eindeutige ID der Bestellung, für die das Bestellformular als PDF exportiert wird.
       responses:
-        '200':
+        "200":
           description: PDF-Formular der Bestellung erfolgreich abgerufen.
           content:
-            application/pdf: { }
-        '404':
+            application/pdf: {}
+        "404":
           description: Bestellung nicht gefunden.
-
 
   /cost_centers:
     get:
@@ -1131,14 +1137,14 @@ paths:
         - CostCenters
       operationId: getCostCenters
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CostCenterResponseDTO'
+                  $ref: "#/components/schemas/CostCenterResponseDTO"
     post:
       tags:
         - CostCenters
@@ -1147,16 +1153,16 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CostCenterRequestDTO'
+              $ref: "#/components/schemas/CostCenterRequestDTO"
         required: true
       responses:
-        '201':
+        "201":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
-                $ref: '#/components/schemas/CostCenterResponseDTO'
-        '409':
+                $ref: "#/components/schemas/CostCenterResponseDTO"
+        "409":
           description: Kostenstelle mit diesem Namen existiert bereits.
   /vats:
     get:
@@ -1165,28 +1171,28 @@ paths:
       operationId: getAllVats
       description: Der `value` einer VAT ist zugleich dessen ID.
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/VatResponseDTO'
+                  $ref: "#/components/schemas/VatResponseDTO"
   /users:
     get:
       tags:
         - Users
       operationId: getAllUsers
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UserResponseDTO'
+                  $ref: "#/components/schemas/UserResponseDTO"
 
   /currencies:
     get:
@@ -1194,18 +1200,19 @@ paths:
         - Currencies
       operationId: getAllCurrencies
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/CurrencyResponseDTO'
+                  $ref: "#/components/schemas/CurrencyResponseDTO"
   /currencies/{code}:
     get:
       tags:
         - Currencies
+      operationId: getCurrencyByCode
       parameters:
         - name: code
           in: path
@@ -1215,15 +1222,15 @@ paths:
             type: string
             example: EUR
       responses:
-        '200':
+        "200":
           description: Währung gefunden
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CurrencyResponseDTO'
-        '404':
+                $ref: "#/components/schemas/CurrencyResponseDTO"
+        "404":
           description: Währung nicht gefunden
-        '500':
+        "500":
           description: Interner Serverfehler
   /users/{id}:
     get:
@@ -1237,27 +1244,27 @@ paths:
           schema:
             type: string
       responses:
-        '200':
+        "200":
           description: OK
           content:
-            '*/*':
+            application/json:
               schema:
-                $ref: '#/components/schemas/UserResponseDTO'
+                $ref: "#/components/schemas/UserResponseDTO"
   /users/me:
     get:
       tags:
         - Users
       operationId: getCurrentUser
       security:
-        - bearerAuth: [ ]
+        - bearerAuth: []
       responses:
-        '200':
+        "200":
           description: Erfolgreiche Abfrage des Benutzers
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserResponseDTO'
-        '500':
+                $ref: "#/components/schemas/UserResponseDTO"
+        "500":
           description: Interner Serverfehler.
 
   /insy/{order-id}:
@@ -1265,7 +1272,7 @@ paths:
       description: Sendet eine Bestellung anhand der Bestell-ID an das Insy-System.
       operationId: postOrderToInsy
       tags:
-      - Insy
+        - Insy
       parameters:
         - name: order-id
           in: path
@@ -1275,11 +1282,11 @@ paths:
             type: integer
             format: int64
       responses:
-        '200':
+        "200":
           description: Bestellung erfolgreich an Insy gesendet.
-        '404':
+        "404":
           description: Bestellung nicht gefunden.
-        '500':
+        "500":
           description: Interner Serverfehler.
 components:
   schemas:
@@ -1496,15 +1503,9 @@ components:
         content_description:
           type: string
         status:
-          type: string
-          enum:
-            - ABR
-            - ABS
-            - ARC
-            - DEL
-            - INB
+          $ref: "#/components/schemas/OrderStatus"
         currency:
-          $ref: '#/components/schemas/CurrencyResponseDTO'
+          $ref: "#/components/schemas/CurrencyResponseDTO"
         comment:
           type: string
         comment_for_supplier:
@@ -1639,7 +1640,7 @@ components:
         comment:
           type: string
         vat:
-          $ref: '#/components/schemas/VatResponseDTO'
+          $ref: "#/components/schemas/VatResponseDTO"
         preferred_list:
           type: string
           enum:
@@ -1771,7 +1772,7 @@ components:
         website:
           type: string
         address:
-          $ref: '#/components/schemas/AddressRequestDTO'
+          $ref: "#/components/schemas/AddressRequestDTO"
     SupplierResponseDTO:
       type: object
       properties:
@@ -1844,7 +1845,7 @@ components:
         content:
           type: array
           items:
-            $ref: '#/components/schemas/OrderResponseDTO'
+            $ref: "#/components/schemas/OrderResponseDTO"
         pageable:
           type: object
           properties:
@@ -1857,7 +1858,7 @@ components:
               format: int32
               example: 1
             sort:
-              $ref: '#/components/schemas/Sort'
+              $ref: "#/components/schemas/Sort"
             offset:
               type: integer
               format: int32
@@ -1880,7 +1881,7 @@ components:
           type: integer
           format: int32
         sort:
-          $ref: '#/components/schemas/Sort'
+          $ref: "#/components/schemas/Sort"
         first:
           type: boolean
         number_of_elements:
@@ -1949,7 +1950,7 @@ components:
     OrderStatusHistoryResponseDTO:
       properties:
         status:
-          $ref: '#/components/schemas/OrderStatus'
+          $ref: "#/components/schemas/OrderStatus"
         timestamp:
           example: 2025-08-24T19:11:01.398273
           type: string
@@ -1962,10 +1963,10 @@ components:
         id:
           type: string
           description: ID der Rechnung
-        costCenterId:
-          type: string
+        cost_center_id:
+          type: integer
           description: ID der zugehörigen Kostenstelle
-        orderId:
+        order_id:
           type: integer
           format: int64
           description: Referenz auf die zugehörige Bestellung
@@ -1980,14 +1981,13 @@ components:
         comment:
           type: string
           description: Kommentar zur Rechnung
-        paperlessId:
+        paperless_id:
           type: integer
           format: int64
           description: Referenz auf ein Dokument im papierlosen System
       required:
         - id
-        - costCenterId
-        - orderId
+        - cost_center_id
+        - order_id
         - price
         - date
-

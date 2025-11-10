@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { DomSanitizer } from '@angular/platform-browser';
 import { environment } from '../../../../environments/environment';
-import { InvoiceResponseDTO, OrderResponseDTO } from '../../../api';
+import { InvoiceResponseDTO, OrderResponseDTO } from '../../../api-services-v2';
 import { INVOICE_FIELD_NAMES } from '../../../display-name-mappings/invoice-names';
 import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';

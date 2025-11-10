@@ -1,11 +1,15 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
-import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, ItemResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
+import { CostCenterResponseDTO, CurrencyResponseDTO, ItemResponseDTO, OrderResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../api-services-v2';
+import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-names';
 import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
 import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../models/filter/filter-presets';
 import { OrderDisplayData } from '../models/order-display-data';
+import { CostCenterWrapperService } from './wrapper-services/cost-centers-wrapper.service';
+import { CurrencyWrapperService } from './wrapper-services/currencies-wrapper.service';
+import { PersonsWrapperService } from './wrapper-services/persons-wrapper.service';
+import { SuppliersWrapperService } from './wrapper-services/suppliers-wrapper.service';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
-import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-names';
 
 /**
  * Union of identifier types used to look up subresources.
@@ -40,7 +44,7 @@ class ResourceFormatter<T extends IdAble> {
    */
   constructor(
     private readonly formatter: (value: T) => string,
-    private readonly fetchAll: () => CancelablePromise<T[]>,
+    private readonly fetchAll: () => Promise<T[]>,
     private readonly debounceMs: number = 300
   ) {
     this.requestFetch
@@ -104,22 +108,28 @@ export class OrderSubresourceResolverService {
    * Constructs the resolver and wires up the resource formatters.
    * Inject API clients or services here to provide `fetchAll` functions.
    */
-  constructor(private readonly usersService: UsersWrapperService) {
+  constructor(
+    private readonly currenciesService: CurrencyWrapperService,
+    private readonly usersService: UsersWrapperService,
+    private readonly personsService: PersonsWrapperService,
+    private readonly costCentersService: CostCenterWrapperService,
+    private readonly suppliersService: SuppliersWrapperService
+  ) {
 
     this.currencyFormatter = new ResourceFormatter<CurrencyResponseDTO>(
-      (c) => this.formatCurrency(c), CurrenciesService.getAllCurrencies
+      (c) => this.formatCurrency(c), () => this.currenciesService.getAllCurrencies()
     );
     this.userFormatter = new ResourceFormatter<UserResponseDTO>(
-      (u) => this.formatUser(u), UsersService.getAllUsers
+      (u) => this.formatUser(u), () => this.usersService.getAllUsers()
     );
     this.personFormatter = new ResourceFormatter<PersonResponseDTO>(
-      (p) => this.formatPerson(p), PersonsService.getAllPersons
+      (p) => this.formatPerson(p), () => this.personsService.getAllPersons()
     );
     this.costCenterFormatter = new ResourceFormatter<CostCenterResponseDTO>(
-      (c) => this.formatCostCenter(c), CostCentersService.getCostCenters
+      (c) => this.formatCostCenter(c), () => this.costCentersService.getAllCostCenters()
     );
     this.supplierFormatter = new ResourceFormatter<SupplierResponseDTO>(
-      (s) => this.formatSupplier(s), SuppliersService.getAllSuppliers
+      (s) => this.formatSupplier(s), () => this.suppliersService.getAllSuppliers()
     );
 
   }
@@ -282,15 +292,11 @@ export class OrderSubresourceResolverService {
    * @param preferredList The preferred list enum value.
    * @returns The formatted preferred list string.
    */
-  formatPreferredList(preferredList: ItemResponseDTO.preferred_list | undefined): string {
-    switch (preferredList) {
-      case ItemResponseDTO.preferred_list.RZ:
-        return PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.RZ) ?? 'RZ';
-      case ItemResponseDTO.preferred_list.TA:
-        return PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.TA) ?? 'TA';
-      default:
-        return 'Keine bevorzugte Liste';
+  formatPreferredList(preferredList: ItemResponseDTO.PreferredListEnum | undefined): string {
+    if (preferredList) {
+      return PREFERRED_LIST_NAMES.get(preferredList) ?? preferredList;
     }
+    return 'Keine bevorzugte Liste';
   }
 
   /**
@@ -316,7 +322,7 @@ export class OrderSubresourceResolverService {
     if (vatPercent <= 0) return netPrice;
     return netPrice * (1 + vatPercent / 100);
   }
-  
+
   /**
    * Calculates the total net price for a list of items.
    * @param items The list of items to calculate the total net price for.
@@ -326,7 +332,7 @@ export class OrderSubresourceResolverService {
     let totalNetPrice = 0;
     for (const item of items) {
       let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
-      if (item.vat_type === ItemResponseDTO.vat_type.BRUTTO) {
+      if (item.vat_type === ItemResponseDTO.VatTypeEnum.BRUTTO) {
         price = this.calculateNetPrice(price, item.vat?.value ?? 0);
       }
       totalNetPrice += price;
@@ -343,14 +349,14 @@ export class OrderSubresourceResolverService {
     let totalGrossPrice = 0;
     for (const item of items) {
       let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
-      if (item.vat_type === ItemResponseDTO.vat_type.NETTO) {
+      if (item.vat_type === ItemResponseDTO.VatTypeEnum.NETTO) {
         price = this.calculateGrossPrice(price, item.vat?.value ?? 0);
       }
       totalGrossPrice += price;
     }
     return totalGrossPrice;
   }
-  
+
   /**
    * Calculates the total quantity of items.
    * @param items The list of items to calculate the total quantity for.

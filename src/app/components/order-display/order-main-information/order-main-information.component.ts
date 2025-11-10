@@ -3,7 +3,7 @@ import { Component, computed, input, OnChanges, OnInit, signal } from '@angular/
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTableDataSource } from '@angular/material/table';
-import { ItemResponseDTO } from '../../../api';
+import { ItemResponseDTO } from '../../../api-services-v2';
 import { ITEM_FIELD_NAMES } from '../../../display-name-mappings/item-names';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayItem } from '../../../models/display-item';
