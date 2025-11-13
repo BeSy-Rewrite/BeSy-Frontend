@@ -52,7 +52,7 @@ import {
   ApprovalResponseDTO,
   OrderStatus,
   OrderResponseDTO,
-} from '../../../api';
+} from '../../../api-services-v2';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
   ORDER_APPROVAL_FORM_CONFIG,
@@ -701,7 +701,7 @@ export class EditOrderPageComponent implements OnInit {
       if (option === 'preferred' && this.selectedDeliveryPerson?.address_id) {
         this.deliveryAddressFormGroup.enable();
         this.personsWrapperService
-          .getPersonAddressesById(this.selectedDeliveryPerson.id!)
+          .getPersonAddressById(this.selectedDeliveryPerson.id!)
           .then((addr) => this.deliveryAddressFormGroup.patchValue(addr));
         this.deliveryInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
@@ -762,7 +762,7 @@ export class EditOrderPageComponent implements OnInit {
     else {
       if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
         this.personsWrapperService
-          .getPersonAddressesById(this.selectedInvoicePerson.id!)
+          .getPersonAddressById(this.selectedInvoicePerson.id!)
           .then((addr) => this.invoiceAddressFormGroup.patchValue(addr));
         this.invoiceInfoText =
           'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';

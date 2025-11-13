@@ -18,7 +18,7 @@ import {
   OrderResponseDTOFormatted,
   OrdersWrapperService,
 } from '../../../../services/wrapper-services/orders-wrapper.service';
-import { CostCenterResponseDTO, OrderRequestDTO } from '../../../../api';
+import { CostCenterResponseDTO, OrderRequestDTO } from '../../../../api-services-v2';
 import { CostCenterWrapperService } from '../../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   PersonsWrapperService,
@@ -33,7 +33,6 @@ import { Router } from '@angular/router';
   imports: [
     ProgressBarComponent,
     MatTabsModule,
-    MatTabGroup,
     MatDivider,
     FormComponent,
     MatAutocompleteModule,

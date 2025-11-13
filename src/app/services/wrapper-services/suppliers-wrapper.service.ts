@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { SupplierRequestDTO, SuppliersService } from '../../api';
+import { SupplierRequestDTO, SuppliersService } from '../../api-services-v2';
+import { lastValueFrom } from 'rxjs';
 
 export interface SupplierFormatted {
   label: string | undefined;
@@ -10,25 +11,22 @@ export interface SupplierFormatted {
   providedIn: 'root'
 })
 export class SuppliersWrapperService {
+  constructor(private readonly suppliersService: SuppliersService) { }
 
   async getAllSuppliers() {
-    const suppliers = await SuppliersService.getAllSuppliers();
-    return suppliers;
+    return lastValueFrom(this.suppliersService.getAllSuppliers());
   }
 
   async getSupplierById(id: number) {
-    const supplier = await SuppliersService.getSupplierById(id);
-    return supplier;
+    return lastValueFrom(this.suppliersService.getSupplierById(id));
   }
 
   async createSupplier(supplier: any) {
-    const createdSupplier = await SuppliersService.createSupplier(supplier);
-    console.log("Created supplier:", createdSupplier);
-    return createdSupplier;
+    return lastValueFrom(this.suppliersService.createSupplier(supplier));
   }
 
   async updateSupplier(id: number, supplier: SupplierRequestDTO) {
-    const updatedSupplier = await SuppliersService.updateSupplierById(id, supplier);
+    const updatedSupplier = await lastValueFrom(this.suppliersService.updateSupplierById(id, supplier));
     console.log("Updated supplier:", updatedSupplier);
     return updatedSupplier;
   }
@@ -39,24 +37,16 @@ export class SuppliersWrapperService {
      * @throws ApiError
      */
   async getCustomersIdsBySupplierId(supplierId: number) {
-    const customerIds = await SuppliersService.getCustomerIdsOfOrder(supplierId);
+    const customerIds = await lastValueFrom(this.suppliersService.getCustomerIdsOfOrder(supplierId));
     return customerIds;
   }
 
   async createSupplierCustomerId(supplierId: number, customerId: any) {
-    const createdCustomerId = await SuppliersService.createSupplierCustomerId(supplierId, customerId);
-    console.log("Created customer ID:", createdCustomerId);
-    return createdCustomerId;
-  }
-
-  async getSuppliersAddresses() {
-    const addresses = await SuppliersService.getSuppliersAddresses();
-    return addresses;
+    return lastValueFrom(this.suppliersService.createSupplierCustomerId(supplierId, customerId));
   }
 
   async getSupplierAddress(id: number) {
-    const address = await SuppliersService.getSuppliersAddress(id);
-    return address;
+    return lastValueFrom(this.suppliersService.getSupplierAddress(id));
   }
 
   async getSupplierByIdFormattedForAutocomplete(id: number): Promise<SupplierFormatted | undefined> {

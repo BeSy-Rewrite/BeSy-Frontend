@@ -5,7 +5,7 @@ import { MatPaginator, PageEvent } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { BehaviorSubject, debounceTime, forkJoin, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api';
+import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api-services-v2';
 import { DataSourceSorting } from '../models/datasource-sorting';
 import { ActiveFilters } from '../models/filter/filter-menu-types';
 import { FilterRequestParams } from '../models/filter/filter-request-params';

@@ -1,5 +1,7 @@
 import { Injectable } from '@angular/core';
-import { CurrenciesService, CurrencyResponseDTO } from '../../api';
+import { CurrenciesService, CurrencyResponseDTO } from '../../api-services-v2';
+import { lastValueFrom } from 'rxjs';
+
 
 export interface CurrencyWithDisplayName extends CurrencyResponseDTO {
   symbol: string; // currency symbol, e.g. "€"
@@ -15,11 +17,13 @@ export interface FormattedCurrency {
   providedIn: 'root',
 })
 export class CurrenciesWrapperService {
+
+    constructor(private readonly currenciesService: CurrenciesService) { }
   private static readonly CACHE_KEY = 'currencies_cache';
   private static readonly CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
   async getAllCurrencies() {
-    return CurrenciesService.getAllCurrencies();
+    return lastValueFrom(this.currenciesService.getAllCurrencies());
   }
 
   /**
@@ -45,7 +49,7 @@ export class CurrenciesWrapperService {
     }
 
     // If cache is not valid or doesn't exist, make API call
-    const currencies = await CurrenciesService.getAllCurrencies();
+    const currencies = await this.getAllCurrencies();
 
     // Enrich currencies with symbols
     const enrichedCurrencies = currencies.map((c) => {

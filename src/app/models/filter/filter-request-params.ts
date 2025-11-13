@@ -1,4 +1,4 @@
-import { OrderStatus } from "../../api";
+import { OrderStatus } from "../../api-services-v2";
 
 /**
  * Interface representing the parameters for a filter request.

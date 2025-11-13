@@ -3,7 +3,7 @@ import { Component, computed, input, OnChanges, OnInit, signal } from '@angular/
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTableDataSource } from '@angular/material/table';
-import { ItemResponseDTO } from '../../../api';
+import { ItemResponseDTO } from '../../../api-services-v2';
 import { ITEM_FIELD_NAMES } from '../../../display-name-mappings/item-names';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayItem } from '../../../models/display-item';
@@ -102,10 +102,21 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
 
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
-    this.ordersService.getOrderItems(this.orderData().order.id).then(items => {
+    const orderWrapper = this.orderData();
+    // If order data or order id is missing, clear the items and totals and return early.
+    if (!orderWrapper || orderWrapper.order.id == null) {
+      this.fetchedItems.set([]);
+      this.items = new MatTableDataSource([]);
+      this.totalQuantity.set(0);
+      this.totalPrice.set(0);
+      return;
+    }
+
+    const orderId: number = orderWrapper.order.id;
+    this.ordersService.getOrderItems(orderId).then(items => {
       this.fetchedItems.set(items);
 
-      this.currencyCode = this.orderData().order.currency?.code ?? 'EUR';
+      this.currencyCode = orderWrapper.order.currency?.code ?? 'EUR';
       this.totalQuantity.set(this.subresourceService.calculateTotalQuantity(items));
       this.totalPrice.set(this.subresourceService.calculateTotalGrossPrice(this.fetchedItems()));
 

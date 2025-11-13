@@ -1,11 +1,13 @@
+import { lastValueFrom } from 'rxjs';
+import { VatsService, VatResponseDTO} from '../../api-services-v2';
 import { Injectable } from '@angular/core';
-import { VatResponseDTO, VatSService } from '../../api';
 
 @Injectable({
   providedIn: 'root',
 })
 
 export class VatWrapperService {
+  constructor(private readonly vatsService: VatsService) { }
 
   private cachedVats: VatResponseDTO[] | null = null;
   private cacheTimestamp: number | null = null;
@@ -19,7 +21,7 @@ export class VatWrapperService {
     }
 
     // Fetch fresh data and update cache
-    this.cachedVats = await VatSService.getAllVats();
+    this.cachedVats = await lastValueFrom(this.vatsService.getAllVats());
     this.cacheTimestamp = now;
     return this.cachedVats;
   }
