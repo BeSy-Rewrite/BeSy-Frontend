@@ -10,10 +10,10 @@ import { concat, merge, startWith } from 'rxjs';
 import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../../configs/document-upload-config';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
+import { FileInputComponent } from '../../file-input/file-input.component';
 import { FormComponent, FormConfig } from "../../form-component/form-component.component";
 import { ProcessingIndicatorComponent } from '../../processing-indicator/processing-indicator.component';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
-import { FileInputComponent } from '../../file-input/file-input.component';
 
 export interface DocumentUploadData {
   orderId: number;
@@ -108,15 +108,16 @@ export class DocumentUploadComponent implements OnInit {
     const linkExisting = this.linkExistingDocument.value;
     const existingIdValid = this.existingDocumentId.value ? this.existingDocumentId.value > 0 : false;
     const fileSelected = this.selectedFile() !== undefined;
+    console.log(`Form valid: ${formValid}, Link existing: ${linkExisting}, Existing ID valid: ${existingIdValid}, File selected: ${fileSelected}`);
     this.isValid.set(formValid && (linkExisting ? existingIdValid : fileSelected));
   }
 
   /**
    * Handles the file input change event to store the selected file.
-   * @param event The file input change event.
+   * @param file The file input change event.
    */
-  onFileSelected(event: any): void {
-    this.selectedFile.set(event.target.files[0] ?? undefined);
+  onFileSelected(file: File | undefined): void {
+    this.selectedFile.set(file ?? undefined);
     this.updateValidity();
   }
 
@@ -187,7 +188,7 @@ export class DocumentUploadComponent implements OnInit {
         this.processingIndicator?.close();
         this.dialogRef.close(true);
       },
-      error: (error) => {
+      error: () => {
         this.snackBar.open('Fehler beim Hochladen des Dokuments. Bitte versuchen Sie es erneut.', 'Schließen', {
           duration: 5000
         });
