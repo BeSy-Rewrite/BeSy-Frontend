@@ -6,7 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "test": "ng test",
+    "update:api": "npx @openapitools/openapi-generator-cli generate -i api-docs.yml -g typescript-angular -o src/app/api-services-v2 --additional-properties=enumPropertyNaming=UPPERCASE"
   },
   "private": true,
   "dependencies": {

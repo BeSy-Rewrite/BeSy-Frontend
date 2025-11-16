@@ -26,14 +26,12 @@ import {
   AddressResponseDTO,
   ApprovalRequestDTO,
   CostCenterResponseDTO,
-  CostCentersService,
   ItemRequestDTO,
   OrderRequestDTO,
-  OrdersService,
   PersonResponseDTO,
   QuotationRequestDTO,
-  VatResponseDTO,
-} from '../../../api';
+  VatResponseDTO
+} from '../../../api-services-v2';
 import { FormComponent, FormConfig } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
@@ -48,6 +46,8 @@ import {
   TableActionButton,
   TableColumn,
 } from '../../../models/generic-table';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
+import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 import { PersonsWrapperService } from './../../../services/wrapper-services/persons-wrapper.service';
 
@@ -75,8 +75,6 @@ import { PersonsWrapperService } from './../../../services/wrapper-services/pers
   styleUrl: './create-order-page.component.scss',
 })
 export class CreateOrderPageComponent implements OnInit {
-  constructor(private router: Router, private _notifications: MatSnackBar, private personsWrapperService: PersonsWrapperService) { }
-
   postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
 
   // Item variables
@@ -207,11 +205,18 @@ export class CreateOrderPageComponent implements OnInit {
   );
   filteredSecondaryCostCenters!: Observable<CostCenterResponseDTO[]>;
 
+  constructor(private readonly router: Router,
+    private readonly _notifications: MatSnackBar,
+    private readonly personsWrapperService: PersonsWrapperService,
+    private readonly vatWrapperService: VatWrapperService,
+    private readonly costCentersService: CostCenterWrapperService,
+    private readonly ordersService: OrdersWrapperService
+  ) { }
   // Currency and VAT variables
 
   async ngOnInit(): Promise<void> {
     // Load initial data for the VAT options field in the form
-    const vatOptions = await VatWrapperService.getAllVats();
+    const vatOptions = await this.vatWrapperService.getAllVats();
     this.setDropdownVatOptions(vatOptions);
 
     // Initialize the person dropdown in the address form with data from the api
@@ -241,7 +246,7 @@ export class CreateOrderPageComponent implements OnInit {
       })
     );
 
-    this.costCenters = await CostCentersService.getCostCenters();
+    this.costCenters = await this.costCentersService.getAllCostCenters();
     this.filteredPrimaryCostCenters =
       this.primaryCostCenterControl.valueChanges.pipe(
         startWith(''),
@@ -362,7 +367,7 @@ export class CreateOrderPageComponent implements OnInit {
 
     if (person.address_id) {
       const preferredAddress: AddressResponseDTO =
-        await this.personsWrapperService.getPersonAddressesById(person.id!);
+        await this.personsWrapperService.getPersonAddressById(person.id!);
 
       if (isRecipient) {
         this.recipientHasPreferredAddress = true;
@@ -438,7 +443,7 @@ export class CreateOrderPageComponent implements OnInit {
       this.recipientAddressOption = option as any;
 
       if (option === 'preferred' && this.selectedRecipientPerson?.address_id) {
-        this.personsWrapperService.getPersonAddressesById(this.selectedRecipientPerson.id!).then(
+        this.personsWrapperService.getPersonAddressById(this.selectedRecipientPerson.id!).then(
           (addr) => this.recipientAddressFormGroup.patchValue(addr)
         );
         this.recipientInfoText =
@@ -464,7 +469,7 @@ export class CreateOrderPageComponent implements OnInit {
       this.invoiceAddressOption = option as any;
 
       if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
-        this.personsWrapperService.getPersonAddressesById(this.selectedInvoicePerson.id!).then(
+        this.personsWrapperService.getPersonAddressById(this.selectedInvoicePerson.id!).then(
           (addr) => this.invoiceAddressFormGroup.patchValue(addr)
         );
         this.invoiceInfoText =
@@ -684,7 +689,7 @@ export class CreateOrderPageComponent implements OnInit {
 
   saveOrder() {
     console.log('PostOrderDTO vor dem Speichern:', this.postOrderDTO);
-    OrdersService.createOrder(this.postOrderDTO)
+    this.ordersService.createOrder(this.postOrderDTO)
       .then((order) => {
         this._notifications.open(
           'Bestellung erfolgreich erstellt.',

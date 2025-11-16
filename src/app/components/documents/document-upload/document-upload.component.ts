@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { concat, merge, startWith } from 'rxjs';
+import { InvoiceRequestDTO } from '../../../api-services-v2';
 import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../../configs/document-upload-config';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
@@ -17,16 +18,6 @@ import { DocumentPreviewComponent } from '../document-preview/document-preview.c
 
 export interface DocumentUploadData {
   orderId: number;
-}
-
-export interface InvoiceRequestDTO {
-  id: string;
-  cost_center_id: number;
-  order_id: number;
-  price?: number;
-  date?: string;
-  comment?: string;
-  paperless_id?: number;
 }
 
 @Component({
@@ -139,6 +130,7 @@ export class DocumentUploadComponent implements OnInit {
 
   /**
    * Constructs an InvoiceRequestDTO from the form values.
+   * If no date is provided, the current date is used.
    * @returns The constructed InvoiceRequestDTO.
    */
   getInvoice(): InvoiceRequestDTO {
@@ -160,7 +152,7 @@ export class DocumentUploadComponent implements OnInit {
       cost_center_id: formValues.costCenterId,
       order_id: this.data.orderId,
       price: formValues.price,
-      date: formValues.date ? new Date(Date.parse(formValues.date)).toISOString().split('T')[0] : undefined,
+      date: formValues.date ? new Date(Date.parse(formValues.date)).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
       comment: formValues.comment,
       paperless_id: paperlessId
     };

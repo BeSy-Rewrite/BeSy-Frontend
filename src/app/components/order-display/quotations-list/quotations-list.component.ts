@@ -1,7 +1,7 @@
 import { DataSource } from '@angular/cdk/table';
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
-import { QuotationResponseDTO } from '../../../api';
+import { QuotationResponseDTO } from '../../../api-services-v2';
 import { QUOTATION_FIELD_NAMES } from '../../../display-name-mappings/quotation-names';
 import { DisplayQuotation } from '../../../models/display-quotation';
 import { TableColumn } from '../../../models/generic-table';

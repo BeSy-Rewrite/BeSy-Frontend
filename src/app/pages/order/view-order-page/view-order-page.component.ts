@@ -10,7 +10,7 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
 import { environment } from "../../../../environments/environment";
-import { OrderStatus, UserResponseDTO } from '../../../api';
+import { OrderStatus, UserResponseDTO } from '../../../api-services-v2';
 import { setupDialog } from "../../../components/dialog/dialog.component";
 import { OrderDocumentsComponent } from "../../../components/documents/order-documents/order-documents.component";
 import { ApprovalsComponent } from '../../../components/order-display/approvals/approvals.component';
@@ -206,7 +206,7 @@ export class ViewOrderPageComponent implements OnInit {
     }
 
     if (newState === OrderStatus.IN_PROGRESS) {
-      this.ordersService.putOrderState(this.internalOrder().order.id!, newState).then(() => {
+      this.ordersService.updateOrderState(this.internalOrder().order.id!, newState).then(() => {
         this.snackBar.open(`Bestellungsstatus erfolgreich zu '${STATE_DISPLAY_NAMES.get(newState) ?? newState}' geändert.`, 'Schließen', { duration: 5000 });
         this.updateOrderState(newState);
       },

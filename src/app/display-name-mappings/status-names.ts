@@ -1,4 +1,4 @@
-import { OrderStatus as state } from '../api';
+import { OrderStatus as state } from '../api-services-v2';
 
 const NBSP = '\u00A0';
 

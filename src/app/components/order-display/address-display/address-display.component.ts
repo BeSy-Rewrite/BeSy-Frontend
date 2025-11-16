@@ -1,5 +1,6 @@
 import { Component, input, OnInit, signal } from '@angular/core';
-import { AddressResponseDTO } from '../../../api';
+import { from } from 'rxjs';
+import { AddressResponseDTO } from '../../../api-services-v2';
 import { PersonsWrapperService } from '../../../services/wrapper-services/persons-wrapper.service';
 
 type DisplayAddress = { [key in keyof AddressResponseDTO]: string };
@@ -21,7 +22,7 @@ export class AddressDisplayComponent implements OnInit {
   constructor(private readonly personsService: PersonsWrapperService) { }
 
   ngOnInit(): void {
-    this.personsService.getAddress(this.addressId()).subscribe(address => {
+    from(this.personsService.getPersonAddressById(this.addressId())).subscribe(address => {
       const addressDisplay: DisplayAddress = {};
 
       for (const [key, value] of Object.entries(address ?? {})) {

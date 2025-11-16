@@ -1,20 +1,18 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { MatTableDataSource } from '@angular/material/table';
-import {
-  CostCenterRequestDTO,
-  CostCenterResponseDTO,
-  SupplierResponseDTO,
-} from '../../../api';
-import { ButtonColor, TableActionButton } from '../../../models/generic-table';
-import { MatTabGroup } from '@angular/material/tabs';
-import { MatTab } from '@angular/material/tabs';
-import { MatDivider } from '@angular/material/divider';
-import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
-import { FormComponent } from '../../../components/form-component/form-component.component';
-import { COST_CENTER_FORM_CONFIG } from '../../../configs/cost-center-config';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDivider } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatTab, MatTabGroup } from '@angular/material/tabs';
+import {
+  CostCenterRequestDTO,
+  CostCenterResponseDTO
+} from '../../../api-services-v2';
+import { FormComponent } from '../../../components/form-component/form-component.component';
+import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { COST_CENTER_FORM_CONFIG } from '../../../configs/cost-center-config';
+import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 
 @Component({
@@ -31,7 +29,7 @@ import { CostCenterWrapperService } from '../../../services/wrapper-services/cos
   styleUrl: './cost-center-page.component.scss',
 })
 export class CostCentersPageComponent implements OnInit {
-  constructor(private _notifications: MatSnackBar, private costCenterWrapperService: CostCenterWrapperService) {}
+  constructor(private readonly _notifications: MatSnackBar, private readonly costCenterWrapperService: CostCenterWrapperService) { }
 
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
   // Data source to be displayed in the cost-center-table component

@@ -1,15 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { lastValueFrom, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { ApprovalResponseDTO, ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, OrderStatusHistoryResponseDTO, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api';
+import { ApprovalResponseDTO, ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, OrderStatusHistoryResponseDTO, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api-services-v2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class OrdersWrapperService {
 
-  constructor(private readonly http: HttpClient) { }
+  constructor(private readonly http: HttpClient,
+    private readonly ordersService: OrdersService
+  ) { }
 
   /**
      * @param page Seitenzahl für die Paginierung (beginnend bei 0).
@@ -56,7 +58,7 @@ export class OrdersWrapperService {
     lastUpdatedTimeAfter?: string,
     lastUpdatedTimeBefore?: string
   ): Promise<PagedOrderResponseDTO> {
-    return await OrdersService.getAllOrders(
+    return await lastValueFrom(this.ordersService.getAllOrders(
       page,
       size,
       sort,
@@ -76,43 +78,43 @@ export class OrdersWrapperService {
       secondaryCostCenters,
       lastUpdatedTimeAfter,
       lastUpdatedTimeBefore
-    );
+    ));
   }
 
   async createOrder(request: OrderRequestDTO): Promise<OrderResponseDTO> {
-    return await OrdersService.createOrder(request);
+    return await lastValueFrom(this.ordersService.createOrder(request));
   }
 
   async getOrderById(orderId: number): Promise<OrderResponseDTO> {
-    return await OrdersService.getOrderById(orderId);
+    return await lastValueFrom(this.ordersService.getOrderById(orderId));
   }
 
   async deleteOrder(orderId: number): Promise<void> {
-    return await OrdersService.deleteOrder(orderId);
+    return await lastValueFrom(this.ordersService.deleteOrder(orderId));
   }
 
   async getOrderItems(orderId: string): Promise<ItemResponseDTO[]> {
-    return await OrdersService.getOrderItems(orderId);
+    return await lastValueFrom(this.ordersService.getOrderItems(orderId));
   }
 
   async createOrderItems(orderId: number, requestBody: any): Promise<any> {
-    return await OrdersService.createOrderItems(orderId, requestBody);
+    return await lastValueFrom(this.ordersService.createOrderItems(orderId, requestBody));
   }
 
   async deleteItemOfOrder(orderId: number, itemId: number): Promise<void> {
-    return await OrdersService.deleteItemOfOrder(orderId, itemId);
+    return await lastValueFrom(this.ordersService.deleteOrderItem(orderId, itemId));
   }
 
   async getOrderQuotations(orderId: string): Promise<QuotationResponseDTO[]> {
-    return await OrdersService.getOrderQuotations(orderId);
+    return await lastValueFrom(this.ordersService.getOrderQuotations(orderId));
   }
 
   async createOrderQuotations(orderId: number, requestBody: any): Promise<any> {
-    return await OrdersService.createOrderQuotations(orderId, requestBody);
+    return await lastValueFrom(this.ordersService.createOrderQuotations(orderId, requestBody));
   }
 
   async deleteQuotationOfOrder(orderId: number, quotationId: number): Promise<void> {
-    return await OrdersService.deleteQuotationOfOrder(orderId, quotationId);
+    return await lastValueFrom(this.ordersService.deleteOrderQuotation(orderId, quotationId));
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
@@ -120,14 +122,14 @@ export class OrdersWrapperService {
   }
 
   async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
-    return await OrdersService.getOrdersApprovals(orderId);
+    return await lastValueFrom(this.ordersService.getOrderApprovals(orderId));
   }
 
   async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistoryResponseDTO[]> {
-    return await OrdersService.getOrdersStatusHistory(orderId);
+    return await lastValueFrom(this.ordersService.getOrderStatusHistory(orderId));
   }
 
-  async putOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
-    return await OrdersService.putOrdersStatus(orderId, newState);
+  async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
+    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, newState));
   }
 }

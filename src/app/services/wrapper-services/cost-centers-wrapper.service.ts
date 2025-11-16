@@ -1,20 +1,18 @@
 import { Injectable } from '@angular/core';
-import { CostCentersService } from '../../api';
+import { lastValueFrom } from 'rxjs';
+import { CostCentersService } from '../../api-services-v2';
 
 @Injectable({
   providedIn: 'root'
 })
 export class CostCenterWrapperService {
-  constructor() {}
+  constructor(private readonly costCentersService: CostCentersService) { }
 
   async getAllCostCenters() {
-    const costCenters = await CostCentersService.getCostCenters();
-    return costCenters;
+    return await lastValueFrom(this.costCentersService.getCostCenters());
   }
 
   async createCostCenter(costCenter: any) {
-    const createdCostCenter = await CostCentersService.createCostCenter(costCenter);
-    console.log("Created cost center:", createdCostCenter);
-    return createdCostCenter;
+    return await lastValueFrom(this.costCentersService.createCostCenter(costCenter));
   }
 }

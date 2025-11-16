@@ -1,22 +1,22 @@
-import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import { SupplierResponseDTO } from '../../../api/models/SupplierResponseDTO';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { EDIT_SUPPLIER_FORM_CONFIG } from '../../../configs/edit/edit-supplier-config';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
-import { FormComponent } from '../../../components/form-component/form-component.component';
-import { AddressFormComponent } from '../../../components/address-form/address-form.component';
-import { EDIT_ADDRESS_FORM_CONFIG } from '../../../configs/edit/edit-address-config';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   AddressResponseDTO,
   CustomerIdRequestDTO,
   CustomerIdResponseDTO,
-} from '../../../api';
+  SupplierResponseDTO
+} from '../../../api-services-v2';
+import { AddressFormComponent } from '../../../components/address-form/address-form.component';
+import { FormComponent } from '../../../components/form-component/form-component.component';
+import { EDIT_ADDRESS_FORM_CONFIG } from '../../../configs/edit/edit-address-config';
 import { EDIT_CUSTOMER_ID_FORM_CONFIG } from '../../../configs/edit/edit-customer-id-config';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { EDIT_SUPPLIER_FORM_CONFIG } from '../../../configs/edit/edit-supplier-config';
+import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 @Component({
   selector: 'app-edit-suppliers-page',
   imports: [MatDivider, FormComponent, AddressFormComponent, MatButtonModule],
@@ -29,7 +29,7 @@ export class EditSuppliersPageComponent implements OnInit {
     private router: Router,
     private _notifications: MatSnackBar,
     private suppliersWrapperService: SuppliersWrapperService
-  ) {}
+  ) { }
 
   supplierId!: number | unknown; // ID of the supplier being edited
   supplierName = ''; // Placeholder variable for the supplier name in the customer-id-form title
