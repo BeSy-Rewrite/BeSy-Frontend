@@ -13,5 +13,6 @@ export const environment = {
 
     // Caching and performance, in milliseconds
     cacheDurationMs: 5 * 60 * 1000, // 5 minutes
-    searchAndFilterDebounceMs: 100
+    searchAndFilterDebounceMs: 100,
+    saveActiveFiltersDebounceMs: 5000
 };
