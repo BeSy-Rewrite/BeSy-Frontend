@@ -17,7 +17,7 @@ import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-table/orders-
 import { ordersTableConfig } from '../../../configs/orders-table/orders-table-config';
 import { DataSourceSorting } from '../../../models/datasource-sorting';
 import { ActiveFilters } from '../../../models/filter/filter-menu-types';
-import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetParams, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter/filter-presets';
+import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetParams, FilterPresetType, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
 import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
@@ -88,10 +88,10 @@ export class OrdersPageComponent implements OnInit {
 
     if (Object.keys(this.routeSnapshot.queryParams).length > 0) {
       const presetParams: Params = {};
-      for (const key of Object.keys(this.routeSnapshot.queryParams)) {
-        if (ORDERS_FILTER_MENU_CONFIG.some(f => f.key === key)) {
-          presetParams[key] = this.routeSnapshot.queryParams[key];
-        }
+      const queryParams = this.routeSnapshot.queryParams;
+
+      for (const key of Object.keys(queryParams)) {
+        presetParams[key] = queryParams[key];
       }
       this.initialPreset = this.parseFilterPresetFromUrlParams(presetParams);
     }
@@ -123,6 +123,7 @@ export class OrdersPageComponent implements OnInit {
       ...col,
       isInvisible: !selected?.includes(col.id)
     }));
+    this.updateUrlParams();
   }
 
   /**
@@ -205,8 +206,8 @@ export class OrdersPageComponent implements OnInit {
       label: 'urlParams',
       appliedFilters: []
     };
-    let filterSettings: (ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset) | undefined;
     for (const [key, value] of Object.entries(params)) {
+      let filterSettings: FilterPresetType | undefined;
       switch (ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)?.type) {
         case 'select':
           filterSettings = this.parseChipParams(key, value);
@@ -220,15 +221,15 @@ export class OrdersPageComponent implements OnInit {
           filterSettings = this.parseRangeParams(key, value);
           break;
         default:
-          console.warn(`Unknown filter type for key: ${key}`);
-          this._snackBar.open(`Unbekannter Filtertyp für Schlüssel: ${key}. Bitte überprüfen Sie Ihre URL-Parameter.`, 'Schließen', { duration: 5000 });
+          if (key === 'selectedColumnIds' && value) {
+            filterSettings = { id: 'selectedColumnIds', selectedColumnIds: value.split(',') };
+          }
       }
 
       if (filterSettings) {
         preset.appliedFilters.push(filterSettings);
       }
     }
-    console.log('Loaded filter preset from URL params:', preset);
     return preset;
   }
 
@@ -298,6 +299,8 @@ export class OrdersPageComponent implements OnInit {
         }
 
         params[filter.id] = (start ?? '') + '_' + (end ?? '');
+      } else if ('selectedColumnIds' in filter) {
+        params['selectedColumnIds'] = filter.selectedColumnIds.join(',');
       }
       // Remove undefined parameters
       if ([undefined, null, '', '-', '_'].includes(params[filter.id])) {
