@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { forkJoin, map, Observable, of } from 'rxjs';
+import { ZodError } from 'zod';
 import { environment } from '../../environments/environment';
 import { OrderResponseDTO, OrderStatus } from '../api-services-v2';
 import { STATE_DISPLAY_NAMES } from '../display-name-mappings/status-names';
@@ -69,8 +70,14 @@ export class OrderStateValidityService {
    */
   checkRequiredFields(order: OrderResponseDTO, targetState: OrderStatus) {
     if (order.status === OrderStatus.IN_PROGRESS && targetState === OrderStatus.COMPLETED) {
-      return of(ValidCompletedOrder.parse(order)).pipe(
-        map(() => order)
+      return of(ValidCompletedOrder.safeParse(order)).pipe(
+        map(result => {
+          if (result.success) {
+            return order;
+          } else {
+            throw new ZodError(result.error.issues);
+          }
+        })
       );
     }
     return of(order);
