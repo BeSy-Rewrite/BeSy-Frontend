@@ -24,5 +24,7 @@ export * from './quotationResponseDTO';
 export * from './sort';
 export * from './supplierRequestDTO';
 export * from './supplierResponseDTO';
+export * from './userPreferencesRequestDTO';
+export * from './userPreferencesResponseDTO';
 export * from './userResponseDTO';
 export * from './vatResponseDTO';
