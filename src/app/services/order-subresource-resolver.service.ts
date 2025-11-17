@@ -175,7 +175,7 @@ export class OrderSubresourceResolverService {
   convertOrderToDisplayData(order: OrderResponseDTO): OrderDisplayData {
     const data = {} as OrderDisplayData;
     data.id = order.id?.toString() ?? '';
-    data.besy_number = `${order.primary_cost_center_id}-${order.booking_year}-${order.auto_index}`;
+    data.besy_number = this.getOrderNumber(order) ?? 'nicht vergeben';
     data.primary_cost_center_id = '';
     data.booking_year = order.booking_year ? '20' + order.booking_year : '';
     data.auto_index = order.auto_index ?? '';
@@ -296,6 +296,19 @@ export class OrderSubresourceResolverService {
       return PREFERRED_LIST_NAMES.get(preferredList) ?? preferredList;
     }
     return 'Keine bevorzugte Liste';
+  }
+
+  /**
+   * Constructs the order number from its components.
+   * @param order The order DTO.
+   * @returns The constructed order number or undefined if any part is missing.
+   */
+  getOrderNumber(order: OrderResponseDTO): string | undefined {
+    const orderNumber = [order.primary_cost_center_id, order.booking_year, order.auto_index]
+    if (orderNumber.some(part => part === undefined || part === null)) {
+      return undefined;
+    }
+    return orderNumber.join('-');
   }
 
   /**

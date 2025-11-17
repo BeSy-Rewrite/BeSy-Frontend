@@ -6,8 +6,8 @@ export type OrdersTableConfig = TableColumn[];
 export const ordersTableConfig: OrdersTableConfig = [
     // \u00A0 is a non-breaking space to prevent breaking in the middle of the label
     // Columns from old BeSy -> visible + sortable if supported by the backend
-    { id: 'id', label: ORDER_FIELD_NAMES["id"].replace(' ', '\u00A0') },
     { id: 'besy_number', label: ORDER_FIELD_NAMES["besy_number"], isUnsortable: true },
+    { id: 'id', label: ORDER_FIELD_NAMES["id"].replace(' ', '\u00A0'), isInvisible: true },
     { id: 'status', label: ORDER_FIELD_NAMES["status"] },
     { id: 'content_description', label: ORDER_FIELD_NAMES["content_description"], isUnsortable: true },
     { id: 'primary_cost_center_id', label: ORDER_FIELD_NAMES["primary_cost_center_id"] },
