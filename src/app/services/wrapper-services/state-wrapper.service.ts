@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { map } from 'rxjs';
+import { map, of, tap } from 'rxjs';
 import { OrdersService } from '../../api-services-v2';
 import { AllowedStateTransitions } from '../../models/allowed-states-transitions';
 
@@ -8,6 +8,9 @@ import { AllowedStateTransitions } from '../../models/allowed-states-transitions
   providedIn: 'root'
 })
 export class StateWrapperService {
+
+  private stateTransitions: AllowedStateTransitions | undefined = undefined
+
   constructor(private readonly ordersService: OrdersService) { }
 
   /**
@@ -15,8 +18,12 @@ export class StateWrapperService {
    * @returns An observable of AllowedStateTransitions mapping current states to possible next states.
    */
   getAllowedStateTransitions() {
+    if (this.stateTransitions) {
+      return of(this.stateTransitions);
+    }
     return this.ordersService.getOrderStatusTransitions().pipe(
-      map(statuses => statuses as AllowedStateTransitions)
+      map(statuses => statuses as AllowedStateTransitions),
+      tap(transitions => this.stateTransitions = transitions)
     );
   }
 }
