@@ -4,6 +4,9 @@ import { OrdersFilterPreset } from "../../models/filter/filter-presets";
 
 const currentYearString = new Date().getFullYear().toString();
 
+export const LAST_ACTIVE_FILTERS_KEY = 'lastActiveFilters';
+export const CURRENT_USER_PLACEHOLDER = 'CURRENT_USER';
+
 export const ORDERS_FILTER_PRESETS: OrdersFilterPreset[] = [
     {
         label: currentYearString,
@@ -22,7 +25,7 @@ export const ORDERS_FILTER_PRESETS: OrdersFilterPreset[] = [
             {
                 id: "owner_id",
                 chipIds: [
-                    "CURRENT_USER"
+                    CURRENT_USER_PLACEHOLDER
                 ]
             }
         ]
