@@ -1,7 +1,7 @@
 import { CollectionViewer } from '@angular/cdk/collections';
 import { DataSource } from '@angular/cdk/table';
 import { computed, Injectable, signal } from '@angular/core';
-import { MatPaginator, PageEvent } from '@angular/material/paginator';
+import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { BehaviorSubject, debounceTime, forkJoin, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -107,7 +107,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    */
   set paginator(paginator: MatPaginator) {
     this._paginator = paginator;
-    this._paginator.page.subscribe((page: PageEvent) => {
+    this._paginator.page.subscribe(() => {
       this._requestFetch?.next();
     });
   }
@@ -211,7 +211,9 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       secondaryCostCenters: this._filter?.secondary_cost_center_id?.map(f => f.id?.toString() ?? ''),
       lastUpdatedTimeAfter: this._filter?.last_updated_time?.start?.toISOString(),
       lastUpdatedTimeBefore: this._filter?.last_updated_time?.end?.toISOString(),
-    }
+      autoIndexMin: this._filter?.auto_index?.start,
+      autoIndexMax: this._filter?.auto_index?.end,
+    };
   }
 
   /**
@@ -271,10 +273,10 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
 
   /**
    * Connects the data source to the collection viewer.
-   * @param collectionViewer The collection viewer to connect to.
+   * @param _collectionViewer The collection viewer to connect to.
    * @returns An observable of the data to display.
    */
-  override connect(collectionViewer: CollectionViewer): Observable<readonly T[]> {
+  override connect(_collectionViewer: CollectionViewer): Observable<readonly T[]> {
     this._requestFetch?.next();
     return this._data.asObservable();
   }
@@ -282,9 +284,9 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
   /**
    * Disconnects the data source from the collection viewer.
    * Needed by the interface but not used in this implementation.
-   * @param collectionViewer The collection viewer to disconnect from.
+   * @param _collectionViewer The collection viewer to disconnect from.
    */
-  override disconnect(collectionViewer: CollectionViewer): void {
+  override disconnect(_collectionViewer: CollectionViewer): void {
     // Method required by interface; no action needed.
   }
 

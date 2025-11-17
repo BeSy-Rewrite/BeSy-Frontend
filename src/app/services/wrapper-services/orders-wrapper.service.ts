@@ -56,7 +56,9 @@ export class OrdersWrapperService {
     supplierIds?: Array<number>,
     secondaryCostCenters?: Array<string>,
     lastUpdatedTimeAfter?: string,
-    lastUpdatedTimeBefore?: string
+    lastUpdatedTimeBefore?: string,
+    autoIndexMin?: number,
+    autoIndexMax?: number,
   ): Promise<PagedOrderResponseDTO> {
     return await lastValueFrom(this.ordersService.getAllOrders(
       page,
@@ -77,7 +79,9 @@ export class OrdersWrapperService {
       supplierIds,
       secondaryCostCenters,
       lastUpdatedTimeAfter,
-      lastUpdatedTimeBefore
+      lastUpdatedTimeBefore,
+      autoIndexMin,
+      autoIndexMax
     ));
   }
 

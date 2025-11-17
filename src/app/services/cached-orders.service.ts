@@ -99,7 +99,9 @@ export class CachedOrdersService {
       filters?.supplierIds,
       filters?.secondaryCostCenters,
       filters?.lastUpdatedTimeAfter,
-      filters?.lastUpdatedTimeBefore
+      filters?.lastUpdatedTimeBefore,
+      filters?.autoIndexMin,
+      filters?.autoIndexMax
     )).pipe(
       tap((pageResponse: PagedOrderResponseDTO) => {
 
