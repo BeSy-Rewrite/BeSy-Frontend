@@ -3,7 +3,6 @@ import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rx
 import { CostCenterResponseDTO, CurrencyResponseDTO, ItemResponseDTO, OrderResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../api-services-v2';
 import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-names';
 import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
-import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../models/filter/filter-presets';
 import { OrderDisplayData } from '../models/order-display-data';
 import { CostCenterWrapperService } from './wrapper-services/cost-centers-wrapper.service';
 import { CurrencyWrapperService } from './wrapper-services/currencies-wrapper.service';
@@ -377,52 +376,4 @@ export class OrderSubresourceResolverService {
     }
   }
 
-  /**
-   * Resolves the current user in the given filter presets.
-   * @param filterPresets The array of OrdersFilterPreset to resolve the current user in.
-   * @returns An observable of the resolved OrdersFilterPreset array.
-   */
-  resolveCurrentUserInPresets(filterPresets: OrdersFilterPreset[]): Observable<OrdersFilterPreset[]> {
-    return this.usersService.getCurrentUser().pipe(
-      map(user => {
-        if (!user?.id) {
-          throw new Error('Current user not found');
-        }
-
-        return this.replaceCurrentUserInPresets(filterPresets, user.id);
-      })
-    );
-  }
-
-  /**
-   * Replaces occurrences of 'CURRENT_USER' in the filter presets with the actual user ID.
-   * @param filterPresets The array of OrdersFilterPreset to process.
-   * @param userId The ID of the current user.
-   * @returns The modified array of OrdersFilterPreset.
-   */
-  private replaceCurrentUserInPresets(filterPresets: OrdersFilterPreset[], userId: string): OrdersFilterPreset[] {
-    return filterPresets.map(preset => ({
-      ...preset,
-      appliedFilters: preset.appliedFilters.map(f => this.replaceCurrentUserInAppliedFilter(f, userId))
-    }));
-  }
-
-  /**
-   * Replaces 'CURRENT_USER' in a single applied filter if it is a ChipFilterPreset.
-   * @param filter The filter preset to process.
-   * @param userId The ID of the current user.
-   * @returns The modified filter preset.
-   */
-  private replaceCurrentUserInAppliedFilter(filter: ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset, userId: string): any {
-    if (!('chipIds' in filter)) {
-      return filter;
-    }
-
-    return {
-      ...filter,
-      chipIds: filter.chipIds.map((id: numberOrString) =>
-        id === 'CURRENT_USER' ? userId : id
-      )
-    };
-  }
 }
