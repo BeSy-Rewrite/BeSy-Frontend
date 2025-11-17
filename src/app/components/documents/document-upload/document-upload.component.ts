@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, output, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from "@angular/material/checkbox";
@@ -6,18 +6,21 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { concat, merge, startWith } from 'rxjs';
-import { InvoiceRequestDTO } from '../../../api-services-v2';
+import { merge, mergeMap, startWith, tap } from 'rxjs';
+import { OrderResponseDTO } from '../../../api-services-v2';
 import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../../configs/document-upload-config';
+import { DocumentDTO } from '../../../models/document-invoice';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
 import { FileInputComponent } from '../../file-input/file-input.component';
 import { FormComponent, FormConfig } from "../../form-component/form-component.component";
-import { ProcessingIndicatorComponent } from '../../processing-indicator/processing-indicator.component';
+import { ProcessingIndicatorComponent, ProcessingIndicatorData } from '../../processing-indicator/processing-indicator.component';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
 
 export interface DocumentUploadData {
-  orderId: number;
+  order: OrderResponseDTO;
+  onComplete?: (success: boolean) => void;
+  invoiceId?: string;
 }
 
 @Component({
@@ -37,10 +40,6 @@ export interface DocumentUploadData {
   styleUrl: './document-upload.component.scss'
 })
 export class DocumentUploadComponent implements OnInit {
-  /**
-   * Event emitted when the upload is successful.
-   */
-  uploadSuccessful = output<boolean>();
 
   readonly dialogRef = inject(MatDialogRef<DocumentPreviewComponent>);
   readonly data = inject<DocumentUploadData>(MAT_DIALOG_DATA);
@@ -100,8 +99,12 @@ export class DocumentUploadComponent implements OnInit {
     const linkExisting = this.linkExistingDocument.value;
     const existingIdValid = this.existingDocumentId.value ? this.existingDocumentId.value > 0 : false;
     const fileSelected = this.selectedFile() !== undefined;
-    console.log(`Form valid: ${formValid}, Link existing: ${linkExisting}, Existing ID valid: ${existingIdValid}, File selected: ${fileSelected}`);
-    this.isValid.set(formValid && (linkExisting ? existingIdValid : fileSelected));
+
+    if (this.data.invoiceId) {
+      this.isValid.set(fileSelected);
+    } else {
+      this.isValid.set(formValid && (linkExisting ? existingIdValid : fileSelected));
+    }
   }
 
   /**
@@ -114,15 +117,14 @@ export class DocumentUploadComponent implements OnInit {
   }
 
   /**
-   * Handles the upload button click event to create the invoice and upload the file if necessary.
+   * Handles the upload button click event to create the document and upload the file if necessary.
    */
   onUpload(): void {
     if (this.documentFormGroup.valid) {
       const data: ProcessingIndicatorData = { isClosable: this.isUploadComplete };
       this.processingIndicator = this.dialog.open(ProcessingIndicatorComponent, { data });
 
-      const invoice = this.getInvoice();
-      this.createInvoice(invoice);
+      this.handleUpload();
     } else {
       this.snackBar.open('Bitte fülle alle erforderlichen Felder aus.', 'Schließen', {
         duration: 3000
@@ -130,12 +132,11 @@ export class DocumentUploadComponent implements OnInit {
     }
   }
 
-  /**
-   * Constructs an InvoiceRequestDTO from the form values.
-   * If no date is provided, the current date is used.
-   * @returns The constructed InvoiceRequestDTO.
+  /** 
+   * Constructs a DocumentDTO from the form values.
+   * @returns The constructed DocumentDTO.
    */
-  getInvoice(): InvoiceRequestDTO {
+  getDocumentDTO(): DocumentDTO {
     const formValues: any = this.documentFormGroup.value;
 
     let paperlessId: number | undefined;
@@ -150,45 +151,69 @@ export class DocumentUploadComponent implements OnInit {
     }
 
     return {
-      id: formValues.id,
-      cost_center_id: formValues.costCenterId,
-      order_id: this.data.orderId,
-      price: formValues.price,
-      date: formValues.date ? new Date(Date.parse(formValues.date)).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+      date: new Date(),
       comment: formValues.comment,
       paperless_id: paperlessId
     };
   }
 
   /**
-   * Creates a new invoice and uploads the associated file if necessary.
-   * @param invoice The invoice data to create.
+   * Handles the upload process, either linking an existing document or creating a new one.
    */
-  createInvoice(invoice: InvoiceRequestDTO): void {
-    const observables = [this.invoicesService.createInvoiceForOrder(this.data.orderId, invoice)];
-    if (!this.linkExistingDocument.value && this.selectedFile()) {
-      observables.push(this.invoicesService.uploadInvoiceFile(invoice.id, this.selectedFile()!));
-    }
-    concat(...observables).subscribe({
-      next: () => {
-        this.processingIndicator?.close();
+  handleUpload(): void {
+    let uploadObservable;
+    if (this.data.invoiceId) {
+      this.isUploadComplete.set(true);
+      this.processingIndicator?.afterClosed().subscribe(() => {
         this.dialogRef.close(true);
-      },
-      complete: () => {
-        this.snackBar.open('Dokument erfolgreich hochgeladen.', 'Schließen', {
+      });
+      uploadObservable = this.invoicesService.uploadInvoiceFile(this.data.invoiceId, this.selectedFile()!);
+    } else {
+      uploadObservable = this.createDocument(this.getDocumentDTO());
+    }
+
+    uploadObservable.subscribe({
+      next: () => {
+        this.snackBar.open('Dokument erfolgreich verarbeitet.', 'Schließen', {
           duration: 3000
         });
-        this.uploadSuccessful.emit(true);
+        this.data.onComplete?.(true);
         this.processingIndicator?.close();
         this.dialogRef.close(true);
       },
       error: () => {
-        this.snackBar.open('Fehler beim Hochladen des Dokuments. Bitte versuchen Sie es erneut.', 'Schließen', {
+        this.snackBar.open('Fehler beim Verarbeiten des Dokuments. Bitte versuchen Sie es erneut.', 'Schließen', {
           duration: 5000
         });
-        this.uploadSuccessful.emit(false);
+        this.data.onComplete?.(false);
         this.processingIndicator?.close();
       }
     });
+  }
+
+  /**
+   * Creates a document for the current order and uploads the associated file.
+   * @param document The document data to create.
+   * @returns An observable of the created invoice response.
+   */
+  createDocument(document: DocumentDTO) {
+    return this.invoicesService.createDocumentForOrder(this.data.order.id!, document).pipe(
+      tap({
+        next: () => {
+          this.isUploadComplete.set(true);
+          this.processingIndicator?.afterClosed().subscribe(() => {
+            this.dialogRef.close(true);
+          });
+        },
+        error: () => {
+          this.snackBar.open('Fehler beim Hochladen des Dokuments. Bitte versuchen Sie es erneut.', 'Schließen', {
+            duration: 5000
+          });
+          this.data.onComplete?.(false);
+          this.processingIndicator?.close();
+        }
+      }),
+      mergeMap(createdInvoice => this.invoicesService.uploadInvoiceFile(createdInvoice.id!, this.selectedFile()!))
+    );
   }
 }

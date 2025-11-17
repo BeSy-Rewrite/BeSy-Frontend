@@ -180,9 +180,15 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
   /**
    * Opens the document upload dialog.
    */
-  openUploadDialog() {
-    const dialogRef = this.dialogRef.open(DocumentUploadComponent, {
-      data: { orderId: this.order().id! },
+  openUploadDialog(invoiceId: string | undefined = undefined): void {
+    this.dialogRef.open(DocumentUploadComponent, {
+      data: {
+        order: this.order(),
+        invoiceId,
+        onComplete: () => {
+          this.ngOnInit();
+        }
+      },
       minWidth: '60%'
     });
 
