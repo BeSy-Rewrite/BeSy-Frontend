@@ -53,6 +53,7 @@ export class DocumentUploadComponent implements OnInit {
   readonly selectedFile = signal<File | undefined>(undefined);
 
   processingIndicator: MatDialogRef<ProcessingIndicatorComponent> | undefined;
+  isUploadComplete = signal(false);
 
   /**
    * Computed property to determine if the form is valid for submission.
@@ -117,7 +118,8 @@ export class DocumentUploadComponent implements OnInit {
    */
   onUpload(): void {
     if (this.documentFormGroup.valid) {
-      this.processingIndicator = this.dialog.open(ProcessingIndicatorComponent);
+      const data: ProcessingIndicatorData = { isClosable: this.isUploadComplete };
+      this.processingIndicator = this.dialog.open(ProcessingIndicatorComponent, { data });
 
       const invoice = this.getInvoice();
       this.createInvoice(invoice);
