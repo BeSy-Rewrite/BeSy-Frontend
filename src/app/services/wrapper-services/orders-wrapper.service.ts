@@ -127,6 +127,6 @@ export class OrdersWrapperService {
   }
 
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
-    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, newState));
+    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, JSON.stringify(newState)));
   }
 }
