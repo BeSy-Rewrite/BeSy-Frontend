@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { lastValueFrom, Observable } from 'rxjs';
+import { from, lastValueFrom, map, Observable } from 'rxjs';
 import { ApprovalResponseDTO, ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, OrderStatusHistoryResponseDTO, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api-services-v2';
 import { FilterRequestParams } from '../../models/filter/filter-request-params';
 
@@ -59,6 +59,31 @@ export class OrdersWrapperService {
 
   async getOrderById(orderId: number): Promise<OrderResponseDTO> {
     return await lastValueFrom(this.ordersService.getOrderById(orderId));
+  }
+
+  /**
+   * Get order by its order number.
+   * @param orderNumber The order number in the format "primaryCostCenter-bookingYear-autoIndex".
+   * @returns OrderResponseDTO
+   */
+  async getOrderByOrderNumber(orderNumber: string): Promise<OrderResponseDTO> {
+    const orderNumberParsed = orderNumber.split('-').map(part => part.trim());
+    const filter = {
+      primaryCostCenters: [orderNumberParsed[0]],
+      bookingYears: [orderNumberParsed[1]],
+      autoIndexMin: Number.parseInt(orderNumberParsed[2]),
+      autoIndexMax: Number.parseInt(orderNumberParsed[2])
+    } as FilterRequestParams;
+
+    return await lastValueFrom(from(this.getAllOrders(0, 1, [], filter)).pipe(
+      map(ordersPage => {
+        const order = ordersPage.content?.[0];
+        if (order) {
+          return order;
+        }
+        throw new Error(`Order with order number ${orderNumber} not found`);
+      })
+    ));
   }
 
   async deleteOrder(orderId: number): Promise<void> {
