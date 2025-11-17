@@ -94,7 +94,7 @@ export class OrdersWrapperService {
   }
 
   async getOrderItems(orderId: string): Promise<ItemResponseDTO[]> {
-    return await lastValueFrom(this.ordersService.getOrderItems(orderId));
+    return await lastValueFrom(this.ordersService.getOrderItems(Number.parseInt(orderId)));
   }
 
   async createOrderItems(orderId: number, requestBody: any): Promise<any> {
@@ -102,11 +102,11 @@ export class OrdersWrapperService {
   }
 
   async deleteItemOfOrder(orderId: number, itemId: number): Promise<void> {
-    return await lastValueFrom(this.ordersService.deleteOrderItem(orderId, itemId));
+    return await lastValueFrom(this.ordersService.deleteItemOfOrder(orderId, itemId));
   }
 
   async getOrderQuotations(orderId: string): Promise<QuotationResponseDTO[]> {
-    return await lastValueFrom(this.ordersService.getOrderQuotations(orderId));
+    return await lastValueFrom(this.ordersService.getOrderQuotations(Number.parseInt(orderId)));
   }
 
   async createOrderQuotations(orderId: number, requestBody: any): Promise<any> {
@@ -114,7 +114,7 @@ export class OrdersWrapperService {
   }
 
   async deleteQuotationOfOrder(orderId: number, quotationId: number): Promise<void> {
-    return await lastValueFrom(this.ordersService.deleteOrderQuotation(orderId, quotationId));
+    return await lastValueFrom(this.ordersService.deleteQuotationOfOrder(orderId, quotationId));
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
