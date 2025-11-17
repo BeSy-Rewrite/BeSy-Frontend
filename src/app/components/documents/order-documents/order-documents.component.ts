@@ -43,17 +43,14 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
 
   dataSource = new MatTableDataSource<DisplayableInvoice>(this.documents);
   columns: TableColumn<DisplayableInvoice>[] = [
-    { id: 'id', label: INVOICE_FIELD_NAMES.id },
+    { id: 'id', label: INVOICE_FIELD_NAMES.id, isInvisible: true },
     { id: 'comment', label: INVOICE_FIELD_NAMES.comment },
-    { id: 'cost_center_id', label: INVOICE_FIELD_NAMES.cost_center_id },
-    { id: 'price', label: INVOICE_FIELD_NAMES.price },
+    { id: 'cost_center_id', label: INVOICE_FIELD_NAMES.cost_center_id, isInvisible: true },
+    { id: 'price', label: INVOICE_FIELD_NAMES.price, isInvisible: true },
     { id: 'date', label: INVOICE_FIELD_NAMES.date },
     { id: 'created_date', label: INVOICE_FIELD_NAMES.created_date },
     {
-      id: 'paperless_id', label: INVOICE_FIELD_NAMES.paperless_id, action(row) {
-        if (row.paperless_id)
-          navigator.clipboard.writeText(row.paperless_id?.toString());
-      },
+      id: 'paperless_id', label: INVOICE_FIELD_NAMES.paperless_id, action: (row) => this.handlePaperlessIdClick(row),
     },
     { id: 'order_id', label: INVOICE_FIELD_NAMES.order_id, isInvisible: true }
   ];
@@ -112,7 +109,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
         created_date: this.resourceResolverService.formatDate(invoice.created_date),
         price: this.resourceResolverService.formatPrice(invoice.price, 'EUR'),
         tooltips: {
-          paperless_id: invoice.paperless_id ? 'Klicken zum Kopieren der Paperless ID' : 'Keine Paperless ID vorhanden'
+          paperless_id: invoice.paperless_id ? 'Klicken zum Kopieren der Paperless ID' : 'Keine Paperless ID vorhanden. Klicke zum erneuten Hochladen.'
         }
       }));
 
@@ -134,9 +131,9 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       return;
     }
     this.invoicesService.downloadDocument(row.id).subscribe(blob => {
-      const link = document.createElement('a')
-      const objectUrl = URL.createObjectURL(blob)
-      link.href = objectUrl
+      const link = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
       link.download = `Dokument-${row.id}_Bestellung-${row.order_id}_Paperless-${row.paperless_id}_${row.comment}.pdf`;
       link.click();
       URL.revokeObjectURL(objectUrl);
@@ -191,12 +188,15 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       },
       minWidth: '60%'
     });
+  }
 
-    dialogRef.componentInstance.uploadSuccessful.subscribe((success: boolean) => {
-      if (success) {
-        this.ngOnInit();
-      }
-    });
+  handlePaperlessIdClick(row: DisplayableInvoice): void {
+    if (row.paperless_id) {
+      navigator.clipboard.writeText(row.paperless_id?.toString());
+    } else {
+      console.log('No paperless ID, opening upload dialog');
+      this.openUploadDialog(row.id);
+    }
   }
 
 }
