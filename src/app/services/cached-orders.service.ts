@@ -84,24 +84,8 @@ export class CachedOrdersService {
       page,
       size,
       sort,
-      filters?.primaryCostCenters,
-      filters?.bookingYears,
-      filters?.createdAfter,
-      filters?.createdBefore,
-      filters?.ownerIds,
-      filters?.statuses,
-      filters?.quotePriceMin,
-      filters?.quotePriceMax,
-      filters?.deliveryPersonIds,
-      filters?.invoicePersonIds,
-      filters?.queriesPersonIds,
-      filters?.customerIds,
-      filters?.supplierIds,
-      filters?.secondaryCostCenters,
-      filters?.lastUpdatedTimeAfter,
-      filters?.lastUpdatedTimeBefore,
-      filters?.autoIndexMin,
-      filters?.autoIndexMax
+      filters,
+      searchTerm
     )).pipe(
       tap((pageResponse: PagedOrderResponseDTO) => {
 
