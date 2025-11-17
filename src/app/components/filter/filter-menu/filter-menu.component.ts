@@ -88,7 +88,8 @@ export class FilterMenuComponent implements OnInit {
       created_date: this.dateRanges['created_date'](),
       last_updated_time: this.dateRanges['last_updated_time'](),
       quote_price: this.ranges['quote_price'](),
-      booking_year: this.chips['booking_year']().filter(chip => chip.isSelected)
+      booking_year: this.chips['booking_year']().filter(chip => chip.isSelected),
+      auto_index: this.ranges['auto_index'](),
     };
   });
 
@@ -158,7 +159,14 @@ export class FilterMenuComponent implements OnInit {
    * Signals holding the range data for each filter key.
    */
   ranges: { [key: string]: WritableSignal<FilterRange>; } = {
-    'quote_price': signal<FilterRange>({ start: 0, end: 10000 })
+    'quote_price': signal<FilterRange>({
+      start: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'quote_price')?.data?.minValue ?? 0,
+      end: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'quote_price')?.data?.maxValue ?? 10000
+    }),
+    'auto_index': signal<FilterRange>({
+      start: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'auto_index')?.data?.minValue ?? 0,
+      end: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'auto_index')?.data?.maxValue ?? 100
+    })
   };
 
   /** Reference to the accordion UI element. */

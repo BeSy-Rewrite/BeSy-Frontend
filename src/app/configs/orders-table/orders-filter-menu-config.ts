@@ -47,6 +47,15 @@ export const ORDERS_FILTER_MENU_CONFIG: FilterConfig[] = [
         }
     },
     {
+        key: 'auto_index',
+        title: 'Auto Index',
+        type: FilterType.RANGE,
+        data: {
+            minValue: 0,
+            maxValue: 100
+        }
+    },
+    {
         key: 'created_date',
         title: 'Erstelldatum',
         type: FilterType.DATE_RANGE,

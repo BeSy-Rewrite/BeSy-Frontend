@@ -31,4 +31,5 @@ export interface ActiveFilters {
     last_updated_time: FilterDateRange;
     quote_price: FilterRange;
     booking_year: FilterChipData[];
+    auto_index: FilterRange;
 }
