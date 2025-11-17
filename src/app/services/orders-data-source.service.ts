@@ -8,6 +8,7 @@ import { environment } from '../../environments/environment';
 import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api-services-v2';
 import { DataSourceSorting } from '../models/datasource-sorting';
 import { ActiveFilters } from '../models/filter/filter-menu-types';
+import { FilterRange } from '../models/filter/filter-range';
 import { FilterRequestParams } from '../models/filter/filter-request-params';
 import { OrderDisplayData } from '../models/order-display-data';
 import { CachedOrdersService } from './cached-orders.service';
@@ -201,8 +202,8 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       createdBefore: this._filter?.created_date?.end?.toISOString(),
       ownerIds: this._filter?.owner_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
       statuses: this._filter?.status?.map(f => f.id).filter(f => f !== undefined) as OrderStatus[] | undefined,
-      quotePriceMin: this._filter?.quote_price?.start,
-      quotePriceMax: this._filter?.quote_price?.end,
+      quotePriceMin: this.getUnboundedRange(this._filter?.quote_price)?.start,
+      quotePriceMax: this.getUnboundedRange(this._filter?.quote_price)?.end,
       deliveryPersonIds: this._filter?.delivery_person_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
       invoicePersonIds: this._filter?.invoice_person_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
       queriesPersonIds: this._filter?.queries_person_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
@@ -211,8 +212,21 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       secondaryCostCenters: this._filter?.secondary_cost_center_id?.map(f => f.id?.toString() ?? ''),
       lastUpdatedTimeAfter: this._filter?.last_updated_time?.start?.toISOString(),
       lastUpdatedTimeBefore: this._filter?.last_updated_time?.end?.toISOString(),
-      autoIndexMin: this._filter?.auto_index?.start,
-      autoIndexMax: this._filter?.auto_index?.end,
+      autoIndexMin: this.getUnboundedRange(this._filter?.auto_index)?.start,
+      autoIndexMax: this.getUnboundedRange(this._filter?.auto_index)?.end,
+    };
+  }
+
+  /**
+   * Converts a FilterRange with possible min/max bounds to a range with undefined for unbounded values.
+   * @param range The FilterRange to convert.
+   * @returns A FilterRange with undefined for unbounded start/end, or undefined if input is undefined.
+   */
+  private getUnboundedRange(range: FilterRange | undefined) {
+    if (!range) return undefined;
+    return {
+      start: range.start === range.min ? undefined : range.start,
+      end: range.end === range.max ? undefined : range.end
     };
   }
 
