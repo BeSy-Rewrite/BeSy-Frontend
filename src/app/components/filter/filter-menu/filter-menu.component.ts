@@ -181,6 +181,9 @@ export class FilterMenuComponent implements OnInit {
   /** Emits when the selected columns have changed. */
   selectedColumnsChanged = output<string[]>();
 
+  /** Emits when all filters have been reset. */
+  resetedFilters = output<void>();
+
   constructor(
     private readonly costCentersService: CostCenterWrapperService,
     private readonly usersService: UsersWrapperService,
@@ -398,6 +401,7 @@ export class FilterMenuComponent implements OnInit {
     }
     this.clearAllFilters();
     this.resetSelectedColumns();
+    this.resetedFilters.emit();
   }
 
   /**

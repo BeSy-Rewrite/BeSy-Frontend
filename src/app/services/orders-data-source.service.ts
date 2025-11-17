@@ -1,6 +1,6 @@
 import { CollectionViewer } from '@angular/cdk/collections';
 import { DataSource } from '@angular/cdk/table';
-import { computed, Injectable, signal } from '@angular/core';
+import { computed, effect, Injectable, signal } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { BehaviorSubject, debounceTime, forkJoin, Observable } from 'rxjs';
@@ -29,6 +29,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
   private _searchTerm: string | undefined;
 
   private readonly _sorting = signal<string[]>([]);
+  private readonly sortedByBesyNumber = signal<boolean>(false);
 
   private _nextPagination: { pageIndex: number; pageSize: number; } | undefined;
   private _nextSorting: string[] | undefined;
@@ -43,6 +44,8 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       .subscribe(() => {
         this._fetchData();
       });
+
+    effect(() => console.log(this.sortedByBesyNumber()));
   }
 
   setNextPagination(pageIndex: number, pageSize: number) {
@@ -51,6 +54,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
   }
 
   setNextSorting(sorting: DataSourceSorting[]) {
+    this.sortedByBesyNumber.set(false);
     this._nextSorting = sorting.map(s => `${this.snakeToCamel(s.id)},${s.direction}`);
   }
 
@@ -132,23 +136,41 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
     this._sort.sortChange.subscribe((sort: Sort) => {
       sort.active = this.snakeToCamel(sort.active);
 
-      if (sort.direction === '') {
-        this._sorting.set([]);
-      } else {
-        const sortIndex = this._sorting().findIndex(s => s.startsWith(sort.active + ','));
-        if (sortIndex !== -1) {
-          this._sorting.update(s => {
-            const newS = [...s];
-            newS.splice(sortIndex, 1);
-            return newS;
-          });
+      if (sort.active === 'besyNumber') {
+        console.log('Sorting by besyNumber detected');
+        // Special case: Sort by autoIndex, then bookingYear and last primaryCostCenterId to maintain correct order
+        const sortings = ['autoIndex', 'bookingYear', 'primaryCostCenterId'].map(id => ({
+          active: id,
+          direction: sort.direction
+        }));
+        for (const s of sortings) {
+          this.updateSortingFromMatSort(s);
         }
-
-        this._sorting.update(s => [sort.active + ',' + sort.direction, ...s]);
+        this.sortedByBesyNumber.set(true);
+      } else {
+        this.sortedByBesyNumber.set(false);
+        this.updateSortingFromMatSort(sort);
       }
 
       this._requestFetch?.next();
     });
+  }
+
+  private updateSortingFromMatSort(sort: Sort) {
+    if (sort.direction === '' || sort.active === '') {
+      this._sorting.set([]);
+    } else {
+      const sortIndex = this._sorting().findIndex(s => s.startsWith(sort.active + ','));
+      if (sortIndex !== -1) {
+        this._sorting.update(s => {
+          const newS = [...s];
+          newS.splice(sortIndex, 1);
+          return newS;
+        });
+      }
+
+      this._sorting.update(s => [sort.active + ',' + sort.direction, ...s]);
+    }
   }
 
   /**
@@ -245,6 +267,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * @returns The converted snake_case string.
    */
   private camelToSnake(s: string): string {
+    if (!s) return s;
     return s.replaceAll(/([A-Z])/g, '_$1').toLowerCase();
   }
 
@@ -276,8 +299,8 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
         this._paginator.pageSize = page.size ?? OrdersDataSourceService.DEFAULT_PAGE_SIZE;
         this._paginator.length = page.total_elements ?? 0;
       }
-      if (this._sort && this._sorting().length > 0 && this._sort.active === undefined) {
-        this._sort.active = this.camelToSnake(this._sorting()[0]?.split(',')[0]);
+      if (this._sort && this._sorting().length > 0 && this._sort.active) {
+        this._sort.active = this.sortedByBesyNumber() ? 'besy_number' : this.camelToSnake(this._sorting()[0]?.split(',')[0]);
         this._sort.direction = (this._sorting()[0]?.split(',')[1] ?? 'asc') as 'asc' | 'desc' | '';
         this._sort.ngOnChanges();
       }
