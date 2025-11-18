@@ -5,9 +5,9 @@ export const environment = {
 
     // Keycloak configuration
     identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
-    clientId: 'angular-app-dev',
-    requiredRole: "besy",
-    approveOrdersRole: "dekanat",
+    clientId: 'besy-dev',
+    requiredRole: "orderer",
+    approveOrdersRole: "approve-orders",
 
     nominatimUrl: 'https://nominatim.openstreetmap.org/search',
 
