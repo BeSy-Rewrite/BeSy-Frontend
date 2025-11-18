@@ -6,6 +6,7 @@ import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
 import { environment } from '../environments/environment';
+import { provideApi } from './api-services-v2';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
@@ -23,7 +24,8 @@ export const appConfig: ApplicationConfig = {
         allowedUrls: [environment.apiUrl],
         sendAccessToken: true
       },
-    })
+    }),
+    provideApi(environment.apiUrl),
   ]
 };
 
