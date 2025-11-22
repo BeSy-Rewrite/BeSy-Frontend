@@ -28,8 +28,10 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   orderStatusHistory: OrderStatusHistoryResponseDTO[] = [];
 
   steps: Step[] = [];
-  futureStates: OrderStatus[] = [];
   currentStepIndex = 0;
+
+  futureStates: OrderStatus[] = [];
+  skippableStates: OrderStatus[] = [];
 
   isInitialized = false;
 
@@ -72,6 +74,9 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   setupProgressData(history: OrderStatusHistoryResponseDTO[]) {
     this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
 
+    const sequences = this.determineNextStateInLongestSequence([OrderStatus.IN_PROGRESS]);
+    this.setupSkippableStates(sequences);
+    this.futureStates = sequences[0];
     this.generateLinearStates();
     this.generateSteps();
   }
@@ -103,6 +108,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
       subLabel: timestamp ? new Date(timestamp).toLocaleDateString() : undefined,
       tooltip: STATE_DESCRIPTIONS.get(state) || '',
       icon: STATE_FONT_ICONS.get(state) || '',
+      isSkippable: this.skippableStates.includes(state)
     };
   }
 
@@ -110,11 +116,9 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    * Generate a linear sequence of future states based on allowed transitions.
    */
   generateLinearStates() {
-    this.futureStates = this.determineNextStateInLongestSequence([OrderStatus.IN_PROGRESS]);
-
     if (this.order().status === OrderStatus.DELETED) return;
 
-    this.futureStates.splice(0, this.futureStates.indexOf(this.order().status!) + 1);
+    this.futureStates = this.futureStates.slice(this.futureStates.indexOf(this.order().status!) + 1);
   }
 
   /**
@@ -122,23 +126,46 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    * @param states Current sequence of states.
    * @returns The longest sequence of states including the next valid state.
    */
-  private determineNextStateInLongestSequence(states: OrderStatus[]): OrderStatus[] {
+  private determineNextStateInLongestSequence(states: OrderStatus[]): OrderStatus[][] {
     const lastState = states.at(-1);
     if (!lastState) {
-      return states;
+      return [states];
     }
 
     const possibleNextStates = this.allowedStateTransitions[lastState]?.filter((nextState) => !states.includes(nextState));
     if (!possibleNextStates || possibleNextStates.length === 0) {
-      return states;
+      return [states];
     }
 
-    const sequences = [];
+    const sequences: OrderStatus[][] = [];
     for (const nextState of possibleNextStates) {
-      sequences.push(this.determineNextStateInLongestSequence([...states, nextState]));
+      sequences.push(...this.determineNextStateInLongestSequence([...states, nextState]));
     }
 
     sequences.sort((a, b) => b.length - a.length);
-    return sequences[0];
+    return sequences;
+  }
+
+  /**
+   * Determine which states are skippable based on the sequences.
+   * @param sequences The sequences of order states.
+   */
+  private setupSkippableStates(sequences: OrderStatus[][]) {
+    const longestSequence = sequences[0];
+    const shorterSequences = sequences.slice(1);
+    this.skippableStates = [];
+
+    for (const state of longestSequence) {
+      let isSkippable = false;
+      for (const seq of shorterSequences) {
+        if (seq.at(-1) === longestSequence.at(-1) && !seq.includes(state)) {
+          isSkippable = true;
+          break;
+        }
+      }
+      if (isSkippable) {
+        this.skippableStates.push(state);
+      }
+    }
   }
 }

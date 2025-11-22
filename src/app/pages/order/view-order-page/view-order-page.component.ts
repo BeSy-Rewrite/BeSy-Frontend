@@ -1,7 +1,7 @@
 import { ClipboardModule } from "@angular/cdk/clipboard";
 import { HttpClient } from "@angular/common/http";
 import { Component, computed, input, OnInit, signal, WritableSignal } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
+import { MatButtonAppearance, MatButtonModule } from '@angular/material/button';
 import { MatDialog } from "@angular/material/dialog";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -41,6 +41,7 @@ interface StateChangeButtons {
   tooltip: string;
   state: OrderStatus;
   color?: string;
+  style?: MatButtonAppearance;
 }
 
 @Component({
@@ -135,10 +136,6 @@ export class ViewOrderPageComponent implements OnInit {
       this.snackBar.open('Bestellung hat keine gültige ID und kann nicht exportiert werden.', 'Schließen', { duration: 5000 });
       return;
     }
-    if (this.internalOrder().order.status !== OrderStatus.COMPLETED) {
-      this.snackBar.open('Bestellung kann nur im Status "Abgeschlossen" exportiert werden.', 'Schließen', { duration: 5000 });
-      return;
-    }
 
     this.ordersService.exportOrderToDocument(this.internalOrder().order.id?.toString()!).subscribe(blob => {
       const link = document.createElement('a')
@@ -173,9 +170,11 @@ export class ViewOrderPageComponent implements OnInit {
         continue;
       }
       let color;
+      let style: MatButtonAppearance = 'elevated';
       switch (state) {
         case OrderStatus.DELETED:
           color = 'warn';
+          style = 'outlined';
           break;
         case OrderStatus.APPROVED:
           color = 'accent';
@@ -187,9 +186,10 @@ export class ViewOrderPageComponent implements OnInit {
       this.stateChangeButtons.push({
         label: STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`,
         icon: STATE_ICONS.get(state) ?? '',
-        tooltip: `Zu '${STATE_DISPLAY_NAMES.get(state) ?? state}' wechseln`,
+        tooltip: state === OrderStatus.DELETED ? 'Bestellung wirklich löschen?' : `Zu '${STATE_DISPLAY_NAMES.get(state) ?? state}' wechseln`,
         state,
-        color
+        color,
+        style
       });
     }
   }
