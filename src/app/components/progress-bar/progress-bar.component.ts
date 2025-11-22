@@ -33,7 +33,7 @@ export class ProgressBarComponent {
    * @returns True if the step is completed, false otherwise.
    */
   isCompleted(i: number) {
-    return i < this.currentStepIndex();
+    return i <= this.currentStepIndex();
   }
 
   /**
@@ -51,7 +51,7 @@ export class ProgressBarComponent {
    * @returns The corresponding color class.
    */
   getColorClass(i: number): string {
-    if (this.isActive(i)) {
+    if (this.isActive(i - 1)) {
       return 'bg-blue-600';
     } else if (this.isCompleted(i)) {
       return 'bg-green-600';

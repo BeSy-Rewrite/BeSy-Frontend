@@ -28,10 +28,10 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   orderStatusHistory: OrderStatusHistoryResponseDTO[] = [];
 
   steps: Step[] = [];
-  states: OrderStatus[] = [];
+  futureStates: OrderStatus[] = [];
   currentStepIndex = 0;
 
-  screenWidth = 0;
+  isInitialized = false;
 
   constructor(
     private readonly stateService: StateWrapperService,
@@ -49,19 +49,31 @@ export class StateDisplayComponent implements OnInit, OnChanges {
     })
       .subscribe(({ transitions, history }) => {
         this.allowedStateTransitions = transitions;
-        this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
-
-        this.generateLinearStates();
-        this.generateSteps();
+        this.setupProgressData(history);
+        this.isInitialized = true;
       });
   }
 
+  /**
+   * Update the progress bar when the order input changes.
+   */
   ngOnChanges() {
-    this.ordersService.getOrderStatusHistory(this.order().id!).then(history => {
-      this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
-      this.generateLinearStates();
-      this.generateSteps();
-    });
+    if (this.isInitialized) {
+      this.ordersService.getOrderStatusHistory(this.order().id!).then(history => {
+        this.setupProgressData(history);
+      });
+    }
+  }
+
+  /**
+   * Setup the progress bar data based on order status history.
+   * @param history The order status history.
+   */
+  setupProgressData(history: OrderStatusHistoryResponseDTO[]) {
+    this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
+
+    this.generateLinearStates();
+    this.generateSteps();
   }
 
   /**
@@ -69,68 +81,64 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    */
   generateSteps() {
     this.steps = [];
-    let i = 0;
-    for (const state of this.states) {
-      const timestamp = this.orderStatusHistory.at(i)?.timestamp ?? '';
-
-      this.steps.push({
-        label: STATE_ICONS.get(state) + '\u00A0' + STATE_DISPLAY_NAMES.get(state),
-        subLabel: timestamp ? new Date(timestamp).toLocaleDateString() : undefined,
-        tooltip: STATE_DESCRIPTIONS.get(state) || '',
-        icon: STATE_FONT_ICONS.get(state) || '',
-      });
-      i++;
+    for (const historyEntry of this.orderStatusHistory) {
+      if (historyEntry.status === undefined) continue;
+      this.steps.push(this.generateStepFromState(historyEntry.status, historyEntry.timestamp));
+    }
+    this.currentStepIndex = this.steps.length - 1;
+    for (const futureState of this.futureStates) {
+      this.steps.push(this.generateStepFromState(futureState));
     }
   }
 
   /**
-   * Generate a linear sequence of states for the progress bar.
-   * Ensures all future states are included in order.
+   * Generate a Step object from an order state.
+   * @param state The order status.
+   * @param timestamp Optional timestamp for the state.
+   * @returns The generated Step object.
+   */
+  generateStepFromState(state: OrderStatus, timestamp?: string): Step {
+    return {
+      label: STATE_ICONS.get(state) + '\u00A0' + STATE_DISPLAY_NAMES.get(state),
+      subLabel: timestamp ? new Date(timestamp).toLocaleDateString() : undefined,
+      tooltip: STATE_DESCRIPTIONS.get(state) || '',
+      icon: STATE_FONT_ICONS.get(state) || '',
+    };
+  }
+
+  /**
+   * Generate a linear sequence of future states based on allowed transitions.
    */
   generateLinearStates() {
-    this.setupStateHistory();
-
-    const futureStates: OrderStatus[] = [OrderStatus.IN_PROGRESS];
-    let nextState: OrderStatus | undefined;
-
-    do {
-      nextState = this.getNextLinearState(futureStates);
-      if (nextState) {
-        futureStates.push(nextState);
-      }
-    } while (nextState);
+    this.futureStates = this.determineNextStateInLongestSequence([OrderStatus.IN_PROGRESS]);
 
     if (this.order().status === OrderStatus.DELETED) return;
 
-    this.states = [...this.states, ...futureStates.splice(futureStates.indexOf(this.order().status!) + 1)];
-    this.currentStepIndex = this.states.lastIndexOf(this.order().status!);
+    this.futureStates.splice(0, this.futureStates.indexOf(this.order().status!) + 1);
   }
 
   /**
-   * Setup the initial state history for the progress bar.
+   * Recursively determine the next state in the longest valid sequence.
+   * @param states Current sequence of states.
+   * @returns The longest sequence of states including the next valid state.
    */
-  private setupStateHistory() {
-    this.states = this.orderStatusHistory.map(h => h.status).filter(status => status !== undefined);
-    if (this.states.at(-1) !== this.order().status) {
-      this.states.push(this.order().status!);
-    }
-    this.currentStepIndex = this.states.lastIndexOf(this.order().status!);
-  }
-
-
-  /**
-   * Get the next linear state in the progression.
-   * Maps non-linear transitions to the next logical step.
-   * @param states The current list of states.
-   * @returns The next linear state or undefined if there is none.
-   */
-  private getNextLinearState(states: OrderStatus[]): OrderStatus | undefined {
+  private determineNextStateInLongestSequence(states: OrderStatus[]): OrderStatus[] {
     const lastState = states.at(-1);
     if (!lastState) {
-      return undefined;
+      return states;
     }
-    return this.allowedStateTransitions[lastState]?.find((nextState) =>
-      nextState !== OrderStatus.DELETED && nextState !== OrderStatus.IN_PROGRESS
-    );
+
+    const possibleNextStates = this.allowedStateTransitions[lastState]?.filter((nextState) => !states.includes(nextState));
+    if (!possibleNextStates || possibleNextStates.length === 0) {
+      return states;
+    }
+
+    const sequences = [];
+    for (const nextState of possibleNextStates) {
+      sequences.push(this.determineNextStateInLongestSequence([...states, nextState]));
+    }
+
+    sequences.sort((a, b) => b.length - a.length);
+    return sequences[0];
   }
 }
