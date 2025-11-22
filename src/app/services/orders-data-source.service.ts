@@ -1,6 +1,6 @@
 import { CollectionViewer } from '@angular/cdk/collections';
 import { DataSource } from '@angular/cdk/table';
-import { computed, effect, Injectable, signal } from '@angular/core';
+import { computed, Injectable, signal } from '@angular/core';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { BehaviorSubject, debounceTime, forkJoin, Observable } from 'rxjs';
@@ -44,8 +44,6 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       .subscribe(() => {
         this._fetchData();
       });
-
-    effect(() => console.log(this.sortedByBesyNumber()));
   }
 
   setNextPagination(pageIndex: number, pageSize: number) {
@@ -137,7 +135,6 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       sort.active = this.snakeToCamel(sort.active);
 
       if (sort.active === 'besyNumber') {
-        console.log('Sorting by besyNumber detected');
         // Special case: Sort by autoIndex, then bookingYear and last primaryCostCenterId to maintain correct order
         const sortings = ['autoIndex', 'bookingYear', 'primaryCostCenterId'].map(id => ({
           active: id,

@@ -7,7 +7,7 @@ export const environment = {
     identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
     clientId: 'besy-dev',
     requiredRole: "orderer",
-    approveOrdersRole: "approve-orders",
+    approveOrdersRole: "approver",
 
     nominatimUrl: 'https://nominatim.openstreetmap.org/search',
 
