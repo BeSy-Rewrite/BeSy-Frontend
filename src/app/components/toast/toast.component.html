@@ -1,16 +1,31 @@
-<div class="flex flex-col gap-2 z-100">
-    @for (toast of toasts; track toast.id) {
-    <div
-         [class]="'w-[25vw] min-w-sm rounded-md border-2 bg-white shadow-md p-2 flex flex-row justify-between ' + getClassForToast(toast)">
-        <p>{{ toast.message }}</p>
-        @if (!toast.isPersistent) {
-        <button
-                mat-icon-button
-                (click)="removeToast(toast.id)">
-            <mat-icon>close</mat-icon>
-        </button>
+<div
+     [class]="`flex flex-row ${position().includes('top') ? 'items-start' : 'items-end'} overflow-hidden`"
+     [class.toast-container]="!areToastsEmpty()"
+     [class.empty-toast-container]="areToastsEmpty()">
+
+    <button mat-icon-button (click)="toggleToasts()">
+        <mat-icon>{{ showToasts() ? 'chevron_left' : 'chevron_right' }}</mat-icon>
+    </button>
+
+    <div [class]="`flex ${position().includes('top') ? 'flex-col' : 'flex-col-reverse'} gap-2 max-h-[50vh] overflow-x-hidden overflow-y-auto`"
+         [class.open]="showToasts()"
+         [class.closed]="!showToasts()">
+
+        @for (toast of toasts; track toast.id) {
+        <div
+             [class]="`w-full rounded-md border-2 bg-white shadow-md p-2 flex flex-row justify-between ${getClassForToast(toast)}`"
+             animate.enter="enter-animation">
+            <p>{{ toast.message }}</p>
+            @if (!toast.isPersistent) {
+            <button
+                    mat-icon-button
+                    (click)="removeToast(toast.id)">
+                <mat-icon>close</mat-icon>
+            </button>
+            }
+        </div>
         }
+
     </div>
 
-    }
 </div>
