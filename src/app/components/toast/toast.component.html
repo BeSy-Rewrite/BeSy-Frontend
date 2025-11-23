@@ -1,14 +1,16 @@
-<div class="flex flex-col gap-2">
-    @for (toast of toasts; track $index) {
+<div class="flex flex-col gap-2 z-100">
+    @for (toast of toasts; track toast.id) {
     <div
-         class="w-[25vw] min-w-sm rounded-md border-2 border-green-400 bg-white shadow-md p-2 flex flex-row justify-between">
-        <p>{{ toast }}</p>
+         [class]="'w-[25vw] min-w-sm rounded-md border-2 bg-white shadow-md p-2 flex flex-row justify-between ' + getClassForToast(toast)">
+        <p>{{ toast.message }}</p>
+        @if (!toast.isPersistent) {
         <button
                 mat-icon-button
-                class="absolute top-1 right-1"
-                (click)="removeToast($index)">
+                (click)="removeToast(toast.id)">
             <mat-icon>close</mat-icon>
         </button>
+        }
     </div>
+
     }
 </div>
