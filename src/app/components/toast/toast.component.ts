@@ -37,7 +37,7 @@ export class ToastComponent {
 
   constructor(
     private readonly toastService: ToastService,
-    private readonly elementRef: ElementRef
+    private readonly elementRef: ElementRef<any>,
   ) {
     this.toastService.toasts.subscribe(toasts => {
       this.toasts = toasts;
@@ -47,6 +47,7 @@ export class ToastComponent {
     let position: DOMRect;
     afterNextRender({
       earlyRead: () => {
+        console.log('setting up toast position', typeof this.elementRef);
         position = this.elementRef.nativeElement.parentElement.getBoundingClientRect();
       },
       write: () => {
