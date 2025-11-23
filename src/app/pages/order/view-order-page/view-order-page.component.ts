@@ -192,6 +192,11 @@ export class ViewOrderPageComponent implements OnInit {
         style
       });
     }
+    const deletedButtonIndex = this.stateChangeButtons.findIndex(btn => btn.state === OrderStatus.DELETED);
+    if (deletedButtonIndex !== -1) {
+      const [deletedButton] = this.stateChangeButtons.splice(deletedButtonIndex, 1);
+      this.stateChangeButtons.push(deletedButton);
+    }
   }
 
   /**
@@ -218,8 +223,9 @@ export class ViewOrderPageComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Fehler bei der Validierung des Statuswechsels:', err);
-
+        console.error('Fehler bei der Validierung des Statuswechsels:');
+        const fieldPath = err?.errors?.at(0)?.path;
+        this.snackBar.open(`Der Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState)}' ist nicht erlaubt: ${ORDER_FIELD_NAMES[fieldPath] ?? fieldPath} ist ungültig.`, 'Schließen', { duration: 7000 });
       }
     });
   }
