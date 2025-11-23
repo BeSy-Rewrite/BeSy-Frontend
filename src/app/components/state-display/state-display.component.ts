@@ -76,8 +76,8 @@ export class StateDisplayComponent implements OnInit, OnChanges {
 
     const sequences = this.determineNextStateInLongestSequence([OrderStatus.IN_PROGRESS]);
     this.setupSkippableStates(sequences);
-    this.futureStates = sequences[0];
-    this.generateLinearStates();
+    this.futureStates = this.truncateStatesAfterCurrent(sequences[0]);
+    this.checkHistory();
     this.generateSteps();
   }
 
@@ -113,12 +113,13 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Generate a linear sequence of future states based on allowed transitions.
+   * Truncate the future states after the current order status.
    */
-  generateLinearStates() {
-    if (this.order().status === OrderStatus.DELETED) return;
+  truncateStatesAfterCurrent(futureStates: OrderStatus[]): OrderStatus[] {
+    if (this.order().status === OrderStatus.DELETED) return [];
 
-    this.futureStates = this.futureStates.slice(this.futureStates.indexOf(this.order().status!) + 1);
+    const futureCutOffIndex = futureStates.indexOf(this.order().status!);
+    return futureStates.slice(futureCutOffIndex + 1);
   }
 
   /**
@@ -167,5 +168,25 @@ export class StateDisplayComponent implements OnInit, OnChanges {
         this.skippableStates.push(state);
       }
     }
+  }
+
+  checkHistory() {
+    const requiredPastStates = this.skippableStates.slice(0, this.skippableStates.indexOf(this.order().status!) + 1);
+    const repairedHistory = [...this.orderStatusHistory];
+    for (const state of requiredPastStates) {
+      if (!this.orderStatusHistory.some(entry => entry.status === state)) {
+        const newHistoryEntry: OrderStatusHistoryResponseDTO = { status: state, timestamp: "Unknown" };
+        const insertIndex = repairedHistory.slice().reverse().findIndex(entry =>
+          this.allowedStateTransitions[entry.status!]?.includes(state)
+        );
+
+        if (insertIndex === -1) {
+          repairedHistory.push(newHistoryEntry);
+        } else {
+          repairedHistory.splice(insertIndex, 0, newHistoryEntry);
+        }
+      }
+    }
+
   }
 }
