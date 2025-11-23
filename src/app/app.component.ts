@@ -6,6 +6,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 import { environment } from '../environments/environment';
 import { HomebarComponent } from './components/homebar/homebar.component';
+import { ToastComponent } from "./components/toast/toast.component";
 import { AuthenticationService } from './services/authentication.service';
 
 @Component({
@@ -14,7 +15,8 @@ import { AuthenticationService } from './services/authentication.service';
     RouterOutlet,
     MatButtonModule,
     ScrollingModule,
-    HomebarComponent
+    HomebarComponent,
+    ToastComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
