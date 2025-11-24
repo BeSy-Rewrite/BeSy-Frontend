@@ -210,7 +210,7 @@ export class ViewOrderPageComponent implements OnInit {
       return;
     }
 
-    this.orderStateValidityService.isStateTransitionValid(this.internalOrder().order, newState).subscribe({
+    this.orderStateValidityService.canTransitionToState(this.internalOrder().order, newState).subscribe({
       next: () => {
         if (newState === OrderStatus.DELETED) {
           this.handleDeleteOrder();

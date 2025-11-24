@@ -27,13 +27,13 @@ export class OrderStateValidityService {
    * @param targetState The target state to transition to.
    * @returns An Observable that emits the order if the transition is valid, or throws an error otherwise.
    */
-  isStateTransitionValid(order: OrderResponseDTO, targetState: OrderStatus) {
+  canTransitionToState(order: OrderResponseDTO, targetState: OrderStatus) {
     return forkJoin({
-      isValidTransition: this.isValidTransition(order.status!, targetState),
-      hasValidPermissions: this.checkRequiredUserPermissions(order.status!, targetState),
-      validFields: this.checkRequiredFields(order, targetState)
+      isValidTransition: this.isStateTransitionValid(order.status!, targetState),
+      hasValidPermissions: this.isUserAuthorizedForStatusChange(order.status!, targetState),
+      validFields: this.verifyOrderCompletion(order, targetState)
     }).pipe(
-      map(({ isValidTransition, hasValidPermissions, validFields }) => validFields)
+      map(({ validFields }) => validFields)
     );
   }
 
@@ -43,7 +43,7 @@ export class OrderStateValidityService {
    * @param targetState The target state to transition to.
    * @returns An Observable that emits true if the transition is valid, or throws an error otherwise.
    */
-  isValidTransition(currentState: OrderStatus, targetState: OrderStatus): Observable<boolean> {
+  isStateTransitionValid(currentState: OrderStatus, targetState: OrderStatus): Observable<boolean> {
     return this.stateService.getAllowedStateTransitions().pipe(
       map(transitions => {
         const allowedNextStates = transitions[currentState];
@@ -68,7 +68,7 @@ export class OrderStateValidityService {
    * @param targetState The target state of the order.
    * @returns An Observable that emits the order if it has the required fields, or throws an error otherwise.
    */
-  checkRequiredFields(order: OrderResponseDTO, targetState: OrderStatus) {
+  verifyOrderCompletion(order: OrderResponseDTO, targetState: OrderStatus) {
     if (order.status === OrderStatus.IN_PROGRESS && targetState === OrderStatus.COMPLETED) {
       return of(ValidCompletedOrder.safeParse(order)).pipe(
         map(result => {
@@ -89,7 +89,7 @@ export class OrderStateValidityService {
    * @param targetState The target state of the order.
    * @returns An Observable that emits true if the user has the required permissions, or throws an error otherwise.
    */
-  checkRequiredUserPermissions(currentState: OrderStatus, targetState: OrderStatus): Observable<boolean> {
+  isUserAuthorizedForStatusChange(currentState: OrderStatus, targetState: OrderStatus): Observable<boolean> {
     return of((currentState === OrderStatus.APPROVALS_RECEIVED && targetState === OrderStatus.APPROVED) ?
       this.authService.isAuthorized() && this.authService.isAuthorizedFor(environment.approveOrdersRole) :
       this.authService.isAuthorized()
