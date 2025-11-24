@@ -21,10 +21,11 @@
 
         @for (toast of toasts; track toast.id) {
         <div [class]="`w-full rounded-md border-2 bg-white shadow-md p-2 flex flex-row justify-between ${getClassForToast(toast)}`"
-             animate.enter="enter-animation">
+             animate.enter="enter-animation"
+             animate.leave="leave-animation">
 
             @if (typeof toast.message === 'string') {
-            <p>{{ toast.message }}</p>
+            <div class="whitespace-pre-line">{{ toast.message }}</div>
             } @else {
             <ng-container *ngComponentOutlet="
                 toast.message;

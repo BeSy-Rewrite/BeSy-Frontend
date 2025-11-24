@@ -17,7 +17,7 @@ import { ToastService } from '../../services/toast.service';
 export interface ToastRequest {
   message: string | Type<any>;
   type: 'success' | 'error' | 'info';
-  inputs?: { [key: string]: any };
+  inputs?: { [key: string]: any; };
   isPersistent?: boolean;
   duration?: number;
 };
@@ -68,7 +68,7 @@ export class ToastComponent {
     this.toastService.toasts.subscribe(toasts => {
       this.toasts = toasts;
       this.areToastsEmpty.set(toasts.length === 0);
-      this.showToasts.set(toasts.length > 0);
+      this.showToasts.set(toasts.length > 0 ? true : this.showToasts());
     });
 
     let position: DOMRect;
