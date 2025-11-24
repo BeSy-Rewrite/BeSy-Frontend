@@ -74,11 +74,12 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   setupProgressData(history: OrderStatusHistoryResponseDTO[]) {
     this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
 
-    const sequences = this.determineNextStateInLongestSequence([OrderStatus.IN_PROGRESS]);
-    this.setupSkippableStates(sequences);
-    this.futureStates = this.truncateStatesAfterCurrent(sequences[0]);
-    this.checkHistory();
-    this.generateSteps();
+    this.stateService.getLongestSequenceOfStates().subscribe(sequence => {
+      this.skippableStates = this.stateService.getSkippableStates();
+      this.futureStates = this.truncateStatesAfterCurrent(sequence);
+      this.checkHistory();
+      this.generateSteps();
+    });
   }
 
   /**
@@ -123,53 +124,8 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   }
 
   /**
-   * Recursively determine the next state in the longest valid sequence.
-   * @param states Current sequence of states.
-   * @returns The longest sequence of states including the next valid state.
+   * Check the order status history for missing states and repair it if necessary.
    */
-  private determineNextStateInLongestSequence(states: OrderStatus[]): OrderStatus[][] {
-    const lastState = states.at(-1);
-    if (!lastState) {
-      return [states];
-    }
-
-    const possibleNextStates = this.allowedStateTransitions[lastState]?.filter((nextState) => !states.includes(nextState));
-    if (!possibleNextStates || possibleNextStates.length === 0) {
-      return [states];
-    }
-
-    const sequences: OrderStatus[][] = [];
-    for (const nextState of possibleNextStates) {
-      sequences.push(...this.determineNextStateInLongestSequence([...states, nextState]));
-    }
-
-    sequences.sort((a, b) => b.length - a.length);
-    return sequences;
-  }
-
-  /**
-   * Determine which states are skippable based on the sequences.
-   * @param sequences The sequences of order states.
-   */
-  private setupSkippableStates(sequences: OrderStatus[][]) {
-    const longestSequence = sequences[0];
-    const shorterSequences = sequences.slice(1);
-    this.skippableStates = [];
-
-    for (const state of longestSequence) {
-      let isSkippable = false;
-      for (const seq of shorterSequences) {
-        if (seq.at(-1) === longestSequence.at(-1) && !seq.includes(state)) {
-          isSkippable = true;
-          break;
-        }
-      }
-      if (isSkippable) {
-        this.skippableStates.push(state);
-      }
-    }
-  }
-
   checkHistory() {
     const requiredPastStates = this.skippableStates.slice(0, this.skippableStates.indexOf(this.order().status!) + 1);
     const repairedHistory = [...this.orderStatusHistory];
