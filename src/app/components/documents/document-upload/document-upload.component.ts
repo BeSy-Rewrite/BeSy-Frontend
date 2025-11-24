@@ -6,15 +6,18 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { merge, mergeMap, startWith, tap } from 'rxjs';
+import { finalize, merge, mergeMap, startWith, tap } from 'rxjs';
 import { OrderResponseDTO } from '../../../api-services-v2';
 import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../../configs/document-upload-config';
 import { DocumentDTO } from '../../../models/document-invoice';
+import { ToastService } from '../../../services/toast.service';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
 import { FileInputComponent } from '../../file-input/file-input.component';
 import { FormComponent, FormConfig } from "../../form-component/form-component.component";
 import { ProcessingIndicatorComponent, ProcessingIndicatorData } from '../../processing-indicator/processing-indicator.component';
+import { ToastProcessingIndicatorComponent } from '../../toast-processing-indicator/toast-processing-indicator.component';
+import { ToastResponse } from '../../toast/toast.component';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
 
 export interface DocumentUploadData {
@@ -52,6 +55,7 @@ export class DocumentUploadComponent implements OnInit {
   readonly selectedFile = signal<File | undefined>(undefined);
 
   processingIndicator: MatDialogRef<ProcessingIndicatorComponent> | undefined;
+  toastRef: ToastResponse | undefined;
   isUploadComplete = signal(false);
 
   /**
@@ -63,7 +67,8 @@ export class DocumentUploadComponent implements OnInit {
     private readonly costCentersService: CostCenterWrapperService,
     private readonly invoicesService: InvoicesWrapperServiceService,
     private readonly snackBar: MatSnackBar,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    private readonly toastService: ToastService
   ) {
     const subscriptions = [
       this.documentFormGroup.valueChanges,
@@ -162,32 +167,36 @@ export class DocumentUploadComponent implements OnInit {
    */
   handleUpload(): void {
     let uploadObservable;
+
     if (this.data.invoiceId) {
-      this.isUploadComplete.set(true);
-      this.processingIndicator?.afterClosed().subscribe(() => {
-        this.dialogRef.close(true);
-      });
+      this.setupUploadCompletionHandler();
       uploadObservable = this.invoicesService.uploadInvoiceFile(this.data.invoiceId, this.selectedFile()!);
     } else {
       uploadObservable = this.createDocument(this.getDocumentDTO());
     }
 
-    uploadObservable.subscribe({
+    uploadObservable.pipe(
+      finalize(() => {
+        if (this.toastRef) this.toastRef.cancel(true);
+        this.processingIndicator?.close();
+      })
+    ).subscribe({
       next: () => {
-        this.snackBar.open('Dokument erfolgreich verarbeitet.', 'Schließen', {
-          duration: 3000
+        this.toastService.addToast({
+          message: `Das Dokument ${this.selectedFile()?.name || 'Unbekannte Datei'} wurde erfolgreich verarbeitet und hochgeladen.`,
+          type: 'success',
+          duration: 5000,
         });
         this.data.onComplete?.(true);
-        this.processingIndicator?.close();
         this.dialogRef.close(true);
       },
       error: () => {
-        this.snackBar.open('Fehler beim Verarbeiten des Dokuments. Bitte versuchen Sie es erneut.', 'Schließen', {
-          duration: 5000
+        this.toastService.addToast({
+          message: `Fehler beim Verarbeiten des Dokuments: ${this.selectedFile()?.name || 'Unbekannte Datei'}.\nSiehe Paperless für weitere Details.`,
+          type: 'error',
         });
         this.data.onComplete?.(false);
-        this.processingIndicator?.close();
-      }
+      },
     });
   }
 
@@ -199,15 +208,11 @@ export class DocumentUploadComponent implements OnInit {
   createDocument(document: DocumentDTO) {
     return this.invoicesService.createDocumentForOrder(this.data.order.id!, document).pipe(
       tap({
-        next: () => {
-          this.isUploadComplete.set(true);
-          this.processingIndicator?.afterClosed().subscribe(() => {
-            this.dialogRef.close(true);
-          });
-        },
+        next: () => this.setupUploadCompletionHandler(),
         error: () => {
-          this.snackBar.open('Fehler beim Hochladen des Dokuments. Bitte versuchen Sie es erneut.', 'Schließen', {
-            duration: 5000
+          this.toastService.addToast({
+            message: `Fehler beim Erstellen des Dokuments für die Bestellung ${this.data.order.id}.\nBitte versuchen Sie es erneut.`,
+            type: 'error',
           });
           this.data.onComplete?.(false);
           this.processingIndicator?.close();
@@ -215,5 +220,20 @@ export class DocumentUploadComponent implements OnInit {
       }),
       mergeMap(createdInvoice => this.invoicesService.uploadInvoiceFile(createdInvoice.id!, this.selectedFile()!))
     );
+  }
+
+  /**
+   * Sets up the handler for upload completion, showing a processing indicator toast.
+   */
+  setupUploadCompletionHandler(): void {
+    this.isUploadComplete.set(true);
+    this.processingIndicator?.afterClosed().subscribe(() => {
+      this.toastRef = this.toastService.addToast({
+        message: ToastProcessingIndicatorComponent,
+        isPersistent: true,
+        type: 'info'
+      });
+      this.dialogRef.close(true);
+    });
   }
 }

@@ -1,5 +1,4 @@
 import { ClipboardModule } from "@angular/cdk/clipboard";
-import { HttpClient } from "@angular/common/http";
 import { Component, computed, input, OnInit, signal, WritableSignal } from '@angular/core';
 import { MatButtonAppearance, MatButtonModule } from '@angular/material/button';
 import { MatDialog } from "@angular/material/dialog";
@@ -21,6 +20,7 @@ import { QuotationsListComponent } from '../../../components/order-display/quota
 import { StateHistoryComponent } from "../../../components/order-display/state-history/state-history.component";
 import { Step } from "../../../components/progress-bar/progress-bar.component";
 import { StateDisplayComponent } from "../../../components/state-display/state-display.component";
+import { ToastRequest } from "../../../components/toast/toast.component";
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { STATE_CHANGE_TO_NAMES, STATE_DISPLAY_NAMES, STATE_ICONS } from "../../../display-name-mappings/status-names";
 import { AllowedStateTransitions } from "../../../models/allowed-states-transitions";
@@ -28,6 +28,7 @@ import { DisplayableOrder } from '../../../models/displayable-order';
 import { AuthenticationService } from "../../../services/authentication.service";
 import { OrderStateValidityService } from "../../../services/order-state-validity.service";
 import { OrderSubresourceResolverService } from "../../../services/order-subresource-resolver.service";
+import { ToastService } from "../../../services/toast.service";
 import { OrdersWrapperService } from "../../../services/wrapper-services/orders-wrapper.service";
 import { StateWrapperService } from "../../../services/wrapper-services/state-wrapper.service";
 import { UsersWrapperService } from "../../../services/wrapper-services/users-wrapper.service";
@@ -106,7 +107,7 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly snackBar: MatSnackBar,
     private readonly dialog: MatDialog,
     private readonly orderStateValidityService: OrderStateValidityService,
-    private readonly http: HttpClient
+    private readonly toastService: ToastService,
   ) { }
 
   /**
@@ -138,9 +139,9 @@ export class ViewOrderPageComponent implements OnInit {
     }
 
     this.ordersService.exportOrderToDocument(this.internalOrder().order.id?.toString()!).subscribe(blob => {
-      const link = document.createElement('a')
-      const objectUrl = URL.createObjectURL(blob)
-      link.href = objectUrl
+      const link = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
       link.download = `Bestellung-${this.internalOrder().orderDisplay.besy_number}.pdf`;
       link.click();
       URL.revokeObjectURL(objectUrl);
@@ -223,9 +224,15 @@ export class ViewOrderPageComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Fehler bei der Validierung des Statuswechsels:');
-        const fieldPath = err?.errors?.at(0)?.path;
-        this.snackBar.open(`Der Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState)}' ist nicht erlaubt: ${ORDER_FIELD_NAMES[fieldPath] ?? fieldPath} ist ungültig.`, 'Schließen', { duration: 7000 });
+        console.error('Fehler bei der Validierung des Statuswechsels:', err);
+        for (const error of err?.errors ?? []) {
+          const errorToast: ToastRequest = {
+            message: `Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState)}' fehlgeschlagen.\n
+          Grund: ${ORDER_FIELD_NAMES[error?.path] ?? error?.path} ist ungültig.`,
+            type: 'error'
+          };
+          this.toastService.addToast(errorToast);
+        }
       }
     });
   }

@@ -6,7 +6,7 @@ export const INVOICE_FIELD_NAMES: Record<keyof InvoiceResponseDTO, string> = {
     order_id: 'Bestellung',
     price: 'Preis',
     date: 'Dokumentdatum',
-    comment: 'Kommentar',
+    comment: 'Beschreibung',
     created_date: 'Erstellungsdatum',
     paperless_id: 'Paperless ID'
 };

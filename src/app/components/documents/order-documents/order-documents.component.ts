@@ -128,11 +128,9 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
    * @param row The documents meta data.
    */
   downloadDocument(row: DisplayableInvoice) {
-    if (!row.id) {
-      this._snackBar.open('Dokument-ID fehlerhaft', 'Schließen', { duration: 3000 });
-      return;
-    }
-    this.invoicesService.downloadDocument(row.id).subscribe(blob => {
+    if (!this.checkForValidIds(row)) return;
+
+    this.invoicesService.downloadDocument(row.id!).subscribe(blob => {
       const link = document.createElement('a');
       const objectUrl = URL.createObjectURL(blob);
       link.href = objectUrl;
@@ -147,12 +145,9 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
    * @param row The document meta data.
    */
   openDocumentPreview(row: DisplayableInvoice) {
-    if (!row.id) {
-      this._snackBar.open('Dokument-ID fehlerhaft', 'Schließen', { duration: 3000 });
-      return;
-    }
+    if (!this.checkForValidIds(row)) return;
 
-    this.invoicesService.getDocumentPreview(row.id).subscribe(blob => {
+    this.invoicesService.getDocumentPreview(row.id!).subscribe(blob => {
       const objectUrl = URL.createObjectURL(blob);
       this.openPreviewDialog(row, objectUrl);
     });
@@ -166,7 +161,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
   openPreviewDialog(row: DisplayableInvoice, previewImageURL: string) {
     this.dialogRef.open(DocumentPreviewComponent, {
       data: {
-        title: `Vorschau für Dokument ${row.id} - Bestellung ${row.order_id}`,
+        title: `Vorschau für Dokument ${row.paperless_id} - Bestellung ${row.order_id}`,
         comment: row.comment,
         previewImageURL: this.sanitizer.bypassSecurityTrustUrl(previewImageURL),
         onDownload: () => {
@@ -192,6 +187,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
     });
   }
 
+  /** Handles clicks on the paperless ID field. */
   handlePaperlessIdClick(row: DisplayableInvoice): void {
     if (row.paperless_id) {
       navigator.clipboard.writeText(row.paperless_id?.toString());
@@ -199,6 +195,19 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       console.log('No paperless ID, opening upload dialog');
       this.openUploadDialog(row.id);
     }
+  }
+
+  /** Checks if the document has valid IDs before performing actions. */
+  private checkForValidIds(row: DisplayableInvoice): boolean {
+    if (!row.id) {
+      this._snackBar.open('Dokument-ID fehlerhaft', 'Schließen', { duration: 3000 });
+      return false;
+    }
+    if (!row.paperless_id) {
+      this._snackBar.open('Keine Paperless ID vorhanden für dieses Dokument.', 'Schließen', { duration: 3000 });
+      return false;
+    }
+    return true;
   }
 
 }
