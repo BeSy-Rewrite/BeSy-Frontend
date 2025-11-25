@@ -13,7 +13,7 @@
 .empty-toast-container {
     opacity: 0;
     max-height: 0;
-    transition: opacity 0.8s ease-in-out, max-height 0.8s step-end;
+    transition: opacity 0.3s ease-in-out, max-height 0.3s step-end;
 }
 
 .toast-container {
@@ -28,7 +28,7 @@
 }
 
 .leave-animation {
-    animation: fade-out 0.8s;
+    animation: fade-out 0.3s;
 }
 
 
