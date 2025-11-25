@@ -21,7 +21,7 @@ type numberOrString = number | string | undefined;
 /**
  * Minimal shape of objects that can be identified either by `id` or `code`.
  */
-type IdAble = { id?: number | string } | { code?: string };
+type IdAble = { id?: number | string; } | { code?: string; };
 
 /**
  * Generic helper that loads, caches, and formats subresources for display.
@@ -269,7 +269,7 @@ export class OrderSubresourceResolverService {
     const names = [user.name ?? ''];
     names.push(user.surname ?? '');
     return names.filter(name => name && name.trim().length > 0).join(' ');
-  }
+  };
 
   /**
    * Returns a human-readable label for a person (e.g., "p42 – John Doe").
@@ -277,14 +277,14 @@ export class OrderSubresourceResolverService {
   formatPerson = (person: PersonResponseDTO) => {
     const names = [person.title ?? '', person.name ?? '', person.surname ?? ''];
     return names.filter(name => name && name.trim().length > 0).join(' ');
-  }
+  };
 
   /**
    * Returns a human-readable label for a cost center (e.g., "4711 – IT Services").
    */
   formatCostCenter = (center: CostCenterResponseDTO) => {
     return `${center.id} - ${center.name}`;
-  }
+  };
 
   /**
    * Formats the preferred list enum into a human-readable string.
@@ -304,7 +304,7 @@ export class OrderSubresourceResolverService {
    * @returns The constructed order number or undefined if any part is missing.
    */
   getOrderNumber(order: OrderResponseDTO): string | undefined {
-    const orderNumber = [order.primary_cost_center_id, order.booking_year, order.auto_index]
+    const orderNumber = [order.primary_cost_center_id, order.booking_year, order.auto_index];
     if (orderNumber.some(part => part === undefined || part === null)) {
       return undefined;
     }
@@ -386,7 +386,7 @@ export class OrderSubresourceResolverService {
   getTooltips(order: OrderResponseDTO): { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string } {
     return {
       status: STATE_DISPLAY_NAMES.get(order.status ?? '') ?? order.status ?? '',
-    }
+    };
   }
 
 }
