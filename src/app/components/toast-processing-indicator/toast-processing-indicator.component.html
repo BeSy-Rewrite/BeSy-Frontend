@@ -1,0 +1,14 @@
+<div class="flex flex-row gap-2">
+
+    <div class="self-center">
+        <mat-spinner diameter="32"></mat-spinner>
+    </div>
+
+    <div class="whitespace-pre-line self-center">
+        Dokument {{ documentName() ?? '' }} für Bestellung
+        <a class="text-blue-500 underline"
+           [routerLink]="`/orders/${orderId()}`">{{orderId()}}</a>
+        wird verarbeitet...
+    </div>
+
+</div>
