@@ -6,7 +6,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { finalize, merge, mergeMap, startWith, tap } from 'rxjs';
+import { finalize, merge, mergeMap, of, startWith, tap } from 'rxjs';
 import { OrderResponseDTO } from '../../../api-services-v2';
 import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../../configs/document-upload-config';
 import { DocumentDTO } from '../../../models/document-invoice';
@@ -15,6 +15,7 @@ import { CostCenterWrapperService } from '../../../services/wrapper-services/cos
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
 import { FileInputComponent } from '../../file-input/file-input.component';
 import { FormComponent, FormConfig } from "../../form-component/form-component.component";
+import { LinkableToastMessageComponent, LinkObject } from '../../linkable-toast-message/linkable-toast-message.component';
 import { ProcessingIndicatorComponent, ProcessingIndicatorData } from '../../processing-indicator/processing-indicator.component';
 import { ToastProcessingIndicatorComponent } from '../../toast-processing-indicator/toast-processing-indicator.component';
 import { ToastResponse } from '../../toast/toast.component';
@@ -169,7 +170,7 @@ export class DocumentUploadComponent implements OnInit {
     let uploadObservable;
 
     if (this.data.invoiceId) {
-      this.setupUploadCompletionHandler();
+      this.setupUploadCompletionHandler(true);
       uploadObservable = this.invoicesService.uploadInvoiceFile(this.data.invoiceId, this.selectedFile()!);
     } else {
       uploadObservable = this.createDocument(this.getDocumentDTO());
@@ -183,7 +184,11 @@ export class DocumentUploadComponent implements OnInit {
     ).subscribe({
       next: () => {
         this.toastService.addToast({
-          message: `Das Dokument ${this.selectedFile()?.name || 'Unbekannte Datei'} wurde erfolgreich verarbeitet und hochgeladen.`,
+          message: LinkableToastMessageComponent,
+          inputs: {
+            message: `Das Dokument ${this.getDocumentInfo()} für Bestellung {LINK} wurde erfolgreich verarbeitet und hochgeladen.`,
+            links: [this.getLinkObjectToOrder()]
+          },
           type: 'success',
           duration: 5000,
         });
@@ -192,7 +197,11 @@ export class DocumentUploadComponent implements OnInit {
       },
       error: () => {
         this.toastService.addToast({
-          message: `Fehler beim Verarbeiten des Dokuments: ${this.selectedFile()?.name || 'Unbekannte Datei'}.\nSiehe Paperless für weitere Details.`,
+          message: LinkableToastMessageComponent,
+          inputs: {
+            message: `Fehler beim Verarbeiten des Dokuments ${this.getDocumentInfo()} für Bestellung {LINK}\nSiehe Paperless für weitere Details.`,
+            links: [this.getLinkObjectToOrder()]
+          },
           type: 'error',
         });
         this.data.onComplete?.(false);
@@ -208,32 +217,63 @@ export class DocumentUploadComponent implements OnInit {
   createDocument(document: DocumentDTO) {
     return this.invoicesService.createDocumentForOrder(this.data.order.id!, document).pipe(
       tap({
-        next: () => this.setupUploadCompletionHandler(),
+        next: createdDocument => this.setupUploadCompletionHandler(createdDocument.paperless_id == undefined),
         error: () => {
           this.toastService.addToast({
-            message: `Fehler beim Erstellen des Dokuments für die Bestellung ${this.data.order.id}.\nBitte versuchen Sie es erneut.`,
+            message: LinkableToastMessageComponent,
+            inputs: {
+              message: `Fehler beim Erstellen des Dokuments für Bestellung {LINK}\nBitte versuchen Sie es erneut.`,
+              links: [this.getLinkObjectToOrder()]
+            },
             type: 'error',
           });
           this.data.onComplete?.(false);
           this.processingIndicator?.close();
         }
       }),
-      mergeMap(createdInvoice => this.invoicesService.uploadInvoiceFile(createdInvoice.id!, this.selectedFile()!))
+      mergeMap(createdInvoice => {
+        if (createdInvoice.paperless_id) {
+          return of(createdInvoice);
+        }
+        return this.invoicesService.uploadInvoiceFile(createdInvoice.id!, this.selectedFile()!);
+      })
     );
   }
 
   /**
    * Sets up the handler for upload completion, showing a processing indicator toast.
    */
-  setupUploadCompletionHandler(): void {
+  setupUploadCompletionHandler(showProcessingToast?: boolean): void {
     this.isUploadComplete.set(true);
     this.processingIndicator?.afterClosed().subscribe(() => {
-      this.toastRef = this.toastService.addToast({
-        message: ToastProcessingIndicatorComponent,
-        isPersistent: true,
-        type: 'info'
-      });
+      if (showProcessingToast) {
+        this.toastRef = this.toastService.addToast({
+          message: ToastProcessingIndicatorComponent,
+          isPersistent: true,
+          type: 'info',
+          inputs: { documentName: this.selectedFile()?.name, orderId: this.data.order.id }
+        });
+      }
       this.dialogRef.close(true);
     });
+  }
+
+  /**
+   * Retrieves information about the document being uploaded.
+   * @returns A string describing the document.
+   */
+  getDocumentInfo(): string {
+    return this.linkExistingDocument.value ? `Paperless-ID ${this.existingDocumentId.value}` : this.selectedFile()?.name ?? 'Unbekannte Datei';
+  }
+
+  /** 
+   * Generates a link to the order associated with the document.
+   * @returns The URL string to the order.
+   */
+  getLinkObjectToOrder(): LinkObject {
+    return {
+      text: String(this.data.order.id),
+      url: `/orders/${this.data.order.id}`
+    };
   }
 }
