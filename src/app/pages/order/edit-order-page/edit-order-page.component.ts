@@ -4,6 +4,12 @@ import {
   ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_QUERIES_PERSON_FORM_CONFIG,
   ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
+  ORDER_ADDRESS_FORM_CONFIG,
+  ORDER_APPROVAL_FORM_CONFIG,
+  ORDER_GENERAL_FORM_CONFIG,
+  ORDER_MAIN_OFFER_FORM_CONFIG,
+  ORDER_QUOTATION_FORM_CONFIG,
+  ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
 } from '../../../configs/order/order-config';
 import {
   PersonsWrapperService,
@@ -53,14 +59,6 @@ import {
   OrderStatus,
   OrderResponseDTO,
 } from '../../../api-services-v2';
-import {
-  ORDER_ADDRESS_FORM_CONFIG,
-  ORDER_APPROVAL_FORM_CONFIG,
-  ORDER_GENERAL_FORM_CONFIG,
-  ORDER_MAIN_OFFER_FORM_CONFIG,
-  ORDER_QUOTATION_FORM_CONFIG,
-  ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
-} from '../../../configs/order/order-config';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
@@ -96,6 +94,7 @@ import {
   map,
   Subscription,
 } from 'rxjs';
+import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -157,15 +156,16 @@ export interface QuotationTableModel {
 })
 export class EditOrderPageComponent implements OnInit {
   constructor(
-    private router: Router,
-    private _notifications: MatSnackBar,
-    private personsWrapperService: PersonsWrapperService,
-    private currenciesWrapperService: CurrenciesWrapperService,
-    private suppliersWrapperService: SuppliersWrapperService,
-    private orderWrapperService: OrdersWrapperService,
-    private vatWrapperService: VatWrapperService,
-    private costCenterWrapperService: CostCenterWrapperService,
-    private route: ActivatedRoute
+    private readonly router: Router,
+    private readonly _notifications: MatSnackBar,
+    private readonly personsWrapperService: PersonsWrapperService,
+    private readonly currenciesWrapperService: CurrenciesWrapperService,
+    private readonly suppliersWrapperService: SuppliersWrapperService,
+    private readonly orderWrapperService: OrdersWrapperService,
+    private readonly vatWrapperService: VatWrapperService,
+    private readonly costCenterWrapperService: CostCenterWrapperService,
+    private readonly route: ActivatedRoute,
+    private readonly userWrapperService: UsersWrapperService
   ) {
     effect(() => {
       this.itemTableDataSource.data = this.items();
@@ -183,8 +183,8 @@ export class EditOrderPageComponent implements OnInit {
   // Define the order of the tabs
   private readonly tabOrder = [
     'General',
-    'MainOffer',
     'Items',
+    'MainOffer',
     'Quotations',
     'Addresses',
     'Approvals',
@@ -193,8 +193,8 @@ export class EditOrderPageComponent implements OnInit {
   // Mapping of tab names to their indices
   private readonly tabMap: Record<(typeof this.tabOrder)[number], number> = {
     General: 0,
-    MainOffer: 1,
-    Items: 2,
+    Items: 1,
+    MainOffer: 2,
     Quotations: 3,
     Addresses: 4,
     Approvals: 5,
@@ -440,6 +440,9 @@ export class EditOrderPageComponent implements OnInit {
           });
         },
       });
+
+    var loginCredentials = this.userWrapperService.getCurrentUser();
+    console.log(loginCredentials);
   }
 
   ngOnDestroy(): void {
@@ -665,7 +668,7 @@ export class EditOrderPageComponent implements OnInit {
       }
     }
     // Load all addresses of any person into the address table for selection
-      this.addressTableDataSource.data = this.personAddresses;
+    this.addressTableDataSource.data = this.personAddresses;
   }
 
   /**

@@ -88,6 +88,50 @@
         </div>
       </div>
     </mat-tab>
+
+    <!-- Add Item -->
+    <mat-tab label="Bestellpositionen">
+      <mat-divider class="tab-divider"></mat-divider>
+      <div class="item-container">
+        <app-form-component
+          [config]="orderItemFormConfig"
+          [formGroup]="orderItemFormGroup"
+        ></app-form-component>
+        <button
+          mat-raised-button
+          class="mb-4 w-full"
+          color="primary"
+          (click)="onAddItem()"
+        >
+          Position hinzufügen
+        </button>
+        <div class="table-container">
+          <app-generic-table
+            [dataSource]="itemTableDataSource"
+            [columns]="orderItemColumns"
+            [actions]="orderItemTableActions"
+          ></app-generic-table>
+        </div>
+      </div>
+      <div class="buttons sticky w-full flex ml-auto justify-between items-start mt-2">
+          <button
+            mat-raised-button
+            color="warn"
+            (click)="resetToDefault('Items')"
+          >
+            Änderungen auf dieser Seite verwerfen
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="patchOrderFromForm('Items')"
+          >
+            Speichern und weiter
+          </button>
+        </div>
+    </mat-tab>
+
+    <!-- Main Offer and Supplier Decision Reason -->
     <mat-tab label="Hauptangebot festlegen">
       <mat-divider class="tab-divider"></mat-divider>
       <div class="main-offer-tab-container">
@@ -128,47 +172,7 @@
       </div>
     </mat-tab>
 
-    <!-- Add Item -->
-    <mat-tab label="Bestellpositionen">
-      <mat-divider class="tab-divider"></mat-divider>
-      <div class="item-container">
-        <app-form-component
-          [config]="orderItemFormConfig"
-          [formGroup]="orderItemFormGroup"
-        ></app-form-component>
-        <button
-          mat-raised-button
-          class="mb-4 w-full"
-          color="primary"
-          (click)="onAddItem()"
-        >
-          Position hinzufügen
-        </button>
-        <div class="table-container">
-          <app-generic-table
-            [dataSource]="itemTableDataSource"
-            [columns]="orderItemColumns"
-            [actions]="orderItemTableActions"
-          ></app-generic-table>
-        </div>
-        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
-          <button
-            mat-raised-button
-            color="warn"
-            (click)="resetToDefault('Items')"
-          >
-            Änderungen auf dieser Seite verwerfen
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="patchOrderFromForm('Items')"
-          >
-            Speichern und weiter
-          </button>
-        </div>
-      </div>
-    </mat-tab>
+    <!-- Quotations -->
     <mat-tab label="Vergleichsangebote">
       <mat-divider class="tab-divider"></mat-divider>
       <div class="quotation-container">
