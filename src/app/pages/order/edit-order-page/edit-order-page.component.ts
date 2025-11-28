@@ -203,7 +203,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
 
   // Item variables
   items = signal<ItemTableModel[]>([]);
-  private deletedItems: number[] = []; // Store IDs of deleted items for API call
+  private itemsToDelete = new Set<ItemTableModel>(); // Store items to delete in the backend
   itemTableDataSource = new MatTableDataSource<ItemTableModel>([]);
   orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
   orderItemFormConfigRefreshTrigger = signal(0);
@@ -315,7 +315,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
   quotationFormConfig = ORDER_QUOTATION_FORM_CONFIG;
   quotationFormGroup = new FormGroup({});
   quotations = signal<QuotationTableModel[]>([]);
-  deletedQuotations: number[] = []; // Store IDs of deleted quotations for API call
+  quotationsToDelete = new Set<QuotationTableModel>();
   quotationTableDataSource = new MatTableDataSource<QuotationTableModel>([]);
   orderQuotationColumns: TableColumn<QuotationTableModel>[] = [
     { id: 'price', label: 'Preis' },
@@ -458,7 +458,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
   deleteItem(item: ItemTableModel) {
     // If the item has an item_id, it means it exists in the backend and should be deleted there as well
     if (item.item_id) {
-      this.deletedItems.push(item.item_id);
+      this.itemsToDelete.add(item);
     }
     this.items.update((curr) => curr.filter((i) => i !== item));
   }
@@ -565,7 +565,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
   deleteQuotation(quotation: QuotationTableModel) {
     // If the quotation has an id, it means it exists in the backend and should be deleted there as well
     if (quotation.index !== undefined) {
-      this.deletedQuotations.push(quotation.index);
+      this.quotationsToDelete.add(quotation);
     }
     this.quotations.update((curr) => curr.filter((q) => q !== quotation));
   }
@@ -579,6 +579,17 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
     field: { field: string; value: any },
     isRecipient: boolean
   ) {
+    // if a person field got cleared, clear the selected person and return
+    if (!field.value || !field.value.value) {
+      if (isRecipient) {
+        this.selectedDeliveryPerson = undefined;
+      } else {
+        this.selectedInvoicePerson = undefined;
+      }
+      return;
+    }
+
+    // Find the selected person from the locally stored persons
     const person = this.persons.filter((p) => p.id === field.value.value)[0];
     if (isRecipient) {
       this.selectedDeliveryPerson = person;
@@ -661,6 +672,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
    * @param isRecipient Boolean flag indicating if the option change is for the recipient (true) or the invoice (false)
    */
   async onAddressOptionChanged(option: string, isRecipient: boolean) {
+
     if (!this.personAddresses) {
       this.personAddresses =
         await this.personsWrapperService.getAllPersonsWithFullName();
@@ -789,26 +801,32 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
   }
 
   /**
-   * Save the address form inputs locally in the postOrderDTO object
+   * Saves the address form inputs in the target object
+   * @param target The target object to patch the address data into.
    * @returns {Promise<boolean>} Returns true if the address saving process was successful, false otherwise
    */
-  async patchAddressOrder(): Promise<boolean> {
+  async patchAddressOrder(target: Partial<OrderResponseDTOFormatted>): Promise<boolean> {
     // Set recipient and invoice person
     if (this.selectedDeliveryPerson) {
       // retrieve selected recipient person from autocomplete input from field delivery_person_id
-      this.patchOrderDTO.delivery_person_id =
+      target.delivery_person_id =
         this.deliveryPersonFormGroup.get('delivery_person_id')!.value;
+    }
+    else if (!this.selectedDeliveryPerson) {
+      target.delivery_person_id = undefined;
     }
 
     // Is the invoice address and person the same as the recipient address?
     if (this.sameAsRecipient) {
-      this.patchOrderDTO.invoice_person_id =
-        this.patchOrderDTO.delivery_person_id;
+      target.invoice_person_id = target.delivery_person_id;
     }
     // If not, check if an invoice person has been selected
     else if (this.selectedInvoicePerson) {
-      this.patchOrderDTO.invoice_person_id =
+      target.invoice_person_id =
         this.invoicePersonFormGroup.get('invoice_person_id')!.value;
+    }
+    else if (!this.selectedInvoicePerson) {
+      target.invoice_person_id = undefined;
     }
 
     // Handle address saving based on the selected addressModes
@@ -832,7 +850,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
         try {
           const createdAddress: AddressResponseDTO =
             await this.personsWrapperService.createPersonAddress(newAddress);
-          this.patchOrderDTO.delivery_address_id = createdAddress.id;
+          target.delivery_address_id = createdAddress.id;
           this._notifications.open(
             'Neue Lieferadresse wurde gespeichert.',
             undefined,
@@ -855,8 +873,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
     } else if (this.deliveryAddressOption === 'preferred') {
       // Use the stored selectedRecipientPerson to assign the preferred address to the delivery_address_id-field
       if (this.selectedDeliveryPerson?.address_id) {
-        this.patchOrderDTO.delivery_address_id =
-          this.selectedDeliveryPerson.address_id;
+        target.delivery_address_id = this.selectedDeliveryPerson.address_id;
       } else {
         this._notifications.open(
           'Fehler beim Laden der bevorzugten Lieferadresse. Die Adresse konnte nicht gefunden werden. Bitte wählen Sie eine andere Adresse oder versuchen Sie es später erneut.',
@@ -866,20 +883,18 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
         return false;
       }
     } else {
-      // Use the address id stored in selectedRecipientAddressId to assign to the postOrderDTO
+      // Use the address id stored in selectedRecipientAddressId to assign to the target
       if (this.selectedDeliveryAddressIdFromTable) {
-        this.patchOrderDTO.delivery_address_id =
-          this.selectedDeliveryAddressIdFromTable;
+        target.delivery_address_id = this.selectedDeliveryAddressIdFromTable;
       } else {
         // No address selected from the table, set the field to undefined to prevent accidental overwriting
-        this.patchOrderDTO.delivery_address_id = undefined;
+        target.delivery_address_id = undefined;
       }
     }
 
     // Invoice address
     if (this.sameAsRecipient) {
-      this.patchOrderDTO.invoice_address_id =
-        this.patchOrderDTO.delivery_address_id;
+      target.invoice_address_id = target.delivery_address_id;
     } else {
       if (this.invoiceAddressOption === 'new') {
         this.invoiceAddressFormGroup.markAllAsTouched();
@@ -890,7 +905,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
           try {
             const createdAddress: AddressResponseDTO =
               await this.personsWrapperService.createPersonAddress(newAddress);
-            this.patchOrderDTO.invoice_address_id = createdAddress.id;
+            target.invoice_address_id = createdAddress.id;
           } catch (error) {
             this._notifications.open(
               'Fehler beim Speichern der Adresse. Bitte versuchen sie es später erneut.',
@@ -907,8 +922,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
         }
       } else if (this.invoiceAddressOption === 'preferred') {
         if (this.selectedInvoicePerson?.address_id) {
-          this.patchOrderDTO.invoice_address_id =
-            this.selectedInvoicePerson.address_id;
+          target.invoice_address_id = this.selectedInvoicePerson.address_id;
         } else {
           this._notifications.open(
             'Fehler beim Laden der bevorzugten Adresse. Die präferierte Adresse konnte nicht gefunden werden. Bitte versuchen sie es später erneut',
@@ -919,12 +933,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
         }
       } else {
         if (this.selectedInvoiceAddressIdFromTable) {
-          // Use the address id stored in selectedInvoiceAddressId to assign to the postOrderDTO
-          this.patchOrderDTO.invoice_address_id =
-            this.selectedInvoiceAddressIdFromTable;
+          // Use the address id stored in selectedInvoiceAddressId to assign to the target
+          target.invoice_address_id = this.selectedInvoiceAddressIdFromTable;
         } else {
           // No address selected from the table, set the field to undefined to prevent accidental overwriting
-          this.patchOrderDTO.invoice_address_id = undefined;
+          target.invoice_address_id = undefined;
         }
       }
     }
@@ -946,13 +959,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
     );
 
     this.approvalsFromForm = normalized as ApprovalRequestDTO;
-
-    console.log(this.approvalsFromForm);
-    this._notifications.open(
-      'Zustimmungen wurden zwischengespeichert.',
-      undefined,
-      { duration: 3000 }
-    );
   }
 
   /**
@@ -1306,7 +1312,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
           this.resetItems();
           break;
         case 'Quotations':
-          this.deletedQuotations = [];
+          this.quotationsToDelete.clear();
           this.resetQuotations();
           break;
         case 'Addresses':
@@ -1327,7 +1333,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
       curr.filter((item) => item.item_id !== undefined)
     );
     this.orderItemFormGroup.reset();
-    this.deletedItems = [];
+    this.itemsToDelete.clear();
   }
 
   private resetQuotations() {
@@ -1335,7 +1341,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
       curr.filter((quotation) => quotation.index !== undefined)
     );
     this.quotationFormGroup.reset();
-    this.deletedQuotations = [];
+    this.quotationsToDelete.clear();
   }
 
   /**
@@ -1494,13 +1500,15 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
       | 'Documents'
       | 'All'
   ) {
-    this.patchOrderDTO = this.formattedOrderDTO;
+
+    // Create a deep copy to avoid mutating the original formattedOrderDTO
+    this.patchOrderDTO = structuredClone(this.formattedOrderDTO);
 
     // Determine which forms to patch based on the formType parameter
     const formsToPatch = formType === 'All' ? this.tabOrder : [formType];
 
     for (const form of formsToPatch) {
-      const success = await this.executeFormPatch(form);
+      const success = await this.executeFormPatch(form, this.patchOrderDTO);
 
       if (!success) {
         // Non valid form, switch to the tab and abort
@@ -1527,14 +1535,14 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
    * @returns A promise that resolves to true if the patch was successful, false otherwise.
    */
   private async executeFormPatch(
-    formType: Exclude<Parameters<typeof this.patchOrderFromForm>[0], 'All'>
+    formType: Exclude<Parameters<typeof this.patchOrderFromForm>[0], 'All'>,
+    target: Partial<OrderResponseDTOFormatted>
   ): Promise<boolean> {
     switch (formType) {
       case 'General':
-        return this.patchGeneralOrder();
-
+        return this.patchGeneralOrder(target);
       case 'MainOffer':
-        return this.patchMainOfferOrder();
+        return this.patchMainOfferOrder(target);
 
       case 'Items':
         return this.patchItemsOrder();
@@ -1543,7 +1551,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
         return this.patchQuotationsOrder();
 
       case 'Addresses':
-        return this.patchAddressOrder();
+        return this.patchAddressOrder(target);
 
       case 'Approvals':
         return this.submitApprovalPatch();
@@ -1553,7 +1561,12 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
     }
   }
 
-  patchGeneralOrder(): boolean {
+  /**
+   * Patches the general order form data into the target object.
+   * @param target The target object to patch the form data into.
+   * @returns true if the patch was successful, false otherwise.
+   */
+  patchGeneralOrder(target: Partial<OrderResponseDTOFormatted>): boolean {
     if (
       !this.generalFormGroup.valid &&
       !this.primaryCostCenterFormGroup.valid &&
@@ -1563,35 +1576,36 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
       this.generalFormGroup.markAllAsTouched();
       return false;
     }
-    this.patchOrderDTO = {
-      ...this.patchOrderDTO,
-      ...this.generalFormGroup.value,
-      queries_person_id: this.readAutocompleteValue(
-        this.queriesPersonFormGroup.get('queries_person_id')
-      ),
-      primary_cost_center_id: this.readAutocompleteValue(
-        this.primaryCostCenterFormGroup.get('primary_cost_center_id')
-      ),
-      secondary_cost_center_id: this.readAutocompleteValue(
-        this.secondaryCostCenterFormGroup.get('secondary_cost_center_id')
-      ),
-    };
-    console.log('Patch DTO nach General Patch:', this.patchOrderDTO);
+
+    Object.assign(target, this.generalFormGroup.value);
+    target.queries_person_id = this.readAutocompleteValue(
+      this.queriesPersonFormGroup.get('queries_person_id')
+    );
+    target.primary_cost_center_id = this.readAutocompleteValue(
+      this.primaryCostCenterFormGroup.get('primary_cost_center_id')
+    );
+    target.secondary_cost_center_id = this.readAutocompleteValue(
+      this.secondaryCostCenterFormGroup.get('secondary_cost_center_id')
+    );
     return true;
   }
 
-  patchMainOfferOrder(): boolean {
+  /**
+   * Patches the main offer form data into the target object.
+   * @param target The target object to patch the form data into.
+   * @returns true if the patch was successful, false otherwise.
+   */
+  patchMainOfferOrder(target: Partial<OrderResponseDTOFormatted>): boolean {
     if (!this.mainOfferFormGroup.valid) {
       this.mainOfferFormGroup.markAllAsTouched();
       return false;
     }
-    this.patchOrderDTO = {
-      ...this.patchOrderDTO,
-      ...this.mainOfferFormGroup.value,
-      ...this.supplierDecisionReasonFormGroup.value,
-      supplier_id: this.mainOfferFormGroup.get('supplier_id')?.value,
-    };
-    console.log('Patch DTO nach Main Offer Patch:', this.patchOrderDTO);
+
+    Object.assign(target, this.mainOfferFormGroup.value);
+    Object.assign(target, this.supplierDecisionReasonFormGroup.value);
+    target.supplier_id = this.mainOfferFormGroup.get('supplier_id')?.value;
+
+    console.log('Patch DTO nach Main Offer Patch:', target);
     return true;
   }
 
@@ -1644,11 +1658,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
     }
 
     // delete items marked for deletion, bail out on first failure
-    for (const deletedItemId of this.deletedItems) {
+    for (const itemToDelete of this.itemsToDelete) {
       try {
         await this.orderWrapperService.deleteItemOfOrder(
           this.editOrderId,
-          deletedItemId
+          itemToDelete.item_id!
         );
       } catch (error) {
         console.error('Fehler beim Löschen eines Artikels:', error);
@@ -1663,7 +1677,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
 
     // all requests succeeded
     // clear deletedItems since they've been removed on the backend
-    this.deletedItems = [];
+    this.itemsToDelete.clear();
     return true;
   }
 
@@ -1719,11 +1733,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
       }
 
       // delete quotations marked for deletion, bail out on first failure
-      for (const deletedQuotationIndex of this.deletedQuotations) {
+      for (const deletedQuotation of this.quotationsToDelete) {
         try {
           await this.orderWrapperService.deleteQuotationOfOrder(
             this.editOrderId,
-            deletedQuotationIndex
+            deletedQuotation.index!
           );
         } catch (error) {
           console.error('Fehler beim Löschen eines Angebots:', error);
@@ -1739,7 +1753,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
 
     // all requests succeeded
     // clear deletedQuotations since they've been removed on the backend
-    this.deletedQuotations = [];
+    this.quotationsToDelete.clear();
     return true;
   }
 
@@ -1818,6 +1832,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
    * @returns A promise that resolves to true if the patch was successful, false otherwise.
    */
   private async submitOrderPatch() {
+
+    console.log('Current formattedOrderDTO:', this.formattedOrderDTO);
+    console.log('Submitting order patch with DTO:', this.patchOrderDTO);
     // Check which fields have been modified and prepare the patch DTO accordingly
     const changedFields =
       this.orderWrapperService.compareOrdersAndReturnChangedFields(
@@ -1879,22 +1896,222 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
   }
 
   /**
+   * Mapping of form config names to tab names and their corresponding form configs.
+   */
+  private readonly formConfigToTabMapping: Record<string, { tabName: string; configs: FormConfig[] }> = {
+    General: {
+      tabName: 'Allgemeine Angaben',
+      configs: [
+        this.generalFormConfig,
+        this.queriesPersonFormConfig,
+        this.primaryCostCenterFormConfig,
+        this.secondaryCostCenterFormConfig
+      ]
+    },
+    MainOffer: {
+      tabName: 'Hauptangebot',
+      configs: [
+        this.mainOfferFormConfig,
+        this.supplierDecisionReasonFormConfig
+      ]
+    },
+    Addresses: {
+      tabName: 'Adressdaten',
+      configs: [
+        this.deliveryPersonFormConfig,
+        this.invoicePersonFormConfig,
+      ]
+    },
+    Approvals: {
+      tabName: 'Genehmigungen',
+      configs: [this.approvalFormConfig]
+    }
+  };
+
+  /**
    * Checks if there are unsaved changes in the form.
    * Called by the UnsavedChangesGuard before navigation.
+   * @returns {boolean} true if there are unsaved changes, false otherwise.
    */
   hasUnsavedChanges(): boolean {
-    return false;
-    //return this.getUnsavedTabs().length > 0;
+    return this.getUnsavedTabs().length > 0;
   }
 
   /**
    * Returns unsaved changes grouped by tab with detailed field information.
+   * @returns {UnsavedTab[]} Array of UnsavedTab objects representing unsaved changes per tab.
    */
   getUnsavedTabs(): UnsavedTab[] {
     const unsavedTabs: UnsavedTab[] = [];
 
-    // Implement Logic
+    // Tab Items
+    const addedItemsNames: string[] = this.items()
+      .filter((item) => !item.item_id)
+      .map((item) => item.name || 'Unbenannter Artikel');
+
+    const deletedItemsNames: string[] = Array.from(this.itemsToDelete).map(
+      (item) => item.name || 'Unbenannter Artikel'
+    );
+
+
+    if (addedItemsNames.length > 0 && deletedItemsNames.length > 0) {
+      unsavedTabs.push({
+        tabName: 'Bestellpositionen',
+        fields: [
+          'Ungespeicherte hinzugefügte Artikel: ' + addedItemsNames.join(', '),
+          'Ungespeicherte gelöschte Artikel: ' + deletedItemsNames.join(', '),
+        ],
+      });
+    }
+    else if (addedItemsNames.length > 0) {
+      unsavedTabs.push({
+        tabName: 'Bestellpositionen',
+        fields: [
+          'Ungespeicherte hinzugefügte Artikel: ' + addedItemsNames.join(', '),
+        ],
+      });
+    }
+    else if (deletedItemsNames.length > 0) {
+      unsavedTabs.push({
+        tabName: 'Bestellpositionen',
+        fields: [
+          'Ungespeicherte gelöschte Artikel: ' + deletedItemsNames.join(', '),
+        ],
+      });
+    }
+
+    // Tab Quotations
+    const addedQuotationsCompanyNames: string[] = this.quotations()
+      .filter((quotation) => !quotation.index)
+      .map(
+        (quotation) =>
+          quotation.company_name || 'Unbenanntes Angebot'
+      );
+
+    const deletedQuotationsCompanyNames: string[] = Array.from(this.quotationsToDelete).map(
+      (quotation) => quotation.company_name || 'Unbenanntes Angebot'
+    );
+
+    if (addedQuotationsCompanyNames.length > 0 && deletedQuotationsCompanyNames.length > 0) {
+      unsavedTabs.push({
+        tabName: 'Vergleichsangebote',
+        fields: [
+          'Ungespeicherte hinzugefügte Angebote: ' + addedQuotationsCompanyNames.join(', '),
+          'Ungespeicherte gelöschte Angebote: ' + deletedQuotationsCompanyNames.join(', '),
+        ],
+      });
+    }
+    else if (addedQuotationsCompanyNames.length > 0) {
+      unsavedTabs.push({
+        tabName: 'Vergleichsangebote',
+        fields: [
+          'Ungespeicherte hinzugefügte Angebote: ' + addedQuotationsCompanyNames.join(', '),
+        ],
+      });
+    }
+    else if (deletedQuotationsCompanyNames.length > 0) {
+      unsavedTabs.push({
+        tabName: 'Vergleichsangebote',
+        fields: [
+          'Ungespeicherte gelöschte Angebote von: ' + deletedQuotationsCompanyNames.join(', '),
+        ],
+      });
+    }
+
+    // Create a deep copy and patch with current form values
+    const currentOrderState: OrderResponseDTOFormatted = structuredClone(this.formattedOrderDTO);
+
+    const formsToPatch = this.tabOrder.filter(
+      (tab) => tab !== 'Items' && tab !== 'Quotations' && tab !== 'Approvals' && tab !== 'Documents'
+    );
+
+    for (const form of formsToPatch) {
+      this.executeFormPatch(form, currentOrderState);
+    }
+
+    // Compare and get changed fields
+    const changedFields = this.orderWrapperService.compareOrdersAndReturnChangedFields(
+      this.formattedOrderDTO,
+      currentOrderState
+    );
+
+    // Map changed fields to tabs using form configs
+    const tabChanges = this.mapChangedFieldsToTabs(Object.keys(changedFields));
+
+    for (const [tabName, fieldLabels] of Object.entries(tabChanges)) {
+      if (fieldLabels.length > 0) {
+        unsavedTabs.push({ tabName, fields: fieldLabels });
+      }
+    }
 
     return unsavedTabs;
+  }
+
+  /**
+   * Maps changed field names to their corresponding tab names and labels.
+   * @param changedFieldNames Array of field names that have changed.
+   * @returns Record mapping tab names to arrays of field labels.
+   */
+  private mapChangedFieldsToTabs(changedFieldNames: string[]): Record<string, string[]> {
+    const tabChanges: Record<string, string[]> = {};
+
+    for (const fieldName of changedFieldNames) {
+      const { tabName, label } = this.findFieldInConfigs(fieldName);
+
+      if (tabName) {
+        if (!tabChanges[tabName]) {
+          tabChanges[tabName] = [];
+        }
+        tabChanges[tabName].push(label);
+      }
+    }
+
+    return tabChanges;
+  }
+
+  /**
+   * Finds a field name in all form configs and returns its tab name and label.
+   * @param fieldName The field name to search for.
+   * @returns Object with tabName and label, or defaults if not found.
+   */
+  private findFieldInConfigs(fieldName: string): { tabName: string; label: string } {
+    for (const [formKey, mapping] of Object.entries(this.formConfigToTabMapping)) {
+      for (const config of mapping.configs) {
+        const field = config.fields.find((f) => f.name === fieldName);
+        if (field) {
+          return {
+            tabName: mapping.tabName,
+            label: field.label || fieldName
+          };
+        }
+      }
+    }
+
+    // Fallback: field not found in any config, use field name as label
+    return {
+      tabName: 'Sonstige',
+      label: this.getFieldLabelFallback(fieldName)
+    };
+  }
+
+  /**
+   * Provides human-readable fallback labels for fields not in form configs.
+   * @param fieldName The field name.
+   * @returns A human-readable label.
+   */
+  private getFieldLabelFallback(fieldName: string): string {
+    const fallbackLabels: Record<string, string> = {
+      'delivery_person_id': 'Lieferempfänger',
+      'invoice_person_id': 'Rechnungsempfänger',
+      'delivery_address_id': 'Lieferadresse',
+      'invoice_address_id': 'Rechnungsadresse',
+      'supplier_id': 'Lieferant',
+      'currency_short': 'Währung',
+      'primary_cost_center_id': 'Primäre Kostenstelle',
+      'secondary_cost_center_id': 'Sekundäre Kostenstelle',
+      'queries_person_id': 'Ansprechpartner bei Rückfragen'
+    };
+
+    return fallbackLabels[fieldName] || fieldName;
   }
 }
