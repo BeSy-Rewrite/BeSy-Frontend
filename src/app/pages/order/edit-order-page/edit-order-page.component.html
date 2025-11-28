@@ -59,7 +59,6 @@
             [refreshTrigger]="queriesPersonConfigRefreshTrigger()"
           ></app-form-component>
         </div>
-        <app-order-documents [order]="order"></app-order-documents>
         <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
           <button
             mat-raised-button
@@ -378,6 +377,7 @@
         </div>
       </div>
     </mat-tab>
+    @if(activateApprovalsTab()) {
     <mat-tab label="Zustimmungen">
       <mat-divider class="tab-divider"></mat-divider>
       <div class="approval-container">
@@ -401,6 +401,13 @@
             Speichern und weiter
           </button>
         </div>
+      </div>
+    </mat-tab>
+  }
+    <mat-tab label="Dokumente">
+      <mat-divider class="tab-divider"></mat-divider>
+      <div class="document-container">
+        <app-order-documents [order]="order"></app-order-documents>
       </div>
     </mat-tab>
   </mat-tab-group>

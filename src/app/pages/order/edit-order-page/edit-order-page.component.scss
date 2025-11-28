@@ -11,7 +11,8 @@ $form-width: calc(6 / 10 * 100%); // 60% der Breite des Containers
 .recipient-container,
 .delivery-address-container,
 .main-offer-tab-container,
-.approval-container {
+.approval-container,
+.document-container {
   width: $form-width;
   margin: 0 auto; // center the divs horizontally
   padding: 1rem;

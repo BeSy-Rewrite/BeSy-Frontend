@@ -22,9 +22,7 @@ import {
   computed,
   WritableSignal,
   effect,
-  HostListener,
 } from '@angular/core';
-import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import { MatDivider } from '@angular/material/divider';
 import {
   FormComponent,
@@ -84,19 +82,12 @@ import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { MatIcon } from '@angular/material/icon';
 import { OrderDocumentsComponent } from '../../../components/documents/order-documents/order-documents.component';
-import {
-  EMPTY,
-  from,
-  switchMap,
-  take,
-  tap,
-  catchError,
-  map,
-  Subscription,
-} from 'rxjs';
+import { Subscription } from 'rxjs';
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 import { StateDisplayComponent } from '../../../components/state-display/state-display.component';
 import { EditOrderResolvedData } from '../../../resolver/edit-order-resolver';
+import { HasUnsavedChanges } from '../../../guards/unsaved-changes.guard';
+import { UnsavedTab } from '../../../components/unsaved-changes-dialog/unsaved-changes-dialog.component';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -131,7 +122,6 @@ export interface QuotationTableModel {
 @Component({
   selector: 'app-create-order-page',
   imports: [
-    ProgressBarComponent,
     MatDivider,
     FormComponent,
     MatButton,
@@ -157,7 +147,7 @@ export interface QuotationTableModel {
   templateUrl: './edit-order-page.component.html',
   styleUrl: './edit-order-page.component.scss',
 })
-export class EditOrderPageComponent implements OnInit {
+export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
   constructor(
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
@@ -178,11 +168,10 @@ export class EditOrderPageComponent implements OnInit {
     });
   }
 
-  // Button sticky variable
-  isSticky = false;
+  // Tab variables
+  activateApprovalsTab: WritableSignal<boolean> = signal(false);
 
   selectedTabIndex = signal<number>(0);
-
   // Subscription for syncing tab changes with URL query parameters
   private tabSyncSub?: Subscription;
   // Defines the order of the tabs
@@ -193,6 +182,7 @@ export class EditOrderPageComponent implements OnInit {
     'Quotations',
     'Addresses',
     'Approvals',
+    'Documents',
   ] as const;
 
   // Mapping of tab names to their indices
@@ -203,6 +193,7 @@ export class EditOrderPageComponent implements OnInit {
     Quotations: 3,
     Addresses: 4,
     Approvals: 5,
+    Documents: 6,
   };
 
   editOrderId!: number;
@@ -345,8 +336,8 @@ export class EditOrderPageComponent implements OnInit {
   // Approval variables
   approvalFormConfig = ORDER_APPROVAL_FORM_CONFIG;
   approvalFormGroup = new FormGroup({});
-  approvals: ApprovalResponseDTO = {} as ApprovalResponseDTO;
-  postApprovalDTO: ApprovalRequestDTO = {} as ApprovalRequestDTO;
+  unmodifiedApprovals: ApprovalResponseDTO = {} as ApprovalResponseDTO;
+  approvalsFromForm: ApprovalRequestDTO = {} as ApprovalRequestDTO;
 
   // Cost center variables
   costCenters: CostCenterResponseDTO[] = [];
@@ -445,12 +436,18 @@ export class EditOrderPageComponent implements OnInit {
   onAddItem() {
     if (this.orderItemFormGroup.valid) {
       const newItem = this.orderItemFormGroup.value as ItemTableModel;
-      console.log('Neuer Artikel:', newItem);
+
+      // Format price to German format
+      newItem.price_per_unit = this.orderWrapperService.formatPriceToGerman(newItem.price_per_unit);
+
+      // Add the new item to the items list
       this.items.update((curr) => [...curr, newItem]);
       this.itemTableDataSource.data = this.items(); // Update the table data source
-      this.orderItemFormGroup.reset(); // Formular zurücksetzen
+
+      this.orderItemFormGroup.reset();
+      this.setDefaultVatValueByLoadedItems();
     } else {
-      this.orderItemFormGroup.markAllAsTouched(); // Markiere alle Felder als berührt, um Validierungsfehler anzuzeigen
+      this.orderItemFormGroup.markAllAsTouched(); // Show validation errors
     }
   }
 
@@ -948,9 +945,9 @@ export class EditOrderPageComponent implements OnInit {
       Object.entries(raw).map(([k, v]) => [k, v ?? false])
     );
 
-    this.postApprovalDTO = normalized as ApprovalRequestDTO;
+    this.approvalsFromForm = normalized as ApprovalRequestDTO;
 
-    console.log(this.postApprovalDTO);
+    console.log(this.approvalsFromForm);
     this._notifications.open(
       'Zustimmungen wurden zwischengespeichert.',
       undefined,
@@ -1146,7 +1143,7 @@ export class EditOrderPageComponent implements OnInit {
 
     this.quotations.set(quotations);
     this.items.set(mappedItems);
-    this.approvals = approvals;
+    this.unmodifiedApprovals = approvals;
 
     this.setDefaultVatValueByLoadedItems();
     this.formatOrderForFormInput();
@@ -1272,7 +1269,7 @@ export class EditOrderPageComponent implements OnInit {
    * Patch the approval form group with the loaded order data
    */
   private patchApprovalFormGroupFromOrder() {
-    this.approvalFormGroup.patchValue(this.formattedOrderDTO);
+    this.approvalFormGroup.patchValue(this.unmodifiedApprovals);
   }
 
   /**
@@ -1317,6 +1314,8 @@ export class EditOrderPageComponent implements OnInit {
           break;
         case 'Approvals':
           this.patchApprovalFormGroupFromOrder();
+          break;
+        default:
           break;
       }
     });
@@ -1492,6 +1491,7 @@ export class EditOrderPageComponent implements OnInit {
       | 'Quotations'
       | 'Addresses'
       | 'Approvals'
+      | 'Documents'
       | 'All'
   ) {
     this.patchOrderDTO = this.formattedOrderDTO;
@@ -1749,14 +1749,27 @@ export class EditOrderPageComponent implements OnInit {
    */
   private async submitApprovalPatch(): Promise<boolean> {
     // If order is not in status completed, the approvals can't be changed
-    if (this.formattedOrderDTO.status !== OrderStatus.COMPLETED) return true;
+    // if (this.formattedOrderDTO.status !== OrderStatus.COMPLETED) return true;
 
+    // Save the approval form inputs locally in the postApprovalDTO object
     this.locallySaveApprovalFormInput();
+
+    // Filter out unchanged fields by comparing with original approvals
+    const changedApprovalFields = this.getChangedApprovalFields(
+      this.unmodifiedApprovals,
+      this.approvalsFromForm
+    );
+
+    console.log('Changed approval fields to be patched:', changedApprovalFields);
+    // If no approval fields have changed, return
+    if (Object.keys(changedApprovalFields).length === 0) {
+      return true;
+    }
     // Send the approval patch to the backend
     try {
       await this.orderWrapperService.patchOrderApprovals(
         this.editOrderId,
-        this.postApprovalDTO
+        changedApprovalFields
       );
       this._notifications.open(
         'Zustimmungen wurden erfolgreich gespeichert.',
@@ -1773,6 +1786,31 @@ export class EditOrderPageComponent implements OnInit {
       );
       return false;
     }
+  }
+
+  /**
+   * Compares two approval objects and returns only the fields that have changed.
+   * @param original The original approval data (from backend)
+   * @param updated The updated approval data (from form)
+   * @returns An object containing only the changed fields
+   */
+  private getChangedApprovalFields(
+    original: ApprovalResponseDTO,
+    updated: ApprovalRequestDTO
+  ): Partial<ApprovalRequestDTO> {
+    const changedFields: Partial<ApprovalRequestDTO> = {};
+
+    for (const key of Object.keys(updated) as (keyof ApprovalRequestDTO)[]) {
+      const originalValue = original[key as keyof ApprovalResponseDTO];
+      const updatedValue = updated[key];
+
+      // Only include if values are different
+      if (originalValue !== updatedValue) {
+        (changedFields as Record<string, unknown>)[key] = updatedValue;
+      }
+    }
+
+    return changedFields;
   }
 
   /**
@@ -1838,5 +1876,25 @@ export class EditOrderPageComponent implements OnInit {
     }
 
     return normalize(rawValue);
+  }
+
+  /**
+   * Checks if there are unsaved changes in the form.
+   * Called by the UnsavedChangesGuard before navigation.
+   */
+  hasUnsavedChanges(): boolean {
+    return false;
+    //return this.getUnsavedTabs().length > 0;
+  }
+
+  /**
+   * Returns unsaved changes grouped by tab with detailed field information.
+   */
+  getUnsavedTabs(): UnsavedTab[] {
+    const unsavedTabs: UnsavedTab[] = [];
+
+    // Implement Logic
+
+    return unsavedTabs;
   }
 }

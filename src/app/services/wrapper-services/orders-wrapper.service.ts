@@ -524,9 +524,6 @@ export class OrdersWrapperService {
   ): Partial<OrderResponseDTOFormatted> {
     const changedFields: Partial<OrderResponseDTOFormatted> = {};
 
-    console.log('Original Order:', original);
-    console.log('Modified Order:', modified);
-
     // --- Special handling for currency and currency_short fields ---
     const extractValue = (value: any): string | undefined => {
       if (value === null || value === undefined) return undefined;

@@ -124,28 +124,6 @@ export class CreateOrderPageComponent implements OnInit {
   }
 
   /**
-   * Normalize form data from autocomplete fields, as they return an object with "label" and "value" properties.
-   * As this object structure is not compatible with the API, only the "value" property is extracted.
-   * @param data Form data to normalize
-   * @returns Normalized form data
-   */
-  private normalizeFormData(data: any): any {
-    const normalized: any = {};
-    for (const key in data) {
-      if (!data.hasOwnProperty(key)) continue;
-
-      const value = data[key];
-      // If field is an object with "value" property → only take value
-      if (value && typeof value === 'object' && 'value' in value) {
-        normalized[key] = value.value;
-      } else {
-        normalized[key] = value;
-      }
-    }
-    return normalized;
-  }
-
-  /**
    * Creates a new order based on the filled form data.
    * Validates the form data before sending the create request.
    */

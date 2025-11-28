@@ -14,6 +14,7 @@ import { ViewOrderPageComponent } from './pages/order/view-order-page/view-order
 import { OrderResolver } from './resolver/order.resolver';
 import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page/create-order-page.component';
 import { EditOrderResolver } from './resolver/edit-order-resolver';
+import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
 
 export const routes: Routes = [
     {
@@ -49,7 +50,7 @@ export const routes: Routes = [
         resolve: {
             order: OrderResolver
         },
-        canActivate: [DefaultGuard]
+        canActivate: [DefaultGuard],
     },
     {
       title: 'Bestellung bearbeiten',
@@ -58,7 +59,8 @@ export const routes: Routes = [
       resolve: {
         orderData: EditOrderResolver
       },
-      canActivate: [DefaultGuard]
+      canActivate: [DefaultGuard],
+      canDeactivate: [UnsavedChangesGuard]
     },
     {
       title: 'Personen',
