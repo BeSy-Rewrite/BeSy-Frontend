@@ -96,6 +96,7 @@ import {
 } from 'rxjs';
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 import { StateDisplayComponent } from '../../../components/state-display/state-display.component';
+import { EditOrderResolvedData } from '../../../resolver/edit-order-resolver';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -181,8 +182,10 @@ export class EditOrderPageComponent implements OnInit {
   isSticky = false;
 
   selectedTabIndex = signal<number>(0);
+
+  // Subscription for syncing tab changes with URL query parameters
   private tabSyncSub?: Subscription;
-  // Define the order of the tabs
+  // Defines the order of the tabs
   private readonly tabOrder = [
     'General',
     'Items',
@@ -377,74 +380,33 @@ export class EditOrderPageComponent implements OnInit {
   currentProgressBarStepIndex = 3;
 
   async ngOnInit(): Promise<void> {
-    this.route.paramMap
-      .pipe(
-        take(1),
-        map((params) => Number(params.get('id'))),
-        tap((id) => {
-          if (Number.isNaN(id)) {
-            this.router.navigate(['/not-found'], { skipLocationChange: true });
-            throw EMPTY;
-          }
-          this.editOrderId = id;
-        }),
-        switchMap((id) =>
-          from(this.orderWrapperService.getOrderById(id)).pipe(
-            catchError((error) => {
-              if (error?.status === 404) {
-                this._notifications.open(
-                  'Bestellung nicht gefunden',
-                  undefined,
-                  { duration: 5000 }
-                );
-                this.router.navigate(['/not-found'], {
-                  skipLocationChange: true,
-                });
-              } else {
-                this._notifications.open(
-                  'Fehler beim Laden der Bestellung',
-                  undefined,
-                  { duration: 5000 }
-                );
-                console.error(error);
-              }
-              return EMPTY;
-            })
-          )
-        ),
-        switchMap((order) =>
-          from(
-            this.orderWrapperService.mapOrderResponseToFormatted(order)
-          ).pipe(
-            tap((formatted) => {
-              this.order = order;
-              this.formattedOrderDTO = formatted;
-            })
-          )
-        )
-      )
-      .subscribe({
-        next: async () => {
-          await this.initializeStaticData();
-          await this.loadAllOrderData();
-          this.tabSyncSub?.unsubscribe();
-          this.tabSyncSub = this.route.queryParamMap.subscribe((params) => {
-            const tabParam = params.get('tab');
-            if (
-              tabParam &&
-              Object.prototype.hasOwnProperty.call(this.tabMap, tabParam)
-            ) {
-              this.switchToTab(tabParam as (typeof this.tabOrder)[number], {
-                updateUrl: false,
-              });
-            } else if (tabParam === null) {
-              this.switchToTab(this.tabOrder[0]);
-            }
-          });
-        },
-      });
+    // Get resolved data from route
+    const resolvedData: EditOrderResolvedData = this.route.snapshot.data['orderData'];
 
-    var loginCredentials = this.userWrapperService.getCurrentUser();
+    this.editOrderId = resolvedData.order.id!;
+    this.order = resolvedData.order;
+    this.formattedOrderDTO = resolvedData.formattedOrder;
+
+    await this.initializeStaticData();
+    await this.loadAllOrderData();
+
+    // Setup tab sync subscription
+    this.tabSyncSub?.unsubscribe();
+    this.tabSyncSub = this.route.queryParamMap.subscribe((params) => {
+      const tabParam = params.get('tab');
+      if (
+        tabParam &&
+        Object.prototype.hasOwnProperty.call(this.tabMap, tabParam)
+      ) {
+        this.switchToTab(tabParam as (typeof this.tabOrder)[number], {
+          updateUrl: false,
+        });
+      } else if (tabParam === null) {
+        this.switchToTab(this.tabOrder[0]);
+      }
+    });
+
+    const loginCredentials = this.userWrapperService.getCurrentUser();
     console.log(loginCredentials);
   }
 
@@ -452,6 +414,10 @@ export class EditOrderPageComponent implements OnInit {
     this.tabSyncSub?.unsubscribe();
   }
 
+  /**
+   * Initializes static data required for the order edit page (e.g for dropdowns and autocompletes)
+   * by fetching it from various services.
+   */
   private async initializeStaticData() {
     [
       this.vatOptions,
