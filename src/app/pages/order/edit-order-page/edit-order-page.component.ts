@@ -95,6 +95,7 @@ import {
   Subscription,
 } from 'rxjs';
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
+import { StateDisplayComponent } from '../../../components/state-display/state-display.component';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -150,6 +151,7 @@ export interface QuotationTableModel {
     MatIcon,
     RouterModule,
     OrderDocumentsComponent,
+    StateDisplayComponent,
   ],
   templateUrl: './edit-order-page.component.html',
   styleUrl: './edit-order-page.component.scss',
@@ -210,6 +212,7 @@ export class EditOrderPageComponent implements OnInit {
   private deletedItems: number[] = []; // Store IDs of deleted items for API call
   itemTableDataSource = new MatTableDataSource<ItemTableModel>([]);
   orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
+  orderItemFormConfigRefreshTrigger = signal(0);
   orderItemFormGroup = new FormGroup({});
 
   vatOptions: VatResponseDTO[] = [];
@@ -1035,8 +1038,8 @@ export class EditOrderPageComponent implements OnInit {
    * @param field The selected supplier with field name and value. Value can be either a number or null.
    */
   async onMainOfferFormGroupChanged(field: { field: string; value: any }) {
+
     // Check if the changed field is the supplier_id
-    console.log('Main Offer Form Field changed');
     if (field.field === 'supplier_id' && field.value) {
       this.setCustomerIdsForSupplier(field.value?.value);
     } else if (field.field === 'supplier_id' && !field.value) {
@@ -1179,7 +1182,35 @@ export class EditOrderPageComponent implements OnInit {
     this.items.set(mappedItems);
     this.approvals = approvals;
 
+    this.setDefaultVatValueByLoadedItems();
     this.formatOrderForFormInput();
+  }
+
+  /**
+   * Set default VAT type and value based on the first item in items.
+   * If no items are present, default VAT remains unchanged.
+   */
+  private setDefaultVatValueByLoadedItems() {
+    const currentItems = this.items();
+
+    if (currentItems.length > 0) {
+      const firstItemVat: number = +currentItems[0].vat_value!;
+      const firstItemVatType = currentItems[0].vat_type;
+
+      this.patchConfigAutocompleteFieldsWithOrderData(
+        'vat_value',
+        firstItemVat,
+        { current: this.orderItemFormConfig },
+        this.orderItemFormConfigRefreshTrigger
+      );
+
+      this.patchConfigAutocompleteFieldsWithOrderData(
+        'vat_type',
+        firstItemVatType,
+        { current: this.orderItemFormConfig },
+        this.orderItemFormConfigRefreshTrigger
+      );
+    }
   }
 
   private formatOrderForFormInput() {

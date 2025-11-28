@@ -31,12 +31,12 @@ import { Router } from '@angular/router';
 @Component({
   selector: 'app-create-order-page',
   imports: [
-    ProgressBarComponent,
     MatTabsModule,
     MatDivider,
     FormComponent,
     MatAutocompleteModule,
     MatButtonModule,
+    ProgressBarComponent,
   ],
   templateUrl: './create-order-page.component.html',
   styleUrls: ['./create-order-page.component.scss'],

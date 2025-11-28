@@ -1,20 +1,6 @@
 <div class="create-order-page h-auto overflow-visible">
-  <div class="progress-bar-container bg-gray-200 py-2 top-0 z-10">
-    <app-progress-bar
-      [steps]="[
-        { label: 'Bestellung erstellen', tooltip: 'Beschreibung für Step 1' },
-        { label: 'Bestellung erstellt', tooltip: 'Beschreibung für Step 2' },
-        { label: 'Zustimmungen erteilt', tooltip: 'Beschreibung für Step 3' },
-        {
-          label: 'Dekan Zustimmung erteilt',
-          tooltip: 'Beschreibung für Step 4'
-        }
-      ]"
-      [currentStepIndex]="currentProgressBarStepIndex"
-    ></app-progress-bar>
-  </div>
   <mat-divider></mat-divider>
-  <div class="sticky top-0 z-50 flex justify-between items-start mb-1 mt-2 px-4">
+  <div class="sticky top-0 z-50 flex justify-between items-start mb-1 mt-2">
     <button
       mat-raised-button
       color="warn"
@@ -92,10 +78,27 @@
     <!-- Add Item -->
     <mat-tab label="Bestellpositionen">
       <mat-divider class="tab-divider"></mat-divider>
+      <div class="buttons sticky w-full top-12 flex ml-auto justify-between items-start mt-2">
+          <button
+            mat-raised-button
+            color="warn"
+            (click)="resetToDefault('Items')"
+          >
+            Änderungen auf dieser Seite verwerfen
+          </button>
+          <button
+            mat-raised-button
+            color="primary"
+            (click)="patchOrderFromForm('Items')"
+          >
+            Speichern und weiter
+          </button>
+        </div>
       <div class="item-container">
         <app-form-component
           [config]="orderItemFormConfig"
           [formGroup]="orderItemFormGroup"
+          [refreshTrigger]="orderItemFormConfigRefreshTrigger()"
         ></app-form-component>
         <button
           mat-raised-button
@@ -113,47 +116,12 @@
           ></app-generic-table>
         </div>
       </div>
-      <div class="buttons sticky w-full flex ml-auto justify-between items-start mt-2">
-          <button
-            mat-raised-button
-            color="warn"
-            (click)="resetToDefault('Items')"
-          >
-            Änderungen auf dieser Seite verwerfen
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="patchOrderFromForm('Items')"
-          >
-            Speichern und weiter
-          </button>
-        </div>
     </mat-tab>
 
     <!-- Main Offer and Supplier Decision Reason -->
     <mat-tab label="Hauptangebot festlegen">
       <mat-divider class="tab-divider"></mat-divider>
-      <div class="main-offer-tab-container">
-        <!-- Hauptangebot -->
-        <div class="main-offer-container justify-center">
-          <app-form-component
-            [config]="mainOfferFormConfig"
-            [formGroup]="mainOfferFormGroup"
-            [refreshTrigger]="mainOfferConfigRefreshTrigger()"
-            (valueChanged)="onMainOfferFormGroupChanged($event)"
-          ></app-form-component>
-        </div>
-
-        <!-- Begründung der Lieferantenauswahl -->
-        <div class="supplier-decision-reason-container justify-center mt-8">
-          <app-form-component
-            [config]="supplierDecisionReasonFormConfig"
-            [formGroup]="supplierDecisionReasonFormGroup"
-            (valueChanged)="onSupplierDecisionReasonChanged($event)"
-          ></app-form-component>
-        </div>
-        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
+      <div class="buttons w-full z-800 flex ml-auto justify-between items-start mt-2">
           <button
             mat-raised-button
             color="warn"
@@ -168,6 +136,25 @@
           >
             Speichern und weiter
           </button>
+        </div>
+      <div class="main-offer-tab-container">
+        <!-- Main Offer -->
+        <div class="main-offer-container justify-center">
+          <app-form-component
+            [config]="mainOfferFormConfig"
+            [formGroup]="mainOfferFormGroup"
+            [refreshTrigger]="mainOfferConfigRefreshTrigger()"
+            (valueChanged)="onMainOfferFormGroupChanged($event)"
+          ></app-form-component>
+        </div>
+
+        <!-- Supplier Decision Reason -->
+        <div class="supplier-decision-reason-container justify-center mt-8">
+          <app-form-component
+            [config]="supplierDecisionReasonFormConfig"
+            [formGroup]="supplierDecisionReasonFormGroup"
+            (valueChanged)="onSupplierDecisionReasonChanged($event)"
+          ></app-form-component>
         </div>
       </div>
     </mat-tab>

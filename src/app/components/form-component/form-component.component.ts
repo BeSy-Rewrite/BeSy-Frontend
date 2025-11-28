@@ -198,6 +198,41 @@ export class FormComponent implements OnInit {
         }
       }
 
+      // Handle Select fields
+      if (field.type === 'select' && field.options) {
+        const control = this.formGroup.get(field.name);
+
+        // Set default value if it matches one of the options
+        if (field.defaultValue && field.options?.length > 0) {
+          const match =
+            field.options.find(
+              (opt) => opt.value === field.defaultValue
+            ) || null;
+
+          // Set the control value to the matching option value
+          if (match) {
+            control?.setValue(match.value, { emitEvent: false });
+          }
+        }
+      }
+
+      if (field.type === 'radio' && field.options) {
+        const control = this.formGroup.get(field.name);
+
+        // Set default value if it matches one of the options
+        if (field.defaultValue && field.options?.length > 0) {
+          const match =
+            field.options.find(
+              (opt) => opt.value === field.defaultValue
+            ) || null;
+
+          // Set the control value to the matching option value
+          if (match) {
+            control?.setValue(match.value, { emitEvent: false });
+          }
+        }
+      }
+
       // Emit value changes as signals if configured as such in the config
       if (field.emitAsSignal) {
         const control = this.formGroup.get(field.name);
