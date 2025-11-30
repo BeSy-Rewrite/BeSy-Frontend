@@ -22,6 +22,8 @@ import {
   computed,
   WritableSignal,
   effect,
+  HostListener,
+  OnDestroy,
 } from '@angular/core';
 import { MatDivider } from '@angular/material/divider';
 import {
@@ -147,7 +149,7 @@ export interface QuotationTableModel {
   templateUrl: './edit-order-page.component.html',
   styleUrl: './edit-order-page.component.scss',
 })
-export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
+export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDestroy {
   constructor(
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
@@ -371,6 +373,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
   currentProgressBarStepIndex = 3;
 
   async ngOnInit(): Promise<void> {
+    window.addEventListener('beforeunload', this.onBeforeUnload);
     // Get resolved data from route
     const resolvedData: EditOrderResolvedData = this.route.snapshot.data['orderData'];
 
@@ -403,7 +406,22 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
 
   ngOnDestroy(): void {
     this.tabSyncSub?.unsubscribe();
+    window.removeEventListener('beforeunload', this.onBeforeUnload);
   }
+
+  /**
+   * Intercepts browser-level navigation (refresh, close, back/forward after full reload, URL entry).
+   * Shows browser's native "Leave site?" confirmation dialog.
+   * Note: Custom messages are no longer supported by modern browsers for security reasons.
+   * @param event The beforeunload event
+   */
+  onBeforeUnload = (event: BeforeUnloadEvent) => {
+    if (this.hasUnsavedChanges()) {
+      // Modern browsers ignore custom messages and show their own generic dialog
+      event.preventDefault();
+      event.returnValue = ''; // Required for Chrome/Edge
+    }
+  };
 
   /**
    * Initializes static data required for the order edit page (e.g for dropdowns and autocompletes)
@@ -1012,7 +1030,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
     if (field.field === 'supplier_id' && field.value) {
       this.setCustomerIdsForSupplier(field.value?.value);
     } else if (field.field === 'supplier_id' && !field.value) {
-      // If supplier is deselected, clear customer IDs
+      // If supplier is deselected, clear the customer_id field and its options
+      this.mainOfferFormGroup.patchValue({ customer_id: null });
       const customerIdField = this.mainOfferFormConfig.fields.find(
         (f) => f.name === 'customer_id'
       );
@@ -2035,6 +2054,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
       currentOrderState
     );
 
+    console.log('Changed fields for unsaved changes detection:', changedFields);
+
     // Map changed fields to tabs using form configs
     const tabChanges = this.mapChangedFieldsToTabs(Object.keys(changedFields));
 
@@ -2070,11 +2091,33 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
   }
 
   /**
+   * Mapping of field names to tab names and labels for fields not in form configs.
+   * Used as a lookup before the generic fallback.
+   */
+  private readonly fieldToTabMapping: Record<string, { tabName: string; label: string }> = {
+    'delivery_person_id': { tabName: 'Adressdaten', label: 'Lieferempfänger' },
+    'invoice_person_id': { tabName: 'Adressdaten', label: 'Rechnungsempfänger' },
+    'delivery_address_id': { tabName: 'Adressdaten', label: 'Lieferadresse' },
+    'invoice_address_id': { tabName: 'Adressdaten', label: 'Rechnungsadresse' },
+    'supplier_id': { tabName: 'Hauptangebot', label: 'Lieferant' },
+    'currency_short': { tabName: 'Hauptangebot', label: 'Währung' },
+    'primary_cost_center_id': { tabName: 'Allgemeine Angaben', label: 'Primäre Kostenstelle' },
+    'secondary_cost_center_id': { tabName: 'Allgemeine Angaben', label: 'Sekundäre Kostenstelle' },
+    'queries_person_id': { tabName: 'Allgemeine Angaben', label: 'Ansprechpartner bei Rückfragen' }
+  };
+
+  /**
    * Finds a field name in all form configs and returns its tab name and label.
    * @param fieldName The field name to search for.
    * @returns Object with tabName and label, or defaults if not found.
    */
   private findFieldInConfigs(fieldName: string): { tabName: string; label: string } {
+    // First check the explicit field-to-tab mapping
+    if (this.fieldToTabMapping[fieldName]) {
+      return this.fieldToTabMapping[fieldName];
+    }
+
+    // Then search in form configs
     for (const [formKey, mapping] of Object.entries(this.formConfigToTabMapping)) {
       for (const config of mapping.configs) {
         const field = config.fields.find((f) => f.name === fieldName);
@@ -2087,31 +2130,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges {
       }
     }
 
-    // Fallback: field not found in any config, use field name as label
+    // Fallback: field not found anywhere
     return {
       tabName: 'Sonstige',
-      label: this.getFieldLabelFallback(fieldName)
+      label: fieldName
     };
-  }
-
-  /**
-   * Provides human-readable fallback labels for fields not in form configs.
-   * @param fieldName The field name.
-   * @returns A human-readable label.
-   */
-  private getFieldLabelFallback(fieldName: string): string {
-    const fallbackLabels: Record<string, string> = {
-      'delivery_person_id': 'Lieferempfänger',
-      'invoice_person_id': 'Rechnungsempfänger',
-      'delivery_address_id': 'Lieferadresse',
-      'invoice_address_id': 'Rechnungsadresse',
-      'supplier_id': 'Lieferant',
-      'currency_short': 'Währung',
-      'primary_cost_center_id': 'Primäre Kostenstelle',
-      'secondary_cost_center_id': 'Sekundäre Kostenstelle',
-      'queries_person_id': 'Ansprechpartner bei Rückfragen'
-    };
-
-    return fallbackLabels[fieldName] || fieldName;
   }
 }

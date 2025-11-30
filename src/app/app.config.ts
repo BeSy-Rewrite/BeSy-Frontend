@@ -11,6 +11,7 @@ import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
 import { environment } from '../environments/environment';
 import { routes } from './app.routes';
+import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -25,6 +26,7 @@ export const appConfig: ApplicationConfig = {
         sendAccessToken: true,
       },
     }),
+    UnsavedChangesGuard
   ],
 };
 

@@ -16,9 +16,9 @@
 
   <mat-menu #menu="matMenu">
     @for (link of links; track $index) {
-    <a mat-menu-item [routerLink]="link.path" (click)="activeMenuItem.set($index); isMobileMenuOpen.set(false)">
-      {{ link.name }}
-    </a>
+      <a mat-menu-item [routerLink]="link.path">
+        {{ link.name }}
+      </a>
     }
   </mat-menu>
 
