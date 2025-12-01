@@ -22,15 +22,14 @@ import {
   computed,
   WritableSignal,
   effect,
-  HostListener,
   OnDestroy,
+  OnInit
 } from '@angular/core';
 import { MatDivider } from '@angular/material/divider';
 import {
   FormComponent,
   FormField,
 } from '../../../components/form-component/form-component.component';
-import { OnInit } from '@angular/core';
 import { FormConfig } from '../../../components/form-component/form-component.component';
 import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
 import {
@@ -38,6 +37,8 @@ import {
   FormControl,
   FormGroup,
   Validators,
+  ReactiveFormsModule,
+  FormsModule
 } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatTableDataSource } from '@angular/material/table';
@@ -56,7 +57,6 @@ import {
   VatResponseDTO,
   SupplierResponseDTO,
   ApprovalResponseDTO,
-  OrderStatus,
   OrderResponseDTO,
 } from '../../../api-services-v2';
 import { MatInputModule } from '@angular/material/input';
@@ -64,7 +64,6 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import {
   MatButtonToggle,
   MatButtonToggleGroup,
@@ -170,6 +169,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     });
   }
 
+
+  orderName = signal<string>('');
+  orderBesyId = signal<string>('');
   // Tab variables
   activateApprovalsTab: WritableSignal<boolean> = signal(false);
 
@@ -400,6 +402,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       }
     });
 
+    this.orderName.set(this.formattedOrderDTO.content_description ?? 'Fehler: Kein Name');
+    this.orderBesyId.set(`${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year}-${this.formattedOrderDTO.auto_index}`);
     const loginCredentials = this.userWrapperService.getCurrentUser();
     console.log(loginCredentials);
   }
@@ -539,7 +543,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     if (!primaryCostCenterField) return;
 
     primaryCostCenterField.options = this.costCenters.map((cc) => ({
-      label: cc.name ?? '', // If name undefined -> empty string
+      label: `${cc.name ?? ''} (${cc.id ?? ''})`,
       value: cc.id ?? 0, // If id undefined -> 0
     }));
 
@@ -550,7 +554,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     if (!secondaryCostCenterField) return;
 
     secondaryCostCenterField.options = this.costCenters.map((cc) => ({
-      label: cc.name ?? '', // If name undefined -> empty string
+      label: `${cc.name ?? ''} (${cc.id ?? ''})`, // If name undefined -> empty string
       value: cc.id ?? 0, // If id undefined -> 0
     }));
 
@@ -1100,10 +1104,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     // If yes, either add it to the supplierDecisionReasonFormConfig or remove it
     if (field.field !== 'flag_decision_other_reasons') return;
     else {
-      if (field.value == true) {
+      if (field.value === true) {
         // Add the decision_other_reason_description field if not already present
         if (
-          !this.supplierDecisionReasonFormConfig.fields.find(
+          !this.supplierDecisionReasonFormConfig.fields.some(
             (f) => f.name === 'decision_other_reasons_description'
           )
         ) {
@@ -1184,6 +1188,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     if (currentItems.length > 0) {
       const firstItemVat: number = +currentItems[0].vat_value!;
       const firstItemVatType = currentItems[0].vat_type;
+      this.orderItemFormGroup.patchValue({
+        quantity: 1,});
 
       this.patchConfigAutocompleteFieldsWithOrderData(
         'vat_value',
@@ -1299,7 +1305,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
   /**
    * Revert all changes made to the order and reset the forms to its default state
-   *! ToDO: Implement the reset functionality
+   * @param formType The type of form to reset. Can be 'General', 'MainOffer', 'Items', 'Quotations', 'Addresses', 'Approvals', or 'All' to reset all forms.
    */
   resetToDefault(
     formType:
@@ -1353,6 +1359,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     );
     this.orderItemFormGroup.reset();
     this.itemsToDelete.clear();
+    this.setDefaultVatValueByLoadedItems();
   }
 
   private resetQuotations() {

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { PersonResponseDTO, PersonsService } from '../../api-services-v2';
-import { from, last, lastValueFrom, map } from 'rxjs';
+import { lastValueFrom, map } from 'rxjs';
 
 // Interface for person with full name
 export interface PersonWithFullName extends PersonResponseDTO {

@@ -56,7 +56,8 @@ export class CostCenterWrapperService {
     if (!costCenter) return undefined;
 
     return {
-      label: costCenter.name ?? '',
+      // Concatenate name and code for better identification in the label in format "name (code)"
+      label: `${costCenter.name ?? ''} (${costCenter.id ?? ''})`,
       value: costCenter.id ?? '',
     };
   }

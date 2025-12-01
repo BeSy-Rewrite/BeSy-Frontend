@@ -2,7 +2,7 @@ import {
   FormattedPerson,
   PersonsWrapperService,
 } from './persons-wrapper.service';
-import { CostCenterWrapperService } from './cost-centers-wrapper.service';
+import { CostCenterFormatted, CostCenterWrapperService } from './cost-centers-wrapper.service';
 import { Injectable } from '@angular/core';
 import {
   ApprovalResponseDTO,
@@ -17,12 +17,7 @@ import {
   QuotationRequestDTO,
   QuotationResponseDTO,
 } from '../../api-services-v2'
-import {
-  CurrencyWithDisplayName,
-  FormattedCurrency,
-} from './currencies-wrapper.service';
-import { CurrenciesWrapperService } from './currencies-wrapper.service';
-import { CostCenterFormatted } from './cost-centers-wrapper.service';
+import { CurrenciesWrapperService, FormattedCurrency} from './currencies-wrapper.service';
 import {
   SupplierFormatted,
   SuppliersWrapperService,
@@ -37,7 +32,7 @@ import { environment } from '../../../environments/environment';
 
 export interface OrderResponseDTOFormatted {
   id?: number;
-  primary_cost_center_id?: CostCenterFormatted | undefined;
+  primary_cost_center_id?: CostCenterFormatted;
   booking_year?: string; //
   auto_index?: number;
   created_date?: string;
@@ -45,20 +40,20 @@ export interface OrderResponseDTOFormatted {
   owner_id?: number;
   content_description?: string; // Beschreibung der Bestellung
   status?: OrderStatus;
-  currency?: FormattedCurrency | undefined;
-  currency_short?: FormattedCurrency | undefined;
+  currency?: FormattedCurrency;
+  currency_short?: FormattedCurrency;
   comment?: string;
   comment_for_supplier?: string;
   quote_number?: string; // Angebotsnummer
   quote_sign?: string;
   quote_date?: string;
   quote_price?: string;
-  delivery_person_id?: FormattedPerson | undefined;
-  invoice_person_id?: FormattedPerson | undefined;
-  queries_person_id?: FormattedPerson | undefined;
+  delivery_person_id?: FormattedPerson;
+  invoice_person_id?: FormattedPerson;
+  queries_person_id?: FormattedPerson;
   customer_id?: string;
-  supplier_id?: SupplierFormatted | undefined;
-  secondary_cost_center_id?: CostCenterFormatted | undefined;
+  supplier_id?: SupplierFormatted;
+  secondary_cost_center_id?: CostCenterFormatted;
   fixed_discount?: number;
   percentage_discount?: number;
   cash_discount?: number;
@@ -434,13 +429,13 @@ export class OrdersWrapperService {
     const lastComma = str.lastIndexOf(',');
     const lastDot = str.lastIndexOf('.');
     if (lastComma > lastDot) {
-      str = str.replace(/\./g, '').replace(',', '.'); // remove dots and replace comma with dot as decimal separator
+      str = str.replaceAll(/\./g, '').replace(',', '.'); // remove dots and replace comma with dot as decimal separator
     } else {
-      str = str.replace(/,/g, ''); // remove commas and keep dot as decimal separator
+      str = str.replaceAll(/,/g, ''); // remove commas and keep dot as decimal separator
     }
 
     const num = parseFloat(str);
-    if (isNaN(num)) return '0,00';
+    if (Number.isNaN(num)) return '0,00';
 
     // Format as German price string
     return num.toLocaleString('de-DE', {
@@ -509,7 +504,7 @@ export class OrdersWrapperService {
     const normalized = price.replace(/\./g, '').replace(',', '.');
     const num = parseFloat(normalized);
 
-    return isNaN(num) ? undefined : num;
+    return Number.isNaN(num) ? undefined : num;
   }
 
   /**
