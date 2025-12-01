@@ -601,6 +601,12 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     field: { field: string; value: any },
     isRecipient: boolean
   ) {
+
+    // Load all addresses of any person into the address table for selection
+    if(!this.addressTableDataSource.data || this.addressTableDataSource.data.length === 0) {
+      this.addressTableDataSource.data = this.personAddresses;
+    }
+
     // if a person field got cleared, clear the selected person and return
     if (!field.value || !field.value.value) {
       if (isRecipient) {
@@ -641,6 +647,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       // Patch the preferred address into the appropriate form group
       if (isRecipient) {
         this.deliveryPersonHasPreferredAddress = true;
+        // If there's already an existing address option selected, don't switch to preferred
+        if (this.formattedOrderDTO.delivery_address_id && this.deliveryAddressOption === 'existing') {
+          return;
+        }
         this.deliveryAddressOption = 'preferred';
         this.deliveryAddressFormGroup.patchValue(preferredAddress);
         this.deliveryAddressFormConfig.subtitle =
@@ -650,6 +660,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         this.deliveryAddressFormGroup.disable();
       } else {
         this.invoicePersonHasPreferredAddress = true;
+        // If there's already an existing address option selected, don't switch to preferred
+        if (this.invoiceAddressOption === 'existing') {
+          return;
+        }
         this.invoiceAddressOption = 'preferred';
         this.invoiceAddressFormGroup.patchValue(preferredAddress);
         this.invoiceAddressFormConfig.subtitle =
@@ -666,8 +680,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         this.invoicePersonHasPreferredAddress = false;
       }
     }
-    // Load all addresses of any person into the address table for selection
-    this.addressTableDataSource.data = this.personAddresses;
   }
 
   /**
@@ -752,7 +764,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         this.deliveryAddressFormConfig.subtitle =
           'Aktuell gespeicherte Adresse';
         this.deliveryInfoText =
-          'Dies ist die aktuell gespeicherte Lieferadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
+          'Dies ist die aktuell gespeicherte Lieferadresse. Sie können die Daten im Formular unterhalb überprüfen.';
         if (
           this.selectedDeliveryAddressIdFromTable &&
           this.deliveryAddressOption === 'selected'

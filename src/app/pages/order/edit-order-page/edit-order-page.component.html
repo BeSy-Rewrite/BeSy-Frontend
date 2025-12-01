@@ -1,27 +1,41 @@
-<div class="create-order-page h-auto overflow">
-  <mat-divider></mat-divider>
+<div class="create-order-page h-auto w-auto overflow">
+  <mat-divider class="bg-gray-400"></mat-divider>
   <div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
-        <app-state-display [order]="order" />
-        <mat-divider class="bg-gray-400" />
-    </div>
-  <div class="sticky top-0 z-50 flex justify-between items-start mb-1 mt-2">
-    <button
-      mat-raised-button
-      color="warn"
-      (click)="resetToDefault('All')"
-    >
-      <mat-icon iconPositionStart>restore</mat-icon>
-      Alle Änderungen verwerfen
-    </button>
-    <button
-      mat-raised-button
-      color="primary"
-      (click)="patchOrderFromForm('All')"
-    >
-      <mat-icon iconPositionStart>save</mat-icon>
-      Alle Änderungen speichern
-    </button>
+    <app-state-display [order]="order" />
+    <mat-divider class="bg-gray-400" />
   </div>
+
+  <div class="flex items-center mb-1 mt-2 pb-2">
+    <!-- linker sticky Button -->
+    <div class="sticky top-0 z-50 flex-1">
+      <button
+        mat-raised-button
+        color="warn"
+        (click)="resetToDefault('All')"
+      >
+        <mat-icon iconPositionStart>restore</mat-icon>
+        Alle Änderungen verwerfen
+      </button>
+    </div>
+
+    <!-- mittiger, nicht-sticky Text -->
+    <div class="flex-1 flex bold justify-center">
+      <span class="text-lg font-extrabold">{{ orderName() }}</span>
+    </div>
+
+    <!-- rechter sticky Button -->
+    <div class="sticky top-0 z-50 flex-1 flex justify-end">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="patchOrderFromForm('All')"
+      >
+        <mat-icon iconPositionStart>save</mat-icon>
+        Alle Änderungen speichern
+      </button>
+    </div>
+  </div>
+
   <mat-tab-group
     mat-stretch-tabs="true"
     mat-align-tabs="start"
@@ -59,7 +73,9 @@
             [refreshTrigger]="queriesPersonConfigRefreshTrigger()"
           ></app-form-component>
         </div>
-        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
+        <div
+          class="buttons w-full flex ml-auto justify-between items-start mt-2"
+        >
           <button
             mat-raised-button
             color="warn"
@@ -81,22 +97,24 @@
     <!-- Add Item -->
     <mat-tab label="Bestellpositionen">
       <mat-divider class="tab-divider"></mat-divider>
-      <div class="buttons sticky w-full top-12 flex ml-auto justify-between items-start mt-2">
-          <button
-            mat-raised-button
-            color="warn"
-            (click)="resetToDefault('Items')"
-          >
-            Änderungen auf dieser Seite verwerfen
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="patchOrderFromForm('Items')"
-          >
-            Speichern und weiter
-          </button>
-        </div>
+      <div
+        class="buttons sticky w-full top-0 flex ml-auto justify-between items-start mt-2"
+      >
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="resetToDefault('Items')"
+        >
+          Änderungen auf dieser Seite verwerfen
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="patchOrderFromForm('Items')"
+        >
+          Speichern und weiter
+        </button>
+      </div>
       <div class="item-container">
         <app-form-component
           [config]="orderItemFormConfig"
@@ -124,22 +142,24 @@
     <!-- Main Offer and Supplier Decision Reason -->
     <mat-tab label="Hauptangebot festlegen">
       <mat-divider class="tab-divider"></mat-divider>
-      <div class="buttons w-full z-800 flex ml-auto justify-between items-start mt-2">
-          <button
-            mat-raised-button
-            color="warn"
-            (click)="resetToDefault('MainOffer')"
-          >
-            Änderungen auf dieser Seite verwerfen
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="patchOrderFromForm('MainOffer')"
-          >
-            Speichern und weiter
-          </button>
-        </div>
+      <div
+        class="buttons w-full z-800 flex ml-auto justify-between items-start mt-2"
+      >
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="resetToDefault('MainOffer')"
+        >
+          Änderungen auf dieser Seite verwerfen
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="patchOrderFromForm('MainOffer')"
+        >
+          Speichern und weiter
+        </button>
+      </div>
       <div class="main-offer-tab-container">
         <!-- Main Offer -->
         <div class="main-offer-container justify-center">
@@ -185,7 +205,9 @@
             [actions]="orderQuotationTableActions"
           ></app-generic-table>
         </div>
-        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
+        <div
+          class="buttons w-full flex ml-auto justify-between items-start mt-2"
+        >
           <button
             mat-raised-button
             color="warn"
@@ -358,22 +380,24 @@
             }
           </div>
           }
-          <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
-          <button
-            mat-raised-button
-            color="warn"
-            (click)="resetToDefault('Addresses')"
+          <div
+            class="buttons w-full flex ml-auto justify-between items-start mt-2"
           >
-            Änderungen auf dieser Seite verwerfen
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="patchOrderFromForm('Addresses')"
-          >
-            Speichern und weiter
-          </button>
-        </div>
+            <button
+              mat-raised-button
+              color="warn"
+              (click)="resetToDefault('Addresses')"
+            >
+              Änderungen auf dieser Seite verwerfen
+            </button>
+            <button
+              mat-raised-button
+              color="primary"
+              (click)="patchOrderFromForm('Addresses')"
+            >
+              Speichern und weiter
+            </button>
+          </div>
         </div>
       </div>
     </mat-tab>
@@ -385,7 +409,9 @@
           [config]="approvalFormConfig"
           [formGroup]="approvalFormGroup"
         ></app-form-component>
-        <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
+        <div
+          class="buttons w-full flex ml-auto justify-between items-start mt-2"
+        >
           <button
             mat-raised-button
             color="warn"
@@ -403,7 +429,7 @@
         </div>
       </div>
     </mat-tab>
-  }
+    }
     <mat-tab label="Dokumente">
       <mat-divider class="tab-divider"></mat-divider>
       <div class="document-container">
