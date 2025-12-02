@@ -1,12 +1,11 @@
-<div class="create-order-page h-auto w-auto overflow">
+<div class="create-order-page h-auto w-auto">
   <mat-divider class="bg-gray-400"></mat-divider>
   <div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
     <app-state-display [order]="order" />
     <mat-divider class="bg-gray-400" />
   </div>
 
-  <div class="flex items-center mb-1 mt-2 pb-2">
-    <!-- linker sticky Button -->
+  <div class="w-full top-0 flex ml-auto justify-between items-center mb-1 mt-2 pb-2">
     <div class="sticky top-0 z-50 flex-1">
       <button
         mat-raised-button
@@ -18,12 +17,10 @@
       </button>
     </div>
 
-    <!-- mittiger, nicht-sticky Text -->
     <div class="flex-1 flex bold justify-center">
       <span class="text-lg font-extrabold">{{ orderName() }}</span>
     </div>
 
-    <!-- rechter sticky Button -->
     <div class="sticky top-0 z-50 flex-1 flex justify-end">
       <button
         mat-raised-button
@@ -46,6 +43,24 @@
     <!-- General Information -->
     <mat-tab label="Allgemeine Angaben">
       <mat-divider class="tab-divider"></mat-divider>
+      <div
+        class="buttons sticky w-full top-0 flex ml-auto justify-between items-start mt-2"
+      >
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="resetToDefault('General')"
+        >
+          Änderungen auf dieser Seite verwerfen
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="patchOrderFromForm('General')"
+        >
+          Speichern und weiter
+        </button>
+      </div>
       <div class="general-info-container">
         <app-form-component
           [config]="generalFormConfig"
@@ -72,24 +87,6 @@
             [formGroup]="queriesPersonFormGroup"
             [refreshTrigger]="queriesPersonConfigRefreshTrigger()"
           ></app-form-component>
-        </div>
-        <div
-          class="buttons w-full flex ml-auto justify-between items-start mt-2"
-        >
-          <button
-            mat-raised-button
-            color="warn"
-            (click)="resetToDefault('General')"
-          >
-            Änderungen auf dieser Seite verwerfen
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="patchOrderFromForm('General')"
-          >
-            Speichern und weiter
-          </button>
         </div>
       </div>
     </mat-tab>
@@ -143,7 +140,7 @@
     <mat-tab label="Hauptangebot festlegen">
       <mat-divider class="tab-divider"></mat-divider>
       <div
-        class="buttons w-full z-800 flex ml-auto justify-between items-start mt-2"
+        class="buttons sticky w-full top-0 flex ml-auto justify-between items-start mt-2"
       >
         <button
           mat-raised-button
@@ -185,6 +182,24 @@
     <!-- Quotations -->
     <mat-tab label="Vergleichsangebote">
       <mat-divider class="tab-divider"></mat-divider>
+      <div
+        class="buttons sticky w-full top-0 flex ml-auto justify-between items-start mt-2"
+      >
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="resetToDefault('Quotations')"
+        >
+          Änderungen auf dieser Seite verwerfen
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="patchOrderFromForm('Quotations')"
+        >
+          Speichern und weiter
+        </button>
+      </div>
       <div class="quotation-container">
         <app-form-component
           [config]="quotationFormConfig"
@@ -205,28 +220,28 @@
             [actions]="orderQuotationTableActions"
           ></app-generic-table>
         </div>
-        <div
-          class="buttons w-full flex ml-auto justify-between items-start mt-2"
-        >
-          <button
-            mat-raised-button
-            color="warn"
-            (click)="resetToDefault('Quotations')"
-          >
-            Änderungen auf dieser Seite verwerfen
-          </button>
-          <button
-            mat-raised-button
-            color="primary"
-            (click)="patchOrderFromForm('Quotations')"
-          >
-            Speichern und weiter
-          </button>
-        </div>
       </div>
     </mat-tab>
     <mat-tab label="Adressdaten">
       <mat-divider class="tab-divider"></mat-divider>
+      <div
+        class="buttons sticky w-full top-0 flex ml-auto justify-between items-start mt-2"
+      >
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="resetToDefault('Addresses')"
+        >
+          Änderungen auf dieser Seite verwerfen
+        </button>
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="patchOrderFromForm('Addresses')"
+        >
+          Speichern und weiter
+        </button>
+      </div>
       <div class="address-container">
         <div class="recipient-container flex flex-col mb-4">
           <app-form-component
@@ -296,7 +311,7 @@
           ></app-form-component>
           @if (selectedDeliveryPerson) {
           <div class="flex flex-col">
-            <label class="block mb-2 text-sm font-semibold text-gray-700">
+            <label class="block mb-2 text-medium font-semibold text-gray-700">
               Entspricht Empfänger und Lieferadresse dem Rechnungsempfänger und
               der Rechnungsadresse?
             </label>
@@ -380,24 +395,6 @@
             }
           </div>
           }
-          <div
-            class="buttons w-full flex ml-auto justify-between items-start mt-2"
-          >
-            <button
-              mat-raised-button
-              color="warn"
-              (click)="resetToDefault('Addresses')"
-            >
-              Änderungen auf dieser Seite verwerfen
-            </button>
-            <button
-              mat-raised-button
-              color="primary"
-              (click)="patchOrderFromForm('Addresses')"
-            >
-              Speichern und weiter
-            </button>
-          </div>
         </div>
       </div>
     </mat-tab>

@@ -23,7 +23,7 @@ import {
   WritableSignal,
   effect,
   OnDestroy,
-  OnInit
+  OnInit,
 } from '@angular/core';
 import { MatDivider } from '@angular/material/divider';
 import {
@@ -38,7 +38,7 @@ import {
   FormGroup,
   Validators,
   ReactiveFormsModule,
-  FormsModule
+  FormsModule,
 } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatTableDataSource } from '@angular/material/table';
@@ -119,6 +119,14 @@ export interface QuotationTableModel {
   company_name: string;
   company_city: string;
 }
+type AddressOption = 'preferred' | 'existing' | 'new' | 'selected';
+
+interface AddressOptionConfig {
+  subtitle: string;
+  infoText: string;
+  formEnabled: boolean;
+  address?: AddressResponseDTO;
+}
 
 @Component({
   selector: 'app-create-order-page',
@@ -148,7 +156,9 @@ export interface QuotationTableModel {
   templateUrl: './edit-order-page.component.html',
   styleUrl: './edit-order-page.component.scss',
 })
-export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDestroy {
+export class EditOrderPageComponent
+  implements OnInit, HasUnsavedChanges, OnDestroy
+{
   constructor(
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
@@ -168,7 +178,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.quotationTableDataSource.data = this.quotations();
     });
   }
-
 
   orderName = signal<string>('');
   orderBesyId = signal<string>('');
@@ -207,7 +216,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
   // Item variables
   items = signal<ItemTableModel[]>([]);
-  private itemsToDelete = new Set<ItemTableModel>(); // Store items to delete in the backend
+  private readonly itemsToDelete = new Set<ItemTableModel>(); // Store items to delete in the backend
   itemTableDataSource = new MatTableDataSource<ItemTableModel>([]);
   orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
   orderItemFormConfigRefreshTrigger = signal(0);
@@ -377,7 +386,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   async ngOnInit(): Promise<void> {
     window.addEventListener('beforeunload', this.onBeforeUnload);
     // Get resolved data from route
-    const resolvedData: EditOrderResolvedData = this.route.snapshot.data['orderData'];
+    const resolvedData: EditOrderResolvedData =
+      this.route.snapshot.data['orderData'];
 
     this.editOrderId = resolvedData.order.id!;
     this.order = resolvedData.order;
@@ -402,8 +412,12 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       }
     });
 
-    this.orderName.set(this.formattedOrderDTO.content_description ?? 'Fehler: Kein Name');
-    this.orderBesyId.set(`${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year}-${this.formattedOrderDTO.auto_index}`);
+    this.orderName.set(
+      this.formattedOrderDTO.content_description ?? 'Fehler: Kein Name'
+    );
+    this.orderBesyId.set(
+      `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year}-${this.formattedOrderDTO.auto_index}`
+    );
     const loginCredentials = this.userWrapperService.getCurrentUser();
     console.log(loginCredentials);
   }
@@ -460,7 +474,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       const newItem = this.orderItemFormGroup.value as ItemTableModel;
 
       // Format price to German format
-      newItem.price_per_unit = this.orderWrapperService.formatPriceToGerman(newItem.price_per_unit);
+      newItem.price_per_unit = this.orderWrapperService.formatPriceToGerman(
+        newItem.price_per_unit
+      );
 
       // Add the new item to the items list
       this.items.update((curr) => [...curr, newItem]);
@@ -601,9 +617,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     field: { field: string; value: any },
     isRecipient: boolean
   ) {
-
     // Load all addresses of any person into the address table for selection
-    if(!this.addressTableDataSource.data || this.addressTableDataSource.data.length === 0) {
+    if (
+      !this.addressTableDataSource.data ||
+      this.addressTableDataSource.data.length === 0
+    ) {
       this.addressTableDataSource.data = this.personAddresses;
     }
 
@@ -615,10 +633,20 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         this.selectedInvoicePerson = undefined;
       }
       return;
+    } else {
+      // Return if the selected value is the same as the currently selected person
+      const selectedPersonId = field.value.value;
+      if (isRecipient) {
+        if (this.selectedDeliveryPerson?.id === selectedPersonId) return;
+      } else {
+        if (this.selectedInvoicePerson?.id === selectedPersonId) return;
+      }
     }
 
     // Find the selected person from the locally stored persons
-    const person = this.persons.filter((p) => p.id === field.value.value)[0];
+    const person = this.persons.find((p) => p.id === field.value.value);
+    if (!person) return;
+
     if (isRecipient) {
       this.selectedDeliveryPerson = person;
     } else {
@@ -629,12 +657,13 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.personAddresses =
         await this.personsWrapperService.getAllPersonsWithFullName();
     }
+
     // Check if the selected person has a preferred address
     if (person.address_id) {
-      // Find the preferred address from the locally stored person addresses
       const preferredAddress = this.personAddresses.find(
         (addr) => addr.id === person.address_id
       );
+
       if (!preferredAddress) {
         if (isRecipient) {
           this.deliveryPersonHasPreferredAddress = false;
@@ -644,36 +673,26 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         return;
       }
 
-      // Patch the preferred address into the appropriate form group
       if (isRecipient) {
         this.deliveryPersonHasPreferredAddress = true;
         // If there's already an existing address option selected, don't switch to preferred
-        if (this.formattedOrderDTO.delivery_address_id && this.deliveryAddressOption === 'existing') {
+        if (
+          this.formattedOrderDTO.delivery_address_id &&
+          this.deliveryAddressOption === 'existing'
+        ) {
           return;
         }
-        this.deliveryAddressOption = 'preferred';
-        this.deliveryAddressFormGroup.patchValue(preferredAddress);
-        this.deliveryAddressFormConfig.subtitle =
-          'Hinterlegte bevorzugte Adresse';
-        this.deliveryInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
-        this.deliveryAddressFormGroup.disable();
+        this.applyAddressOption('preferred', true, preferredAddress);
       } else {
         this.invoicePersonHasPreferredAddress = true;
         // If there's already an existing address option selected, don't switch to preferred
         if (this.invoiceAddressOption === 'existing') {
           return;
         }
-        this.invoiceAddressOption = 'preferred';
-        this.invoiceAddressFormGroup.patchValue(preferredAddress);
-        this.invoiceAddressFormConfig.subtitle =
-          'Hinterlegte bevorzugte Adresse';
-        this.invoiceInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
-        this.invoiceAddressFormGroup.disable();
+        this.applyAddressOption('preferred', false, preferredAddress);
       }
     } else {
-      // Person has no prefrerred address, deactivate preferred address option
+      // Person has no preferred address, deactivate preferred address option
       if (isRecipient) {
         this.deliveryPersonHasPreferredAddress = false;
       } else {
@@ -706,130 +725,70 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @param isRecipient Boolean flag indicating if the option change is for the recipient (true) or the invoice (false)
    */
   async onAddressOptionChanged(option: string, isRecipient: boolean) {
-
     if (!this.personAddresses) {
       this.personAddresses =
         await this.personsWrapperService.getAllPersonsWithFullName();
     }
-    // Find the preferred address from the locally stored person addresses
+
+    const typedOption = option as AddressOption;
+
     if (isRecipient) {
-      if (option === 'preferred' && this.selectedDeliveryPerson?.address_id) {
-        this.deliveryAddressFormGroup.enable();
-        this.personsWrapperService
-          .getPersonAddressById(this.selectedDeliveryPerson.id!)
-          .then((addr) => this.deliveryAddressFormGroup.patchValue(addr));
-        this.deliveryInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
-        this.deliveryAddressFormConfig.subtitle =
-          'Hinterlegte bevorzugte Adresse';
-        this.deliveryAddressFormGroup.disable();
-        if (
-          this.selectedDeliveryAddressIdFromTable &&
-          this.deliveryAddressOption === 'selected'
-        ) {
-          this.selectedDeliveryAddressIdFromTable = undefined; // Clear selected address if switching from selected to preferred
-        }
-      } else if (option === 'selected') {
-        this.deliveryAddressFormGroup.reset();
-        this.deliveryAddressFormGroup.disable();
-        this.deliveryAddressFormConfig.subtitle =
-          'Bestehende Adresse überprüfen';
-        this.deliveryInfoText =
-          'Wählen Sie eine Adresse aus der Tabelle aus und überprüfen Sie die Daten im Formular unterhalb.';
-      } else if (option === 'new') {
-        this.deliveryAddressFormGroup.reset();
-        this.deliveryAddressFormGroup.enable();
-        this.deliveryAddressFormConfig.subtitle = 'Neue Adresse erstellen';
-        this.deliveryInfoText =
-          'Neue Adresse erstellen: bitte Formular ausfüllen.';
-        if (
-          this.selectedDeliveryAddressIdFromTable &&
-          this.deliveryAddressOption === 'selected'
-        ) {
-          this.selectedDeliveryAddressIdFromTable = undefined; // Clear selected address in the table if switching from selected to new
-        }
-      } else if (
-        option === 'existing' &&
-        this.deliveryPersonHasExistingAddress
-      ) {
-        this.deliveryAddressFormGroup.reset();
-        this.deliveryAddressFormGroup.enable();
-        const existingAddress = this.personAddresses.find(
-          (addr) => addr.id === this.formattedOrderDTO.delivery_address_id!
-        );
-        if (existingAddress) {
-          this.deliveryAddressFormGroup.patchValue(existingAddress);
-        }
-        this.deliveryAddressFormGroup.disable();
-        this.deliveryAddressFormConfig.subtitle =
-          'Aktuell gespeicherte Adresse';
-        this.deliveryInfoText =
-          'Dies ist die aktuell gespeicherte Lieferadresse. Sie können die Daten im Formular unterhalb überprüfen.';
-        if (
-          this.selectedDeliveryAddressIdFromTable &&
-          this.deliveryAddressOption === 'selected'
-        ) {
-          this.selectedDeliveryAddressIdFromTable = undefined; // Clear selected address in the table if switching from selected to new
-        }
+      switch (typedOption) {
+        case 'preferred':
+          if (this.selectedDeliveryPerson?.address_id) {
+            const preferredAddress =
+              await this.personsWrapperService.getPersonAddressById(
+                this.selectedDeliveryPerson.id!
+              );
+            this.applyAddressOption('preferred', true, preferredAddress);
+          }
+          break;
+
+        case 'existing':
+          if (this.deliveryPersonHasExistingAddress) {
+            const existingAddress = this.personAddresses.find(
+              (addr) => addr.id === this.formattedOrderDTO.delivery_address_id!
+            );
+            this.applyAddressOption('existing', true, existingAddress);
+          }
+          break;
+
+        case 'new':
+          this.applyAddressOption('new', true);
+          break;
+
+        case 'selected':
+          this.applyAddressOption('selected', true);
+          break;
       }
-    }
-    // Invoice address mode has changed
-    else {
-      if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
-        this.personsWrapperService
-          .getPersonAddressById(this.selectedInvoicePerson.id!)
-          .then((addr) => this.invoiceAddressFormGroup.patchValue(addr));
-        this.invoiceInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
-        this.invoiceAddressFormConfig.subtitle =
-          'Hinterlegte bevorzugte Adresse';
-        this.invoiceAddressFormGroup.disable();
-        if (
-          this.selectedInvoiceAddressIdFromTable &&
-          this.invoiceAddressOption === 'selected'
-        ) {
-          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address if switching from selected to preferred
-        }
-      } else if (option === 'selected') {
-        this.invoiceAddressFormGroup.reset();
-        this.invoiceAddressFormGroup.disable();
-        this.invoiceAddressFormConfig.subtitle =
-          'Bestehende Adresse überprüfen';
-        this.invoiceInfoText = 'Adressdaten überprüfen';
-      } else if (option === 'new') {
-        this.invoiceAddressFormGroup.reset();
-        this.invoiceAddressFormGroup.enable();
-        this.invoiceAddressFormConfig.subtitle = 'Neue Adresse erstellen';
-        this.invoiceInfoText =
-          'Neue Adresse erstellen: bitte Formular ausfüllen.';
-        if (
-          this.selectedInvoiceAddressIdFromTable &&
-          this.invoiceAddressOption === 'selected'
-        ) {
-          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address in the table if switching from selected to new
-        }
-      } else if (
-        option === 'existing' &&
-        this.invoicePersonHasExistingAddress
-      ) {
-        this.invoiceAddressFormGroup.reset();
-        this.invoiceAddressFormGroup.enable();
-        const existingAddress = this.personAddresses.find(
-          (addr) => addr.id === this.formattedOrderDTO.invoice_address_id!
-        );
-        if (existingAddress) {
-          this.invoiceAddressFormGroup.patchValue(existingAddress);
-        }
-        this.invoiceAddressFormGroup.disable();
-        this.invoiceAddressFormConfig.subtitle = 'Aktuell gespeicherte Adresse';
-        this.invoiceInfoText =
-          'Dies ist die aktuell gespeicherte Rechnungsadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
-        if (
-          this.selectedInvoiceAddressIdFromTable &&
-          this.invoiceAddressOption === 'selected'
-        ) {
-          this.selectedInvoiceAddressIdFromTable = undefined; // Clear selected address in the table if switching from selected to new
-        }
+    } else {
+      switch (typedOption) {
+        case 'preferred':
+          if (this.selectedInvoicePerson?.address_id) {
+            const preferredAddress =
+              await this.personsWrapperService.getPersonAddressById(
+                this.selectedInvoicePerson.id!
+              );
+            this.applyAddressOption('preferred', false, preferredAddress);
+          }
+          break;
+
+        case 'existing':
+          if (this.invoicePersonHasExistingAddress) {
+            const existingAddress = this.personAddresses.find(
+              (addr) => addr.id === this.formattedOrderDTO.invoice_address_id!
+            );
+            this.applyAddressOption('existing', false, existingAddress);
+          }
+          break;
+
+        case 'new':
+          this.applyAddressOption('new', false);
+          break;
+
+        case 'selected':
+          this.applyAddressOption('selected', false);
+          break;
       }
     }
   }
@@ -839,14 +798,15 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @param target The target object to patch the address data into.
    * @returns {Promise<boolean>} Returns true if the address saving process was successful, false otherwise
    */
-  async patchAddressOrder(target: Partial<OrderResponseDTOFormatted>): Promise<boolean> {
+  async patchAddressOrder(
+    target: Partial<OrderResponseDTOFormatted>
+  ): Promise<boolean> {
     // Set recipient and invoice person
     if (this.selectedDeliveryPerson) {
       // retrieve selected recipient person from autocomplete input from field delivery_person_id
       target.delivery_person_id =
         this.deliveryPersonFormGroup.get('delivery_person_id')!.value;
-    }
-    else if (!this.selectedDeliveryPerson) {
+    } else if (!this.selectedDeliveryPerson) {
       target.delivery_person_id = undefined;
     }
 
@@ -858,8 +818,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     else if (this.selectedInvoicePerson) {
       target.invoice_person_id =
         this.invoicePersonFormGroup.get('invoice_person_id')!.value;
-    }
-    else if (!this.selectedInvoicePerson) {
+    } else if (!this.selectedInvoicePerson) {
       target.invoice_person_id = undefined;
     }
 
@@ -896,6 +855,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
             undefined,
             { duration: 3000 }
           );
+          console.error('Error creating new delivery address:', error);
+          return false;
         }
       } else {
         this._notifications.open(
@@ -1041,7 +1002,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @param field The selected supplier with field name and value. Value can be either a number or null.
    */
   async onMainOfferFormGroupChanged(field: { field: string; value: any }) {
-
     // Check if the changed field is the supplier_id
     if (field.field === 'supplier_id' && field.value) {
       this.setCustomerIdsForSupplier(field.value?.value);
@@ -1114,8 +1074,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   onSupplierDecisionReasonChanged(field: { field: string; value: any }) {
     // Check if the changed field is the supplier_decision_reason
     // If yes, either add it to the supplierDecisionReasonFormConfig or remove it
-    if (field.field !== 'flag_decision_other_reasons') return;
-    else {
+    if (field.field === 'flag_decision_other_reasons') {
       if (field.value === true) {
         // Add the decision_other_reason_description field if not already present
         if (
@@ -1154,6 +1113,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         }
       }
     }
+    else {return;}
   }
 
   /**
@@ -1201,7 +1161,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       const firstItemVat: number = +currentItems[0].vat_value!;
       const firstItemVatType = currentItems[0].vat_type;
       this.orderItemFormGroup.patchValue({
-        quantity: 1,});
+        quantity: 1,
+      });
 
       this.patchConfigAutocompleteFieldsWithOrderData(
         'vat_value',
@@ -1219,6 +1180,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     }
   }
 
+  /**
+   * Format the loaded order data for form input by patching the respective form groups'
+   * dropdown and autocomplete fields.
+   */
   private formatOrderForFormInput() {
     this.patchGeneralFormGroupFromOrder();
     this.patchMainOfferFormGroupFromOrder();
@@ -1372,6 +1337,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     this.orderItemFormGroup.reset();
     this.itemsToDelete.clear();
     this.setDefaultVatValueByLoadedItems();
+    this.orderItemFormConfigRefreshTrigger.update((n) => n + 1);
   }
 
   private resetQuotations() {
@@ -1538,7 +1504,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       | 'Documents'
       | 'All'
   ) {
-
     // Create a deep copy to avoid mutating the original formattedOrderDTO
     this.patchOrderDTO = structuredClone(this.formattedOrderDTO);
 
@@ -1812,7 +1777,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.approvalsFromForm
     );
 
-    console.log('Changed approval fields to be patched:', changedApprovalFields);
+    console.log(
+      'Changed approval fields to be patched:',
+      changedApprovalFields
+    );
     // If no approval fields have changed, return
     if (Object.keys(changedApprovalFields).length === 0) {
       return true;
@@ -1870,7 +1838,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @returns A promise that resolves to true if the patch was successful, false otherwise.
    */
   private async submitOrderPatch() {
-
     console.log('Current formattedOrderDTO:', this.formattedOrderDTO);
     console.log('Submitting order patch with DTO:', this.patchOrderDTO);
     // Check which fields have been modified and prepare the patch DTO accordingly
@@ -1936,34 +1903,34 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   /**
    * Mapping of form config names to tab names and their corresponding form configs.
    */
-  private readonly formConfigToTabMapping: Record<string, { tabName: string; configs: FormConfig[] }> = {
+  private readonly formConfigToTabMapping: Record<
+    string,
+    { tabName: string; configs: FormConfig[] }
+  > = {
     General: {
       tabName: 'Allgemeine Angaben',
       configs: [
         this.generalFormConfig,
         this.queriesPersonFormConfig,
         this.primaryCostCenterFormConfig,
-        this.secondaryCostCenterFormConfig
-      ]
+        this.secondaryCostCenterFormConfig,
+      ],
     },
     MainOffer: {
       tabName: 'Hauptangebot',
       configs: [
         this.mainOfferFormConfig,
-        this.supplierDecisionReasonFormConfig
-      ]
+        this.supplierDecisionReasonFormConfig,
+      ],
     },
     Addresses: {
       tabName: 'Adressdaten',
-      configs: [
-        this.deliveryPersonFormConfig,
-        this.invoicePersonFormConfig,
-      ]
+      configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
     },
     Approvals: {
       tabName: 'Genehmigungen',
-      configs: [this.approvalFormConfig]
-    }
+      configs: [this.approvalFormConfig],
+    },
   };
 
   /**
@@ -1991,7 +1958,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       (item) => item.name || 'Unbenannter Artikel'
     );
 
-
     if (addedItemsNames.length > 0 && deletedItemsNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Bestellpositionen',
@@ -2000,16 +1966,14 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
           'Ungespeicherte gelöschte Artikel: ' + deletedItemsNames.join(', '),
         ],
       });
-    }
-    else if (addedItemsNames.length > 0) {
+    } else if (addedItemsNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Bestellpositionen',
         fields: [
           'Ungespeicherte hinzugefügte Artikel: ' + addedItemsNames.join(', '),
         ],
       });
-    }
-    else if (deletedItemsNames.length > 0) {
+    } else if (deletedItemsNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Bestellpositionen',
         fields: [
@@ -2021,46 +1985,54 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     // Tab Quotations
     const addedQuotationsCompanyNames: string[] = this.quotations()
       .filter((quotation) => !quotation.index)
-      .map(
-        (quotation) =>
-          quotation.company_name || 'Unbenanntes Angebot'
-      );
+      .map((quotation) => quotation.company_name || 'Unbenanntes Angebot');
 
-    const deletedQuotationsCompanyNames: string[] = Array.from(this.quotationsToDelete).map(
-      (quotation) => quotation.company_name || 'Unbenanntes Angebot'
-    );
+    const deletedQuotationsCompanyNames: string[] = Array.from(
+      this.quotationsToDelete
+    ).map((quotation) => quotation.company_name || 'Unbenanntes Angebot');
 
-    if (addedQuotationsCompanyNames.length > 0 && deletedQuotationsCompanyNames.length > 0) {
+    if (
+      addedQuotationsCompanyNames.length > 0 &&
+      deletedQuotationsCompanyNames.length > 0
+    ) {
       unsavedTabs.push({
         tabName: 'Vergleichsangebote',
         fields: [
-          'Ungespeicherte hinzugefügte Angebote: ' + addedQuotationsCompanyNames.join(', '),
-          'Ungespeicherte gelöschte Angebote: ' + deletedQuotationsCompanyNames.join(', '),
+          'Ungespeicherte hinzugefügte Angebote: ' +
+            addedQuotationsCompanyNames.join(', '),
+          'Ungespeicherte gelöschte Angebote: ' +
+            deletedQuotationsCompanyNames.join(', '),
         ],
       });
-    }
-    else if (addedQuotationsCompanyNames.length > 0) {
+    } else if (addedQuotationsCompanyNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Vergleichsangebote',
         fields: [
-          'Ungespeicherte hinzugefügte Angebote: ' + addedQuotationsCompanyNames.join(', '),
+          'Ungespeicherte hinzugefügte Angebote: ' +
+            addedQuotationsCompanyNames.join(', '),
         ],
       });
-    }
-    else if (deletedQuotationsCompanyNames.length > 0) {
+    } else if (deletedQuotationsCompanyNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Vergleichsangebote',
         fields: [
-          'Ungespeicherte gelöschte Angebote von: ' + deletedQuotationsCompanyNames.join(', '),
+          'Ungespeicherte gelöschte Angebote von: ' +
+            deletedQuotationsCompanyNames.join(', '),
         ],
       });
     }
 
     // Create a deep copy and patch with current form values
-    const currentOrderState: OrderResponseDTOFormatted = structuredClone(this.formattedOrderDTO);
+    const currentOrderState: OrderResponseDTOFormatted = structuredClone(
+      this.formattedOrderDTO
+    );
 
     const formsToPatch = this.tabOrder.filter(
-      (tab) => tab !== 'Items' && tab !== 'Quotations' && tab !== 'Approvals' && tab !== 'Documents'
+      (tab) =>
+        tab !== 'Items' &&
+        tab !== 'Quotations' &&
+        tab !== 'Approvals' &&
+        tab !== 'Documents'
     );
 
     for (const form of formsToPatch) {
@@ -2068,10 +2040,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     }
 
     // Compare and get changed fields
-    const changedFields = this.orderWrapperService.compareOrdersAndReturnChangedFields(
-      this.formattedOrderDTO,
-      currentOrderState
-    );
+    const changedFields =
+      this.orderWrapperService.compareOrdersAndReturnChangedFields(
+        this.formattedOrderDTO,
+        currentOrderState
+      );
 
     console.log('Changed fields for unsaved changes detection:', changedFields);
 
@@ -2092,7 +2065,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @param changedFieldNames Array of field names that have changed.
    * @returns Record mapping tab names to arrays of field labels.
    */
-  private mapChangedFieldsToTabs(changedFieldNames: string[]): Record<string, string[]> {
+  private mapChangedFieldsToTabs(
+    changedFieldNames: string[]
+  ): Record<string, string[]> {
     const tabChanges: Record<string, string[]> = {};
 
     for (const fieldName of changedFieldNames) {
@@ -2113,16 +2088,28 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * Mapping of field names to tab names and labels for fields not in form configs.
    * Used as a lookup before the generic fallback.
    */
-  private readonly fieldToTabMapping: Record<string, { tabName: string; label: string }> = {
-    'delivery_person_id': { tabName: 'Adressdaten', label: 'Lieferempfänger' },
-    'invoice_person_id': { tabName: 'Adressdaten', label: 'Rechnungsempfänger' },
-    'delivery_address_id': { tabName: 'Adressdaten', label: 'Lieferadresse' },
-    'invoice_address_id': { tabName: 'Adressdaten', label: 'Rechnungsadresse' },
-    'supplier_id': { tabName: 'Hauptangebot', label: 'Lieferant' },
-    'currency_short': { tabName: 'Hauptangebot', label: 'Währung' },
-    'primary_cost_center_id': { tabName: 'Allgemeine Angaben', label: 'Primäre Kostenstelle' },
-    'secondary_cost_center_id': { tabName: 'Allgemeine Angaben', label: 'Sekundäre Kostenstelle' },
-    'queries_person_id': { tabName: 'Allgemeine Angaben', label: 'Ansprechpartner bei Rückfragen' }
+  private readonly fieldToTabMapping: Record<
+    string,
+    { tabName: string; label: string }
+  > = {
+    delivery_person_id: { tabName: 'Adressdaten', label: 'Lieferempfänger' },
+    invoice_person_id: { tabName: 'Adressdaten', label: 'Rechnungsempfänger' },
+    delivery_address_id: { tabName: 'Adressdaten', label: 'Lieferadresse' },
+    invoice_address_id: { tabName: 'Adressdaten', label: 'Rechnungsadresse' },
+    supplier_id: { tabName: 'Hauptangebot', label: 'Lieferant' },
+    currency_short: { tabName: 'Hauptangebot', label: 'Währung' },
+    primary_cost_center_id: {
+      tabName: 'Allgemeine Angaben',
+      label: 'Primäre Kostenstelle',
+    },
+    secondary_cost_center_id: {
+      tabName: 'Allgemeine Angaben',
+      label: 'Sekundäre Kostenstelle',
+    },
+    queries_person_id: {
+      tabName: 'Allgemeine Angaben',
+      label: 'Ansprechpartner bei Rückfragen',
+    },
   };
 
   /**
@@ -2130,20 +2117,25 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @param fieldName The field name to search for.
    * @returns Object with tabName and label, or defaults if not found.
    */
-  private findFieldInConfigs(fieldName: string): { tabName: string; label: string } {
+  private findFieldInConfigs(fieldName: string): {
+    tabName: string;
+    label: string;
+  } {
     // First check the explicit field-to-tab mapping
     if (this.fieldToTabMapping[fieldName]) {
       return this.fieldToTabMapping[fieldName];
     }
 
     // Then search in form configs
-    for (const [formKey, mapping] of Object.entries(this.formConfigToTabMapping)) {
+    for (const [formKey, mapping] of Object.entries(
+      this.formConfigToTabMapping
+    )) {
       for (const config of mapping.configs) {
         const field = config.fields.find((f) => f.name === fieldName);
         if (field) {
           return {
             tabName: mapping.tabName,
-            label: field.label || fieldName
+            label: field.label || fieldName,
           };
         }
       }
@@ -2152,7 +2144,107 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     // Fallback: field not found anywhere
     return {
       tabName: 'Sonstige',
-      label: fieldName
+      label: fieldName,
     };
+  }
+
+  /**
+   * Gets the configuration for a given address option.
+   * @param option The address option to get configuration for.
+   * @param isRecipient Whether this is for the delivery (true) or invoice (false) address.
+   * @returns The configuration for the address option.
+   */
+  private getAddressOptionConfig(
+    option: AddressOption,
+    isRecipient: boolean
+  ): AddressOptionConfig {
+    const configs: Record<AddressOption, AddressOptionConfig> = {
+      preferred: {
+        subtitle: 'Hinterlegte bevorzugte Adresse',
+        infoText:
+          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.',
+        formEnabled: false,
+      },
+      existing: {
+        subtitle: isRecipient
+          ? 'Aktuell gespeicherte Lieferadresse'
+          : 'Aktuell gespeicherte Rechnungsadresse',
+        infoText: isRecipient
+          ? 'Dies ist die aktuell gespeicherte Lieferadresse. Sie können die Daten im Formular unterhalb überprüfen.'
+          : 'Dies ist die aktuell gespeicherte Rechnungsadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.',
+        formEnabled: false,
+      },
+      new: {
+        subtitle: 'Neue Adresse erstellen',
+        infoText: 'Neue Adresse erstellen: bitte Formular ausfüllen.',
+        formEnabled: true,
+      },
+      selected: {
+        subtitle: 'Bestehende Adresse überprüfen',
+        infoText:
+          'Wählen Sie eine Adresse aus der Tabelle aus und überprüfen Sie die Daten im Formular unterhalb.',
+        formEnabled: false,
+      },
+    };
+
+    return configs[option];
+  }
+
+  /**
+   * Applies an address option configuration to the appropriate form and state.
+   * @param option The address option to apply.
+   * @param isRecipient Whether this is for the delivery (true) or invoice (false) address.
+   * @param address Optional address to patch into the form.
+   */
+  private applyAddressOption(
+    option: AddressOption,
+    isRecipient: boolean,
+    address?: AddressResponseDTO
+  ): void {
+    const config = this.getAddressOptionConfig(option, isRecipient);
+
+    if (isRecipient) {
+      this.deliveryAddressOption = option;
+      this.deliveryAddressFormConfig.subtitle = config.subtitle;
+      this.deliveryInfoText = config.infoText;
+
+      if (address) {
+        this.deliveryAddressFormGroup.patchValue(address);
+      } else if (option === 'new' || option === 'selected') {
+        this.deliveryAddressFormGroup.reset();
+      }
+
+      if (config.formEnabled) {
+        this.deliveryAddressFormGroup.enable();
+      } else {
+        this.deliveryAddressFormGroup.disable();
+      }
+
+      // Clear selected table address when switching away from 'selected'
+      if (option !== 'selected' && this.selectedDeliveryAddressIdFromTable) {
+        this.selectedDeliveryAddressIdFromTable = undefined;
+      }
+    } else {
+      this.invoiceAddressOption = option;
+      this.invoiceAddressFormConfig.subtitle = config.subtitle;
+      this.invoiceInfoText = config.infoText;
+
+      if (address) {
+        this.invoiceAddressFormGroup.patchValue(address);
+      } else if (option === 'new' || option === 'selected') {
+        this.invoiceAddressFormGroup.reset();
+      }
+
+      if (config.formEnabled) {
+        this.invoiceAddressFormGroup.enable();
+      } else {
+        this.invoiceAddressFormGroup.disable();
+      }
+
+      // Clear selected table address when switching away from 'selected'
+      if (option !== 'selected' && this.selectedInvoiceAddressIdFromTable) {
+        this.selectedInvoiceAddressIdFromTable = undefined;
+      }
+    }
   }
 }
