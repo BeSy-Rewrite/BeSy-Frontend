@@ -20,8 +20,16 @@
       </button>
     </div>
 
-    <div class="flex-1 flex bold justify-center">
-      <span class="text-lg font-extrabold">{{ orderName() }}</span>
+    <div class="flex-1 flex justify-center">
+      <div
+        class="flex flex-col items-center px-6 py-2 bg-white rounded-lg shadow-md border border-gray-200"
+      >
+        <span class="text-xs text-gray-500 uppercase tracking-wide"
+          >Bestellung</span
+        >
+        <span class="text-lg font-bold text-gray-900">{{ orderName() }}</span>
+        <span class="text-xs text-gray-400">{{ orderBesyId() }}</span>
+      </div>
     </div>
 
     <div class="sticky top-0 z-50 flex-1 flex justify-end">
@@ -308,7 +316,7 @@
               Neue Adresse erstellen
             </mat-button-toggle>
           </mat-button-toggle-group>
-        }
+          }
           <div class="delivery-info mt-4">
             <!-- Info Text -->
             <p class="mt-2 mb-2 text-sm text-red-700">

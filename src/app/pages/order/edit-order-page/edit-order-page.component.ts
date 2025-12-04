@@ -2387,13 +2387,13 @@ export class EditOrderPageComponent
         newEditability['Quotations'] = true;
         newEditability['Addresses'] = true;
         newEditability['Approvals'] = false;
-        this.readOnlyBannerMessageApprovalTab.set('Die Bestellung befindet sich noch in Bearbeitung. Genehmigungen können erst nach Abschluss der Bestellung bearbeitet werden.');
+        this.readOnlyBannerMessageApprovalTab.set('Die Bestellung befindet sich noch in Bearbeitung. Zustimmungen können erst nach Abschluss der Bestellung bearbeitet werden.');
         break;
 
       case OrderStatus.COMPLETED:
         // Only Approvals tab editable
         newEditability['Approvals'] = true;
-        bannerMessage = 'Die Bestellung wurde abgeschlossen. Nur Genehmigungen können noch bearbeitet werden.';
+        bannerMessage = 'Die Bestellung wurde abgeschlossen. Nur Zustimmungen können noch bearbeitet werden.';
         break;
 
       default:
