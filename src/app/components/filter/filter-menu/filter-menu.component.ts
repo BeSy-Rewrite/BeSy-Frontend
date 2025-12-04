@@ -10,21 +10,20 @@ import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
-import { debounceTime, finalize, forkJoin, from, Observable, of, tap } from 'rxjs';
+import { debounceTime, forkJoin, from, of, tap } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { CostCenterResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../../../api-services-v2';
-import { ORDERS_FILTER_PRESETS } from '../../../configs/orders-table/order-filter-presets-config';
+import { LAST_ACTIVE_FILTERS_KEY, ORDERS_FILTER_PRESETS } from '../../../configs/orders-table/order-filter-presets-config';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-table/orders-filter-menu-config';
 import { ordersTableConfig } from '../../../configs/orders-table/orders-table-config';
 import { STATE_DISPLAY_NAMES, STATE_ICONS, USED_STATES } from '../../../display-name-mappings/status-names';
 import { FilterChipData } from '../../../models/filter/filter-chip-data';
 import { FilterDateRange } from '../../../models/filter/filter-date-range';
 import { ActiveFilters } from '../../../models/filter/filter-menu-types';
-import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter/filter-presets';
+import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetType, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter/filter-presets';
 import { FilterRange, isNumericRange } from '../../../models/filter/filter-range';
 import { TableColumn } from '../../../models/generic-table';
-import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
+import { UserPreferencesService } from '../../../services/user-preferences.service';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { PersonsWrapperService } from '../../../services/wrapper-services/persons-wrapper.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
@@ -65,9 +64,9 @@ export class FilterMenuComponent implements OnInit {
   /** Initial filter preset to apply on component load. */
   initialPreset = input<OrdersFilterPreset | undefined>(undefined);
 
+  lastActiveFilters = signal<OrdersFilterPreset | undefined>(undefined);
   /** List of available filter presets. */
   filterPresets = signal<OrdersFilterPreset[]>([]);
-  defaultPresets = [...ORDERS_FILTER_PRESETS];
   /** Currently active filter presets. */
   private activePresets: OrdersFilterPreset[] = [];
 
@@ -76,7 +75,7 @@ export class FilterMenuComponent implements OnInit {
   /**
    * Computed signal representing the currently active filters.
    */
-  activeFilter = computed<ActiveFilters>(() => {
+  activeFilters = computed<ActiveFilters>(() => {
     return {
       primary_cost_center_id: this.chips['primary_cost_center_id']().filter(chip => chip.isSelected),
       secondary_cost_center_id: this.chips['secondary_cost_center_id']().filter(chip => chip.isSelected),
@@ -89,7 +88,8 @@ export class FilterMenuComponent implements OnInit {
       created_date: this.dateRanges['created_date'](),
       last_updated_time: this.dateRanges['last_updated_time'](),
       quote_price: this.ranges['quote_price'](),
-      booking_year: this.chips['booking_year']().filter(chip => chip.isSelected)
+      booking_year: this.chips['booking_year']().filter(chip => chip.isSelected),
+      auto_index: this.ranges['auto_index'](),
     };
   });
 
@@ -98,35 +98,42 @@ export class FilterMenuComponent implements OnInit {
    * so that they can be reapplied on page reload
    * without needing to select a preset manually
    */
-  readonly activeFiltersAsPreset: Observable<OrdersFilterPreset>;
   readonly activeFiltersSignal = computed<OrdersFilterPreset>(() => {
-    return {
-      label: 'activeFilters',
-      appliedFilters: Object.entries(this.activeFilter()).map(([key, value]) => {
-        const typedKey = key as keyof ActiveFilters;
-        if (Array.isArray(value)) {
-          return {
-            id: typedKey,
-            chipIds: value
-              .filter((v: FilterChipData) => v.id !== undefined && v.id !== null)
-              .map((v: FilterChipData) => v.id)
-          } as ChipFilterPreset;
-        } else if (isNumericRange(value)) {
-          return {
-            id: typedKey,
-            range: value
-          } as RangeFilterPreset;
-        }
+    const appliedFilters: FilterPresetType[] = Object.entries(this.activeFilters()).map(([key, value]) => {
+      const typedKey = key as keyof ActiveFilters;
+      if (Array.isArray(value)) {
         return {
           id: typedKey,
-          dateRange: value as FilterDateRange
-        } as DateRangeFilterPreset;
-      })
+          chipIds: value
+            .filter((v: FilterChipData) => v.id !== undefined && v.id !== null)
+            .map((v: FilterChipData) => v.id)
+        } as ChipFilterPreset;
+      } else if (isNumericRange(value)) {
+        return {
+          id: typedKey,
+          range: value
+        } as RangeFilterPreset;
+      }
+      return {
+        id: typedKey,
+        dateRange: value as FilterDateRange
+      } as DateRangeFilterPreset;
+    });
+
+    appliedFilters.push({
+      id: 'selectedColumnIds',
+      selectedColumnIds: this.selectedColumnIds()
+    });
+
+    return {
+      label: LAST_ACTIVE_FILTERS_KEY,
+      appliedFilters
     };
   });
+  selectedColumnIds = signal<string[]>([]);
 
   /** Configuration for all available filters in the menu. */
-  filters = ORDERS_FILTER_MENU_CONFIG;
+  availableFilters = ORDERS_FILTER_MENU_CONFIG;
   /**
    * Signals holding the chip data for each filter key.
    */
@@ -152,13 +159,20 @@ export class FilterMenuComponent implements OnInit {
    * Signals holding the range data for each filter key.
    */
   ranges: { [key: string]: WritableSignal<FilterRange>; } = {
-    'quote_price': signal<FilterRange>({ start: 0, end: 10000 })
+    'quote_price': signal<FilterRange>({
+      start: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'quote_price')?.data?.minValue ?? 0,
+      end: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'quote_price')?.data?.maxValue ?? 10000
+    }),
+    'auto_index': signal<FilterRange>({
+      start: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'auto_index')?.data?.minValue ?? 0,
+      end: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'auto_index')?.data?.maxValue ?? 100
+    })
   };
 
   /** Reference to the accordion UI element. */
   accordion = viewChild.required(MatAccordion);
   /** Reference to the chip listbox for presets. */
-  presets = viewChild.required<MatChipListbox>('presets');
+  presetChips = viewChild.required<MatChipListbox>('presets');
 
   /** Control for the selected columns in the table. */
   selectedColumnsControl = new FormControl(ordersTableConfig.filter(col => !col.isInvisible).map(col => col.id));
@@ -167,49 +181,38 @@ export class FilterMenuComponent implements OnInit {
   /** Emits when the selected columns have changed. */
   selectedColumnsChanged = output<string[]>();
 
-  /**
-   * Creates an instance of FilterMenuComponent.
-   * @param resourceResolver Service for resolving order subresources.
-   */
+  /** Emits when all filters have been reset. */
+  resetedFilters = output<void>();
+
   constructor(
-    resourceResolver: OrderSubresourceResolverService,
-    private readonly _snackBar: MatSnackBar,
     private readonly costCentersService: CostCenterWrapperService,
     private readonly usersService: UsersWrapperService,
     private readonly personsService: PersonsWrapperService,
     private readonly suppliersService: SuppliersWrapperService,
-    private readonly router: Router,
-    readonly dialog: MatDialog
+    readonly dialog: MatDialog,
+    private readonly preferencesService: UserPreferencesService
   ) {
     effect(() => {
-      this.filtersChanged.emit(this.activeFilter());
+      this.filtersChanged.emit(this.activeFilters());
     });
 
-    resourceResolver.resolveCurrentUserInPresets(this.defaultPresets).pipe(
-      finalize(() => {
-        this.filterPresets.set([...this.defaultPresets]);
-        this.loadSavedFilterPresets();
-      })
-    ).subscribe({
-      next: resolvedPresets => {
-        this.defaultPresets = resolvedPresets;
-      },
-      error: error => {
-        console.error('Error loading filter presets:', error);
-        this._snackBar.open('Fehler beim Laden der Filtervorgaben: ' + error.message, 'Schließen', { duration: 5000 });
+    toObservable(this.activeFilters).pipe(
+      debounceTime(environment.saveActiveFiltersDebounceMs)
+    ).subscribe(() => this.preferencesService.savePreset(this.activeFiltersSignal()).subscribe());
 
-        this.defaultPresets = this.defaultPresets.filter(preset =>
-          !preset.appliedFilters.some(filter => {
-            if ('chipIds' in filter) {
-              return filter.chipIds?.includes('CURRENT_USER')
-            }
-            return false;
-          })
-        );
-      }
+    this.preferencesService.getPresets().subscribe(presets => {
+      this.setPresets(presets);
     });
 
-    this.activeFiltersAsPreset = toObservable(this.activeFiltersSignal);
+    this.selectedColumnsControl.valueChanges.subscribe(selectedColumnIds => {
+      this.selectedColumnIds.set(selectedColumnIds ?? []);
+      this.selectedColumnsChanged.emit(selectedColumnIds ?? []);
+    });
+  }
+
+  setPresets(presets: OrdersFilterPreset[]) {
+    this.lastActiveFilters.set(presets.find(preset => preset.label === LAST_ACTIVE_FILTERS_KEY));
+    this.filterPresets.set(presets.filter(preset => preset.label !== LAST_ACTIVE_FILTERS_KEY));
   }
 
   /**
@@ -227,7 +230,6 @@ export class FilterMenuComponent implements OnInit {
     ]).subscribe(() => {
       this.setupPersistentFilters();
     });
-    this.setupPersistentColumnSelection();
   }
 
   /**
@@ -238,59 +240,13 @@ export class FilterMenuComponent implements OnInit {
     if (this.initialPreset()) {
       this.applyPreset(this.initialPreset()!);
     } else {
-      this.loadFilterPresetFromLocalStorage();
-    }
-
-    this.activeFiltersAsPreset.pipe(
-      debounceTime(50)
-    ).subscribe(preset => {
-      localStorage.setItem('activeFilters', JSON.stringify(preset));
-    });
-  }
-
-  /**
-   * Loads the filter preset from localStorage.
-   */
-  private loadFilterPresetFromLocalStorage() {
-    const lastActiveFilters = localStorage.getItem('activeFilters');
-    if (lastActiveFilters) {
-      try {
-        const preset = this.parseAndCheckPreset(lastActiveFilters);
+      const lastActiveFilters = this.filterPresets().find(preset => preset.label === LAST_ACTIVE_FILTERS_KEY);
+      if (lastActiveFilters) {
         this.clearAllFilters();
-        this.applyPreset(preset);
-      } catch (e) {
-        console.error('Failed to parse last active filters from localStorage:', e);
-        localStorage.removeItem('activeFilters');
-        this._snackBar.open('Fehler beim Laden der letzten Filtereinstellungen. Die gespeicherten Einstellungen wurden zurückgesetzt.', 'Schließen', { duration: 5000 });
+        this.applyPreset(lastActiveFilters);
       }
     }
-  }
-
-  /**
-   * Fixes date range by converting string dates to Date objects.
-   * @param date The date range to fix.
-   * @returns The fixed date range with Date objects.
-   */
-  private fixDateRange(date: FilterDateRange): FilterDateRange {
-    return {
-      start: typeof date.start === 'string' ? new Date(Date.parse(date.start)) : date.start,
-      end: typeof date.end === 'string' ? new Date(Date.parse(date.end)) : date.end
-    };
-  }
-
-  /**
-   * Sets up persistent column selection by saving and loading from localStorage.
-   */
-  private setupPersistentColumnSelection() {
-    this.selectedColumnsControl.valueChanges.subscribe(selected => {
-      localStorage.setItem('selectedColumns', JSON.stringify(selected ?? []));
-      this.selectedColumnsChanged.emit(selected ?? []);
-    });
-
-    const lastSelectedColumns = localStorage.getItem('selectedColumns');
-    if (lastSelectedColumns) {
-      this.selectedColumnsControl.setValue(JSON.parse(lastSelectedColumns));
-    }
+    this.selectedColumnsChanged.emit(this.selectedColumnsControl.value ?? []);
   }
 
   /**
@@ -403,7 +359,7 @@ export class FilterMenuComponent implements OnInit {
   saveCurrentFiltersAsPreset() {
     const dialogRef = this.dialog.open(FilterPresetsSaveComponent, {
       data: {
-        name: 'Benutzerdefinierte Filter',
+        name: 'Meine Filter ' + (this.filterPresets().length + 1 - ORDERS_FILTER_PRESETS.length),
       }
     });
 
@@ -411,12 +367,9 @@ export class FilterMenuComponent implements OnInit {
       if (result !== undefined) {
         const currentPreset = { ...this.activeFiltersSignal() };
         currentPreset.label = result;
-
-        const savedPresets = JSON.parse(localStorage.getItem(SAVED_FILTER_PRESETS_KEY) || '{}');
-        savedPresets[currentPreset.label.toLowerCase().replaceAll(' ', '_')] = currentPreset;
-        localStorage.setItem(SAVED_FILTER_PRESETS_KEY, JSON.stringify(savedPresets));
-
-        this.loadSavedFilterPresets();
+        this.preferencesService.savePreset(currentPreset).subscribe(presets => {
+          this.setPresets(presets);
+        });
       }
     });
   }
@@ -427,16 +380,10 @@ export class FilterMenuComponent implements OnInit {
   editFilterPresets() {
     const dialogRef = this.dialog.open(FilterPresetsEditComponent);
     dialogRef.afterClosed().subscribe(result => {
-      this.loadSavedFilterPresets();
+      if (result) {
+        this.setPresets(result);
+      }
     });
-  }
-
-  /**
-   * Loads saved filter presets from local storage.
-   */
-  loadSavedFilterPresets() {
-    const savedPresets: OrdersFilterPreset[] = Object.values(JSON.parse(localStorage.getItem(SAVED_FILTER_PRESETS_KEY) ?? '{}'));
-    this.filterPresets.set([...this.defaultPresets, ...savedPresets.map(preset => this.parseAndCheckPreset(preset))]);
   }
 
   /**
@@ -444,7 +391,7 @@ export class FilterMenuComponent implements OnInit {
    */
   onReset() {
     this.activePresets = [];
-    const selectedChips = this.presets().selected;
+    const selectedChips = this.presetChips().selected;
     if (Array.isArray(selectedChips)) {
       for (const chip of selectedChips) {
         chip.deselect();
@@ -454,6 +401,7 @@ export class FilterMenuComponent implements OnInit {
     }
     this.clearAllFilters();
     this.resetSelectedColumns();
+    this.resetedFilters.emit();
   }
 
   /**
@@ -469,8 +417,8 @@ export class FilterMenuComponent implements OnInit {
       dateRangeSignal.set({ start: null, end: null });
     }
     for (const [key, rangeSignal] of Object.entries(this.ranges)) {
-      const min = this.filters.find(f => f.key === key)?.data?.minValue ?? 0;
-      const max = this.filters.find(f => f.key === key)?.data?.maxValue ?? 100;
+      const min = this.availableFilters.find(f => f.key === key)?.data?.minValue ?? 0;
+      const max = this.availableFilters.find(f => f.key === key)?.data?.maxValue ?? 100;
       rangeSignal.set({ start: min, end: max });
     }
   }
@@ -496,7 +444,7 @@ export class FilterMenuComponent implements OnInit {
     if (evt.selected) {
       this.activePresets.push(preset);
     } else {
-      this.removePreset(preset);
+      this.disablePreset(preset);
     }
 
     for (const preset of this.activePresets) {
@@ -520,6 +468,8 @@ export class FilterMenuComponent implements OnInit {
       }
       else if ('range' in appliedFilter) {
         this.ranges[appliedFilter.id].set(appliedFilter.range);
+      } else if ('selectedColumnIds' in appliedFilter) {
+        this.selectedColumnsControl.setValue(appliedFilter.selectedColumnIds);
       }
     }
   }
@@ -528,7 +478,7 @@ export class FilterMenuComponent implements OnInit {
    * Removes a filter preset from the active presets.
    * @param preset The filter preset to remove.
    */
-  removePreset(preset: OrdersFilterPreset) {
+  disablePreset(preset: OrdersFilterPreset) {
     for (const appliedFilter of preset.appliedFilters) {
       if ('chipIds' in appliedFilter) {
         this.chips[appliedFilter.id]?.update(currentChips =>
@@ -537,26 +487,11 @@ export class FilterMenuComponent implements OnInit {
       } else if ('dateRange' in appliedFilter) {
         this.dateRanges[appliedFilter.id].set({ start: null, end: null });
       } else if ('range' in appliedFilter) {
-        const min = this.filters.find(f => f.key === appliedFilter.id)?.data?.minValue ?? 0;
-        const max = this.filters.find(f => f.key === appliedFilter.id)?.data?.maxValue ?? 100;
+        const min = this.availableFilters.find(f => f.key === appliedFilter.id)?.data?.minValue ?? 0;
+        const max = this.availableFilters.find(f => f.key === appliedFilter.id)?.data?.maxValue ?? 100;
         this.ranges[appliedFilter.id].set({ start: min, end: max });
       }
     }
-  }
-
-  parseAndCheckPreset(presetString: string | OrdersFilterPreset): OrdersFilterPreset {
-    let preset: OrdersFilterPreset;
-    if (typeof presetString === 'string') {
-      preset = JSON.parse(presetString);
-    } else {
-      preset = presetString;
-    }
-    for (const filter of preset.appliedFilters) {
-      if (this.dateRanges[filter.id] !== undefined && 'dateRange' in filter) {
-        filter.dateRange = this.fixDateRange(filter.dateRange);
-      }
-    }
-    return preset;
   }
 
   /**
@@ -566,29 +501,36 @@ export class FilterMenuComponent implements OnInit {
    */
   isPresetApplied(preset: OrdersFilterPreset): boolean {
     return preset.appliedFilters.every(presetFilter => {
-      const activeValue = this.activeFilter()[presetFilter.id];
+      if (!(presetFilter.id in this.activeFilters())) {
+        return true;
+      }
 
       switch (true) {
         case presetFilter === undefined:
           return false;
 
-        case 'chipIds' in presetFilter:
-          return presetFilter.chipIds.every(id => activeValue && (activeValue as FilterChipData[])
-            .some(chip => chip.id === id));
+        case 'chipIds' in presetFilter: {
+          const activeValue = this.activeFilters()[presetFilter.id as keyof ActiveFilters] as FilterChipData[] | undefined;
+          return presetFilter.chipIds.every(id => activeValue?.some(chip => chip.id === id));
+        }
 
-        case 'dateRange' in presetFilter:
+        case 'dateRange' in presetFilter: {
+          const activeValue = this.activeFilters()[presetFilter.id as keyof ActiveFilters] as FilterDateRange | undefined;
           if (activeValue && typeof activeValue === 'object' && 'start' in activeValue && 'end' in activeValue) {
             return activeValue.start === presetFilter.dateRange.start &&
               activeValue.end === presetFilter.dateRange.end;
           }
           return false;
+        }
 
-        case 'range' in presetFilter:
+        case 'range' in presetFilter: {
+          const activeValue = this.activeFilters()[presetFilter.id as keyof ActiveFilters] as FilterRange | undefined;
           if (activeValue && typeof activeValue === 'object' && 'start' in activeValue && 'end' in activeValue) {
             return activeValue.start === presetFilter.range.start &&
               activeValue.end === presetFilter.range.end;
           }
           return false;
+        }
 
         default:
           return false;

@@ -5,10 +5,11 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableDataSource } from '@angular/material/table';
+import { mergeMap } from 'rxjs';
 import { OrdersFilterPreset } from '../../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
+import { UserPreferencesService } from '../../../services/user-preferences.service';
 import { GenericTableComponent } from "../../generic-table/generic-table.component";
-import { SAVED_FILTER_PRESETS_KEY } from '../filter-menu/filter-menu.component';
 import { CreatePresetDialogData, FilterPresetsSaveComponent } from '../filter-preset-save/filter-presets-save.component';
 
 /**
@@ -34,9 +35,10 @@ export class FilterPresetsEditComponent {
   readonly dialogRef = inject(MatDialogRef<FilterPresetsEditComponent>);
   readonly data = inject<CreatePresetDialogData>(MAT_DIALOG_DATA);
 
-  savedPresets: OrdersFilterPreset[] = Object.values(JSON.parse(localStorage.getItem(SAVED_FILTER_PRESETS_KEY) ?? '{}'));
+  initialPresets!: OrdersFilterPreset[];
+  savedPresets!: OrdersFilterPreset[];
 
-  datasource = new MatTableDataSource(this.savedPresets);
+  datasource = new MatTableDataSource(<OrdersFilterPreset[]>([]));
   columns = [
     { id: 'label', label: 'Name' },
   ];
@@ -58,10 +60,19 @@ export class FilterPresetsEditComponent {
     }
   ];
 
-  constructor(private readonly dialog: MatDialog) { }
+  constructor(private readonly dialog: MatDialog,
+    private readonly preferencesService: UserPreferencesService
+  ) {
+    preferencesService.getCustomPresets().subscribe(presets => {
+      // take a deep copy to avoid mutating the original when editing
+      this.initialPresets = structuredClone(presets);
+      this.savedPresets = structuredClone(presets);
+      this.datasource.data = this.savedPresets;
+    });
+  }
 
   /** Opens a dialog to rename the selected preset. */
-  renamePreset(preset: any): void {
+  renamePreset(preset: OrdersFilterPreset): void {
     const dialogRef = this.dialog.open(FilterPresetsSaveComponent, {
       data: {
         name: preset.label,
@@ -78,20 +89,25 @@ export class FilterPresetsEditComponent {
   }
 
   /** Deletes the selected preset from the list. */
-  deletePreset(preset: any): void {
+  deletePreset(preset: OrdersFilterPreset): void {
     this.savedPresets = this.savedPresets.filter(p => p.label !== preset.label);
     this.datasource.data = this.savedPresets;
   }
 
   /** Saves the current presets to local storage and closes the dialog. */
   saveChanges(): void {
-    const savedPresets: { [key: string]: OrdersFilterPreset } = {};
-    for (const preset of this.savedPresets) {
-      savedPresets[preset.label.toLowerCase().replaceAll(' ', '_')] = preset;
-    }
-    localStorage.setItem(SAVED_FILTER_PRESETS_KEY, JSON.stringify(savedPresets));
-
-    this.close();
+    this.preferencesService.deletePreferences({
+      order_filter_preferences: this.initialPresets.map(preset => JSON.stringify(preset))
+    }).pipe(
+      mergeMap(() => this.preferencesService.addPreferences({
+        order_filter_preferences: this.savedPresets.map(preset => JSON.stringify(preset))
+      }))
+    ).subscribe(savedPrefs => {
+      this.dialogRef.close(savedPrefs.order_filter_preferences.map(preset => this.preferencesService.parseAndCheckPreset(preset)));
+    });
+  }
+  isUnchanged(): boolean {
+    return JSON.stringify(this.initialPresets) === JSON.stringify(this.savedPresets);
   }
 
   /** Closes the dialog without saving changes. */

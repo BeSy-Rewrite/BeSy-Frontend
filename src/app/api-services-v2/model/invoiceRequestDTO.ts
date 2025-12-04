@@ -20,7 +20,7 @@ export interface InvoiceRequestDTO {
     /**
      * ID der zugehörigen Kostenstelle
      */
-    cost_center_id: number;
+    cost_center_id: string;
     /**
      * Referenz auf die zugehörige Bestellung
      */

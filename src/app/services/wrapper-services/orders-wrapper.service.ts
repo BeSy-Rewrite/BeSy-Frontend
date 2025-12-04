@@ -1,8 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { lastValueFrom, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { from, lastValueFrom, map, Observable } from 'rxjs';
 import { ApprovalResponseDTO, ItemResponseDTO, OrderRequestDTO, OrderResponseDTO, OrdersService, OrderStatus, OrderStatusHistoryResponseDTO, PagedOrderResponseDTO, QuotationResponseDTO } from '../../api-services-v2';
+import { FilterRequestParams } from '../../models/filter/filter-request-params';
 
 @Injectable({
   providedIn: 'root'
@@ -17,67 +17,39 @@ export class OrdersWrapperService {
      * @param page Seitenzahl für die Paginierung (beginnend bei 0).
      * @param size Anzahl der Elemente pro Seite.
      * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.  `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend), dann nach `id` (aufsteigend).
-     *
-     * @param primaryCostCenters Filtert nach IDs der primären Kostenstellen.
-     * @param bookingYears Filtert nach den letzten zwei Ziffern der Jahreszahl der Buchung. Achtung, diese muss ein String sein, z.B. "25".
-     * @param createdAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt erstellt wurden.
-     * @param createdBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt erstellt wurden.
-     * @param ownerIds Filtert nach IDs der Ersteller der Bestellung. Beinh
-     * @param statuses Filtert nach dem Bestellstatus. Beinhaltet default-mäßig alle Bestellstatus.
-     * @param quotePriceMin Filtert nach quotePriceMin.
-     * @param quotePriceMax Filtert nach quotePriceMax.
-     * @param deliveryPersonIds Filtert nach IDs der Besteller.
-     * @param invoicePersonIds Filtert nach IDs invoicePersonIds.
-     * @param queriesPersonIds Filtert nach IDs queriesPersonIds.
-     * @param customerIds Filter nach Kundennummern.
-     * @param supplierIds Filtert nach IDs der Lieferanten.
-     * @param secondaryCostCenters Filtert nach IDs der sekundären Kostenstellen.
-     * @param lastUpdatedTimeAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt bearbeitet wurden.
-     * @param lastUpdatedTimeBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt bearbeitet wurden.
+     * @param filters Filterparameter zur Einschränkung der Ergebnisse.
+     * @param searchTerm Suchbegriff zur weiteren Filterung der Ergebnisse.
      * @returns PagedOrderResponseDTO OK
-     * @throws ApiError
      */
   async getAllOrders(
-    page?: number,
+    page: number = 0,
     size: number = 20,
-    sort?: Array<string>,
-    primaryCostCenters?: Array<string>,
-    bookingYears?: Array<string>,
-    createdAfter?: string,
-    createdBefore?: string,
-    ownerIds?: Array<number>,
-    statuses?: Array<OrderStatus>,
-    quotePriceMin?: number,
-    quotePriceMax?: number,
-    deliveryPersonIds?: Array<number>,
-    invoicePersonIds?: Array<number>,
-    queriesPersonIds?: Array<number>,
-    customerIds?: Array<string>,
-    supplierIds?: Array<number>,
-    secondaryCostCenters?: Array<string>,
-    lastUpdatedTimeAfter?: string,
-    lastUpdatedTimeBefore?: string
+    sort: Array<string> = [],
+    filters?: FilterRequestParams,
+    _searchTerm?: string
   ): Promise<PagedOrderResponseDTO> {
     return await lastValueFrom(this.ordersService.getAllOrders(
       page,
       size,
       sort,
-      primaryCostCenters,
-      bookingYears,
-      createdAfter,
-      createdBefore,
-      ownerIds,
-      statuses,
-      quotePriceMin,
-      quotePriceMax,
-      deliveryPersonIds,
-      invoicePersonIds,
-      queriesPersonIds,
-      customerIds,
-      supplierIds,
-      secondaryCostCenters,
-      lastUpdatedTimeAfter,
-      lastUpdatedTimeBefore
+      filters?.primaryCostCenters,
+      filters?.bookingYears,
+      filters?.createdAfter,
+      filters?.createdBefore,
+      filters?.ownerIds,
+      filters?.statuses,
+      filters?.quotePriceMin,
+      filters?.quotePriceMax,
+      filters?.deliveryPersonIds,
+      filters?.invoicePersonIds,
+      filters?.queriesPersonIds,
+      filters?.customerIds,
+      filters?.supplierIds,
+      filters?.secondaryCostCenters,
+      filters?.lastUpdatedTimeAfter,
+      filters?.lastUpdatedTimeBefore,
+      filters?.autoIndexMin,
+      filters?.autoIndexMax
     ));
   }
 
@@ -89,12 +61,37 @@ export class OrdersWrapperService {
     return await lastValueFrom(this.ordersService.getOrderById(orderId));
   }
 
+  /**
+   * Get order by its order number.
+   * @param orderNumber The order number in the format "primaryCostCenter-bookingYear-autoIndex".
+   * @returns OrderResponseDTO
+   */
+  async getOrderByOrderNumber(orderNumber: string): Promise<OrderResponseDTO> {
+    const orderNumberParsed = orderNumber.split('-').map(part => part.trim());
+    const filter = {
+      primaryCostCenters: [orderNumberParsed[0]],
+      bookingYears: [orderNumberParsed[1]],
+      autoIndexMin: Number.parseInt(orderNumberParsed[2]),
+      autoIndexMax: Number.parseInt(orderNumberParsed[2])
+    } as FilterRequestParams;
+
+    return await lastValueFrom(from(this.getAllOrders(0, 1, [], filter)).pipe(
+      map(ordersPage => {
+        const order = ordersPage.content?.[0];
+        if (order) {
+          return order;
+        }
+        throw new Error(`Order with order number ${orderNumber} not found`);
+      })
+    ));
+  }
+
   async deleteOrder(orderId: number): Promise<void> {
     return await lastValueFrom(this.ordersService.deleteOrder(orderId));
   }
 
   async getOrderItems(orderId: string): Promise<ItemResponseDTO[]> {
-    return await lastValueFrom(this.ordersService.getOrderItems(orderId));
+    return await lastValueFrom(this.ordersService.getOrderItems(Number.parseInt(orderId)));
   }
 
   async createOrderItems(orderId: number, requestBody: any): Promise<any> {
@@ -102,11 +99,11 @@ export class OrdersWrapperService {
   }
 
   async deleteItemOfOrder(orderId: number, itemId: number): Promise<void> {
-    return await lastValueFrom(this.ordersService.deleteOrderItem(orderId, itemId));
+    return await lastValueFrom(this.ordersService.deleteItemOfOrder(orderId, itemId));
   }
 
   async getOrderQuotations(orderId: string): Promise<QuotationResponseDTO[]> {
-    return await lastValueFrom(this.ordersService.getOrderQuotations(orderId));
+    return await lastValueFrom(this.ordersService.getOrderQuotations(Number.parseInt(orderId)));
   }
 
   async createOrderQuotations(orderId: number, requestBody: any): Promise<any> {
@@ -114,11 +111,11 @@ export class OrdersWrapperService {
   }
 
   async deleteQuotationOfOrder(orderId: number, quotationId: number): Promise<void> {
-    return await lastValueFrom(this.ordersService.deleteOrderQuotation(orderId, quotationId));
+    return await lastValueFrom(this.ordersService.deleteQuotationOfOrder(orderId, quotationId));
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
-    return this.http.get(`${environment.apiUrl}/orders/${orderId}/export`, { responseType: 'blob' });
+    return this.ordersService.exportOrderToFormula(Number.parseInt(orderId));
   }
 
   async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
@@ -130,6 +127,6 @@ export class OrdersWrapperService {
   }
 
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
-    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, newState));
+    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, JSON.stringify(newState)));
   }
 }

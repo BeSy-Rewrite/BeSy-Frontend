@@ -647,7 +647,7 @@ paths:
           name: order-id
           required: true
           schema:
-            type: string
+            type: number
           description: Die eindeutige ID der Bestellung, für welche die Artikel abgerufen werden sollen.
       responses:
         "200":
@@ -699,7 +699,7 @@ paths:
     delete:
       tags:
         - Orders
-      operationId: deleteOrderItem
+      operationId: deleteItemOfOrder
       description: >
         Löscht einen Artikel einer bestehenden Bestellung (`order-id`) anhand der `item-id` (Hard Delete).
       parameters:
@@ -734,7 +734,7 @@ paths:
           name: order-id
           required: true
           schema:
-            type: string
+            type: integer
           description: Die eindeutige ID der Bestellung, für welche die Vergleichsangebote abgerufen werden sollen.
       responses:
         "200":
@@ -786,7 +786,7 @@ paths:
     delete:
       tags:
         - Orders
-      operationId: deleteOrderQuotation
+      operationId: deleteQuotationOfOrder
       description: >
         Löscht ein Vergleichsangebot einer bestehenden Bestellung (`order-id`) anhand der `quotation-id` (Hard Delete).
       parameters:
@@ -1121,7 +1121,7 @@ paths:
           name: order-id
           required: true
           schema:
-            type: string
+            type: integer
           description: Die eindeutige ID der Bestellung, für die das Bestellformular als PDF exportiert wird.
       responses:
         "200":
@@ -1266,6 +1266,95 @@ paths:
                 $ref: "#/components/schemas/UserResponseDTO"
         "500":
           description: Interner Serverfehler.
+
+  /users/{id}/preferences:
+    get:
+      tags:
+        - Users
+      operationId: getUserPreferences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID des Benutzers
+          schema:
+            type: integer
+            format: int32
+      responses:
+        "200":
+          description: Erfolgreiche Abfrage der Benutzerpräferenzen
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPreferencesResponseDTO"
+        "404":
+          description: Benutzer nicht gefunden
+        "500":
+          description: Interner Serverfehler
+
+    post:
+      tags:
+        - Users
+      operationId: addUserPreferences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID des Benutzers
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPreferencesRequestDTO"
+      responses:
+        "200":
+          description: Benutzerpräferenzen erfolgreich hinzugefügt
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPreferencesResponseDTO"
+        "400":
+          description: Ungültige Anfrage
+        "404":
+          description: Benutzer nicht gefunden
+        "500":
+          description: Interner Serverfehler
+
+    delete:
+      tags:
+        - Users
+      operationId: deleteUserPreferences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID des Benutzers
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPreferencesRequestDTO"
+      responses:
+        "200":
+          description: Benutzerpräferenzen erfolgreich gelöscht
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPreferencesResponseDTO"
+        "400":
+          description: Ungültige Anfrage
+        "404":
+          description: Benutzer nicht gefunden
+        "500":
+          description: Interner Serverfehler
 
   /insy/{order-id}:
     post:
@@ -1903,47 +1992,47 @@ components:
     ApprovalResponseDTO:
       type: object
       properties:
-        orderId:
+        order_id:
           type: integer
           format: int64
-        flagEdvPermission:
+        flag_edv_permission:
           type: boolean
           default: false
-        flagFurniturePermission:
+        flag_furniture_permission:
           type: boolean
           default: false
-        flagFurnitureRoom:
+        flag_furniture_room:
           type: boolean
           default: false
-        flagInvestmentRoom:
+        flag_investment_room:
           type: boolean
           default: false
-        flagInvestmentStructuralMeasures:
+        flag_investment_structural_measures:
           type: boolean
           default: false
-        flagMediaPermission:
+        flag_media_permission:
           type: boolean
           default: false
 
     ApprovalRequestDTO:
       type: object
       properties:
-        flagEdvPermission:
+        flag_edv_permission:
           type: boolean
           default: false
-        flagFurniturePermission:
+        flag_furniture_permission:
           type: boolean
           default: false
-        flagFurnitureRoom:
+        flag_furniture_room:
           type: boolean
           default: false
-        flagInvestmentRoom:
+        flag_investment_room:
           type: boolean
           default: false
-        flagInvestmentStructuralMeasures:
+        flag_investment_structural_measures:
           type: boolean
           default: false
-        flagMediaPermission:
+        flag_media_permission:
           type: boolean
           default: false
 
@@ -1964,7 +2053,7 @@ components:
           type: string
           description: ID der Rechnung
         cost_center_id:
-          type: integer
+          type: string
           description: ID der zugehörigen Kostenstelle
         order_id:
           type: integer
@@ -1991,3 +2080,23 @@ components:
         - order_id
         - price
         - date
+
+    UserPreferencesRequestDTO:
+      type: object
+      properties:
+        order_filter_preferences:
+          type: array
+          items:
+            type: string
+      required:
+        - order_filter_preferences
+
+    UserPreferencesResponseDTO:
+      type: object
+      properties:
+        order_filter_preferences:
+          type: array
+          items:
+            type: string
+      required:
+        - order_filter_preferences

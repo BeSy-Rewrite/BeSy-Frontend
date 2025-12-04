@@ -97,7 +97,12 @@ export class RangeSelectionSliderComponent implements OnInit, OnChanges {
       startWith(this.formGroup.value)
     ).subscribe(value => {
       this.skipChangeDetection = true;
-      this.selectedRange.set(value.input);
+      this.selectedRange.set({
+        ...value.input,
+        min: this.minValue(),
+        max: this.internalMaxValue()
+      });
+
       this.rangeChanged.emit(value.input);
     });
   }

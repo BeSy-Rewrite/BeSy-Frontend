@@ -10,11 +10,11 @@
 
 
 export interface ApprovalRequestDTO { 
-    flagEdvPermission?: boolean;
-    flagFurniturePermission?: boolean;
-    flagFurnitureRoom?: boolean;
-    flagInvestmentRoom?: boolean;
-    flagInvestmentStructuralMeasures?: boolean;
-    flagMediaPermission?: boolean;
+    flag_edv_permission?: boolean;
+    flag_furniture_permission?: boolean;
+    flag_furniture_room?: boolean;
+    flag_investment_room?: boolean;
+    flag_investment_structural_measures?: boolean;
+    flag_media_permission?: boolean;
 }
 

@@ -1,0 +1,48 @@
+<div [class]="`flex ${position().includes('right') ? 'flex-row' : 'flex-row-reverse'} ${position().includes('top') ? 'items-start' : 'items-end'} overflow-y-hidden overflow-x-visible`"
+     [class.toast-container]="!areToastsEmpty()"
+     [class.empty-toast-container]="areToastsEmpty()">
+
+    <button mat-icon-button (click)="toggleToasts()"
+            [matTooltip]="showToasts() ? 'Ausblenden' : 'Einblenden'"
+            aria-label="Toggle Toasts">
+
+        <mat-icon [matBadge]="toasts.length"
+                  [matBadgePosition]="position().includes('left') ? 'after' : 'before'"
+                  [matBadgeColor]="doErrorsExist() ? 'warn' : 'primary'"
+                  matBadgeDescription="Number of open messages. 'Warn' themed if errors exist"
+                  aria-hidden="false">
+            {{ showToasts() ? 'chevron_left' : 'chevron_right' }}
+        </mat-icon>
+    </button>
+
+    <div [class]="`flex ${position().includes('top') ? 'flex-col' : 'flex-col-reverse'} gap-2 max-h-[50vh] overflow-x-hidden overflow-y-auto`"
+         [class.open]="showToasts()"
+         [class.closed]="!showToasts()">
+
+        @for (toast of toasts; track toast.id) {
+        <div [class]="`w-full rounded-md border-2 bg-white shadow-md p-2 flex flex-row justify-between ${getClassForToast(toast)}`"
+             animate.enter="enter-animation"
+             animate.leave="leave-animation">
+
+            @if (typeof toast.message === 'string') {
+            <div class="whitespace-pre-line">{{ toast.message }}</div>
+            } @else {
+            <ng-container *ngComponentOutlet="
+                toast.message;
+                inputs: toast.inputs;
+                "></ng-container>
+            }
+
+            @if (!toast.isPersistent) {
+            <button mat-icon-button
+                    (click)="toast.cancel()"
+                    aria-label="Close Toast">
+                <mat-icon>close</mat-icon>
+            </button>
+            }
+        </div>
+        }
+
+    </div>
+
+</div>

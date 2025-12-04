@@ -1,41 +1,23 @@
 import { Validators } from "@angular/forms";
 import { FormConfig } from "../components/form-component/form-component.component";
+import { INVOICE_FIELD_NAMES } from "../display-name-mappings/invoice-names";
 
 export const DOCUMENT_UPLOAD_FORM_CONFIG: FormConfig = {
     title: '',
     fields: [
         {
-            name: 'id',
-            label: 'Dokument-ID',
-            type: 'text',
-            required: true
-        },
-        {
-            name: 'costCenterId',
-            label: 'Kostenstelle',
-            type: 'select',
+            name: 'comment',
+            label: INVOICE_FIELD_NAMES.comment,
+            type: 'textarea',
             required: true,
+            validators: [Validators.maxLength(255)]
         },
         {
             name: 'date',
-            label: 'Datum',
+            label: INVOICE_FIELD_NAMES.date,
             type: 'date',
             required: true,
             defaultValue: new Date(Date.now())
-        },
-        {
-            name: 'price',
-            label: 'Preis',
-            type: 'number',
-            required: true,
-            validators: [Validators.min(0)]
-        },
-        {
-            name: 'comment',
-            label: 'Kommentar',
-            type: 'textarea',
-            required: false,
-            validators: [Validators.maxLength(255)]
         },
     ]
 };
