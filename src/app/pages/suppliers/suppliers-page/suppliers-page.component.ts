@@ -1,22 +1,14 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDivider } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTableDataSource } from '@angular/material/table';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import {
   AddressRequestDTO,
-  AddressResponseDTO,
   CustomerIdRequestDTO,
   SupplierRequestDTO,
   SupplierResponseDTO,
-  SuppliersService,
   VatResponseDTO,
 } from '../../../api-services-v2';
-import { AddressFormComponent } from '../../../components/address-form/address-form.component';
-import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
 import { CUSTOMER_ID_FORM_CONFIG } from '../../../configs/create-customer-id-config';
@@ -24,6 +16,12 @@ import { SUPPLIER_FORM_CONFIG } from '../../../configs/create-supplier-config';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { MatDivider } from '@angular/material/divider';
+import { FormComponent } from '../../../components/form-component/form-component.component';
+import { AddressFormComponent } from '../../../components/address-form/address-form.component';
+import { MatButtonModule } from '@angular/material/button';
+import { FormGroup } from '@angular/forms';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -96,13 +94,13 @@ export class SuppliersPageComponent implements OnInit {
 
   constructor(private readonly router: Router,
     private readonly _notifications: MatSnackBar,
-    private readonly supplierWrapperService: SuppliersWrapperService,
+    private readonly suppliersWrapperService: SuppliersWrapperService,
     private readonly vatWrapperService: VatWrapperService
   ) { }
 
   async ngOnInit(): Promise<void> {
     // Load initial data for the supplier table
-    const suppliers = await this.supplierWrapperService.getAllSuppliers();
+    const suppliers = await this.suppliersWrapperService.getAllSuppliers();
     this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(
       suppliers
     );
@@ -139,7 +137,7 @@ export class SuppliersPageComponent implements OnInit {
 
       try {
         // create Supplier
-        const response = await this.supplierWrapperService.createSupplier({
+        const response = await this.suppliersWrapperService.createSupplier({
           ...supplierFormValue,
           address: addressFormValue,
         });
@@ -147,7 +145,7 @@ export class SuppliersPageComponent implements OnInit {
         // create Customer-Id if customer_id field is not empty and supplier-create response is valid
         if (customerIdValue.customer_id?.trim() && response.id !== undefined) {
           try {
-            await this.supplierWrapperService.createSupplierCustomerId(response.id, {
+            await this.suppliersWrapperService.createSupplierCustomerId(response.id, {
               ...customerIdValue,
             });
           } catch (error) {

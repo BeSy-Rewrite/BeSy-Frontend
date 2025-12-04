@@ -1,7 +1,12 @@
 <app-homebar />
 <!-- Offset wird anhand der Größe der Homebar gesetzt -->
 <main class="h-full pt-20">
-  <div cdkScrollable class="h-full overflow-auto px-4 py-5 sm:px-4 lg:px-4">
-    <router-outlet />
+  <div cdkScrollable class="h-full overflow-auto  px-4 py-6 sm:px-6 lg:px-8">
+
+    <div class="h-full relative">
+      <router-outlet />
+      <app-toast position="bottom-right" />
+    </div>
+
   </div>
 </main>

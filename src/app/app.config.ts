@@ -10,6 +10,7 @@ import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
 import { environment } from '../environments/environment';
+import { provideApi } from './api-services-v2';
 import { routes } from './app.routes';
 import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
 
@@ -26,8 +27,9 @@ export const appConfig: ApplicationConfig = {
         sendAccessToken: true,
       },
     }),
-    UnsavedChangesGuard
-  ],
+    UnsavedChangesGuard,
+    provideApi(environment.apiUrl),
+  ]
 };
 
 // Reference: https://www.npmjs.com/package/angular-oauth2-oidc
@@ -36,7 +38,7 @@ export const authCodeFlowConfig: AuthConfig = {
   issuer: environment.identityProviderUrl,
 
   // URL of the SPA to redirect the user after login
-  redirectUri: window.location.origin + '/',
+  redirectUri: globalThis.location.origin + '/',
 
   // The SPA's id. The SPA is registerd with this id at the auth-server
   // clientId: 'server.code',

@@ -3,13 +3,12 @@ import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rx
 import { CostCenterResponseDTO, CurrencyResponseDTO, ItemResponseDTO, OrderResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../api-services-v2';
 import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-names';
 import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
-import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../models/filter/filter-presets';
 import { OrderDisplayData } from '../models/order-display-data';
 import { CostCenterWrapperService } from './wrapper-services/cost-centers-wrapper.service';
-import { CurrenciesWrapperService } from './wrapper-services/currencies-wrapper.service';
 import { PersonsWrapperService } from './wrapper-services/persons-wrapper.service';
 import { SuppliersWrapperService } from './wrapper-services/suppliers-wrapper.service';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
+import { CurrenciesWrapperService } from './wrapper-services/currencies-wrapper.service';
 
 /**
  * Union of identifier types used to look up subresources.
@@ -22,7 +21,7 @@ type numberOrString = number | string | undefined;
 /**
  * Minimal shape of objects that can be identified either by `id` or `code`.
  */
-type IdAble = { id?: number | string } | { code?: string };
+type IdAble = { id?: number | string; } | { code?: string; };
 
 /**
  * Generic helper that loads, caches, and formats subresources for display.
@@ -176,7 +175,7 @@ export class OrderSubresourceResolverService {
   convertOrderToDisplayData(order: OrderResponseDTO): OrderDisplayData {
     const data = {} as OrderDisplayData;
     data.id = order.id?.toString() ?? '';
-    data.besy_number = `${order.primary_cost_center_id}-${order.booking_year}-${order.auto_index}`;
+    data.besy_number = this.getOrderNumber(order) ?? 'nicht vergeben';
     data.primary_cost_center_id = '';
     data.booking_year = order.booking_year ? '20' + order.booking_year : '';
     data.auto_index = order.auto_index ?? '';
@@ -270,7 +269,7 @@ export class OrderSubresourceResolverService {
     const names = [user.name ?? ''];
     names.push(user.surname ?? '');
     return names.filter(name => name && name.trim().length > 0).join(' ');
-  }
+  };
 
   /**
    * Returns a human-readable label for a person (e.g., "p42 – John Doe").
@@ -278,14 +277,14 @@ export class OrderSubresourceResolverService {
   formatPerson = (person: PersonResponseDTO) => {
     const names = [person.title ?? '', person.name ?? '', person.surname ?? ''];
     return names.filter(name => name && name.trim().length > 0).join(' ');
-  }
+  };
 
   /**
    * Returns a human-readable label for a cost center (e.g., "4711 – IT Services").
    */
   formatCostCenter = (center: CostCenterResponseDTO) => {
     return `${center.id} - ${center.name}`;
-  }
+  };
 
   /**
    * Formats the preferred list enum into a human-readable string.
@@ -297,6 +296,19 @@ export class OrderSubresourceResolverService {
       return PREFERRED_LIST_NAMES.get(preferredList) ?? preferredList;
     }
     return 'Keine bevorzugte Liste';
+  }
+
+  /**
+   * Constructs the order number from its components.
+   * @param order The order DTO.
+   * @returns The constructed order number or undefined if any part is missing.
+   */
+  getOrderNumber(order: OrderResponseDTO): string | undefined {
+    const orderNumber = [order.primary_cost_center_id, order.booking_year, order.auto_index];
+    if (orderNumber.some(part => part === undefined || part === null)) {
+      return undefined;
+    }
+    return orderNumber.join('-');
   }
 
   /**
@@ -374,55 +386,7 @@ export class OrderSubresourceResolverService {
   getTooltips(order: OrderResponseDTO): { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string } {
     return {
       status: STATE_DISPLAY_NAMES.get(order.status ?? '') ?? order.status ?? '',
-    }
-  }
-
-  /**
-   * Resolves the current user in the given filter presets.
-   * @param filterPresets The array of OrdersFilterPreset to resolve the current user in.
-   * @returns An observable of the resolved OrdersFilterPreset array.
-   */
-  resolveCurrentUserInPresets(filterPresets: OrdersFilterPreset[]): Observable<OrdersFilterPreset[]> {
-    return this.usersService.getCurrentUser().pipe(
-      map(user => {
-        if (!user?.id) {
-          throw new Error('Current user not found');
-        }
-
-        return this.replaceCurrentUserInPresets(filterPresets, user.id);
-      })
-    );
-  }
-
-  /**
-   * Replaces occurrences of 'CURRENT_USER' in the filter presets with the actual user ID.
-   * @param filterPresets The array of OrdersFilterPreset to process.
-   * @param userId The ID of the current user.
-   * @returns The modified array of OrdersFilterPreset.
-   */
-  private replaceCurrentUserInPresets(filterPresets: OrdersFilterPreset[], userId: string): OrdersFilterPreset[] {
-    return filterPresets.map(preset => ({
-      ...preset,
-      appliedFilters: preset.appliedFilters.map(f => this.replaceCurrentUserInAppliedFilter(f, userId))
-    }));
-  }
-
-  /**
-   * Replaces 'CURRENT_USER' in a single applied filter if it is a ChipFilterPreset.
-   * @param filter The filter preset to process.
-   * @param userId The ID of the current user.
-   * @returns The modified filter preset.
-   */
-  private replaceCurrentUserInAppliedFilter(filter: ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset, userId: string): any {
-    if (!('chipIds' in filter)) {
-      return filter;
-    }
-
-    return {
-      ...filter,
-      chipIds: filter.chipIds.map((id: numberOrString) =>
-        id === 'CURRENT_USER' ? userId : id
-      )
     };
   }
+
 }

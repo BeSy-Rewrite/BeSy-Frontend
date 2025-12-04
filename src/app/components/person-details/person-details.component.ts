@@ -51,6 +51,9 @@ export class PersonDetailsComponent implements OnInit {
 
   private setupPersonData(): void {
     for (const [key, value] of Object.entries(this.person)) {
+      if (key === "gender") {
+        continue;
+      }
       if (value && typeof value === 'string') {
         this.personData.set(key, value);
       }

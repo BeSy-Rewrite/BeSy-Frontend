@@ -10,8 +10,6 @@ import { MatTableDataSource } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   AddressRequestDTO,
-  AddressResponseDTO,
-  CustomerIdRequestDTO,
   CustomerIdResponseDTO,
   SupplierRequestDTO,
   VatResponseDTO,

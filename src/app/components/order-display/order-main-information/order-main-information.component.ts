@@ -79,6 +79,8 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
   ];
 
   additionalInfoKeys: (keyof OrderDisplayData)[] = [
+    'supplier_id',
+    'customer_id',
     'quote_number',
     'quote_date',
     'quote_price',

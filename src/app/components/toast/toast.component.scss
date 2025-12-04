@@ -1,0 +1,53 @@
+.open {
+    width: 25vw;
+    min-width: 24rem;
+    transition: all 0.3s ease;
+}
+
+.closed {
+    width: 0;
+    min-width: 0;
+    transition: all 0.3s ease;
+}
+
+.empty-toast-container {
+    opacity: 0;
+    max-height: 0;
+    transition: opacity 0.3s ease-in-out, max-height 0.3s step-end;
+}
+
+.toast-container {
+    opacity: 1;
+    max-height: 50vh;
+    transition: opacity 0.3s ease-in-out;
+}
+
+
+.enter-animation {
+    animation: fade-in 0.3s;
+}
+
+.leave-animation {
+    animation: fade-out 0.3s;
+}
+
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}

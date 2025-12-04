@@ -79,7 +79,7 @@ export class AuthenticationService {
    * @returns {string[]} An array of roles assigned to the user.
    */
   getRoles(): string[] {
-    return this.oAuthService.getIdentityClaims()?.['realm_access']?.['roles'] ?? [];
+    return this.oAuthService.getIdentityClaims()?.['resource_access']?.[environment.clientId]?.['roles'] ?? [];
   }
 
   /**

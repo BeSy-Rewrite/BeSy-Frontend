@@ -8,6 +8,7 @@ export interface Step {
   subLabel?: string;
   tooltip: string;
   icon?: string;
+  isSkippable?: boolean;
 }
 
 @Component({
@@ -33,7 +34,7 @@ export class ProgressBarComponent {
    * @returns True if the step is completed, false otherwise.
    */
   isCompleted(i: number) {
-    return i < this.currentStepIndex();
+    return i <= this.currentStepIndex();
   }
 
   /**
@@ -51,12 +52,15 @@ export class ProgressBarComponent {
    * @returns The corresponding color class.
    */
   getColorClass(i: number): string {
-    if (this.isActive(i)) {
-      return 'bg-blue-600';
-    } else if (this.isCompleted(i)) {
-      return 'bg-green-600';
-    } else {
-      return 'bg-gray-500';
+    if (this.steps().at(i - 1)?.isSkippable) {
+      return this.getColorClass(i - 1);
     }
+    if (this.isActive(i - 1)) {
+      return 'bg-blue-600';
+    }
+    if (this.isCompleted(i)) {
+      return 'bg-green-600';
+    }
+    return 'bg-gray-500';
   }
 }
