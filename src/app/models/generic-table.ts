@@ -34,6 +34,8 @@ export interface TableActionButton {
     color?: ButtonColor;
     /** Optional action to perform when the button is clicked, given a row. */
     action?: (row: any) => void;
+    /** Whether the button is disabled. Can be a boolean or a Signal<boolean>. */
+    disabled?: boolean | Signal<boolean>;
 }
 
 /**

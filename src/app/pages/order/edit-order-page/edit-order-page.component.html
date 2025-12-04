@@ -5,12 +5,15 @@
     <mat-divider class="bg-gray-400" />
   </div>
 
-  <div class="w-full top-0 flex ml-auto justify-between items-center mb-1 mt-2 pb-2">
+  <div
+    class="w-full top-0 flex ml-auto justify-between items-center mb-1 mt-2 pb-2"
+  >
     <div class="sticky top-0 z-50 flex-1">
       <button
         mat-raised-button
         color="warn"
         (click)="resetToDefault('All')"
+        [disabled]="!isAnyTabEditable()"
       >
         <mat-icon iconPositionStart>restore</mat-icon>
         Alle Änderungen verwerfen
@@ -26,12 +29,23 @@
         mat-raised-button
         color="primary"
         (click)="patchOrderFromForm('All')"
+        [disabled]="!isAnyTabEditable()"
       >
         <mat-icon iconPositionStart>save</mat-icon>
         Alle Änderungen speichern
       </button>
     </div>
   </div>
+
+  <!-- Read-only status banner -->
+  @if (readOnlyBannerMessage()) {
+  <div
+    class="w-full flex justify-center items-center py-3 px-4 mb-4 rounded-md bg-amber-100 border border-amber-400 text-amber-800"
+  >
+    <mat-icon class="mr-2 text-amber-600">info</mat-icon>
+    <span class="text-sm font-medium">{{ readOnlyBannerMessage() }}</span>
+  </div>
+  }
 
   <mat-tab-group
     mat-stretch-tabs="true"
@@ -50,6 +64,7 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('General')"
+          [disabled]="!isTabEditable('General')"
         >
           Änderungen auf dieser Seite verwerfen
         </button>
@@ -57,6 +72,7 @@
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('General')"
+          [disabled]="!isTabEditable('General')"
         >
           Speichern und weiter
         </button>
@@ -72,7 +88,6 @@
             [config]="primaryCostCenterFormConfig"
             [formGroup]="primaryCostCenterFormGroup"
             [refreshTrigger]="primaryCostCenterConfigRefreshTrigger()"
-            [editMode]="true"
           ></app-form-component>
 
           <app-form-component
@@ -101,6 +116,7 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('Items')"
+          [disabled]="!isTabEditable('Items')"
         >
           Änderungen auf dieser Seite verwerfen
         </button>
@@ -108,6 +124,7 @@
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('Items')"
+          [disabled]="!isTabEditable('Items')"
         >
           Speichern und weiter
         </button>
@@ -123,6 +140,7 @@
           class="mb-4 w-full"
           color="primary"
           (click)="onAddItem()"
+          [disabled]="!isTabEditable('Items')"
         >
           Position hinzufügen
         </button>
@@ -146,6 +164,7 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('MainOffer')"
+          [disabled]="!isTabEditable('MainOffer')"
         >
           Änderungen auf dieser Seite verwerfen
         </button>
@@ -153,6 +172,7 @@
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('MainOffer')"
+          [disabled]="!isTabEditable('MainOffer')"
         >
           Speichern und weiter
         </button>
@@ -189,6 +209,7 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('Quotations')"
+          [disabled]="!isTabEditable('Quotations')"
         >
           Änderungen auf dieser Seite verwerfen
         </button>
@@ -196,6 +217,7 @@
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('Quotations')"
+          [disabled]="!isTabEditable('Quotations')"
         >
           Speichern und weiter
         </button>
@@ -210,6 +232,7 @@
           class="w-full mb-4"
           color="primary"
           (click)="onAddQuotation()"
+          [disabled]="!isTabEditable('Quotations')"
         >
           Vergleichsangebot hinzufügen
         </button>
@@ -231,6 +254,7 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('Addresses')"
+          [disabled]="!isTabEditable('Addresses')"
         >
           Änderungen auf dieser Seite verwerfen
         </button>
@@ -238,6 +262,7 @@
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('Addresses')"
+          [disabled]="!isTabEditable('Addresses')"
         >
           Speichern und weiter
         </button>
@@ -252,10 +277,12 @@
           ></app-form-component>
         </div>
         <div class="delivery-address-container mt-4">
+          @if(isTabEditable('Addresses')) {
           <mat-button-toggle-group
             name="deliveryAddressOptions"
             [(ngModel)]="deliveryAddressOption"
             (change)="onAddressOptionChanged($event.value, true)"
+            [disabled]="!isTabEditable('Addresses')"
             aria-label="Addressoption auswählen"
             class="w-full flex"
           >
@@ -281,6 +308,7 @@
               Neue Adresse erstellen
             </mat-button-toggle>
           </mat-button-toggle-group>
+        }
           <div class="delivery-info mt-4">
             <!-- Info Text -->
             <p class="mt-2 mb-2 text-sm text-red-700">
@@ -317,6 +345,7 @@
             </label>
             <mat-radio-group
               [(ngModel)]="sameAsRecipient"
+              [disabled]="!isTabEditable('Addresses')"
               class="flex space-x-4"
             >
               <mat-radio-button [value]="true">Ja</mat-radio-button>
@@ -334,10 +363,11 @@
               [refreshTrigger]="invoicePersonConfigRefreshTrigger()"
             ></app-form-component>
 
-            @if (selectedInvoicePerson) {
+            @if (selectedInvoicePerson && isTabEditable('Addresses')) {
             <mat-button-toggle-group
               name="invoiceAddressOptions"
               (change)="onAddressOptionChanged($event.value, false)"
+              [disabled]="!isTabEditable('Addresses')"
               aria-label="Addressoption auswählen"
               [(ngModel)]="invoiceAddressOption"
               class="flex-1"
@@ -355,6 +385,7 @@
               >
                 Bevorzugte Adresse
               </mat-button-toggle>
+
               <mat-button-toggle value="selected" class="flex-1">
                 Bestehende Adresse auswählen
               </mat-button-toggle>
@@ -398,9 +429,19 @@
         </div>
       </div>
     </mat-tab>
-    @if(activateApprovalsTab()) {
     <mat-tab label="Zustimmungen">
       <mat-divider class="tab-divider"></mat-divider>
+      <!-- Read-only status banner -->
+      @if (readOnlyBannerMessageApprovalTab()) {
+      <div
+        class="w-full flex justify-center items-center py-3 px-4 mb-4 rounded-md bg-amber-100 border border-amber-400 text-amber-800"
+      >
+        <mat-icon class="mr-2 text-amber-600">info</mat-icon>
+        <span class="text-sm font-medium">{{
+          readOnlyBannerMessageApprovalTab()
+        }}</span>
+      </div>
+      }
       <div class="approval-container">
         <app-form-component
           [config]="approvalFormConfig"
@@ -413,6 +454,7 @@
             mat-raised-button
             color="warn"
             (click)="resetToDefault('Approvals')"
+            [disabled]="!isTabEditable('Approvals')"
           >
             Änderungen auf dieser Seite verwerfen
           </button>
@@ -420,13 +462,14 @@
             mat-raised-button
             color="primary"
             (click)="patchOrderFromForm('Approvals')"
+            [disabled]="!isTabEditable('Approvals')"
           >
             Speichern und weiter
           </button>
         </div>
       </div>
     </mat-tab>
-    }
+
     <mat-tab label="Dokumente">
       <mat-divider class="tab-divider"></mat-divider>
       <div class="document-container">

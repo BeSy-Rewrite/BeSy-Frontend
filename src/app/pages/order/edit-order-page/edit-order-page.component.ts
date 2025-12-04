@@ -58,6 +58,7 @@ import {
   SupplierResponseDTO,
   ApprovalResponseDTO,
   OrderResponseDTO,
+  OrderStatus,
 } from '../../../api-services-v2';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
@@ -225,6 +226,7 @@ export class EditOrderPageComponent
   vatOptions: VatResponseDTO[] = [];
   // Track the currently selected currency for formatting the total sum in the items table footer
   selectedCurrency = signal<{ code: string; symbol: string } | null>(null);
+
   // Compute the footer content for the items table, showing the total sum of all items
   footerContent = computed(() => {
     const sum = this.items().reduce((total, item) => {
@@ -262,6 +264,15 @@ export class EditOrderPageComponent
       footerContent: this.footerContent,
     },
   ];
+
+  /**
+   * Computed signal indicating if the Items tab delete button should be disabled.
+   */
+  isItemsDeleteDisabled = computed(() => !this.tabEditability()['Items']);
+
+  /**
+   * Action buttons for the items table
+   */
   orderItemTableActions: TableActionButton[] = [
     {
       id: 'delete',
@@ -269,6 +280,7 @@ export class EditOrderPageComponent
       buttonType: 'filled',
       color: ButtonColor.WARN,
       action: (row: ItemTableModel) => this.deleteItem(row),
+      disabled: this.isItemsDeleteDisabled,
     },
   ];
 
@@ -336,6 +348,12 @@ export class EditOrderPageComponent
     { id: 'company_city', label: 'Ort' },
     { id: 'quote_date', label: 'Angebotsdatum' },
   ];
+
+  /**
+   * Computed signal indicating if the Quotations tab delete button should be disabled.
+   */
+  isQuotationsDeleteDisabled = computed(() => !this.tabEditability()['Quotations']);
+
   orderQuotationTableActions: TableActionButton[] = [
     {
       id: 'delete',
@@ -343,6 +361,7 @@ export class EditOrderPageComponent
       buttonType: 'filled',
       color: ButtonColor.WARN,
       action: (row: QuotationTableModel) => this.deleteQuotation(row),
+      disabled: this.isQuotationsDeleteDisabled,
     },
   ];
 
@@ -382,6 +401,60 @@ export class EditOrderPageComponent
 
   // Progress bar variables
   currentProgressBarStepIndex = 3;
+
+  // Status-based form editability
+  /**
+   * Maps tab names to their associated form groups for centralized control.
+   * Initialized after constructor since it references instance properties.
+   */
+  private readonly tabToFormGroupsMap: Record<(typeof this.tabOrder)[number], FormGroup[]> = {
+    General: [
+      this.generalFormGroup,
+      this.primaryCostCenterFormGroup,
+      this.secondaryCostCenterFormGroup,
+      this.queriesPersonFormGroup
+    ],
+    Items: [this.orderItemFormGroup],
+    MainOffer: [this.mainOfferFormGroup, this.supplierDecisionReasonFormGroup],
+    Quotations: [this.quotationFormGroup],
+    Addresses: [
+      this.deliveryAddressFormGroup,
+      this.deliveryPersonFormGroup,
+      this.invoiceAddressFormGroup,
+      this.invoicePersonFormGroup
+    ],
+    Approvals: [this.approvalFormGroup],
+    Documents: [] // No form groups for documents tab
+  };
+
+  /**
+   * Signal indicating if each tab is editable based on order status.
+   * Key is tab name, value is whether the tab's forms are enabled.
+   */
+  tabEditability = signal<Record<string, boolean>>({
+    General: true,
+    Items: true,
+    MainOffer: true,
+    Quotations: true,
+    Addresses: true,
+    Approvals: true,
+    Documents: false
+  });
+
+  /**
+   * Computed signal indicating if any tab is editable (for global save/reset buttons).
+   */
+  isAnyTabEditable = computed(() => {
+    const editability = this.tabEditability();
+    return Object.values(editability).some(editable => editable);
+  });
+
+  /**
+   * Signal for the read-only banner message.
+   * Empty string means no banner should be shown.
+   */
+  readOnlyBannerMessage = signal<string>('');
+  readOnlyBannerMessageApprovalTab = signal<string>('');
 
   async ngOnInit(): Promise<void> {
     window.addEventListener('beforeunload', this.onBeforeUnload);
@@ -939,9 +1012,12 @@ export class EditOrderPageComponent
     return true;
   }
 
-  /** Save the approval form inputs locally in the postApprovalDTO object
+  /**
+   * Save the approval form inputs into the target ApprovalRequestDTO object.
+   * Normalizes undefined (unchecked) values to false.
+   * @param target The target ApprovalRequestDTO object to write the form values into (by reference).
    */
-  locallySaveApprovalFormInput() {
+  locallySaveApprovalFormInput(target: ApprovalRequestDTO): void {
     // Get raw form values and normalize undefined (unchecked) to false.
     // This prevents having to check whether a property has changed or not
     // when editing an order with existing approval flags.
@@ -949,11 +1025,9 @@ export class EditOrderPageComponent
     // would be undefined in the form value and thus not included in the postApprovalDTO.
     // By normalizing undefined to false, we ensure that all flags are explicitly set.
     const raw = this.approvalFormGroup.value;
-    const normalized = Object.fromEntries(
-      Object.entries(raw).map(([k, v]) => [k, v ?? false])
-    );
-
-    this.approvalsFromForm = normalized as ApprovalRequestDTO;
+    for (const [key, value] of Object.entries(raw)) {
+      (target as Record<string, unknown>)[key] = value ?? false;
+    }
   }
 
   /**
@@ -1148,6 +1222,9 @@ export class EditOrderPageComponent
 
     this.setDefaultVatValueByLoadedItems();
     this.formatOrderForFormInput();
+
+    // Apply status-based form group enabling/disabling
+    this.applyFormGroupStatesByStatus();
   }
 
   /**
@@ -1765,11 +1842,12 @@ export class EditOrderPageComponent
    * @returns {Promise<boolean>} Returns true if the patch was successful, false otherwise.
    */
   private async submitApprovalPatch(): Promise<boolean> {
+
     // If order is not in status completed, the approvals can't be changed
-    // if (this.formattedOrderDTO.status !== OrderStatus.COMPLETED) return true;
+    if (this.formattedOrderDTO.status !== OrderStatus.COMPLETED) return true;
 
     // Save the approval form inputs locally in the postApprovalDTO object
-    this.locallySaveApprovalFormInput();
+    this.locallySaveApprovalFormInput(this.approvalsFromForm);
 
     // Filter out unchanged fields by comparing with original approvals
     const changedApprovalFields = this.getChangedApprovalFields(
@@ -1781,6 +1859,7 @@ export class EditOrderPageComponent
       'Changed approval fields to be patched:',
       changedApprovalFields
     );
+
     // If no approval fields have changed, return
     if (Object.keys(changedApprovalFields).length === 0) {
       return true;
@@ -2022,6 +2101,35 @@ export class EditOrderPageComponent
       });
     }
 
+    // Tab Approvals
+    const savedApprovals = this.unmodifiedApprovals;
+    const currentApprovalsForm: ApprovalRequestDTO = {} as ApprovalRequestDTO;
+    this.locallySaveApprovalFormInput(currentApprovalsForm);
+    const changedApprovalFields = this.getChangedApprovalFields(
+      savedApprovals,
+      currentApprovalsForm
+    );
+
+    // return the field labels from the config for each changed field
+    if (Object.keys(changedApprovalFields).length > 0) {
+      const fieldLabels: string[] = [];
+      for (const fieldName of Object.keys(changedApprovalFields)) {
+        const field = this.approvalFormConfig.fields.find(
+          (f) => f.name === fieldName
+        );
+        if (field && field.label) {
+          fieldLabels.push(field.label);
+        } else {
+          fieldLabels.push(fieldName); // Fallback to field name if label not found
+        }
+      }
+      unsavedTabs.push({
+        tabName: 'Zustimmungen',
+        fields: fieldLabels,
+      });
+    }
+
+
     // Create a deep copy and patch with current form values
     const currentOrderState: OrderResponseDTOFormatted = structuredClone(
       this.formattedOrderDTO
@@ -2246,5 +2354,114 @@ export class EditOrderPageComponent
         this.selectedInvoiceAddressIdFromTable = undefined;
       }
     }
+  }
+
+  /**
+   * Applies form group enable/disable states based on the current order status.
+   * - IN_PROGRESS: All forms enabled except approvalFormGroup (disabled)
+   * - COMPLETED: Only approvalFormGroup enabled, all others disabled
+   * - Any other status: All forms disabled (read-only)
+   */
+  private applyFormGroupStatesByStatus(): void {
+    const status = this.formattedOrderDTO.status;
+
+    // Determine editability for each tab based on status
+    const newEditability: Record<string, boolean> = {
+      General: false,
+      Items: false,
+      MainOffer: false,
+      Quotations: false,
+      Addresses: false,
+      Approvals: false,
+      Documents: false
+    };
+
+    let bannerMessage = '';
+
+    switch (status) {
+      case OrderStatus.IN_PROGRESS:
+        // All tabs editable except Approvals
+        newEditability['General'] = true;
+        newEditability['Items'] = true;
+        newEditability['MainOffer'] = true;
+        newEditability['Quotations'] = true;
+        newEditability['Addresses'] = true;
+        newEditability['Approvals'] = false;
+        this.readOnlyBannerMessageApprovalTab.set('Die Bestellung befindet sich noch in Bearbeitung. Genehmigungen können erst nach Abschluss der Bestellung bearbeitet werden.');
+        break;
+
+      case OrderStatus.COMPLETED:
+        // Only Approvals tab editable
+        newEditability['Approvals'] = true;
+        bannerMessage = 'Die Bestellung wurde abgeschlossen. Nur Genehmigungen können noch bearbeitet werden.';
+        break;
+
+      default:
+        // All forms read-only for other statuses
+        bannerMessage = `Die Bestellung befindet sich im Status "${this.getStatusDisplayName(status)}" und kann nicht mehr bearbeitet werden.`;
+        break;
+    }
+
+    // Update editability signal
+    this.tabEditability.set(newEditability);
+    this.readOnlyBannerMessage.set(bannerMessage);
+
+    // Apply enable/disable to all form groups based on their tab's editability
+    for (const [tabName, formGroups] of Object.entries(this.tabToFormGroupsMap)) {
+      const isEditable = newEditability[tabName] ?? false;
+
+      for (const formGroup of formGroups) {
+        if (isEditable) {
+          formGroup.enable();
+        } else {
+          formGroup.disable();
+        }
+      }
+    }
+
+    // Always disable the content_description field as this field should never be edited
+    this.generalFormGroup.get('content_description')?.disable();
+    this.generalFormGroup.get('booking_year')?.disable();
+
+    // Special handling for address forms: they have their own enable/disable logic
+    // based on address option, but status-based disabling takes precedence
+    if (!newEditability['Addresses']) {
+      this.deliveryAddressFormGroup.disable();
+      this.invoiceAddressFormGroup.disable();
+      this.deliveryPersonFormGroup.disable();
+      this.invoicePersonFormGroup.disable();
+    }
+
+    // Update activateApprovalsTab signal
+    this.activateApprovalsTab.set(newEditability['Approvals']);
+  }
+
+  /**
+   * Returns a human-readable display name for an order status.
+   * @param status The order status to convert.
+   * @returns A German display name for the status.
+   */
+  private getStatusDisplayName(status: OrderStatus | undefined): string {
+    const statusNames: Record<string, string> = {
+      [OrderStatus.IN_PROGRESS]: 'In Bearbeitung',
+      [OrderStatus.COMPLETED]: 'Abgeschlossen',
+      [OrderStatus.APPROVALS_RECEIVED]: 'Genehmigungen erhalten',
+      [OrderStatus.APPROVED]: 'Genehmigt',
+      [OrderStatus.REJECTED]: 'Abgelehnt',
+      [OrderStatus.SENT]: 'Versendet',
+      [OrderStatus.SETTLED]: 'Abgerechnet',
+      [OrderStatus.ARCHIVED]: 'Archiviert',
+      [OrderStatus.DELETED]: 'Gelöscht'
+    };
+    return statusNames[status ?? ''] ?? status ?? 'Unbekannt';
+  }
+
+  /**
+   * Checks if a specific tab is currently editable.
+   * @param tabName The name of the tab to check.
+   * @returns true if the tab's forms are enabled, false otherwise.
+   */
+  isTabEditable(tabName: (typeof this.tabOrder)[number]): boolean {
+    return this.tabEditability()[tabName] ?? false;
   }
 }
