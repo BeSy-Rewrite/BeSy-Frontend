@@ -12,7 +12,7 @@ import { EditSuppliersPageComponent} from './pages/suppliers/edit-suppliers-page
 import { OrdersPageComponent } from './pages/order/orders-page/orders-page.component';
 import { ViewOrderPageComponent } from './pages/order/view-order-page/view-order-page.component';
 import { OrderResolver } from './resolver/order.resolver';
-import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page/create-order-page.component';
+import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
 import { EditOrderResolver } from './resolver/edit-order-resolver';
 import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
 

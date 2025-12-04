@@ -1,29 +1,26 @@
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { Component, OnInit, WritableSignal } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ProgressBarComponent } from '../../../../components/progress-bar/progress-bar.component';
-import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatDivider } from '@angular/material/divider';
-import {
-  FormComponent,
-  FormConfig,
-} from '../../../../components/form-component/form-component.component';
+import { FormComponent } from '../../../components/form-component/form-component.component';
 import {
   ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_GENERAL_FORM_CONFIG,
   ORDER_QUERIES_PERSON_FORM_CONFIG,
   ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
-} from '../../../../configs/order/order-config';
+} from '../../../configs/order/order-config';
 import {
   OrderResponseDTOFormatted,
   OrdersWrapperService,
-} from '../../../../services/wrapper-services/orders-wrapper.service';
-import { CostCenterResponseDTO, OrderRequestDTO } from '../../../../api-services-v2';
-import { CostCenterWrapperService } from '../../../../services/wrapper-services/cost-centers-wrapper.service';
+} from '../../../services/wrapper-services/orders-wrapper.service';
+import { CostCenterResponseDTO } from '../../../api-services-v2';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   PersonsWrapperService,
   PersonWithFullName,
-} from '../../../../services/wrapper-services/persons-wrapper.service';
+} from '../../../services/wrapper-services/persons-wrapper.service';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Router } from '@angular/router';
