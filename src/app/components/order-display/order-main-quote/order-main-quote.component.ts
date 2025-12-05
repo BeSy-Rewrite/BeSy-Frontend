@@ -3,7 +3,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatDividerModule } from "@angular/material/divider";
 import { from } from 'rxjs';
-import { OrderResponseDTO } from '../../../api';
+import { OrderResponseDTO } from '../../../api-services-v2';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
 import { OrderDisplayData } from '../../../models/order-display-data';
@@ -67,7 +67,7 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
 
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
-    from(this.ordersService.getOrderItems(this.orderData().order.id)).subscribe(items => {
+    from(this.ordersService.getOrderItems(this.orderData().order.id!)).subscribe(items => {
       this.currencyCode = this.orderData().order.currency?.code ?? this.currencyCode;
 
       const totalGrossPrice = this.subresourceService.calculateTotalGrossPrice(items);

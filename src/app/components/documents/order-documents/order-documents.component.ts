@@ -1,5 +1,5 @@
 import { NgClass } from '@angular/common';
-import { Component, input, OnChanges, OnInit } from '@angular/core';
+import { Component, Inject, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
@@ -93,7 +93,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
     private readonly resourceResolverService: OrderSubresourceResolverService,
     private readonly _snackBar: MatSnackBar,
     private readonly dialogRef: MatDialog,
-    private readonly sanitizer: DomSanitizer
+    @Inject(DomSanitizer) private readonly sanitizer: DomSanitizer
   ) { }
 
   /**

@@ -3,7 +3,7 @@ import { Component, computed, input, OnChanges, OnInit, signal } from '@angular/
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTableDataSource } from '@angular/material/table';
-import { ItemResponseDTO, OrderResponseDTO } from '../../../api';
+import { ItemResponseDTO, OrderResponseDTO } from '../../../api-services-v2';
 import { ITEM_FIELD_NAMES } from '../../../display-name-mappings/item-names';
 import { DisplayItem } from '../../../models/display-item';
 import { TableColumn } from '../../../models/generic-table';
@@ -71,7 +71,7 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
 
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
-    this.ordersService.getOrderItems(this.order().id).then(items => {
+    this.ordersService.getOrderItems(this.order().id!).then(items => {
       this.fetchedItems.set(items);
 
       this.currencyCode = this.order().currency?.code ?? 'EUR';
