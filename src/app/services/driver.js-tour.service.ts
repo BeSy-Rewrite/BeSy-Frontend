@@ -41,4 +41,14 @@ export class DriverJsTourService {
   startTour() {
     this.driverObject.drive();
   }
+
+  highlightElement(selector: string, title: string, description: string) {
+    this.driverObject.highlight({
+      element: selector,
+      popover: {
+        title,
+        description
+      }
+    });
+  }
 }
