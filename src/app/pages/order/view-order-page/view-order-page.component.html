@@ -6,9 +6,10 @@
     </div>
 
     <div class="mb-4 float-left flex flex-col items-start min-w-fit">
-        <h1 class="font-semibold text-2xl mb-2">{{internalOrder().orderDisplay.content_description}}</h1>
+        <h1 class="font-semibold text-2xl mb-2 content_description">{{internalOrder().orderDisplay.content_description}}
+        </h1>
 
-        <span class="min-w-fit">
+        <span class="min-w-fit owner_id">
             Erstellt von:
             <button
                     matButton
@@ -30,7 +31,7 @@
                 {{internalOrder().orderDisplay.besy_number}}
             </button>
         </span>
-        <span class="min-w-fit">
+        <span class="min-w-fit id">
             ID:
             <button
                     matButton

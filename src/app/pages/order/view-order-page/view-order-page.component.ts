@@ -28,6 +28,7 @@ import { STATE_CHANGE_TO_NAMES, STATE_DISPLAY_NAMES, STATE_ICONS } from "../../.
 import { AllowedStateTransitions } from "../../../models/allowed-states-transitions";
 import { DisplayableOrder } from '../../../models/displayable-order';
 import { AuthenticationService } from "../../../services/authentication.service";
+import { DriverJsTourService } from "../../../services/driver.js-tour.service";
 import { OrderStateValidityService } from "../../../services/order-state-validity.service";
 import { OrderSubresourceResolverService } from "../../../services/order-subresource-resolver.service";
 import { ToastService } from "../../../services/toast.service";
@@ -120,6 +121,7 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly dialog: MatDialog,
     private readonly orderStateValidityService: OrderStateValidityService,
     private readonly toastService: ToastService,
+    private readonly driverJsService: DriverJsTourService,
   ) { }
 
   /**
@@ -237,7 +239,9 @@ export class ViewOrderPageComponent implements OnInit {
       },
       error: (err) => {
         console.error('Fehler bei der Validierung des Statuswechsels:', err);
-        for (const error of err?.errors ?? []) {
+        const invalidField = err.issues[0]?.path.at(-1) ?? '';
+        this.driverJsService.highlightElement(`.${invalidField}`, 'Fehler beim Statuswechsel', 'Bitte beheben Sie diesen Fehler, bevor Sie den Status ändern.');
+        for (const error of err?.issues ?? []) {
           const errorToast: ToastRequest = {
             message: `Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState)}' fehlgeschlagen.\n
           Grund: ${ORDER_FIELD_NAMES[error?.path] ?? error?.path} ist ungültig.`,

@@ -1,22 +1,24 @@
 <div class="flex flex-wrap gap-x-24 gap-y-12">
 
-    <div class="grid grid-cols-[max-content_1fr] h-fit gap-x-16 gap-y-2">
+    <div class="flex flex-col h-fit gap-2">
         @for (key of additionalInfoKeys; track $index) {
-        <h3 class="font-semibold">{{ orderFieldLabels[key] }}:</h3>
+        <div [class]="`${key} flex gap-16 w-fit`">
+            <h3 class="font-semibold w-36">{{ orderFieldLabels[key] }}:</h3>
 
-        <p>
-            {{ orderData().orderDisplay[key] }}
+            <p class="w-fit min-w-16">
+                {{ orderData().orderDisplay[key] }}
 
-            @if (key === 'quote_price') {
-            @if (isPriceProbablyBrutto) {
-            (brutto)
-            } @else if (isPriceProbablyNetto) {
-            (netto)
-            } @else {
-            - Berechnete Summen: {{ totalGrossPriceFormatted }} / {{ totalNetPriceFormatted }}<br />
-            }
-            }
-        </p>
+                @if (key === 'quote_price') {
+                @if (isPriceProbablyBrutto) {
+                (brutto)
+                } @else if (isPriceProbablyNetto) {
+                (netto)
+                } @else {
+                - Berechnete Summen: {{ totalGrossPriceFormatted }} / {{ totalNetPriceFormatted }}<br />
+                }
+                }
+            </p>
+        </div>
         }
     </div>
 
@@ -24,7 +26,7 @@
     <div class="flex flex-col h-fit">
         <h4 class="font-semibold text-lg mb-2">Begründung Lieferantenauswahl:</h4>
         @for (decisionFlag of decisionFlags; track $index) {
-        <p #container>
+        <p #container [class]="decisionFlag">
             <mat-checkbox [checked]="orderData().order[decisionFlag]" disabled aria-labelledby="container" />
             {{ orderFieldLabels[decisionFlag] }}
         </p>
