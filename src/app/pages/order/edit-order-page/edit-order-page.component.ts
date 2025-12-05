@@ -1849,7 +1849,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         return undefined;
       }
 
-      if (typeof value === 'object' && value !== null && 'value' in value) {
+      if (value instanceof Object && value !== null && 'value' in value) {
         const extracted = value as { value: unknown };
         return extracted ?? null;
       }
@@ -2300,7 +2300,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       [OrderStatus.APPROVALS_RECEIVED]: 'Genehmigungen erhalten',
       [OrderStatus.APPROVED]: 'Genehmigt',
       [OrderStatus.REJECTED]: 'Abgelehnt',
-      [OrderStatus.SENT]: 'Versendet',
+      [OrderStatus.SENT]: 'Abgeschickt',
       [OrderStatus.SETTLED]: 'Abgerechnet',
       [OrderStatus.ARCHIVED]: 'Archiviert',
       [OrderStatus.DELETED]: 'Gelöscht',
