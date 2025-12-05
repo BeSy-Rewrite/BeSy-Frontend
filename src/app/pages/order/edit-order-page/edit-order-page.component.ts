@@ -1,90 +1,90 @@
-import {
-  ORDER_DELIVERY_PERSON_FORM_CONFIG,
-  ORDER_INVOICE_PERSON_FORM_CONFIG,
-  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
-  ORDER_QUERIES_PERSON_FORM_CONFIG,
-  ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
-  ORDER_ADDRESS_FORM_CONFIG,
-  ORDER_APPROVAL_FORM_CONFIG,
-  ORDER_GENERAL_FORM_CONFIG,
-  ORDER_MAIN_OFFER_FORM_CONFIG,
-  ORDER_QUOTATION_FORM_CONFIG,
-  ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
-} from '../../../configs/order/order-config';
-import {
-  PersonsWrapperService,
-  PersonWithFullName,
-} from '../../../services/wrapper-services/persons-wrapper.service';
-import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { CommonModule } from '@angular/common';
 import {
   Component,
-  signal,
   computed,
-  WritableSignal,
   effect,
   OnDestroy,
   OnInit,
+  signal,
+  WritableSignal,
 } from '@angular/core';
-import { MatDivider } from '@angular/material/divider';
-import {
-  FormComponent,
-  FormField,
-  FormConfig,
-} from '../../../components/form-component/form-component.component';
-import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
 import {
   AbstractControl,
   FormControl,
   FormGroup,
-  Validators,
-  ReactiveFormsModule,
   FormsModule,
+  ReactiveFormsModule,
+  Validators,
 } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButton } from '@angular/material/button';
-import { MatTableDataSource } from '@angular/material/table';
-import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
-import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatOptionModule } from '@angular/material/core';
+import { MatDialog } from '@angular/material/dialog';
+import { MatDivider } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatIcon } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
+import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { Subscription } from 'rxjs';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
   ApprovalRequestDTO,
-  CostCenterResponseDTO,
-  VatResponseDTO,
-  SupplierResponseDTO,
   ApprovalResponseDTO,
+  CostCenterResponseDTO,
   OrderResponseDTO,
   OrderStatus,
+  SupplierResponseDTO,
+  VatResponseDTO,
 } from '../../../api-services-v2';
-import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatOptionModule } from '@angular/material/core';
-import { CommonModule } from '@angular/common';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
-import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
-import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ConfirmDialogComponent } from '../../../components/confirm-dialog/confirm-dialog.component';
+import { OrderDocumentsComponent } from '../../../components/documents/order-documents/order-documents.component';
+import {
+  FormComponent,
+  FormConfig,
+  FormField,
+} from '../../../components/form-component/form-component.component';
+import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { StateDisplayComponent } from '../../../components/state-display/state-display.component';
+import { UnsavedTab } from '../../../components/unsaved-changes-dialog/unsaved-changes-dialog.component';
+import {
+  ORDER_ADDRESS_FORM_CONFIG,
+  ORDER_APPROVAL_FORM_CONFIG,
+  ORDER_DELIVERY_PERSON_FORM_CONFIG,
+  ORDER_GENERAL_FORM_CONFIG,
+  ORDER_INVOICE_PERSON_FORM_CONFIG,
+  ORDER_MAIN_OFFER_FORM_CONFIG,
+  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
+  ORDER_QUERIES_PERSON_FORM_CONFIG,
+  ORDER_QUOTATION_FORM_CONFIG,
+  ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
+  ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
+} from '../../../configs/order/order-config';
+import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
+import { HasUnsavedChanges } from '../../../guards/unsaved-changes.guard';
+import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
+import { EditOrderResolvedData } from '../../../resolver/edit-order-resolver';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   CurrenciesWrapperService,
   CurrencyWithDisplayName,
 } from '../../../services/wrapper-services/currencies-wrapper.service';
-import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import {
   OrderResponseDTOFormatted,
   OrdersWrapperService,
 } from '../../../services/wrapper-services/orders-wrapper.service';
-import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
-import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
-import { MatIcon } from '@angular/material/icon';
-import { OrderDocumentsComponent } from '../../../components/documents/order-documents/order-documents.component';
-import { Subscription } from 'rxjs';
+import {
+  PersonsWrapperService,
+  PersonWithFullName,
+} from '../../../services/wrapper-services/persons-wrapper.service';
+import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
-import { StateDisplayComponent } from '../../../components/state-display/state-display.component';
-import { EditOrderResolvedData } from '../../../resolver/edit-order-resolver';
-import { HasUnsavedChanges } from '../../../guards/unsaved-changes.guard';
-import { UnsavedTab } from '../../../components/unsaved-changes-dialog/unsaved-changes-dialog.component';
-import { ConfirmDialogComponent } from '../../../components/confirm-dialog/confirm-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
+import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 
 /**
  * Model for the items table used in the order edit/create page.

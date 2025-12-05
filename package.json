@@ -57,6 +57,7 @@
     "openapi-typescript-codegen": "^0.29.0",
     "postcss": "^8.5.3",
     "prettier": "^3.7.4",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "schematics-scss-migrate": "^2.3.17",
     "typescript": "~5.9.3"
   }
