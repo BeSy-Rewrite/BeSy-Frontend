@@ -1,12 +1,6 @@
-<mat-tab-group
-  #tabGroup
-  mat-stretch-tabs="true"
-  mat-align-tabs="start"
->
+<mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start">
   <mat-tab label="Personen verwalten">
-    <mat-divider
-      style="background-color: darkgrey; color: darkgrey"
-    ></mat-divider>
+    <mat-divider style="background-color: darkgrey; color: darkgrey"></mat-divider>
     <div class="pt-3">
       <app-generic-table
         [dataSource]="personsDataSource"
@@ -18,9 +12,7 @@
   </mat-tab>
 
   <mat-tab label="Neue Person anlegen">
-    <mat-divider
-      style="background-color: darkgrey; color: darkgrey"
-    ></mat-divider>
+    <mat-divider style="background-color: darkgrey; color: darkgrey"></mat-divider>
     <div class="add-person-page" style="justify-content: flex-end">
       <div class="form-container flex space-x-5 pt-3">
         <div class="person-data-container p-8 bg-white">
@@ -29,15 +21,34 @@
             [formGroup]="personForm"
           ></app-form-component>
         </div>
-        <div class="address-data-container bg-white">
-          <app-address-form
+        <div class="address-data-container bg-white p-8">
+          <div class="address-selection-mode flex flex-col flex-start">
+            <mat-label class="font-bold text-lg">Adressmodus</mat-label>
+            <mat-radio-group
+              class="ml-4 mt-4"
+              [value]="addressSelectionMode()"
+              (change)="addressSelectionMode.set($event.value)"
+            >
+              <mat-radio-button class="mr-4" value="existing"
+                >Vorhandene Adresse auswählen</mat-radio-button
+              >
+              <mat-radio-button value="new">Neue Adresse anlegen</mat-radio-button>
+            </mat-radio-group>
+            <p class="mt-2 text-sm text-red-600">{{ addressModeInfoText() }}</p>
+          </div>
+          @if (addressSelectionMode() === 'existing') {
+            <app-generic-table
+              class="m-4"
+              [dataSource]="addressTableDataSource"
+              [columns]="addressTableColumns"
+              [pageSize]="10"
+              (rowClicked)="onAddressInTableSelected($event)"
+            ></app-generic-table>
+          }
+          <app-form-component
             [config]="addressFormConfig"
-            [formGroup]="addressForm"
-            [tableDataSource]="addressTableDataSource"
-            [tableColumns]="addressTableColumns"
-            (valueChanged)="onAddressFormValueChanged($event)"
-            (addressSelected)="onAddressSelected($event)"
-          ></app-address-form>
+            [formGroup]="addressFormGroup"
+          ></app-form-component>
         </div>
       </div>
       <div class="buttons flex justify-end">
@@ -47,7 +58,7 @@
           color="warn"
           (click)="onBack()"
           aria-label="cancel"
-          style="margin-right: 16px;"
+          style="margin-right: 16px"
         >
           Verwerfen
         </button>
