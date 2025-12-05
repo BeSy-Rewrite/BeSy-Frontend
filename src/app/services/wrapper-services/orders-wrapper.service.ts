@@ -28,7 +28,6 @@ import {
 } from '../../pages/order/edit-order-page/edit-order-page.component';
 import { HttpClient } from '@angular/common/http';
 import { from, lastValueFrom, map, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
 import { FilterRequestParams } from '../../models/filter/filter-request-params';
 
 export interface OrderResponseDTOFormatted {
@@ -79,10 +78,10 @@ export class OrdersWrapperService {
   constructor(
     private readonly http: HttpClient,
     private readonly ordersService: OrdersService,
-    private costCenterWrapperService: CostCenterWrapperService,
-    private personsWrapperService: PersonsWrapperService,
-    private currenciesWrapperService: CurrenciesWrapperService,
-    private suppliersWrapperService: SuppliersWrapperService,
+    private readonly costCenterWrapperService: CostCenterWrapperService,
+    private readonly personsWrapperService: PersonsWrapperService,
+    private readonly currenciesWrapperService: CurrenciesWrapperService,
+    private readonly suppliersWrapperService: SuppliersWrapperService,
   ) { }
 
   /**
@@ -391,7 +390,7 @@ export class OrdersWrapperService {
     // Ensure vat_value is always a string (use vat_value, fallback to vat?.value, fallback '0')
     const vatValue =
       item.vat_value ??
-      (item.vat && item.vat.value !== undefined ? String(item.vat.value) : '0');
+      (item.vat?.value === undefined ? '0' : String(item.vat.value));
 
     return {
       name: item.name,
@@ -461,12 +460,12 @@ export class OrdersWrapperService {
     const lastComma = str.lastIndexOf(',');
     const lastDot = str.lastIndexOf('.');
     if (lastComma > lastDot) {
-      str = str.replaceAll(/\./g, '').replace(',', '.'); // remove dots and replace comma with dot as decimal separator
+      str = str.replaceAll('.', '').replace(',', '.'); // remove dots and replace comma with dot as decimal separator
     } else {
-      str = str.replaceAll(/,/g, ''); // remove commas and keep dot as decimal separator
+      str = str.replaceAll(',', ''); // remove commas and keep dot as decimal separator
     }
 
-    const num = parseFloat(str);
+    const num = Number.parseFloat(str);
     if (Number.isNaN(num)) return '0,00';
 
     // Format as German price string
@@ -533,8 +532,8 @@ export class OrdersWrapperService {
     if (!price) return undefined;
 
     // Remove thousand separators (.) and replace decimal comma with dot
-    const normalized = price.replace(/\./g, '').replace(',', '.');
-    const num = parseFloat(normalized);
+    const normalized = price.replaceAll('.', '').replace(',', '.');
+    const num = Number.parseFloat(normalized);
 
     return Number.isNaN(num) ? undefined : num;
   }
@@ -571,7 +570,7 @@ export class OrdersWrapperService {
 
     // --- Iterate through all fields except currency & currency_short ---
     for (const key in modified) {
-      if (!Object.prototype.hasOwnProperty.call(modified, key)) continue;
+      if (!Object.hasOwn(modified, key)) continue;
       if (key === 'currency' || key === 'currency_short') continue; // Skip currency fields (handled above)
 
       const originalValue = (original as any)[key];
@@ -585,39 +584,35 @@ export class OrdersWrapperService {
       ) {
         // prefer comparing .value when available
         if ('value' in originalValue || 'value' in modifiedValue) {
-          const orig = (originalValue as any).value;
-          const mod = (modifiedValue as any).value;
+          const orig = (originalValue).value;
+          const mod = (modifiedValue).value;
           if (orig !== mod) {
             (changedFields as any)[key] = mod;
           }
-        } else {
+        } else if (JSON.stringify(originalValue) !== JSON.stringify(modifiedValue)) {
           // fallback to deep compare
-          if (JSON.stringify(originalValue) !== JSON.stringify(modifiedValue)) {
-            (changedFields as any)[key] = modifiedValue;
-          }
+          (changedFields as any)[key] = modifiedValue;
         }
       } else if (
         typeof modifiedValue === 'object' &&
         modifiedValue !== null &&
         'value' in modifiedValue
       ) {
-        const mod = (modifiedValue as any).value;
+        const mod = (modifiedValue).value;
         const orig = originalValue;
         if (orig !== mod) {
           (changedFields as any)[key] = mod;
         }
-      } else {
-        if (originalValue !== modifiedValue) {
+      } else if (originalValue !== modifiedValue) {
           (changedFields as any)[key] = modifiedValue;
         }
-      }
     }
 
     // Convert undefined values to null for API compatibility
     return Object.fromEntries(
       Object.entries(changedFields).map(([key, value]) => [
         key,
-        value === undefined ? null : value,
+        value ?? null,
       ])
     ) as Partial<OrderResponseDTOFormatted>;
   }

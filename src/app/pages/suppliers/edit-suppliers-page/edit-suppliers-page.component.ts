@@ -28,12 +28,12 @@ import { EDIT_SUPPLIER_FORM_CONFIG } from '../../../configs/edit/edit-supplier-c
 })
 export class EditSuppliersPageComponent implements OnInit {
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private _notifications: MatSnackBar,
-    private suppliersWrapperService: SuppliersWrapperService,
-    private dialog: MatDialog,
-    private vatWrapperService: VatWrapperService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly _notifications: MatSnackBar,
+    private readonly suppliersWrapperService: SuppliersWrapperService,
+    private readonly dialog: MatDialog,
+    private readonly vatWrapperService: VatWrapperService
   ) {}
 
   supplierId!: number | unknown; // ID of the supplier being edited

@@ -347,11 +347,12 @@
           ></app-form-component>
           @if (selectedDeliveryPerson) {
           <div class="flex flex-col">
-            <label class="block mb-2 text-medium font-semibold text-gray-700">
+            <label for="sameAsRecipientGroup" class="block mb-2 text-medium font-semibold text-gray-700">
               Entspricht Empfänger und Lieferadresse dem Rechnungsempfänger und
               der Rechnungsadresse?
             </label>
             <mat-radio-group
+              id="sameAsRecipientGroup"
               [(ngModel)]="sameAsRecipient"
               [disabled]="!isTabEditable('Addresses')"
               class="flex space-x-4"

@@ -11,10 +11,7 @@ import {
   ORDER_QUOTATION_FORM_CONFIG,
   ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
 } from '../../../configs/order/order-config';
-import {
-  PersonsWrapperService,
-  PersonWithFullName,
-} from '../../../services/wrapper-services/persons-wrapper.service';
+import { PersonsWrapperService, PersonWithFullName } from '../../../services/wrapper-services/persons-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 import {
   Component,
@@ -26,11 +23,7 @@ import {
   OnInit,
 } from '@angular/core';
 import { MatDivider } from '@angular/material/divider';
-import {
-  FormComponent,
-  FormField,
-} from '../../../components/form-component/form-component.component';
-import { FormConfig } from '../../../components/form-component/form-component.component';
+import { FormComponent, FormField, FormConfig } from '../../../components/form-component/form-component.component';
 import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
 import {
   AbstractControl,
@@ -42,11 +35,7 @@ import {
 } from '@angular/forms';
 import { MatButton } from '@angular/material/button';
 import { MatTableDataSource } from '@angular/material/table';
-import {
-  ButtonColor,
-  TableActionButton,
-  TableColumn,
-} from '../../../models/generic-table';
+import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
@@ -65,10 +54,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatOptionModule } from '@angular/material/core';
 import { CommonModule } from '@angular/common';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import {
-  MatButtonToggle,
-  MatButtonToggleGroup,
-} from '@angular/material/button-toggle';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import {
@@ -76,10 +62,7 @@ import {
   CurrencyWithDisplayName,
 } from '../../../services/wrapper-services/currencies-wrapper.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import {
-  OrderResponseDTOFormatted,
-  OrdersWrapperService,
-} from '../../../services/wrapper-services/orders-wrapper.service';
+import { OrderResponseDTOFormatted, OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { MatIcon } from '@angular/material/icon';
@@ -446,7 +429,7 @@ export class EditOrderPageComponent
    */
   isAnyTabEditable = computed(() => {
     const editability = this.tabEditability();
-    return Object.values(editability).some(editable => editable);
+    return Object.values(editability).some(Boolean);
   });
 
   /**
@@ -456,7 +439,7 @@ export class EditOrderPageComponent
   readOnlyBannerMessage = signal<string>('');
   readOnlyBannerMessageApprovalTab = signal<string>('');
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
     window.addEventListener('beforeunload', this.onBeforeUnload);
     // Get resolved data from route
     const resolvedData: EditOrderResolvedData =
@@ -466,33 +449,34 @@ export class EditOrderPageComponent
     this.order = resolvedData.order;
     this.formattedOrderDTO = resolvedData.formattedOrder;
 
-    await this.initializeStaticData();
-    await this.loadAllOrderData();
-
-    // Setup tab sync subscription
-    this.tabSyncSub?.unsubscribe();
-    this.tabSyncSub = this.route.queryParamMap.subscribe((params) => {
-      const tabParam = params.get('tab');
-      if (
-        tabParam &&
-        Object.prototype.hasOwnProperty.call(this.tabMap, tabParam)
-      ) {
-        this.switchToTab(tabParam as (typeof this.tabOrder)[number], {
-          updateUrl: false,
+    this.initializeStaticData().then(() => {
+      this.loadAllOrderData().then(() => {
+        // Setup tab sync subscription
+        this.tabSyncSub?.unsubscribe();
+        this.tabSyncSub = this.route.queryParamMap.subscribe((params) => {
+          const tabParam = params.get('tab');
+          if (
+            tabParam &&
+            Object.hasOwn(this.tabMap, tabParam)
+          ) {
+            this.switchToTab(tabParam as (typeof this.tabOrder)[number], {
+              updateUrl: false,
+            });
+          } else if (tabParam === null) {
+            this.switchToTab(this.tabOrder[0]);
+          }
         });
-      } else if (tabParam === null) {
-        this.switchToTab(this.tabOrder[0]);
-      }
-    });
 
-    this.orderName.set(
-      this.formattedOrderDTO.content_description ?? 'Fehler: Kein Name'
-    );
-    this.orderBesyId.set(
-      `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year}-${this.formattedOrderDTO.auto_index}`
-    );
-    const loginCredentials = this.userWrapperService.getCurrentUser();
-    console.log(loginCredentials);
+        this.orderName.set(
+          this.formattedOrderDTO.content_description ?? 'Fehler: Kein Name'
+        );
+        this.orderBesyId.set(
+          `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year}-${this.formattedOrderDTO.auto_index}`
+        );
+        const loginCredentials = this.userWrapperService.getCurrentUser();
+        console.log(loginCredentials);
+      });
+    });
   }
 
   ngOnDestroy(): void {
@@ -508,9 +492,7 @@ export class EditOrderPageComponent
    */
   onBeforeUnload = (event: BeforeUnloadEvent) => {
     if (this.hasUnsavedChanges()) {
-      // Modern browsers ignore custom messages and show their own generic dialog
       event.preventDefault();
-      event.returnValue = ''; // Required for Chrome/Edge
     }
   };
 
@@ -699,21 +681,18 @@ export class EditOrderPageComponent
     }
 
     // if a person field got cleared, clear the selected person and return
-    if (!field.value || !field.value.value) {
-      if (isRecipient) {
-        this.selectedDeliveryPerson = undefined;
-      } else {
-        this.selectedInvoicePerson = undefined;
-      }
-      return;
-    } else {
+    if (field.value?.value) {
       // Return if the selected value is the same as the currently selected person
       const selectedPersonId = field.value.value;
       if (isRecipient) {
         if (this.selectedDeliveryPerson?.id === selectedPersonId) return;
-      } else {
-        if (this.selectedInvoicePerson?.id === selectedPersonId) return;
-      }
+      } else if (this.selectedInvoicePerson?.id === selectedPersonId) return;
+    } else if (isRecipient) {
+      this.selectedDeliveryPerson = undefined;
+      return;
+    } else {
+      this.selectedInvoicePerson = undefined;
+      return;
     }
 
     // Find the selected person from the locally stored persons
@@ -950,65 +929,60 @@ export class EditOrderPageComponent
         );
         return false;
       }
-    } else {
+    } else if (this.selectedDeliveryAddressIdFromTable) {
       // Use the address id stored in selectedRecipientAddressId to assign to the target
-      if (this.selectedDeliveryAddressIdFromTable) {
-        target.delivery_address_id = this.selectedDeliveryAddressIdFromTable;
-      } else {
-        // No address selected from the table, set the field to undefined to prevent accidental overwriting
-        target.delivery_address_id = undefined;
-      }
+      target.delivery_address_id = this.selectedDeliveryAddressIdFromTable;
+    } else {
+      // No address selected from the table, set the field to undefined to prevent accidental overwriting
+      target.delivery_address_id = undefined;
     }
 
     // Invoice address
     if (this.sameAsRecipient) {
       target.invoice_address_id = target.delivery_address_id;
-    } else {
-      if (this.invoiceAddressOption === 'new') {
-        this.invoiceAddressFormGroup.markAllAsTouched();
-        if (this.invoiceAddressFormGroup.valid) {
-          // If the form is valid, create a new address via the API and store the returned ID
-          const newAddress: AddressRequestDTO = this.invoiceAddressFormGroup
-            .value as AddressRequestDTO;
-          try {
-            const createdAddress: AddressResponseDTO =
-              await this.personsWrapperService.createPersonAddress(newAddress);
-            target.invoice_address_id = createdAddress.id;
-          } catch (error) {
-            this._notifications.open(
-              'Fehler beim Speichern der Adresse. Bitte versuchen sie es später erneut.',
-              undefined,
-              { duration: 3000 }
-            );
-          }
-        } else {
+    } else if (this.invoiceAddressOption === 'new') {
+      this.invoiceAddressFormGroup.markAllAsTouched();
+      if (this.invoiceAddressFormGroup.valid) {
+        // If the form is valid, create a new address via the API and store the returned ID
+        const newAddress: AddressRequestDTO = this.invoiceAddressFormGroup
+          .value as AddressRequestDTO;
+        try {
+          const createdAddress: AddressResponseDTO =
+            await this.personsWrapperService.createPersonAddress(newAddress);
+          target.invoice_address_id = createdAddress.id;
+        } catch (error) {
+          console.error('Error creating new invoice address:', error);
           this._notifications.open(
-            'Bitte überprüfen Sie die Eingaben in dem Adressfeld des Rechnungsempfängers.',
+            'Fehler beim Speichern der Adresse. Bitte versuchen sie es später erneut.',
             undefined,
             { duration: 3000 }
           );
-        }
-      } else if (this.invoiceAddressOption === 'preferred') {
-        if (this.selectedInvoicePerson?.address_id) {
-          target.invoice_address_id = this.selectedInvoicePerson.address_id;
-        } else {
-          this._notifications.open(
-            'Fehler beim Laden der bevorzugten Adresse. Die präferierte Adresse konnte nicht gefunden werden. Bitte versuchen sie es später erneut',
-            undefined,
-            { duration: 3000 }
-          );
-          return false;
         }
       } else {
-        if (this.selectedInvoiceAddressIdFromTable) {
-          // Use the address id stored in selectedInvoiceAddressId to assign to the target
-          target.invoice_address_id = this.selectedInvoiceAddressIdFromTable;
-        } else {
-          // No address selected from the table, set the field to undefined to prevent accidental overwriting
-          target.invoice_address_id = undefined;
-        }
+        this._notifications.open(
+          'Bitte überprüfen Sie die Eingaben in dem Adressfeld des Rechnungsempfängers.',
+          undefined,
+          { duration: 3000 }
+        );
       }
-    }
+    } else if (this.invoiceAddressOption === 'preferred') {
+      if (this.selectedInvoicePerson?.address_id) {
+        target.invoice_address_id = this.selectedInvoicePerson.address_id;
+      } else {
+        this._notifications.open(
+          'Fehler beim Laden der bevorzugten Adresse. Die präferierte Adresse konnte nicht gefunden werden. Bitte versuchen sie es später erneut',
+          undefined,
+          { duration: 3000 }
+        );
+        return false;
+      }
+    } else if (this.selectedInvoiceAddressIdFromTable) {
+        // Use the address id stored in selectedInvoiceAddressId to assign to the target
+        target.invoice_address_id = this.selectedInvoiceAddressIdFromTable;
+      } else {
+        // No address selected from the table, set the field to undefined to prevent accidental overwriting
+        target.invoice_address_id = undefined;
+      }
     return true;
   }
 
@@ -1379,7 +1353,7 @@ export class EditOrderPageComponent
 
     const formsToReset = formType === 'All' ? this.tabOrder : [formType];
 
-    formsToReset.forEach((form) => {
+    for (const form of formsToReset) {
       switch (form) {
         case 'General':
           this.patchGeneralFormGroupFromOrder();
@@ -1403,7 +1377,7 @@ export class EditOrderPageComponent
         default:
           break;
       }
-    });
+    }
   }
 
   private resetItems() {
@@ -1937,7 +1911,7 @@ export class EditOrderPageComponent
       this.formattedOrderDTO =
         await this.orderWrapperService.mapOrderResponseToFormatted(
           await this.orderWrapperService.patchOrderById(
-            this.formattedOrderDTO!.id!,
+            this.formattedOrderDTO.id!,
             changedFields
           )
         );
@@ -1966,7 +1940,7 @@ export class EditOrderPageComponent
 
       if (typeof value === 'object' && value !== null && 'value' in value) {
         const extracted = value as { value: unknown };
-        return extracted === undefined || extracted === null ? null : extracted;
+        return extracted ?? null;
       }
 
       return value;
@@ -2117,7 +2091,7 @@ export class EditOrderPageComponent
         const field = this.approvalFormConfig.fields.find(
           (f) => f.name === fieldName
         );
-        if (field && field.label) {
+        if (field?.label) {
           fieldLabels.push(field.label);
         } else {
           fieldLabels.push(fieldName); // Fallback to field name if label not found
@@ -2235,7 +2209,7 @@ export class EditOrderPageComponent
     }
 
     // Then search in form configs
-    for (const [formKey, mapping] of Object.entries(
+    for (const [, mapping] of Object.entries(
       this.formConfigToTabMapping
     )) {
       for (const config of mapping.configs) {
