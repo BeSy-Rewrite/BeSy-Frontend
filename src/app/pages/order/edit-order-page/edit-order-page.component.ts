@@ -633,6 +633,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     if (this.quotationFormGroup.valid) {
       const newQuotation = this.quotationFormGroup.value as QuotationTableModel;
       newQuotation.price = this.orderWrapperService.formatPriceToGerman(newQuotation.price);
+      newQuotation.quote_date = this.orderWrapperService.formatISODateTimeToDateString(
+        newQuotation.quote_date
+      );
       this.quotations.update(curr => [...curr, newQuotation]);
       this.quotationFormGroup.reset(); // Reset the form
     } else {
