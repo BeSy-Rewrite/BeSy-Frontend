@@ -14,7 +14,9 @@ import { OrderStatus, UserResponseDTO } from '../../../api-services-v2';
 import { setupDialog } from "../../../components/dialog/dialog.component";
 import { OrderDocumentsComponent } from "../../../components/documents/order-documents/order-documents.component";
 import { ApprovalsComponent } from '../../../components/order-display/approvals/approvals.component';
+import { OrderArticleListComponent } from "../../../components/order-display/order-article-list/order-article-list.component";
 import { OrderMainInformationComponent } from '../../../components/order-display/order-main-information/order-main-information.component';
+import { OrderMainQuoteComponent } from "../../../components/order-display/order-main-quote/order-main-quote.component";
 import { OrderPersonsComponent } from "../../../components/order-display/order-persons/order-persons.component";
 import { QuotationsListComponent } from '../../../components/order-display/quotations-list/quotations-list.component';
 import { StateHistoryComponent } from "../../../components/order-display/state-history/state-history.component";
@@ -32,10 +34,16 @@ import { ToastService } from "../../../services/toast.service";
 import { OrdersWrapperService } from "../../../services/wrapper-services/orders-wrapper.service";
 import { StateWrapperService } from "../../../services/wrapper-services/state-wrapper.service";
 import { UsersWrapperService } from "../../../services/wrapper-services/users-wrapper.service";
+import { ORDER_EDIT_TABS } from "../edit-order-page/edit-order-page.component";
 
 
-type SectionId = 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
-interface Section { id: SectionId; title: string; isFullWidth: boolean; }
+type SectionId = 'main-quote' | 'articles' | 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
+interface Section {
+  id: SectionId;
+  title: string;
+  isFullWidth: boolean;
+  editTabId?: (typeof ORDER_EDIT_TABS)[number];
+}
 interface StateChangeButtons {
   label: string;
   icon: string;
@@ -63,6 +71,8 @@ interface StateChangeButtons {
     StateHistoryComponent,
     StateDisplayComponent,
     OrderDocumentsComponent,
+    OrderMainQuoteComponent,
+    OrderArticleListComponent
   ],
   templateUrl: './view-order-page.component.html',
   styleUrl: './view-order-page.component.scss'
@@ -81,10 +91,12 @@ export class ViewOrderPageComponent implements OnInit {
   currentUrl = computed(() => globalThis.location.href);
 
   sections: Section[] = [
-    { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true },
+    { id: 'main-quote', title: 'Hauptangebot', isFullWidth: true, editTabId: "MainOffer" },
+    { id: 'articles', title: 'Artikelübersicht', isFullWidth: true, editTabId: "Items" },
+    { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true, editTabId: "Quotations" },
     { id: 'documents', title: 'Dokumente', isFullWidth: true },
-    { id: 'contacts', title: 'Kontaktdaten', isFullWidth: false },
-    { id: 'approvals', title: 'Freigaben', isFullWidth: false },
+    { id: 'contacts', title: 'Kontaktdaten', isFullWidth: false, editTabId: "General" },
+    { id: 'approvals', title: 'Freigaben', isFullWidth: false, editTabId: "Approvals" },
     { id: 'history', title: 'Statusverlauf', isFullWidth: false },
   ];
 
@@ -130,7 +142,7 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /**
-   * Exports the order as a PDF document if it is in the COMPLETED state.
+   * Exports the order as a PDF document.
    */
   export(): void {
     if (!this.internalOrder().order.id) {
@@ -267,6 +279,14 @@ export class ViewOrderPageComponent implements OnInit {
         });
       }
     });
+  }
+
+  showEditButton(section: Section): boolean {
+    if (!section.editTabId) return false;
+
+    const status = this.internalOrder().order.status;
+    return status === OrderStatus.IN_PROGRESS ||
+      (status === OrderStatus.COMPLETED && section.editTabId === "Approvals");
   }
 
 }
