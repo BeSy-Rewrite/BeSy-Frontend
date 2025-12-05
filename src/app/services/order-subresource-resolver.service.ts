@@ -1,11 +1,14 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
-import { CancelablePromise, CostCenterResponseDTO, CostCentersService, CurrenciesService, CurrencyResponseDTO, ItemResponseDTO, OrderResponseDTO, PersonResponseDTO, PersonsService, SupplierResponseDTO, SuppliersService, UserResponseDTO, UsersService } from '../api';
-import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
-import { ChipFilterPreset, DateRangeFilterPreset, OrdersFilterPreset, RangeFilterPreset } from '../models/filter/filter-presets';
-import { OrderDisplayData } from '../models/order-display-data';
-import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
+import { CostCenterResponseDTO, CurrencyResponseDTO, ItemResponseDTO, OrderResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../api-services-v2';
 import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-names';
+import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
+import { OrderDisplayData } from '../models/order-display-data';
+import { CostCenterWrapperService } from './wrapper-services/cost-centers-wrapper.service';
+import { PersonsWrapperService } from './wrapper-services/persons-wrapper.service';
+import { SuppliersWrapperService } from './wrapper-services/suppliers-wrapper.service';
+import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
+import { CurrenciesWrapperService } from './wrapper-services/currencies-wrapper.service';
 
 /**
  * Union of identifier types used to look up subresources.
@@ -18,7 +21,7 @@ type numberOrString = number | string | undefined;
 /**
  * Minimal shape of objects that can be identified either by `id` or `code`.
  */
-type IdAble = { id?: number | string } | { code?: string };
+type IdAble = { id?: number | string; } | { code?: string; };
 
 /**
  * Generic helper that loads, caches, and formats subresources for display.
@@ -40,7 +43,7 @@ class ResourceFormatter<T extends IdAble> {
    */
   constructor(
     private readonly formatter: (value: T) => string,
-    private readonly fetchAll: () => CancelablePromise<T[]>,
+    private readonly fetchAll: () => Promise<T[]>,
     private readonly debounceMs: number = 300
   ) {
     this.requestFetch
@@ -104,22 +107,28 @@ export class OrderSubresourceResolverService {
    * Constructs the resolver and wires up the resource formatters.
    * Inject API clients or services here to provide `fetchAll` functions.
    */
-  constructor(private readonly usersService: UsersWrapperService) {
+  constructor(
+    private readonly currenciesService: CurrenciesWrapperService,
+    private readonly usersService: UsersWrapperService,
+    private readonly personsService: PersonsWrapperService,
+    private readonly costCentersService: CostCenterWrapperService,
+    private readonly suppliersService: SuppliersWrapperService
+  ) {
 
     this.currencyFormatter = new ResourceFormatter<CurrencyResponseDTO>(
-      (c) => this.formatCurrency(c), CurrenciesService.getAllCurrencies
+      (c) => this.formatCurrency(c), () => this.currenciesService.getAllCurrencies()
     );
     this.userFormatter = new ResourceFormatter<UserResponseDTO>(
-      (u) => this.formatUser(u), UsersService.getAllUsers
+      (u) => this.formatUser(u), () => this.usersService.getAllUsers()
     );
     this.personFormatter = new ResourceFormatter<PersonResponseDTO>(
-      (p) => this.formatPerson(p), PersonsService.getAllPersons
+      (p) => this.formatPerson(p), () => this.personsService.getAllPersons()
     );
     this.costCenterFormatter = new ResourceFormatter<CostCenterResponseDTO>(
-      (c) => this.formatCostCenter(c), CostCentersService.getCostCenters
+      (c) => this.formatCostCenter(c), () => this.costCentersService.getAllCostCenters()
     );
     this.supplierFormatter = new ResourceFormatter<SupplierResponseDTO>(
-      (s) => this.formatSupplier(s), SuppliersService.getAllSuppliers
+      (s) => this.formatSupplier(s), () => this.suppliersService.getAllSuppliers()
     );
 
   }
@@ -166,7 +175,7 @@ export class OrderSubresourceResolverService {
   convertOrderToDisplayData(order: OrderResponseDTO): OrderDisplayData {
     const data = {} as OrderDisplayData;
     data.id = order.id?.toString() ?? '';
-    data.besy_number = `${order.primary_cost_center_id}-${order.booking_year}-${order.auto_index}`;
+    data.besy_number = this.getOrderNumber(order) ?? 'nicht vergeben';
     data.primary_cost_center_id = '';
     data.booking_year = order.booking_year ? '20' + order.booking_year : '';
     data.auto_index = order.auto_index ?? '';
@@ -260,7 +269,7 @@ export class OrderSubresourceResolverService {
     const names = [user.name ?? ''];
     names.push(user.surname ?? '');
     return names.filter(name => name && name.trim().length > 0).join(' ');
-  }
+  };
 
   /**
    * Returns a human-readable label for a person (e.g., "p42 – John Doe").
@@ -268,29 +277,38 @@ export class OrderSubresourceResolverService {
   formatPerson = (person: PersonResponseDTO) => {
     const names = [person.title ?? '', person.name ?? '', person.surname ?? ''];
     return names.filter(name => name && name.trim().length > 0).join(' ');
-  }
+  };
 
   /**
    * Returns a human-readable label for a cost center (e.g., "4711 – IT Services").
    */
   formatCostCenter = (center: CostCenterResponseDTO) => {
     return `${center.id} - ${center.name}`;
-  }
+  };
 
   /**
    * Formats the preferred list enum into a human-readable string.
    * @param preferredList The preferred list enum value.
    * @returns The formatted preferred list string.
    */
-  formatPreferredList(preferredList: ItemResponseDTO.preferred_list | undefined): string {
-    switch (preferredList) {
-      case ItemResponseDTO.preferred_list.RZ:
-        return PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.RZ) ?? 'RZ';
-      case ItemResponseDTO.preferred_list.TA:
-        return PREFERRED_LIST_NAMES.get(ItemResponseDTO.preferred_list.TA) ?? 'TA';
-      default:
-        return 'Keine bevorzugte Liste';
+  formatPreferredList(preferredList: ItemResponseDTO.PreferredListEnum | undefined): string {
+    if (preferredList) {
+      return PREFERRED_LIST_NAMES.get(preferredList) ?? preferredList;
     }
+    return 'Keine bevorzugte Liste';
+  }
+
+  /**
+   * Constructs the order number from its components.
+   * @param order The order DTO.
+   * @returns The constructed order number or undefined if any part is missing.
+   */
+  getOrderNumber(order: OrderResponseDTO): string | undefined {
+    const orderNumber = [order.primary_cost_center_id, order.booking_year, order.auto_index];
+    if (orderNumber.some(part => part === undefined || part === null)) {
+      return undefined;
+    }
+    return orderNumber.join('-');
   }
 
   /**
@@ -316,7 +334,7 @@ export class OrderSubresourceResolverService {
     if (vatPercent <= 0) return netPrice;
     return netPrice * (1 + vatPercent / 100);
   }
-  
+
   /**
    * Calculates the total net price for a list of items.
    * @param items The list of items to calculate the total net price for.
@@ -326,7 +344,7 @@ export class OrderSubresourceResolverService {
     let totalNetPrice = 0;
     for (const item of items) {
       let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
-      if (item.vat_type === ItemResponseDTO.vat_type.BRUTTO) {
+      if (item.vat_type === ItemResponseDTO.VatTypeEnum.BRUTTO) {
         price = this.calculateNetPrice(price, item.vat?.value ?? 0);
       }
       totalNetPrice += price;
@@ -343,14 +361,14 @@ export class OrderSubresourceResolverService {
     let totalGrossPrice = 0;
     for (const item of items) {
       let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
-      if (item.vat_type === ItemResponseDTO.vat_type.NETTO) {
+      if (item.vat_type === ItemResponseDTO.VatTypeEnum.NETTO) {
         price = this.calculateGrossPrice(price, item.vat?.value ?? 0);
       }
       totalGrossPrice += price;
     }
     return totalGrossPrice;
   }
-  
+
   /**
    * Calculates the total quantity of items.
    * @param items The list of items to calculate the total quantity for.
@@ -368,55 +386,7 @@ export class OrderSubresourceResolverService {
   getTooltips(order: OrderResponseDTO): { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string } {
     return {
       status: STATE_DISPLAY_NAMES.get(order.status ?? '') ?? order.status ?? '',
-    }
-  }
-
-  /**
-   * Resolves the current user in the given filter presets.
-   * @param filterPresets The array of OrdersFilterPreset to resolve the current user in.
-   * @returns An observable of the resolved OrdersFilterPreset array.
-   */
-  resolveCurrentUserInPresets(filterPresets: OrdersFilterPreset[]): Observable<OrdersFilterPreset[]> {
-    return this.usersService.getCurrentUser().pipe(
-      map(user => {
-        if (!user?.id) {
-          throw new Error('Current user not found');
-        }
-
-        return this.replaceCurrentUserInPresets(filterPresets, user.id);
-      })
-    );
-  }
-
-  /**
-   * Replaces occurrences of 'CURRENT_USER' in the filter presets with the actual user ID.
-   * @param filterPresets The array of OrdersFilterPreset to process.
-   * @param userId The ID of the current user.
-   * @returns The modified array of OrdersFilterPreset.
-   */
-  private replaceCurrentUserInPresets(filterPresets: OrdersFilterPreset[], userId: string): OrdersFilterPreset[] {
-    return filterPresets.map(preset => ({
-      ...preset,
-      appliedFilters: preset.appliedFilters.map(f => this.replaceCurrentUserInAppliedFilter(f, userId))
-    }));
-  }
-
-  /**
-   * Replaces 'CURRENT_USER' in a single applied filter if it is a ChipFilterPreset.
-   * @param filter The filter preset to process.
-   * @param userId The ID of the current user.
-   * @returns The modified filter preset.
-   */
-  private replaceCurrentUserInAppliedFilter(filter: ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset, userId: string): any {
-    if (!('chipIds' in filter)) {
-      return filter;
-    }
-
-    return {
-      ...filter,
-      chipIds: filter.chipIds.map((id: numberOrString) =>
-        id === 'CURRENT_USER' ? userId : id
-      )
     };
   }
+
 }

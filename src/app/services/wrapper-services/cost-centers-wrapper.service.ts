@@ -1,9 +1,6 @@
 import { Injectable } from '@angular/core';
-import {
-  CostCenterRequestDTO,
-  CostCenterResponseDTO,
-  CostCentersService,
-} from '../../api';
+import { lastValueFrom } from 'rxjs';
+import { CostCentersService, CostCenterRequestDTO, CostCenterResponseDTO } from '../../api-services-v2';
 
 export interface CostCenterFormatted {
   label: string;
@@ -18,7 +15,7 @@ export class CostCenterWrapperService {
   private cacheTimestamp: number | null = null;
   private readonly CACHE_DURATION_MS = 60 * 1000; // 1 minute
 
-  constructor() {}
+  constructor(private readonly costCentersService: CostCentersService) { }
 
   async getAllCostCenters(): Promise<CostCenterResponseDTO[]> {
     const now = Date.now();
@@ -29,7 +26,7 @@ export class CostCenterWrapperService {
     }
 
     // Otherwise, fetch new data
-    const costCenters = await CostCentersService.getCostCenters();
+    const costCenters = await lastValueFrom(this.costCentersService.getCostCenters());
 
     // Update cache
     this.cachedCostCenters = costCenters;
@@ -39,7 +36,7 @@ export class CostCenterWrapperService {
   }
 
   async createCostCenter(costCenter: CostCenterRequestDTO): Promise<CostCenterResponseDTO> {
-    const createdCostCenter = await CostCentersService.createCostCenter(costCenter);
+    const createdCostCenter = await lastValueFrom(this.costCentersService.createCostCenter(costCenter));
 
     // Invalidate cache after creation
     this.cachedCostCenters = null;
@@ -59,7 +56,8 @@ export class CostCenterWrapperService {
     if (!costCenter) return undefined;
 
     return {
-      label: costCenter.name ?? '',
+      // Concatenate name and code for better identification in the label in format "name (code)"
+      label: `${costCenter.name ?? ''} (${costCenter.id ?? ''})`,
       value: costCenter.id ?? '',
     };
   }

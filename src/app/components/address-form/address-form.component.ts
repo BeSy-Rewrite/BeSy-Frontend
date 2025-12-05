@@ -1,33 +1,33 @@
-import { Component, Input, OnInit, output, Signal } from '@angular/core';
+import { Component, Input, OnInit, output } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInput, MatInputModule } from '@angular/material/input';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatTableDataSource } from '@angular/material/table';
-import { AddressResponseDTO } from '../../api';
-import { GenericTableComponent } from '../generic-table/generic-table.component';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInput, MatInputModule } from '@angular/material/input';
+import { MatRadioModule } from '@angular/material/radio';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTableDataSource } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { AddressResponseDTO } from '../../api-services-v2';
+import { GenericTableComponent } from '../generic-table/generic-table.component';
 
 export interface AddressField {
   name: string;
   label: string;
   type:
-    | 'text'
-    | 'radio'
-    | 'select'
-    | 'number'
-    | 'checkbox'
-    | 'date'
-    | 'email'
-    | 'tel'
-    | 'table'
-    | 'textarea';
+  | 'text'
+  | 'radio'
+  | 'select'
+  | 'number'
+  | 'checkbox'
+  | 'date'
+  | 'email'
+  | 'tel'
+  | 'table'
+  | 'textarea';
   required: boolean;
   defaultValue?: any;
   options?: { label: string; value: any }[];
@@ -66,7 +66,7 @@ export interface AddressConfig {
   styleUrl: './address-form.component.scss',
 })
 export class AddressFormComponent implements OnInit {
-  constructor(private fb: FormBuilder) {}
+  constructor(private fb: FormBuilder) { }
 
   // Fields to be rendered in the address form
   @Input() config!: AddressConfig;

@@ -3,7 +3,7 @@ import { Component, input, OnInit, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { PersonResponseDTO, UserResponseDTO } from '../../api';
+import { PersonResponseDTO, UserResponseDTO } from '../../api-services-v2';
 import { PERSON_FIELD_NAMES } from '../../display-name-mappings/person-names';
 import { PersonsWrapperService } from '../../services/wrapper-services/persons-wrapper.service';
 import { UsersWrapperService } from '../../services/wrapper-services/users-wrapper.service';
@@ -51,6 +51,9 @@ export class PersonDetailsComponent implements OnInit {
 
   private setupPersonData(): void {
     for (const [key, value] of Object.entries(this.person)) {
+      if (key === "gender") {
+        continue;
+      }
       if (value && typeof value === 'string') {
         this.personData.set(key, value);
       }

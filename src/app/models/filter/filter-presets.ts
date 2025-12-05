@@ -7,7 +7,7 @@ import { FilterRange } from "./filter-range";
  */
 export type FilterPreset = {
     /** The key of the active filter associated with this preset. */
-    id: keyof ActiveFilters;
+    id: keyof ActiveFilters | 'selectedColumnIds';
 };
 
 /**
@@ -34,18 +34,28 @@ export type RangeFilterPreset = FilterPreset & {
     range: FilterRange;
 };
 
+export type SelectedColumnsPreset = FilterPreset & {
+    /** An array of selected column IDs associated with this preset. */
+    selectedColumnIds: string[];
+};
+
+/**
+ * Type representing any filter preset type: chip, date range, range, or selected columns.
+ */
+export type FilterPresetType = ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset | SelectedColumnsPreset;
+
 /**
  * Type representing an orders filter preset, which includes a label and an array of filter presets.
  */
 export type OrdersFilterPreset = {
     /** The label for the orders filter preset. */
     label: string;
-    /** An array of filter presets (chip, date range, or range) associated with this orders filter preset. */
-    appliedFilters: (ChipFilterPreset | DateRangeFilterPreset | RangeFilterPreset)[];
+    /** An array of filter presets (chip, date range, range, or selected columns) associated with this orders filter preset. */
+    appliedFilters: FilterPresetType[];
 };
 
 /**
  * Type representing URL parameters for filter presets.
  * Each key corresponds to a filter in ActiveFilters, and the value is a string or undefined.
  */
-export type FilterPresetParams = { [key in keyof ActiveFilters]: string | undefined };
+export type FilterPresetParams = { [key in keyof ActiveFilters | 'selectedColumnIds']: string | undefined };

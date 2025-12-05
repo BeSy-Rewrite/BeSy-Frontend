@@ -39,7 +39,7 @@ export class AuthenticationService {
    * The user will be redirected back to the application after successful login.
    */
   login(): void {
-    this.oAuthService.initCodeFlow(window.location.pathname);
+    this.oAuthService.initCodeFlow(globalThis.location.pathname);
   }
 
   /**
@@ -79,7 +79,7 @@ export class AuthenticationService {
    * @returns {string[]} An array of roles assigned to the user.
    */
   getRoles(): string[] {
-    return this.oAuthService.getIdentityClaims()?.['realm_access']?.['roles'] ?? [];
+    return this.oAuthService.getIdentityClaims()?.['resource_access']?.[environment.clientId]?.['roles'] ?? [];
   }
 
   /**

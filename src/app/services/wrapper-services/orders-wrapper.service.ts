@@ -1,9 +1,6 @@
-import {
-  FormattedPerson,
-  PersonsWrapperService,
-} from './persons-wrapper.service';
-import { CostCenterWrapperService } from './cost-centers-wrapper.service';
+import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
+import { from, lastValueFrom, map, Observable } from 'rxjs';
 import {
   ApprovalResponseDTO,
   ItemRequestDTO,
@@ -16,27 +13,20 @@ import {
   PagedOrderResponseDTO,
   QuotationRequestDTO,
   QuotationResponseDTO,
-} from '../../api';
-import {
-  CurrencyWithDisplayName,
-  FormattedCurrency,
-} from './currencies-wrapper.service';
-import { CurrenciesWrapperService } from './currencies-wrapper.service';
-import { CostCenterFormatted } from './cost-centers-wrapper.service';
-import {
-  SupplierFormatted,
-  SuppliersWrapperService,
-} from './suppliers-wrapper.service';
+} from '../../api-services-v2';
+import { FilterRequestParams } from '../../models/filter/filter-request-params';
 import {
   ItemTableModel,
   QuotationTableModel,
 } from '../../pages/order/edit-order-page/edit-order-page.component';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { CostCenterFormatted, CostCenterWrapperService } from './cost-centers-wrapper.service';
+import { CurrenciesWrapperService, FormattedCurrency } from './currencies-wrapper.service';
+import { FormattedPerson, PersonsWrapperService } from './persons-wrapper.service';
+import { SupplierFormatted, SuppliersWrapperService } from './suppliers-wrapper.service';
+
 export interface OrderResponseDTOFormatted {
   id?: number;
-  primary_cost_center_id?: CostCenterFormatted | undefined;
+  primary_cost_center_id?: CostCenterFormatted;
   booking_year?: string; //
   auto_index?: number;
   created_date?: string;
@@ -44,20 +34,20 @@ export interface OrderResponseDTOFormatted {
   owner_id?: number;
   content_description?: string; // Beschreibung der Bestellung
   status?: OrderStatus;
-  currency?: FormattedCurrency | undefined;
-  currency_short?: FormattedCurrency | undefined;
+  currency?: FormattedCurrency;
+  currency_short?: FormattedCurrency;
   comment?: string;
   comment_for_supplier?: string;
   quote_number?: string; // Angebotsnummer
   quote_sign?: string;
   quote_date?: string;
   quote_price?: string;
-  delivery_person_id?: FormattedPerson | undefined;
-  invoice_person_id?: FormattedPerson | undefined;
-  queries_person_id?: FormattedPerson | undefined;
+  delivery_person_id?: FormattedPerson;
+  invoice_person_id?: FormattedPerson;
+  queries_person_id?: FormattedPerson;
   customer_id?: string;
-  supplier_id?: SupplierFormatted | undefined;
-  secondary_cost_center_id?: CostCenterFormatted | undefined;
+  supplier_id?: SupplierFormatted;
+  secondary_cost_center_id?: CostCenterFormatted;
   fixed_discount?: number;
   percentage_discount?: number;
   cash_discount?: number;
@@ -79,11 +69,12 @@ export interface OrderResponseDTOFormatted {
 })
 export class OrdersWrapperService {
   constructor(
-    private costCenterWrapperService: CostCenterWrapperService,
-    private personsWrapperService: PersonsWrapperService,
-    private currenciesWrapperService: CurrenciesWrapperService,
-    private suppliersWrapperService: SuppliersWrapperService,
-    private readonly http: HttpClient
+    private readonly http: HttpClient,
+    private readonly ordersService: OrdersService,
+    private readonly costCenterWrapperService: CostCenterWrapperService,
+    private readonly personsWrapperService: PersonsWrapperService,
+    private readonly currenciesWrapperService: CurrenciesWrapperService,
+    private readonly suppliersWrapperService: SuppliersWrapperService
   ) {}
 
   /**
@@ -110,132 +101,149 @@ export class OrdersWrapperService {
    * @returns PagedOrderResponseDTO OK
    * @throws ApiError
    */
+
+  /**
+   * @param page Seitenzahl für die Paginierung (beginnend bei 0).
+   * @param size Anzahl der Elemente pro Seite.
+   * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.  `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend), dann nach `id` (aufsteigend).
+   * @param filters Filterparameter zur Einschränkung der Ergebnisse.
+   * @param searchTerm Suchbegriff zur weiteren Filterung der Ergebnisse.
+   * @returns PagedOrderResponseDTO OK
+   */
   async getAllOrders(
-    page?: number,
+    page: number = 0,
     size: number = 20,
-    sort?: Array<string>,
-    primaryCostCenters?: Array<string>,
-    bookingYears?: Array<string>,
-    createdAfter?: string,
-    createdBefore?: string,
-    ownerIds?: Array<number>,
-    statuses?: Array<OrderStatus>,
-    quotePriceMin?: number,
-    quotePriceMax?: number,
-    deliveryPersonIds?: Array<number>,
-    invoicePersonIds?: Array<number>,
-    queriesPersonIds?: Array<number>,
-    customerIds?: Array<string>,
-    supplierIds?: Array<number>,
-    secondaryCostCenters?: Array<string>,
-    lastUpdatedTimeAfter?: string,
-    lastUpdatedTimeBefore?: string
+    sort: Array<string> = [],
+    filters?: FilterRequestParams,
+    _searchTerm?: string
   ): Promise<PagedOrderResponseDTO> {
-    return await OrdersService.getAllOrders(
-      page,
-      size,
-      sort,
-      primaryCostCenters,
-      bookingYears,
-      createdAfter,
-      createdBefore,
-      ownerIds,
-      statuses,
-      quotePriceMin,
-      quotePriceMax,
-      deliveryPersonIds,
-      invoicePersonIds,
-      queriesPersonIds,
-      customerIds,
-      supplierIds,
-      secondaryCostCenters,
-      lastUpdatedTimeAfter,
-      lastUpdatedTimeBefore
+    return await lastValueFrom(
+      this.ordersService.getAllOrders(
+        page,
+        size,
+        sort,
+        filters?.primaryCostCenters,
+        filters?.bookingYears,
+        filters?.createdAfter,
+        filters?.createdBefore,
+        filters?.ownerIds,
+        filters?.statuses,
+        filters?.quotePriceMin,
+        filters?.quotePriceMax,
+        filters?.deliveryPersonIds,
+        filters?.invoicePersonIds,
+        filters?.queriesPersonIds,
+        filters?.customerIds,
+        filters?.supplierIds,
+        filters?.secondaryCostCenters,
+        filters?.lastUpdatedTimeAfter,
+        filters?.lastUpdatedTimeBefore,
+        filters?.autoIndexMin,
+        filters?.autoIndexMax
+      )
     );
   }
 
   async createOrder(request: OrderRequestDTO): Promise<OrderResponseDTO> {
-    request.booking_year = request.booking_year?.slice(-2); // Nur die letzten zwei Ziffern übergeben
-    return await OrdersService.createOrder(request);
+    request.booking_year = request.booking_year?.slice(-2); // Ensure only last 2 digits are sent
+    return await lastValueFrom(this.ordersService.createOrder(request));
   }
 
   async getOrderById(orderId: number): Promise<OrderResponseDTO> {
-    return await OrdersService.getOrderById(orderId);
+    return await lastValueFrom(this.ordersService.getOrderById(orderId));
+  }
+
+  /**
+   * Get order by its order number.
+   * @param orderNumber The order number in the format "primaryCostCenter-bookingYear-autoIndex".
+   * @returns OrderResponseDTO
+   */
+  async getOrderByOrderNumber(orderNumber: string): Promise<OrderResponseDTO> {
+    const orderNumberParsed = orderNumber.split('-').map(part => part.trim());
+    const filter = {
+      primaryCostCenters: [orderNumberParsed[0]],
+      bookingYears: [orderNumberParsed[1]],
+      autoIndexMin: Number.parseInt(orderNumberParsed[2]),
+      autoIndexMax: Number.parseInt(orderNumberParsed[2]),
+    } as FilterRequestParams;
+
+    return await lastValueFrom(
+      from(this.getAllOrders(0, 1, [], filter)).pipe(
+        map(ordersPage => {
+          const order = ordersPage.content?.[0];
+          if (order) {
+            return order;
+          }
+          throw new Error(`Order with order number ${orderNumber} not found`);
+        })
+      )
+    );
   }
 
   async deleteOrder(orderId: number): Promise<void> {
-    return await OrdersService.deleteOrder(orderId);
+    return await lastValueFrom(this.ordersService.deleteOrder(orderId));
   }
 
-  async getOrderItems(orderId: number): Promise<ItemResponseDTO[]> {
-    return await OrdersService.getOrderItems(orderId);
+  async getOrderItems(orderId: number): Promise<ItemResponseDTO[]>;
+  async getOrderItems(orderId: string): Promise<ItemResponseDTO[]>;
+  // Implementation
+  async getOrderItems(orderId: number | string): Promise<ItemResponseDTO[]> {
+    const id = typeof orderId === 'string' ? Number.parseInt(orderId) : orderId;
+    return await lastValueFrom(this.ordersService.getOrderItems(id));
   }
 
   async createOrderItems(orderId: number, requestBody: any): Promise<any> {
-    return await OrdersService.createOrderItems(orderId, requestBody);
+    return await lastValueFrom(this.ordersService.createOrderItems(orderId, requestBody));
   }
 
   async deleteItemOfOrder(orderId: number, itemId: number): Promise<void> {
-    return await OrdersService.deleteItemOfOrder(orderId, itemId);
+    return await lastValueFrom(this.ordersService.deleteItemOfOrder(orderId, itemId));
   }
 
-  async getOrderQuotations(orderId: number): Promise<QuotationResponseDTO[]> {
-    return await OrdersService.getOrderQuotations(orderId);
+  async getOrderQuotations(orderId: number): Promise<QuotationResponseDTO[]>;
+  async getOrderQuotations(orderId: string): Promise<QuotationResponseDTO[]>;
+  // Implementation
+  async getOrderQuotations(orderId: number | string): Promise<QuotationResponseDTO[]> {
+    const id = typeof orderId === 'string' ? Number.parseInt(orderId) : orderId;
+    return await lastValueFrom(this.ordersService.getOrderQuotations(id));
   }
 
   async createOrderQuotations(orderId: number, requestBody: any): Promise<any> {
-    return await OrdersService.createOrderQuotations(orderId, requestBody);
+    return await lastValueFrom(this.ordersService.createOrderQuotations(orderId, requestBody));
   }
 
-  async deleteQuotationOfOrder(
-    orderId: number,
-    quotationId: number
-  ): Promise<void> {
-    return await OrdersService.deleteQuotationOfOrder(orderId, quotationId);
+  async deleteQuotationOfOrder(orderId: number, quotationId: number): Promise<void> {
+    return await lastValueFrom(this.ordersService.deleteQuotationOfOrder(orderId, quotationId));
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
-    return this.http.get(`${environment.apiUrl}/orders/${orderId}/export`, {
-      responseType: 'blob',
-    });
+    return this.ordersService.exportOrderToFormula(Number.parseInt(orderId));
   }
 
   async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
-    return await OrdersService.getOrdersApprovals(orderId);
+    return await lastValueFrom(this.ordersService.getOrderApprovals(orderId));
   }
 
-  async getOrderStatusHistory(
-    orderId: number
-  ): Promise<OrderStatusHistoryResponseDTO[]> {
-    return await OrdersService.getOrdersStatusHistory(orderId);
+  async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistoryResponseDTO[]> {
+    return await lastValueFrom(this.ordersService.getOrderStatusHistory(orderId));
   }
 
-  async putOrderState(
-    orderId: number,
-    newState: OrderStatus
-  ): Promise<OrderStatus> {
-    return await OrdersService.putOrdersStatus(orderId, newState);
+  async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
+    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, newState));
   }
 
-  async getOrderByIDInFormFormat(
-    orderId: number
-  ): Promise<OrderResponseDTOFormatted> {
-    const orderData = await OrdersService.getOrderById(orderId);
+  async getOrderByIDInFormFormat(orderId: number): Promise<OrderResponseDTOFormatted> {
+    // geändert von OrdersService zu this.getOrderById
+    const orderData = await this.getOrderById(orderId);
     return this.formatOrderData(orderData);
   }
 
-  async patchOrderApprovals(
-    orderId: number,
-    requestBody: any
-  ): Promise<ApprovalResponseDTO> {
-    return await OrdersService.patchOrdersApproval(orderId, requestBody);
+  async patchOrderApprovals(orderId: number, requestBody: any): Promise<ApprovalResponseDTO> {
+    return await lastValueFrom(this.ordersService.updateOrderApprovals(orderId, requestBody));
   }
 
-  async patchOrderById(
-    orderId: number,
-    requestBody: any
-  ): Promise<OrderResponseDTO> {
-    return await OrdersService.updateOrder(orderId, requestBody);
+  async patchOrderById(orderId: number, requestBody: any): Promise<OrderResponseDTO> {
+    return await lastValueFrom(this.ordersService.updateOrder(orderId, requestBody));
   }
 
   /**
@@ -243,9 +251,7 @@ export class OrdersWrapperService {
    * @param order The OrderResponseDTO to format
    * @returns Promise<OrderResponseDTOFormatted> The formatted order data
    */
-  async mapOrderResponseToFormatted(
-    order: OrderResponseDTO
-  ): Promise<OrderResponseDTOFormatted> {
+  async mapOrderResponseToFormatted(order: OrderResponseDTO): Promise<OrderResponseDTOFormatted> {
     return this.formatOrderData(order);
   }
 
@@ -254,12 +260,9 @@ export class OrdersWrapperService {
    * @param order The order to be formatted
    * @returns The formatted order data
    */
-  private async formatOrderData(
-    order: OrderResponseDTO
-  ): Promise<OrderResponseDTOFormatted> {
+  private async formatOrderData(order: OrderResponseDTO): Promise<OrderResponseDTOFormatted> {
     let formatedPrimaryCostCenter: CostCenterFormatted | undefined = undefined;
-    let formatedSecondaryCostCenter: CostCenterFormatted | undefined =
-      undefined;
+    let formatedSecondaryCostCenter: CostCenterFormatted | undefined = undefined;
     let formatedDeliveryPerson: FormattedPerson | undefined = undefined;
     let formatedInvoicePerson: FormattedPerson | undefined = undefined;
     let formatedQueriesPerson: FormattedPerson | undefined = undefined;
@@ -288,32 +291,22 @@ export class OrdersWrapperService {
         : Promise.resolve(undefined),
 
       order.delivery_person_id
-        ? this.personsWrapperService.getPersonByIdFormattedForAutocomplete(
-            order.delivery_person_id
-          )
+        ? this.personsWrapperService.getPersonByIdFormattedForAutocomplete(order.delivery_person_id)
         : Promise.resolve(undefined),
 
       order.invoice_person_id
-        ? this.personsWrapperService.getPersonByIdFormattedForAutocomplete(
-            order.invoice_person_id
-          )
+        ? this.personsWrapperService.getPersonByIdFormattedForAutocomplete(order.invoice_person_id)
         : Promise.resolve(undefined),
 
       order.queries_person_id
-        ? this.personsWrapperService.getPersonByIdFormattedForAutocomplete(
-            order.queries_person_id
-          )
+        ? this.personsWrapperService.getPersonByIdFormattedForAutocomplete(order.queries_person_id)
         : Promise.resolve(undefined),
 
       order.supplier_id
-        ? this.suppliersWrapperService.getSupplierByIdFormattedForAutocomplete(
-            order.supplier_id
-          )
+        ? this.suppliersWrapperService.getSupplierByIdFormattedForAutocomplete(order.supplier_id)
         : Promise.resolve(undefined),
       order.currency
-        ? this.currenciesWrapperService.formatCurrencyForAutocomplete(
-            order.currency
-          )
+        ? this.currenciesWrapperService.formatCurrencyForAutocomplete(order.currency)
         : Promise.resolve(undefined),
     ]);
 
@@ -330,11 +323,12 @@ export class OrdersWrapperService {
       queries_person_id: formatedQueriesPerson,
       supplier_id: formatedSupplier,
       quote_price: this.formatPriceToGerman(order.quote_price ?? 0),
+      currency_short: formatedCurrency,
     };
   }
 
   mapItemResponseToTableModel(items: ItemResponseDTO[]): ItemTableModel[] {
-    return items.map((item) => ({
+    return items.map(item => ({
       item_id: item.item_id,
       name: item.name ?? '',
       price_per_unit: this.formatPriceToGerman(item.price_per_unit!) ?? 0,
@@ -367,8 +361,7 @@ export class OrdersWrapperService {
   mapItemTableModelToItemRequestDTO(item: ItemTableModel): ItemRequestDTO {
     // Ensure vat_value is always a string (use vat_value, fallback to vat?.value, fallback '0')
     const vatValue =
-      item.vat_value ??
-      (item.vat && item.vat.value !== undefined ? String(item.vat.value) : '0');
+      item.vat_value ?? (item.vat?.value === undefined ? '0' : String(item.vat.value));
 
     return {
       name: item.name,
@@ -379,19 +372,15 @@ export class OrdersWrapperService {
       comment: item.comment,
       vat_value: vatValue,
       // preferred_list is optional in both models; cast to match generated enum type
-      preferred_list: item.preferred_list as
-        | ItemRequestDTO.preferred_list
-        | undefined,
+      preferred_list: item.preferred_list as ItemRequestDTO.PreferredListEnum | undefined,
       preferred_list_number: item.preferred_list_number,
       // cast vat_type to the generated enum type ('netto' | 'brutto')
-      vat_type: item.vat_type as ItemRequestDTO.vat_type,
+      vat_type: item.vat_type as ItemRequestDTO.VatTypeEnum,
     };
   }
 
-  mapQuotationResponseToTableModel(
-    quotations: QuotationResponseDTO[]
-  ): QuotationTableModel[] {
-    return quotations.map((q) => ({
+  mapQuotationResponseToTableModel(quotations: QuotationResponseDTO[]): QuotationTableModel[] {
+    return quotations.map(q => ({
       index: q.index ?? 0,
       quote_date: this.formatISODateTimeToDateString(q.quote_date!) ?? '',
       price: this.formatPriceToGerman(q.price ?? 0),
@@ -400,10 +389,8 @@ export class OrdersWrapperService {
     }));
   }
 
-  mapQuotationRequestToTableModel(
-    quotations: QuotationRequestDTO[]
-  ): QuotationTableModel[] {
-    return quotations.map((q) => ({
+  mapQuotationRequestToTableModel(quotations: QuotationRequestDTO[]): QuotationTableModel[] {
+    return quotations.map(q => ({
       quote_date: q.quote_date,
       price: this.formatPriceToGerman(q.price),
       company_name: q.company_name,
@@ -411,15 +398,51 @@ export class OrdersWrapperService {
     }));
   }
 
-  mapQuotationTableModelToQuotationRequestDTO(
-    quotation: QuotationTableModel
-  ): QuotationRequestDTO {
+  mapQuotationTableModelToQuotationRequestDTO(quotation: QuotationTableModel): QuotationRequestDTO {
     return {
-      quote_date: this.formatLocalDateTimeToISO(new Date(quotation.quote_date)),
+      quote_date: this.convertToISODateString(quotation.quote_date),
       price: this.parseGermanPriceToNumber(quotation.price) ?? 0,
       company_name: quotation.company_name,
       company_city: quotation.company_city,
     };
+  }
+
+  /**
+   * Converts various date formats to ISO date string (YYYY-MM-DD)
+   * Handles Luxon DateTime objects, JavaScript Date objects, and date strings
+   * @param value The date value to convert
+   * @returns ISO date string (YYYY-MM-DD) or empty string if invalid
+   */
+  private convertToISODateString(value: any): string {
+    if (value === null || value === undefined) return '';
+
+    // Handle Luxon DateTime objects
+    if (typeof value === 'object' && 'isLuxonDateTime' in value && value.isLuxonDateTime) {
+      return value.toISODate?.() ?? value.toFormat?.('yyyy-MM-dd') ?? '';
+    }
+
+    // Handle JavaScript Date objects
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+      return value.toISOString().split('T')[0];
+    }
+
+    // Handle string dates (German format DD.MM.YYYY or ISO format)
+    if (typeof value === 'string' && value.length > 0) {
+      // Check if it's German format (DD.MM.YYYY)
+      const germanDateRegex = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/;
+      const germanDateMatch = germanDateRegex.exec(value);
+      if (germanDateMatch) {
+        const [, day, month, year] = germanDateMatch;
+        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+      }
+      // Try parsing as ISO or other format
+      const date = new Date(value);
+      if (!Number.isNaN(date.getTime())) {
+        return date.toISOString().split('T')[0];
+      }
+    }
+
+    return '';
   }
 
   /**
@@ -431,22 +454,22 @@ export class OrdersWrapperService {
   formatPriceToGerman(value: string | number): string {
     if (value === null || value === undefined) return '0,00';
 
-    // Als String konvertieren und Leerzeichen entfernen
+    // Convert to string and trim whitespace
     let str = String(value).trim();
 
-    // Falls beides vorkommt (Punkt und Komma), nur das letzte als Dezimaltrennzeichen interpretieren
+    // If both comma and dot are present, determine which is the decimal separator
     const lastComma = str.lastIndexOf(',');
     const lastDot = str.lastIndexOf('.');
     if (lastComma > lastDot) {
-      str = str.replace(/\./g, '').replace(',', '.'); // deutsches Format → normalisieren
+      str = str.replaceAll('.', '').replace(',', '.'); // remove dots and replace comma with dot as decimal separator
     } else {
-      str = str.replace(/,/g, ''); // falls nur Punkt-Format vorhanden ist
+      str = str.replaceAll(',', ''); // remove commas and keep dot as decimal separator
     }
 
-    const num = parseFloat(str);
-    if (isNaN(num)) return '0,00';
+    const num = Number.parseFloat(str);
+    if (Number.isNaN(num)) return '0,00';
 
-    // Deutsch formatieren
+    // Format as German price string
     return num.toLocaleString('de-DE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -458,9 +481,7 @@ export class OrdersWrapperService {
    * @param formattedOrder The formatted order to convert
    * @returns OrderRequestDTO The request DTO ready for API submission
    */
-  mapFormattedOrderToRequest(
-    formattedOrder: OrderResponseDTOFormatted
-  ): OrderRequestDTO {
+  mapFormattedOrderToRequest(formattedOrder: OrderResponseDTOFormatted): OrderRequestDTO {
     return {
       primary_cost_center_id: formattedOrder.primary_cost_center_id?.value,
       booking_year: formattedOrder.booking_year?.slice(-2), // Get last 2 digits
@@ -472,7 +493,7 @@ export class OrdersWrapperService {
       comment_for_supplier: formattedOrder.comment_for_supplier,
       quote_number: formattedOrder.quote_number,
       quote_sign: formattedOrder.quote_sign,
-      quote_date: formattedOrder.quote_date,
+      quote_date: this.convertToISODateString(formattedOrder.quote_date),
       quote_price: this.parseGermanPriceToNumber(formattedOrder.quote_price),
       delivery_person_id: formattedOrder.delivery_person_id?.value,
       invoice_person_id: formattedOrder.invoice_person_id?.value,
@@ -485,16 +506,12 @@ export class OrdersWrapperService {
       cashback_percentage: formattedOrder.cash_discount, // Map cash_discount to cashback_percentage
       cashback_days: formattedOrder.cashback_days,
       flag_decision_cheapest_offer: formattedOrder.flag_decision_cheapest_offer,
-      flag_decision_most_economical_offer:
-        formattedOrder.flag_decision_most_economical_offer,
+      flag_decision_most_economical_offer: formattedOrder.flag_decision_most_economical_offer,
       flag_decision_sole_supplier: formattedOrder.flag_decision_sole_supplier,
-      flag_decision_contract_partner:
-        formattedOrder.flag_decision_contract_partner,
-      flag_decision_preferred_supplier_list:
-        formattedOrder.flag_decision_preferred_supplier_list,
+      flag_decision_contract_partner: formattedOrder.flag_decision_contract_partner,
+      flag_decision_preferred_supplier_list: formattedOrder.flag_decision_preferred_supplier_list,
       flag_decision_other_reasons: formattedOrder.flag_decision_other_reasons,
-      decision_other_reasons_description:
-        formattedOrder.decision_other_reasons_description,
+      decision_other_reasons_description: formattedOrder.decision_other_reasons_description,
       dfg_key: formattedOrder.dfg_key,
       delivery_address_id: formattedOrder.delivery_address_id,
       invoice_address_id: formattedOrder.invoice_address_id,
@@ -510,10 +527,10 @@ export class OrdersWrapperService {
     if (!price) return undefined;
 
     // Remove thousand separators (.) and replace decimal comma with dot
-    const normalized = price.replace(/\./g, '').replace(',', '.');
-    const num = parseFloat(normalized);
+    const normalized = price.replaceAll('.', '').replace(',', '.');
+    const num = Number.parseFloat(normalized);
 
-    return isNaN(num) ? undefined : num;
+    return Number.isNaN(num) ? undefined : num;
   }
 
   /**
@@ -528,13 +545,47 @@ export class OrdersWrapperService {
   ): Partial<OrderResponseDTOFormatted> {
     const changedFields: Partial<OrderResponseDTOFormatted> = {};
 
+    // Fields that should be formatted as ISO date (YYYY-MM-DD) only
+    const dateFields = new Set(['quote_date', 'order_date', 'delivery_date']);
+
+    // Fields that need price parsing (German format to number)
+    const priceFields = new Set(['quote_price']);
+
+    // --- Special handling for currency and currency_short fields ---
+    const extractValue = (value: any): string | undefined => {
+      if (value === null || value === undefined) return undefined;
+      if (typeof value === 'string') return value;
+      if (typeof value === 'object' && 'value' in value) {
+        return (value as { value?: string }).value;
+      }
+      return undefined;
+    };
+
+    const originalCurrencyValue =
+      extractValue(original.currency) ?? extractValue((original as any).currency_short);
+    const modifiedCurrencyShortValue = extractValue((modified as any).currency_short);
+
+    if (originalCurrencyValue !== modifiedCurrencyShortValue) {
+      (changedFields as any).currency_short = modifiedCurrencyShortValue;
+    }
+
     // --- Iterate through all fields except currency & currency_short ---
     for (const key in modified) {
-      if (!Object.prototype.hasOwnProperty.call(modified, key)) continue;
-      if (key === 'currency' || key === 'currency_short') continue; // Skip currency fields as handled above
+      if (!Object.hasOwn(modified, key)) continue;
+      if (key === 'currency' || key === 'currency_short') continue; // Skip currency fields (handled above)
 
       const originalValue = (original as any)[key];
       const modifiedValue = (modified as any)[key];
+
+      // Special handling for price fields - compare parsed values
+      if (priceFields.has(key)) {
+        const origParsed = this.parseGermanPriceToNumber(originalValue);
+        const modParsed = this.parseGermanPriceToNumber(modifiedValue);
+        if (origParsed !== modParsed) {
+          (changedFields as any)[key] = modParsed;
+        }
+        continue;
+      }
 
       if (
         typeof originalValue === 'object' &&
@@ -544,44 +595,53 @@ export class OrdersWrapperService {
       ) {
         // prefer comparing .value when available
         if ('value' in originalValue || 'value' in modifiedValue) {
-          const orig = (originalValue as any).value;
-          const mod = (modifiedValue as any).value;
+          const orig = originalValue.value;
+          const mod = modifiedValue.value;
           if (orig !== mod) {
             (changedFields as any)[key] = mod;
           }
-        } else {
+        } else if (JSON.stringify(originalValue) !== JSON.stringify(modifiedValue)) {
           // fallback to deep compare
-          if (JSON.stringify(originalValue) !== JSON.stringify(modifiedValue)) {
-            (changedFields as any)[key] = modifiedValue;
-          }
+          (changedFields as any)[key] = modifiedValue;
         }
       } else if (
         typeof modifiedValue === 'object' &&
         modifiedValue !== null &&
         'value' in modifiedValue
       ) {
-        const mod = (modifiedValue as any).value;
+        const mod = modifiedValue.value;
         const orig = originalValue;
         if (orig !== mod) {
           (changedFields as any)[key] = mod;
         }
-      } else {
-        if (originalValue !== modifiedValue) {
-          (changedFields as any)[key] = modifiedValue;
-        }
+      } else if (originalValue !== modifiedValue) {
+        (changedFields as any)[key] = modifiedValue;
       }
     }
 
-    return changedFields;
+    // Convert undefined values to null for API compatibility
+    // Format date fields to ISO date format (YYYY-MM-DD)
+    return Object.fromEntries(
+      Object.entries(changedFields).map(([key, value]) => {
+        if (value === undefined || value === null) {
+          return [key, null];
+        }
+        // Format date fields to ISO date string (YYYY-MM-DD) using helper method
+        if (dateFields.has(key)) {
+          return [key, this.convertToISODateString(value)];
+        }
+        return [key, value];
+      })
+    ) as Partial<OrderResponseDTOFormatted>;
   }
 
-  private formatLocalDateTimeToISO(date: Date): string {
+  public formatLocalDateTimeToISO(date: Date): string {
     if (!date) return '';
     // example input: 2200-12-08T00:00:00.000+01:00
     return date.toISOString();
   }
 
-  private formatISODateTimeToDateString(dateString: string): string {
+  public formatISODateTimeToDateString(dateString: string): string {
     if (!dateString) return '';
     return new Date(dateString).toLocaleDateString('de-DE');
   }

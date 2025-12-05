@@ -4,6 +4,7 @@ import {
   Component,
   computed,
   input,
+  isSignal,
   OnChanges,
   OnInit,
   output,
@@ -243,5 +244,21 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
     }
     this.selectedRow = row;
     this.rowClicked.emit(row);
+  }
+
+  /**
+   * Checks if an action button is disabled.
+   * Supports both boolean and Signal<boolean> for the disabled property.
+   * @param {TableActionButton} button - The action button to check.
+   * @returns {boolean} Whether the button is disabled.
+   */
+  isButtonDisabled(button: TableActionButton): boolean {
+    if (button.disabled === undefined) {
+      return false;
+    }
+    if (isSignal(button.disabled)) {
+      return button.disabled();
+    }
+    return button.disabled;
   }
 }

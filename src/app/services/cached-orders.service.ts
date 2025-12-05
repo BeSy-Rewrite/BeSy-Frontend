@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { from, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { OrdersService, PagedOrderResponseDTO } from '../api';
+import { PagedOrderResponseDTO } from '../api-services-v2';
 import { FilterRequestParams } from '../models/filter/filter-request-params';
+import { OrdersWrapperService } from './wrapper-services/orders-wrapper.service';
 
 type CacheEntry = {
   response: PagedOrderResponseDTO;
@@ -24,6 +25,8 @@ export class CachedOrdersService {
   private readonly cacheDurationMs: number = environment.cacheDurationMs ?? 5 * 60 * 1000; // 5 minutes default
 
   private readonly cache: Map<string, CacheEntry> = new Map();
+
+  constructor(private readonly ordersService: OrdersWrapperService) { }
 
   /**
    * Fetch orders from the API and cache the result.
@@ -77,26 +80,12 @@ export class CachedOrdersService {
     filters: FilterRequestParams,
     searchTerm: string = ''
   ) {
-    return from(OrdersService.getAllOrders(
+    return from(this.ordersService.getAllOrders(
       page,
       size,
       sort,
-      filters?.primaryCostCenters,
-      filters?.bookingYears,
-      filters?.createdAfter,
-      filters?.createdBefore,
-      filters?.ownerIds,
-      filters?.statuses,
-      filters?.quotePriceMin,
-      filters?.quotePriceMax,
-      filters?.deliveryPersonIds,
-      filters?.invoicePersonIds,
-      filters?.queriesPersonIds,
-      filters?.customerIds,
-      filters?.supplierIds,
-      filters?.secondaryCostCenters,
-      filters?.lastUpdatedTimeAfter,
-      filters?.lastUpdatedTimeBefore
+      filters,
+      searchTerm
     )).pipe(
       tap((pageResponse: PagedOrderResponseDTO) => {
 

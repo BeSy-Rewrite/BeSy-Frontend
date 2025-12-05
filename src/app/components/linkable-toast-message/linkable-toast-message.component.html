@@ -1,0 +1,10 @@
+<div class="whitespace-pre-line self-center">
+    @for (part of internalContent(); track $index) {
+    {{part.text}}
+    @if (part.link) {
+    <a class="text-blue-500 underline"
+       [routerLink]="part.link.url"
+       color="primary">{{part.link.text}}</a>
+    }
+    }
+</div>

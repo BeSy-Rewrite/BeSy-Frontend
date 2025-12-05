@@ -62,9 +62,10 @@
             Bearbeiten
         </a>
         }
+
         @for (state of stateChangeButtons; track $index) {
         <button
-                mat-raised-button
+                [matButton]="state.style ?? 'elevated'"
                 [color]="state.color"
                 (click)="changeOrderState(state.state)"
                 [matTooltip]="state.tooltip">

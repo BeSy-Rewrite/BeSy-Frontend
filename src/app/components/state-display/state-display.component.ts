@@ -1,7 +1,7 @@
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { forkJoin } from 'rxjs';
-import { OrderResponseDTO, OrderStatus, OrderStatusHistoryResponseDTO } from '../../api';
+import { OrderResponseDTO, OrderStatus, OrderStatusHistoryResponseDTO } from '../../api-services-v2';
 import { STATE_DESCRIPTIONS, STATE_DISPLAY_NAMES, STATE_FONT_ICONS, STATE_ICONS } from '../../display-name-mappings/status-names';
 import { AllowedStateTransitions } from '../../models/allowed-states-transitions';
 import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
@@ -28,10 +28,12 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   orderStatusHistory: OrderStatusHistoryResponseDTO[] = [];
 
   steps: Step[] = [];
-  states: OrderStatus[] = [];
   currentStepIndex = 0;
 
-  screenWidth = 0;
+  futureStates: OrderStatus[] = [];
+  skippableStates: OrderStatus[] = [];
+
+  isInitialized = false;
 
   constructor(
     private readonly stateService: StateWrapperService,
@@ -49,17 +51,33 @@ export class StateDisplayComponent implements OnInit, OnChanges {
     })
       .subscribe(({ transitions, history }) => {
         this.allowedStateTransitions = transitions;
-        this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
-
-        this.generateLinearStates();
-        this.generateSteps();
+        this.setupProgressData(history);
+        this.isInitialized = true;
       });
   }
 
+  /**
+   * Update the progress bar when the order input changes.
+   */
   ngOnChanges() {
-    this.ordersService.getOrderStatusHistory(this.order().id!).then(history => {
-      this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp) - Date.parse(b.timestamp));
-      this.generateLinearStates();
+    if (this.isInitialized) {
+      this.ordersService.getOrderStatusHistory(this.order().id!).then(history => {
+        this.setupProgressData(history);
+      });
+    }
+  }
+
+  /**
+   * Setup the progress bar data based on order status history.
+   * @param history The order status history.
+   */
+  setupProgressData(history: OrderStatusHistoryResponseDTO[]) {
+    this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
+
+    this.stateService.getLongestSequenceOfStates().subscribe(sequence => {
+      this.skippableStates = this.stateService.getSkippableStates();
+      this.futureStates = this.truncateStatesAfterCurrent(sequence);
+      this.checkHistory();
       this.generateSteps();
     });
   }
@@ -69,68 +87,62 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    */
   generateSteps() {
     this.steps = [];
-    let i = 0;
-    for (const state of this.states) {
-      const timestamp = this.orderStatusHistory.at(i)?.timestamp ?? '';
-
-      this.steps.push({
-        label: STATE_ICONS.get(state) + '\u00A0' + STATE_DISPLAY_NAMES.get(state),
-        subLabel: timestamp ? new Date(timestamp).toLocaleDateString() : undefined,
-        tooltip: STATE_DESCRIPTIONS.get(state) || '',
-        icon: STATE_FONT_ICONS.get(state) || '',
-      });
-      i++;
+    for (const historyEntry of this.orderStatusHistory) {
+      if (historyEntry.status === undefined) continue;
+      this.steps.push(this.generateStepFromState(historyEntry.status, historyEntry.timestamp));
+    }
+    this.currentStepIndex = this.steps.length - 1;
+    for (const futureState of this.futureStates) {
+      this.steps.push(this.generateStepFromState(futureState));
     }
   }
 
   /**
-   * Generate a linear sequence of states for the progress bar.
-   * Ensures all future states are included in order.
+   * Generate a Step object from an order state.
+   * @param state The order status.
+   * @param timestamp Optional timestamp for the state.
+   * @returns The generated Step object.
    */
-  generateLinearStates() {
-    this.setupStateHistory();
+  generateStepFromState(state: OrderStatus, timestamp?: string): Step {
+    return {
+      label: STATE_ICONS.get(state) + '\u00A0' + STATE_DISPLAY_NAMES.get(state),
+      subLabel: timestamp ? new Date(timestamp).toLocaleDateString() : undefined,
+      tooltip: STATE_DESCRIPTIONS.get(state) || '',
+      icon: STATE_FONT_ICONS.get(state) || '',
+      isSkippable: this.skippableStates.includes(state)
+    };
+  }
 
-    const futureStates = [OrderStatus.IN_PROGRESS];
-    let nextState: OrderStatus | undefined;
+  /**
+   * Truncate the future states after the current order status.
+   */
+  truncateStatesAfterCurrent(futureStates: OrderStatus[]): OrderStatus[] {
+    if (this.order().status === OrderStatus.DELETED) return [];
 
-    do {
-      nextState = this.getNextLinearState(futureStates);
-      if (nextState) {
-        futureStates.push(nextState);
+    const futureCutOffIndex = futureStates.indexOf(this.order().status!);
+    return futureStates.slice(futureCutOffIndex + 1);
+  }
+
+  /**
+   * Check the order status history for missing states and repair it if necessary.
+   */
+  checkHistory() {
+    const requiredPastStates = this.skippableStates.slice(0, this.skippableStates.indexOf(this.order().status!) + 1);
+    const repairedHistory = [...this.orderStatusHistory];
+    for (const state of requiredPastStates) {
+      if (!this.orderStatusHistory.some(entry => entry.status === state)) {
+        const newHistoryEntry: OrderStatusHistoryResponseDTO = { status: state, timestamp: "Unknown" };
+        const insertIndex = repairedHistory.slice().reverse().findIndex(entry =>
+          this.allowedStateTransitions[entry.status!]?.includes(state)
+        );
+
+        if (insertIndex === -1) {
+          repairedHistory.push(newHistoryEntry);
+        } else {
+          repairedHistory.splice(insertIndex, 0, newHistoryEntry);
+        }
       }
-    } while (nextState);
-
-    if (this.order().status === OrderStatus.DELETED) return;
-
-    this.states = [...this.states, ...futureStates.splice(futureStates.indexOf(this.order().status!) + 1)];
-    this.currentStepIndex = this.states.lastIndexOf(this.order().status!);
-  }
-
-  /**
-   * Setup the initial state history for the progress bar.
-   */
-  private setupStateHistory() {
-    this.states = this.orderStatusHistory.map(h => h.status).slice();
-    if (this.states.at(-1) !== this.order().status) {
-      this.states.push(this.order().status!);
     }
-    this.currentStepIndex = this.states.lastIndexOf(this.order().status!);
-  }
 
-
-  /**
-   * Get the next linear state in the progression.
-   * Maps non-linear transitions to the next logical step.
-   * @param states The current list of states.
-   * @returns The next linear state or undefined if there is none.
-   */
-  private getNextLinearState(states: OrderStatus[]): OrderStatus | undefined {
-    const lastState = states.at(-1);
-    if (!lastState) {
-      return undefined;
-    }
-    return this.allowedStateTransitions[lastState]?.find((nextState) =>
-      nextState !== OrderStatus.DELETED && nextState !== OrderStatus.IN_PROGRESS
-    );
   }
 }

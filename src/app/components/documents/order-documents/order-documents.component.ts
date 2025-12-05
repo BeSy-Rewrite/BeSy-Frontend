@@ -7,7 +7,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { DomSanitizer } from '@angular/platform-browser';
 import { environment } from '../../../../environments/environment';
-import { InvoiceResponseDTO, OrderResponseDTO } from '../../../api';
+import { InvoiceResponseDTO, OrderResponseDTO, OrderStatus } from '../../../api-services-v2';
 import { INVOICE_FIELD_NAMES } from '../../../display-name-mappings/invoice-names';
 import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
@@ -38,22 +38,21 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
    */
   order = input.required<OrderResponseDTO>();
 
+  orderStatus = OrderStatus;
+
   documents: DisplayableInvoice[] = [];
   documentPreviews = new Map<number, string>();
 
   dataSource = new MatTableDataSource<DisplayableInvoice>(this.documents);
   columns: TableColumn<DisplayableInvoice>[] = [
-    { id: 'id', label: INVOICE_FIELD_NAMES.id },
+    { id: 'id', label: INVOICE_FIELD_NAMES.id, isInvisible: true },
     { id: 'comment', label: INVOICE_FIELD_NAMES.comment },
-    { id: 'cost_center_id', label: INVOICE_FIELD_NAMES.cost_center_id },
-    { id: 'price', label: INVOICE_FIELD_NAMES.price },
+    { id: 'cost_center_id', label: INVOICE_FIELD_NAMES.cost_center_id, isInvisible: true },
+    { id: 'price', label: INVOICE_FIELD_NAMES.price, isInvisible: true },
     { id: 'date', label: INVOICE_FIELD_NAMES.date },
     { id: 'created_date', label: INVOICE_FIELD_NAMES.created_date },
     {
-      id: 'paperless_id', label: INVOICE_FIELD_NAMES.paperless_id, action(row) {
-        if (row.paperless_id)
-          navigator.clipboard.writeText(row.paperless_id?.toString());
-      },
+      id: 'paperless_id', label: INVOICE_FIELD_NAMES.paperless_id, action: (row) => this.handlePaperlessIdClick(row),
     },
     { id: 'order_id', label: INVOICE_FIELD_NAMES.order_id, isInvisible: true }
   ];
@@ -112,7 +111,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
         created_date: this.resourceResolverService.formatDate(invoice.created_date),
         price: this.resourceResolverService.formatPrice(invoice.price, 'EUR'),
         tooltips: {
-          paperless_id: invoice.paperless_id ? 'Klicken zum Kopieren der Paperless ID' : 'Keine Paperless ID vorhanden'
+          paperless_id: invoice.paperless_id ? 'Klicken zum Kopieren der Paperless ID' : 'Keine Paperless ID vorhanden. Klicke zum erneuten Hochladen.'
         }
       }));
 
@@ -129,14 +128,12 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
    * @param row The documents meta data.
    */
   downloadDocument(row: DisplayableInvoice) {
-    if (!row.id) {
-      this._snackBar.open('Dokument-ID fehlerhaft', 'Schließen', { duration: 3000 });
-      return;
-    }
-    this.invoicesService.downloadDocument(row.id).subscribe(blob => {
-      const link = document.createElement('a')
-      const objectUrl = URL.createObjectURL(blob)
-      link.href = objectUrl
+    if (!this.checkForValidIds(row)) return;
+
+    this.invoicesService.downloadDocument(row.id!).subscribe(blob => {
+      const link = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
       link.download = `Dokument-${row.id}_Bestellung-${row.order_id}_Paperless-${row.paperless_id}_${row.comment}.pdf`;
       link.click();
       URL.revokeObjectURL(objectUrl);
@@ -148,12 +145,9 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
    * @param row The document meta data.
    */
   openDocumentPreview(row: DisplayableInvoice) {
-    if (!row.id) {
-      this._snackBar.open('Dokument-ID fehlerhaft', 'Schließen', { duration: 3000 });
-      return;
-    }
+    if (!this.checkForValidIds(row)) return;
 
-    this.invoicesService.getDocumentPreview(row.id).subscribe(blob => {
+    this.invoicesService.getDocumentPreview(row.id!).subscribe(blob => {
       const objectUrl = URL.createObjectURL(blob);
       this.openPreviewDialog(row, objectUrl);
     });
@@ -167,7 +161,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
   openPreviewDialog(row: DisplayableInvoice, previewImageURL: string) {
     this.dialogRef.open(DocumentPreviewComponent, {
       data: {
-        title: `Vorschau für Dokument ${row.id} - Bestellung ${row.order_id}`,
+        title: `Vorschau für Dokument ${row.paperless_id} - Bestellung ${row.order_id}`,
         comment: row.comment,
         previewImageURL: this.sanitizer.bypassSecurityTrustUrl(previewImageURL),
         onDownload: () => {
@@ -180,17 +174,40 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
   /**
    * Opens the document upload dialog.
    */
-  openUploadDialog() {
-    const dialogRef = this.dialogRef.open(DocumentUploadComponent, {
-      data: { orderId: this.order().id! },
+  openUploadDialog(invoiceId: string | undefined = undefined): void {
+    this.dialogRef.open(DocumentUploadComponent, {
+      data: {
+        order: this.order(),
+        invoiceId,
+        onComplete: () => {
+          this.ngOnInit();
+        }
+      },
       minWidth: '60%'
     });
+  }
 
-    dialogRef.componentInstance.uploadSuccessful.subscribe((success: boolean) => {
-      if (success) {
-        this.ngOnInit();
-      }
-    });
+  /** Handles clicks on the paperless ID field. */
+  handlePaperlessIdClick(row: DisplayableInvoice): void {
+    if (row.paperless_id) {
+      navigator.clipboard.writeText(row.paperless_id?.toString());
+    } else {
+      console.log('No paperless ID, opening upload dialog');
+      this.openUploadDialog(row.id);
+    }
+  }
+
+  /** Checks if the document has valid IDs before performing actions. */
+  private checkForValidIds(row: DisplayableInvoice): boolean {
+    if (!row.id) {
+      this._snackBar.open('Dokument-ID fehlerhaft', 'Schließen', { duration: 3000 });
+      return false;
+    }
+    if (!row.paperless_id) {
+      this._snackBar.open('Keine Paperless ID vorhanden für dieses Dokument.', 'Schließen', { duration: 3000 });
+      return false;
+    }
+    return true;
   }
 
 }

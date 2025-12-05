@@ -1,4 +1,4 @@
-import { OrderStatus } from "../../api";
+import { OrderStatus } from "../../api-services-v2";
 
 /**
  * Interface representing the parameters for a filter request.
@@ -37,4 +37,8 @@ export interface FilterRequestParams {
     lastUpdatedTimeAfter: string | undefined;
     /** ISO date string representing the latest last updated time to filter by. */
     lastUpdatedTimeBefore: string | undefined;
+    /** Minimum auto index to filter by. */
+    autoIndexMin: number | undefined;
+    /** Maximum auto index to filter by. */
+    autoIndexMax: number | undefined;
 }

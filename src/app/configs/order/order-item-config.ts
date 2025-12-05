@@ -46,6 +46,8 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
       options: [
         { label: 'Fehler beim Laden der Mehrwertsteuersätze', value: undefined },
       ],
+      defaultValue: 19,
+      tooltip: 'Der Mehrwertsteuersatz, der auf diesen Artikel angewendet wird.',
     },
     {
       name: 'comment',

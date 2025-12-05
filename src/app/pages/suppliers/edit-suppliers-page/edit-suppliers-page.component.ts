@@ -1,28 +1,25 @@
-import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import { SupplierResponseDTO } from '../../../api/models/SupplierResponseDTO';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { EDIT_SUPPLIER_FORM_CONFIG } from '../../../configs/edit/edit-supplier-config';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
+import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { AddressFormComponent } from '../../../components/address-form/address-form.component';
 import { EDIT_SUPPLIER_ADDRESS_FORM_CONFIG } from '../../../configs/edit/edit-address-config';
 import { MatTableDataSource } from '@angular/material/table';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   AddressRequestDTO,
-  AddressResponseDTO,
-  CustomerIdRequestDTO,
   CustomerIdResponseDTO,
   SupplierRequestDTO,
   VatResponseDTO,
-} from '../../../api';
+} from '../../../api-services-v2'
 import { EDIT_CUSTOMER_ID_FORM_CONFIG } from '../../../configs/edit/edit-customer-id-config';
-import { MatButtonModule } from '@angular/material/button';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { ConfirmDialogComponent } from '../../../components/confirm-dialog/confirm-dialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { EDIT_SUPPLIER_FORM_CONFIG } from '../../../configs/edit/edit-supplier-config';
 @Component({
   selector: 'app-edit-suppliers-page',
   imports: [MatDivider, FormComponent, AddressFormComponent, MatButtonModule],
@@ -31,12 +28,12 @@ import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapp
 })
 export class EditSuppliersPageComponent implements OnInit {
   constructor(
-    private route: ActivatedRoute,
-    private router: Router,
-    private _notifications: MatSnackBar,
-    private suppliersWrapperService: SuppliersWrapperService,
-    private dialog: MatDialog,
-    private vatWrapperService: VatWrapperService
+    private readonly route: ActivatedRoute,
+    private readonly router: Router,
+    private readonly _notifications: MatSnackBar,
+    private readonly suppliersWrapperService: SuppliersWrapperService,
+    private readonly dialog: MatDialog,
+    private readonly vatWrapperService: VatWrapperService
   ) {}
 
   supplierId!: number | unknown; // ID of the supplier being edited

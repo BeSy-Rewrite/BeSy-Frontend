@@ -14,7 +14,7 @@
         <mat-chip-listbox #presets multiple>
             @for (preset of filterPresets(); track $index) {
             <mat-chip-option (selectionChange)="onPresetSelectionChange($event, preset)"
-                [selected]="isPresetApplied(preset)">
+                             [selected]="isPresetApplied(preset)">
                 {{ preset.label }}
             </mat-chip-option>
             }
@@ -34,7 +34,7 @@
 
     <mat-accordion multi>
 
-        @for (filter of filters; track $index) {
+        @for (filter of availableFilters; track $index) {
         <mat-expansion-panel>
             <mat-expansion-panel-header>
                 <mat-panel-title class="font-bold text-base">{{ filter.title }}</mat-panel-title>
@@ -43,17 +43,17 @@
             @switch (filter.type) {
             @case ('date-range') {
             <app-date-range-picker card-content [minDate]="filter.data?.minDate ?? null"
-                [maxDate]="filter.data?.maxDate ?? null" [(dateRange)]="dateRanges[filter.key]">
+                                   [maxDate]="filter.data?.maxDate ?? null" [(dateRange)]="dateRanges[filter.key]">
             </app-date-range-picker>
             }
             @case ('select') {
             <app-chip-selection card-content [inputLabel]="filter.data?.inputLabel ?? filter.title"
-                [inputPlaceholder]="filter.data?.inputPlaceholder ?? ''" [(items)]="chips[filter.key]">
+                                [inputPlaceholder]="filter.data?.inputPlaceholder ?? ''" [(items)]="chips[filter.key]">
             </app-chip-selection>
             }
             @case ('range') {
             <app-range-selection-slider card-content [minValue]="filter.data?.minValue ?? 0"
-                [maxValue]="filter.data?.maxValue ?? 1" [(selectedRange)]="ranges[filter.key]">
+                                        [maxValue]="filter.data?.maxValue ?? 1" [(selectedRange)]="ranges[filter.key]">
             </app-range-selection-slider>
             }
             }

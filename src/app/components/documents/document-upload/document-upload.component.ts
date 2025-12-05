@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, output, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from "@angular/material/checkbox";
@@ -6,27 +6,25 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { concat, merge, startWith } from 'rxjs';
+import { finalize, merge, mergeMap, of, startWith, tap } from 'rxjs';
+import { OrderResponseDTO } from '../../../api-services-v2';
 import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../../configs/document-upload-config';
+import { DocumentDTO } from '../../../models/document-invoice';
+import { ToastService } from '../../../services/toast.service';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
-import { FormComponent, FormConfig } from "../../form-component/form-component.component";
-import { ProcessingIndicatorComponent } from '../../processing-indicator/processing-indicator.component';
-import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
 import { FileInputComponent } from '../../file-input/file-input.component';
+import { FormComponent, FormConfig } from "../../form-component/form-component.component";
+import { LinkableToastMessageComponent, LinkObject } from '../../linkable-toast-message/linkable-toast-message.component';
+import { ProcessingIndicatorComponent, ProcessingIndicatorData } from '../../processing-indicator/processing-indicator.component';
+import { ToastProcessingIndicatorComponent } from '../../toast-processing-indicator/toast-processing-indicator.component';
+import { ToastResponse } from '../../toast/toast.component';
+import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
 
 export interface DocumentUploadData {
-  orderId: number;
-}
-
-export interface InvoiceRequestDTO {
-  id: string;
-  cost_center_id: number;
-  order_id: number;
-  price?: number;
-  date?: string;
-  comment?: string;
-  paperless_id?: number;
+  order: OrderResponseDTO;
+  onComplete?: (success: boolean) => void;
+  invoiceId?: string;
 }
 
 @Component({
@@ -46,10 +44,6 @@ export interface InvoiceRequestDTO {
   styleUrl: './document-upload.component.scss'
 })
 export class DocumentUploadComponent implements OnInit {
-  /**
-   * Event emitted when the upload is successful.
-   */
-  uploadSuccessful = output<boolean>();
 
   readonly dialogRef = inject(MatDialogRef<DocumentPreviewComponent>);
   readonly data = inject<DocumentUploadData>(MAT_DIALOG_DATA);
@@ -62,6 +56,8 @@ export class DocumentUploadComponent implements OnInit {
   readonly selectedFile = signal<File | undefined>(undefined);
 
   processingIndicator: MatDialogRef<ProcessingIndicatorComponent> | undefined;
+  toastRef: ToastResponse | undefined;
+  isUploadComplete = signal(false);
 
   /**
    * Computed property to determine if the form is valid for submission.
@@ -72,7 +68,8 @@ export class DocumentUploadComponent implements OnInit {
     private readonly costCentersService: CostCenterWrapperService,
     private readonly invoicesService: InvoicesWrapperServiceService,
     private readonly snackBar: MatSnackBar,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    private readonly toastService: ToastService
   ) {
     const subscriptions = [
       this.documentFormGroup.valueChanges,
@@ -108,27 +105,32 @@ export class DocumentUploadComponent implements OnInit {
     const linkExisting = this.linkExistingDocument.value;
     const existingIdValid = this.existingDocumentId.value ? this.existingDocumentId.value > 0 : false;
     const fileSelected = this.selectedFile() !== undefined;
-    this.isValid.set(formValid && (linkExisting ? existingIdValid : fileSelected));
+
+    if (this.data.invoiceId) {
+      this.isValid.set(fileSelected);
+    } else {
+      this.isValid.set(formValid && (linkExisting ? existingIdValid : fileSelected));
+    }
   }
 
   /**
    * Handles the file input change event to store the selected file.
-   * @param event The file input change event.
+   * @param file The file input change event.
    */
-  onFileSelected(event: any): void {
-    this.selectedFile.set(event.target.files[0] ?? undefined);
+  onFileSelected(file: File | undefined): void {
+    this.selectedFile.set(file ?? undefined);
     this.updateValidity();
   }
 
   /**
-   * Handles the upload button click event to create the invoice and upload the file if necessary.
+   * Handles the upload button click event to create the document and upload the file if necessary.
    */
   onUpload(): void {
     if (this.documentFormGroup.valid) {
-      this.processingIndicator = this.dialog.open(ProcessingIndicatorComponent);
+      const data: ProcessingIndicatorData = { isClosable: this.isUploadComplete };
+      this.processingIndicator = this.dialog.open(ProcessingIndicatorComponent, { data });
 
-      const invoice = this.getInvoice();
-      this.createInvoice(invoice);
+      this.handleUpload();
     } else {
       this.snackBar.open('Bitte fülle alle erforderlichen Felder aus.', 'Schließen', {
         duration: 3000
@@ -137,10 +139,10 @@ export class DocumentUploadComponent implements OnInit {
   }
 
   /**
-   * Constructs an InvoiceRequestDTO from the form values.
-   * @returns The constructed InvoiceRequestDTO.
+   * Constructs a DocumentDTO from the form values.
+   * @returns The constructed DocumentDTO.
    */
-  getInvoice(): InvoiceRequestDTO {
+  getDocumentDTO(): DocumentDTO {
     const formValues: any = this.documentFormGroup.value;
 
     let paperlessId: number | undefined;
@@ -155,45 +157,123 @@ export class DocumentUploadComponent implements OnInit {
     }
 
     return {
-      id: formValues.id,
-      cost_center_id: formValues.costCenterId,
-      order_id: this.data.orderId,
-      price: formValues.price,
-      date: formValues.date ? new Date(Date.parse(formValues.date)).toISOString().split('T')[0] : undefined,
+      date: new Date(),
       comment: formValues.comment,
       paperless_id: paperlessId
     };
   }
 
   /**
-   * Creates a new invoice and uploads the associated file if necessary.
-   * @param invoice The invoice data to create.
+   * Handles the upload process, either linking an existing document or creating a new one.
    */
-  createInvoice(invoice: InvoiceRequestDTO): void {
-    const observables = [this.invoicesService.createInvoiceForOrder(this.data.orderId, invoice)];
-    if (!this.linkExistingDocument.value && this.selectedFile()) {
-      observables.push(this.invoicesService.uploadInvoiceFile(invoice.id, this.selectedFile()!));
+  handleUpload(): void {
+    let uploadObservable;
+
+    if (this.data.invoiceId) {
+      this.setupUploadCompletionHandler(true);
+      uploadObservable = this.invoicesService.uploadInvoiceFile(this.data.invoiceId, this.selectedFile()!);
+    } else {
+      uploadObservable = this.createDocument(this.getDocumentDTO());
     }
-    concat(...observables).subscribe({
+
+    uploadObservable.pipe(
+      finalize(() => {
+        if (this.toastRef) this.toastRef.cancel(true);
+        this.processingIndicator?.close();
+      })
+    ).subscribe({
       next: () => {
-        this.processingIndicator?.close();
+        this.toastService.addToast({
+          message: LinkableToastMessageComponent,
+          inputs: {
+            message: `Das Dokument ${this.getDocumentInfo()} für Bestellung {LINK} wurde erfolgreich verarbeitet und hochgeladen.`,
+            links: [this.getLinkObjectToOrder()]
+          },
+          type: 'success',
+          duration: 5000,
+        });
+        this.data.onComplete?.(true);
         this.dialogRef.close(true);
       },
-      complete: () => {
-        this.snackBar.open('Dokument erfolgreich hochgeladen.', 'Schließen', {
-          duration: 3000
+      error: () => {
+        this.toastService.addToast({
+          message: LinkableToastMessageComponent,
+          inputs: {
+            message: `Fehler beim Verarbeiten des Dokuments ${this.getDocumentInfo()} für Bestellung {LINK}\nSiehe Paperless für weitere Details.`,
+            links: [this.getLinkObjectToOrder()]
+          },
+          type: 'error',
         });
-        this.uploadSuccessful.emit(true);
-        this.processingIndicator?.close();
-        this.dialogRef.close(true);
+        this.data.onComplete?.(false);
       },
-      error: (error) => {
-        this.snackBar.open('Fehler beim Hochladen des Dokuments. Bitte versuchen Sie es erneut.', 'Schließen', {
-          duration: 5000
-        });
-        this.uploadSuccessful.emit(false);
-        this.processingIndicator?.close();
-      }
     });
+  }
+
+  /**
+   * Creates a document for the current order and uploads the associated file.
+   * @param document The document data to create.
+   * @returns An observable of the created invoice response.
+   */
+  createDocument(document: DocumentDTO) {
+    return this.invoicesService.createDocumentForOrder(this.data.order.id!, document).pipe(
+      tap({
+        next: createdDocument => this.setupUploadCompletionHandler(createdDocument.paperless_id == undefined),
+        error: () => {
+          this.toastService.addToast({
+            message: LinkableToastMessageComponent,
+            inputs: {
+              message: `Fehler beim Erstellen des Dokuments für Bestellung {LINK}\nBitte versuchen Sie es erneut.`,
+              links: [this.getLinkObjectToOrder()]
+            },
+            type: 'error',
+          });
+          this.data.onComplete?.(false);
+          this.processingIndicator?.close();
+        }
+      }),
+      mergeMap(createdInvoice => {
+        if (createdInvoice.paperless_id) {
+          return of(createdInvoice);
+        }
+        return this.invoicesService.uploadInvoiceFile(createdInvoice.id!, this.selectedFile()!);
+      })
+    );
+  }
+
+  /**
+   * Sets up the handler for upload completion, showing a processing indicator toast.
+   */
+  setupUploadCompletionHandler(showProcessingToast?: boolean): void {
+    this.isUploadComplete.set(true);
+    this.processingIndicator?.afterClosed().subscribe(() => {
+      if (showProcessingToast) {
+        this.toastRef = this.toastService.addToast({
+          message: ToastProcessingIndicatorComponent,
+          isPersistent: true,
+          type: 'info',
+          inputs: { documentName: this.selectedFile()?.name, orderId: this.data.order.id }
+        });
+      }
+      this.dialogRef.close(true);
+    });
+  }
+
+  /**
+   * Retrieves information about the document being uploaded.
+   * @returns A string describing the document.
+   */
+  getDocumentInfo(): string {
+    return this.linkExistingDocument.value ? `Paperless-ID ${this.existingDocumentId.value}` : this.selectedFile()?.name ?? 'Unbekannte Datei';
+  }
+
+  /**
+   * Generates a link to the order associated with the document.
+   * @returns The URL string to the order.
+   */
+  getLinkObjectToOrder(): LinkObject {
+    return {
+      text: String(this.data.order.id),
+      url: `/orders/${this.data.order.id}`
+    };
   }
 }

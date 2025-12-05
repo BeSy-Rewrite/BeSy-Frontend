@@ -1,8 +1,6 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
-import { UserResponseDTO, UsersService } from '../../api';
+import { lastValueFrom, Observable, of, tap } from 'rxjs';
+import { UserPreferencesResponseDTO, UserResponseDTO, UsersService } from '../../api-services-v2';
 import { AuthenticationService } from '../authentication.service';
 
 @Injectable({
@@ -10,33 +8,74 @@ import { AuthenticationService } from '../authentication.service';
 })
 export class UsersWrapperService {
 
-  constructor(private readonly authService: AuthenticationService, private readonly http: HttpClient) { }
+  private currentUserCache?: UserResponseDTO;
+
+  constructor(private readonly usersService: UsersService,
+    private readonly authService: AuthenticationService
+  ) { }
 
   /**
-     * @returns UserResponseDTO OK
-     * @throws ApiError
-     */
-  async getAllUsers() {
-    const users = await UsersService.getAllUsers();
-    return users;
-  }
-
-  /**
-     * @param id
-     * @returns UserResponseDTO OK
-     * @throws ApiError
-     */
-  async getUserById(id: string) {
-    const user = await UsersService.getUser(id);
-    return user;
-  }
-
-  /**
-   * Resolves the current user in the given filter presets.
-   * @param filterPresets The array of OrdersFilterPreset to resolve the current user in.
-   * @returns An observable of the resolved UserResponseDTO or undefined if not found.
+   * @returns Promise<UserResponseDTO[]>
+   * @throws ApiError
    */
-  getCurrentUser(): Observable<UserResponseDTO | undefined> {
-    return this.http.get<UserResponseDTO>(`${environment.apiUrl}/users/me`);
+  getAllUsers(): Promise<UserResponseDTO[]> {
+    return lastValueFrom(this.usersService.getAllUsers());
+  }
+
+  /**
+   * @param id
+   * @returns Promise<UserResponseDTO>
+   * @throws ApiError
+   */
+  getUserById(id: string): Promise<UserResponseDTO> {
+    return lastValueFrom(this.usersService.getUser(id));
+  }
+
+  /**
+   * Resolves the current user.
+   * Caches the user to avoid redundant API calls.
+   * @returns Observable<UserResponseDTO>
+   */
+  getCurrentUser(): Observable<UserResponseDTO> {
+    if (this.currentUserCache && this.authService.hasValidToken()) {
+      return of(this.currentUserCache);
+    } else {
+      this.currentUserCache = undefined;
+    }
+
+    return this.usersService.getCurrentUser().pipe(
+      tap(user => {
+        this.currentUserCache = user;
+      })
+    );
+  }
+
+  /**
+   * Retrieves the preferences of a user by their ID.
+   * @param userId The ID of the user.
+   * @returns An Observable of UserPreferencesResponseDTO containing the user's preferences.
+   */
+  getUserPreferences(userId: number): Observable<UserPreferencesResponseDTO> {
+    return this.usersService.getUserPreferences(userId);
+  }
+
+  /**
+   * Adds preferences for a user by their ID.
+   * @param userId The ID of the user.
+   * @param preferences The preferences to add.
+   * @returns An Observable of UserPreferencesResponseDTO containing the updated preferences.
+   */
+  addUserPreferences(userId: number, preferences: UserPreferencesResponseDTO): Observable<UserPreferencesResponseDTO> {
+    return this.usersService.addUserPreferences(userId, preferences);
+  }
+
+  /**
+   * Deletes preferences for a user by their ID.
+   * @param userId The ID of the user.
+   * @param preferences The preferences to delete.
+   * @returns An Observable of UserPreferencesResponseDTO containing the updated preferences.
+   */
+  deleteFromUserPreferences(userId: number, preferences: UserPreferencesResponseDTO): Observable<UserPreferencesResponseDTO> {
+    return this.usersService.deleteUserPreferences(userId, preferences);
   }
 }

@@ -1,0 +1,59 @@
+.warning-icon {
+      color: #f59e0b;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    .tab-section {
+      margin: 16px 0;
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tab-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 16px;
+      background-color: #f3f4f6;
+      font-weight: 500;
+      color: #374151;
+
+      mat-icon {
+        color: #6b7280;
+      }
+    }
+
+    .tab-name {
+      font-size: 14px;
+    }
+
+    .fields-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+
+      li {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px 8px 40px;
+        border-top: 1px solid #e5e7eb;
+        background-color: #fef3c7;
+        color: #92400e;
+        font-size: 13px;
+
+        mat-icon {
+          font-size: 16px;
+          width: 16px;
+          height: 16px;
+        }
+      }
+    }
+
+    .warning-text {
+      color: #dc2626;
+      font-weight: 500;
+      margin-top: 16px;
+    }

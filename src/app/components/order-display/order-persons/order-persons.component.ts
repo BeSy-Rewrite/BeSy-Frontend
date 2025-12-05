@@ -1,5 +1,5 @@
 import { Component, input } from '@angular/core';
-import { OrderResponseDTO } from '../../../api';
+import { OrderResponseDTO } from '../../../api-services-v2';
 import { PersonDetailsComponent } from '../../person-details/person-details.component';
 
 type Gender = 'm' | 'f' | 'd';

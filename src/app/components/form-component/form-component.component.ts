@@ -22,7 +22,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
-import { CustomerIdResponseDTO } from '../../api';
+import { CustomerIdResponseDTO } from '../../api-services-v2';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
@@ -86,7 +86,7 @@ export interface FormConfig {
   styleUrls: ['./form-component.component.scss'],
 })
 export class FormComponent implements OnInit {
-  constructor(private fb: FormBuilder) { }
+  constructor(private readonly fb: FormBuilder) { }
 
   @Input() config!: FormConfig;
   @Input() formGroup!: FormGroup;
@@ -195,6 +195,41 @@ export class FormComponent implements OnInit {
           control?.valueChanges.subscribe((val) => {
             this.filterOptions(field, val);
           });
+        }
+      }
+
+      // Handle Select fields
+      if (field.type === 'select' && field.options) {
+        const control = this.formGroup.get(field.name);
+
+        // Set default value if it matches one of the options
+        if (field.defaultValue && field.options?.length > 0) {
+          const match =
+            field.options.find(
+              (opt) => opt.value === field.defaultValue
+            ) || null;
+
+          // Set the control value to the matching option value
+          if (match) {
+            control?.setValue(match.value, { emitEvent: false });
+          }
+        }
+      }
+
+      if (field.type === 'radio' && field.options) {
+        const control = this.formGroup.get(field.name);
+
+        // Set default value if it matches one of the options
+        if (field.defaultValue && field.options?.length > 0) {
+          const match =
+            field.options.find(
+              (opt) => opt.value === field.defaultValue
+            ) || null;
+
+          // Set the control value to the matching option value
+          if (match) {
+            control?.setValue(match.value, { emitEvent: false });
+          }
         }
       }
 

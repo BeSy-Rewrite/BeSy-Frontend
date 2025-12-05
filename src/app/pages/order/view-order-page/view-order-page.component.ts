@@ -1,6 +1,6 @@
 import { ClipboardModule } from "@angular/cdk/clipboard";
 import { Component, computed, input, OnInit, signal, WritableSignal } from '@angular/core';
-import { MatButtonModule } from '@angular/material/button';
+import { MatButtonAppearance, MatButtonModule } from '@angular/material/button';
 import { MatDialog } from "@angular/material/dialog";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatExpansionModule } from '@angular/material/expansion';
@@ -10,7 +10,7 @@ import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
 import { environment } from "../../../../environments/environment";
-import { OrderStatus, UserResponseDTO } from '../../../api';
+import { OrderStatus, UserResponseDTO } from '../../../api-services-v2';
 import { setupDialog } from "../../../components/dialog/dialog.component";
 import { OrderDocumentsComponent } from "../../../components/documents/order-documents/order-documents.component";
 import { ApprovalsComponent } from '../../../components/order-display/approvals/approvals.component';
@@ -22,12 +22,15 @@ import { QuotationsListComponent } from '../../../components/order-display/quota
 import { StateHistoryComponent } from "../../../components/order-display/state-history/state-history.component";
 import { Step } from "../../../components/progress-bar/progress-bar.component";
 import { StateDisplayComponent } from "../../../components/state-display/state-display.component";
+import { ToastRequest } from "../../../components/toast/toast.component";
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { STATE_CHANGE_TO_NAMES, STATE_DISPLAY_NAMES, STATE_ICONS } from "../../../display-name-mappings/status-names";
 import { AllowedStateTransitions } from "../../../models/allowed-states-transitions";
 import { DisplayableOrder } from '../../../models/displayable-order';
 import { AuthenticationService } from "../../../services/authentication.service";
+import { OrderStateValidityService } from "../../../services/order-state-validity.service";
 import { OrderSubresourceResolverService } from "../../../services/order-subresource-resolver.service";
+import { ToastService } from "../../../services/toast.service";
 import { OrdersWrapperService } from "../../../services/wrapper-services/orders-wrapper.service";
 import { StateWrapperService } from "../../../services/wrapper-services/state-wrapper.service";
 import { UsersWrapperService } from "../../../services/wrapper-services/users-wrapper.service";
@@ -47,6 +50,7 @@ interface StateChangeButtons {
   tooltip: string;
   state: OrderStatus;
   color?: string;
+  style?: MatButtonAppearance;
 }
 
 @Component({
@@ -113,7 +117,9 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly authService: AuthenticationService,
     private readonly router: Router,
     private readonly snackBar: MatSnackBar,
-    private readonly dialog: MatDialog
+    private readonly dialog: MatDialog,
+    private readonly orderStateValidityService: OrderStateValidityService,
+    private readonly toastService: ToastService,
   ) { }
 
   /**
@@ -145,9 +151,9 @@ export class ViewOrderPageComponent implements OnInit {
     }
 
     this.ordersService.exportOrderToDocument(this.internalOrder().order.id?.toString()!).subscribe(blob => {
-      const link = document.createElement('a')
-      const objectUrl = URL.createObjectURL(blob)
-      link.href = objectUrl
+      const link = document.createElement('a');
+      const objectUrl = URL.createObjectURL(blob);
+      link.href = objectUrl;
       link.download = `Bestellung-${this.internalOrder().orderDisplay.besy_number}.pdf`;
       link.click();
       URL.revokeObjectURL(objectUrl);
@@ -177,9 +183,11 @@ export class ViewOrderPageComponent implements OnInit {
         continue;
       }
       let color;
+      let style: MatButtonAppearance = 'elevated';
       switch (state) {
         case OrderStatus.DELETED:
           color = 'warn';
+          style = 'outlined';
           break;
         case OrderStatus.APPROVED:
           color = 'accent';
@@ -191,10 +199,16 @@ export class ViewOrderPageComponent implements OnInit {
       this.stateChangeButtons.push({
         label: STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`,
         icon: STATE_ICONS.get(state) ?? '',
-        tooltip: `Zu '${STATE_DISPLAY_NAMES.get(state) ?? state}' wechseln`,
+        tooltip: state === OrderStatus.DELETED ? 'Bestellung wirklich löschen?' : `Zu '${STATE_DISPLAY_NAMES.get(state) ?? state}' wechseln`,
         state,
-        color
+        color,
+        style
       });
+    }
+    const deletedButtonIndex = this.stateChangeButtons.findIndex(btn => btn.state === OrderStatus.DELETED);
+    if (deletedButtonIndex !== -1) {
+      const [deletedButton] = this.stateChangeButtons.splice(deletedButtonIndex, 1);
+      this.stateChangeButtons.push(deletedButton);
     }
   }
 
@@ -208,37 +222,38 @@ export class ViewOrderPageComponent implements OnInit {
       this.lastStateChangeTimestamp = Date.now();
       return;
     }
-    if (!this.getNextAllowedStates().includes(newState)) {
-      this.snackBar.open(`Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState) ?? newState}' ist nicht erlaubt.`, 'Schließen', { duration: 5000 });
-      return;
-    }
 
-    if (newState === OrderStatus.IN_PROGRESS) {
-      this.ordersService.putOrderState(this.internalOrder().order.id!, newState).then(() => {
-        this.snackBar.open(`Bestellungsstatus erfolgreich zu '${STATE_DISPLAY_NAMES.get(newState) ?? newState}' geändert.`, 'Schließen', { duration: 5000 });
-        this.updateOrderState(newState);
-      },
-        () => {
-          this.snackBar.open('Fehler beim Ändern des Bestellungsstatus.', 'Schließen', { duration: 5000 });
+    this.orderStateValidityService.canTransitionToState(this.internalOrder().order, newState).subscribe({
+      next: () => {
+        if (newState === OrderStatus.DELETED) {
+          this.handleDeleteOrder();
+        } else {
+          this.ordersService.updateOrderState(this.internalOrder().order.id!, newState).then(() => {
+            this.snackBar.open(`Bestellungsstatus erfolgreich von \
+            '${STATE_DISPLAY_NAMES.get(this.internalOrder().order.status!)}' zu '${STATE_DISPLAY_NAMES.get(newState)}' geändert.`, 'Schließen', { duration: 5000 });
+            this.updateDisplayedOrderState(newState);
+          });
         }
-      );
-      return;
-    }
-
-    if (newState === OrderStatus.DELETED) {
-      this.handleDeleteOrder();
-      return;
-    }
-
-    console.warn(`Statuswechsel zu '${newState}' ist nicht implementiert.`);
-    // TODO: Implement order requirements check for other state changes. Use a service or something.
+      },
+      error: (err) => {
+        console.error('Fehler bei der Validierung des Statuswechsels:', err);
+        for (const error of err?.errors ?? []) {
+          const errorToast: ToastRequest = {
+            message: `Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState)}' fehlgeschlagen.\n
+          Grund: ${ORDER_FIELD_NAMES[error?.path] ?? error?.path} ist ungültig.`,
+            type: 'error'
+          };
+          this.toastService.addToast(errorToast);
+        }
+      }
+    });
   }
 
   /**
    * Updates the order state and resolves its subresources.
    * @param newState The new state to set.
    */
-  updateOrderState(newState: OrderStatus) {
+  updateDisplayedOrderState(newState: OrderStatus) {
     const newOrder = { ...this.internalOrder().order, status: newState };
     this.orderDisplayService.resolveOrderSubresources(newOrder).subscribe(orderDisplay => {
       this.internalOrder.set({ order: newOrder, orderDisplay });
