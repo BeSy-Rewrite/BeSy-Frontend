@@ -2,8 +2,8 @@
 
     @for (key of approvals().keys(); track $index) {
 
-    <div class="flex flex-row gap-2 items-center">
-        <mat-checkbox [checked]="approvals().get(key)" disabled />
+    <div class="flex flex-row gap-2 items-center" #container>
+        <mat-checkbox [checked]="approvals().get(key)" disabled aria-labelledby="container" />
         {{approvalNames[key]}}
         <mat-icon [matTooltip]="approvalDescriptions[key]" class="!text-he-lightblue-800">help</mat-icon>
     </div>

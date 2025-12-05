@@ -6,8 +6,4 @@
   flex: 1; /* nimmt den restlichen Platz */
 }
 
-:host ::ng-deep .mat-mdc-tab-body-content {
-  overflow: visible !important;
-  height: auto !important;
-}
 

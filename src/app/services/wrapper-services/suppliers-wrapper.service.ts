@@ -1,6 +1,11 @@
 import { Injectable } from '@angular/core';
+import { SupplierRequestDTO, SuppliersService } from '../../api-services-v2';
 import { lastValueFrom } from 'rxjs';
-import { SuppliersService } from '../../api-services-v2';
+
+export interface SupplierFormatted {
+  label: string | undefined;
+  value: number | undefined;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -20,16 +25,20 @@ export class SuppliersWrapperService {
     return lastValueFrom(this.suppliersService.createSupplier(supplier));
   }
 
-  async updateSupplier(id: number, supplier: any) {
-    return lastValueFrom(this.suppliersService.updateSupplierById(id, supplier));
+  async updateSupplier(id: number, supplier: SupplierRequestDTO) {
+    const updatedSupplier = await lastValueFrom(this.suppliersService.updateSupplierById(id, supplier));
+    console.log("Updated supplier:", updatedSupplier);
+    return updatedSupplier;
   }
 
   /**
-   * @param supplierId Die eindeutige ID des Lieferanten.
-   * @returns Liste der Kundennummern eines Lieferanten.
-   */
-  async getCustomersIdBySupplier(supplierId: number) {
-    return lastValueFrom(this.suppliersService.getCustomerIdsOfOrder(supplierId));
+     * @param supplierId The unique ID of the supplier for which to retrieve customer IDs.
+     * @returns CustomerIdResponseDTO List of customer IDs for a supplier.
+     * @throws ApiError
+     */
+  async getCustomersIdsBySupplierId(supplierId: number) {
+    const customerIds = await lastValueFrom(this.suppliersService.getCustomerIdsOfOrder(supplierId));
+    return customerIds;
   }
 
   async createSupplierCustomerId(supplierId: number, customerId: any) {
@@ -38,5 +47,16 @@ export class SuppliersWrapperService {
 
   async getSupplierAddress(id: number) {
     return lastValueFrom(this.suppliersService.getSupplierAddress(id));
+  }
+
+  async getSupplierByIdFormattedForAutocomplete(id: number): Promise<SupplierFormatted | undefined> {
+    const supplier = await this.getSupplierById(id);
+    if (supplier) {
+      return {
+        label: supplier.name,
+        value: supplier.id
+      };
+    }
+    return undefined;
   }
 }

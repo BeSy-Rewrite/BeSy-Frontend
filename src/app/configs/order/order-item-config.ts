@@ -13,7 +13,7 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
     {
       name: 'price_per_unit',
       label: 'Stückpreis',
-      type: 'number',
+      type: 'text',
       required: true,
       validators: [Validators.pattern(/^\d+([.,]\d{2})?$/)], // Validates numbers with optional two decimal places (comma as separator)
     },
@@ -26,6 +26,8 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
         { label: 'Netto', value: 'netto' },
         { label: 'Brutto', value: 'brutto' },
       ],
+      defaultValue: 'brutto',
+      tooltip: 'Geben Sie an, ob der Stückpreis als Netto- oder Bruttopreis verstanden werden soll.',
     },
     {
       name: 'quantity',
@@ -36,20 +38,16 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
       validators: [Validators.min(1), Validators.pattern(/^\d+$/)],
     },
     {
-      name: 'quantity_unit',
-      label: 'Einheit',
-      type: 'text',
-      required: false,
-    },
-    {
       name: 'vat_value',
       label: 'Mehrwertsteuersatz',
       type: 'select',
       required: true,
       // Will be loaded from API: vats
       options: [
-        { label: 'Fehler beim Laden der Mehrwertsteuersätze', value: null },
+        { label: 'Fehler beim Laden der Mehrwertsteuersätze', value: undefined },
       ],
+      defaultValue: 19,
+      tooltip: 'Der Mehrwertsteuersatz, der auf diesen Artikel angewendet wird.',
     },
     {
       name: 'comment',

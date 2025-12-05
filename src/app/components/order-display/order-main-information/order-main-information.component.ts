@@ -12,7 +12,6 @@ import { TableColumn } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
 import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
-import { GenericTableComponent } from '../../generic-table/generic-table.component';
 import { AddressDisplayComponent } from '../address-display/address-display.component';
 
 @Component({
@@ -20,18 +19,17 @@ import { AddressDisplayComponent } from '../address-display/address-display.comp
   imports: [
     MatDividerModule,
     MatButtonModule,
-    GenericTableComponent,
-    AddressDisplayComponent
+    AddressDisplayComponent,
   ],
   templateUrl: './order-main-information.component.html',
   styleUrl: './order-main-information.component.scss'
 })
 export class OrderMainInformationComponent implements OnInit, OnChanges {
 
+  /** The order data to display */
   orderData = input.required<DisplayableOrder>();
 
   orderFieldLabels = ORDER_FIELD_NAMES;
-  itemFieldLabels = ITEM_FIELD_NAMES;
 
   generalDetailsFields: (keyof OrderDisplayData)[] = [
     'primary_cost_center_id',
@@ -67,15 +65,15 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
   });
 
   displayedColumns: TableColumn<DisplayItem>[] = [
-    { id: 'name', label: this.itemFieldLabels['name'], footerContent: signal('Gesamt:') },
-    { id: 'comment', label: this.itemFieldLabels['comment'] },
-    { id: 'article_id', label: this.itemFieldLabels['article_id'] },
-    { id: 'preferred_list', label: this.itemFieldLabels['preferred_list'] },
-    { id: 'vat', label: this.itemFieldLabels['vat'] },
-    { id: 'vat_type', label: this.itemFieldLabels['vat_type'] },
-    { id: 'price_per_unit', label: this.itemFieldLabels['price_per_unit'] },
-    { id: 'quantity', label: this.itemFieldLabels['quantity'], footerContent: this.totalQuantityFormatted },
-    { id: 'price_total', label: this.itemFieldLabels['price_total'], footerContent: this.totalPriceFormatted },
+    { id: 'name', label: ITEM_FIELD_NAMES['name'], footerContent: signal('Gesamt:') },
+    { id: 'comment', label: ITEM_FIELD_NAMES['comment'] },
+    { id: 'article_id', label: ITEM_FIELD_NAMES['article_id'] },
+    { id: 'preferred_list', label: ITEM_FIELD_NAMES['preferred_list'] },
+    { id: 'vat', label: ITEM_FIELD_NAMES['vat'] },
+    { id: 'vat_type', label: ITEM_FIELD_NAMES['vat_type'] },
+    { id: 'price_per_unit', label: ITEM_FIELD_NAMES['price_per_unit'] },
+    { id: 'quantity', label: ITEM_FIELD_NAMES['quantity'], footerContent: this.totalQuantityFormatted },
+    { id: 'price_total', label: ITEM_FIELD_NAMES['price_total'], footerContent: this.totalPriceFormatted },
   ];
 
   additionalInfoKeys: (keyof OrderDisplayData)[] = [
@@ -104,10 +102,21 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
 
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
-    this.ordersService.getOrderItems(this.orderData().order.id?.toString() ?? '').then(items => {
+    const orderWrapper = this.orderData();
+    // If order data or order id is missing, clear the items and totals and return early.
+    if (!orderWrapper?.order.id) {
+      this.fetchedItems.set([]);
+      this.items = new MatTableDataSource([]);
+      this.totalQuantity.set(0);
+      this.totalPrice.set(0);
+      return;
+    }
+
+    const orderId: number = orderWrapper.order.id;
+    this.ordersService.getOrderItems(orderId).then(items => {
       this.fetchedItems.set(items);
 
-      this.currencyCode = this.orderData().order.currency?.code ?? 'EUR';
+      this.currencyCode = orderWrapper.order.currency?.code ?? 'EUR';
       this.totalQuantity.set(this.subresourceService.calculateTotalQuantity(items));
       this.totalPrice.set(this.subresourceService.calculateTotalGrossPrice(this.fetchedItems()));
 

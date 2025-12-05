@@ -138,7 +138,7 @@ export class DocumentUploadComponent implements OnInit {
     }
   }
 
-  /** 
+  /**
    * Constructs a DocumentDTO from the form values.
    * @returns The constructed DocumentDTO.
    */
@@ -266,7 +266,7 @@ export class DocumentUploadComponent implements OnInit {
     return this.linkExistingDocument.value ? `Paperless-ID ${this.existingDocumentId.value}` : this.selectedFile()?.name ?? 'Unbekannte Datei';
   }
 
-  /** 
+  /**
    * Generates a link to the order associated with the document.
    * @returns The URL string to the order.
    */

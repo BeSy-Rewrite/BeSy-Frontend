@@ -42,12 +42,12 @@ export interface NominatimResponseDTO {
   providedIn: 'root'
 })
 export class AddressAutocompleteServiceService {
-  private apiUrl = environment.nominatimUrl;
-  private cache = new Map<string, NominatimResult[]>();
+  private readonly apiUrl = environment.nominatimUrl;
+  private readonly cache = new Map<string, NominatimResult[]>();
 
   private lastRequestTime = 0; // Timestamp der letzten Anfrage in ms
 
-  constructor(private http: HttpClient) {}
+  constructor(private readonly http: HttpClient) {}
 
   // Delay zwischen den Anfragen
   private canSendRequest(): boolean {

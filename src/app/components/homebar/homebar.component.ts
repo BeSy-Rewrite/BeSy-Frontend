@@ -2,9 +2,10 @@ import { Component, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { Router, RouterModule } from '@angular/router';
+import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { LoginComponent } from "../login-indicator/login.component";
 import { NavbarButtonComponent } from '../navbar-button/navbar-button.component';
+import { filter } from 'rxjs';
 
 @Component({
   selector: 'app-homebar',
@@ -32,10 +33,15 @@ export class HomebarComponent {
   ];
 
   constructor(public readonly router: Router) {
-    router.events.subscribe(() => {
-      const currentLinkIndex = this.links.findIndex(link => link.path === `/${router.url.split('/')[1]}`);
-      this.activeMenuItem.set(currentLinkIndex !== -1 ? currentLinkIndex : 0);
-    });
+    // Only update activeMenuItem on successful navigation end
+    router.events
+      .pipe(filter(event => event instanceof NavigationEnd))
+      .subscribe(() => {
+        const currentLinkIndex = this.links.findIndex(
+          link => link.path === `/${router.url.split('/')[1]}`
+        );
+        this.activeMenuItem.set(currentLinkIndex !== -1 ? currentLinkIndex : 0);
+        this.isMobileMenuOpen.set(false);
+      });
   }
-
 }

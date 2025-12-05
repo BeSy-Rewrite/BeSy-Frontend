@@ -8,13 +8,12 @@ import { AllowedStateTransitions } from '../../models/allowed-states-transitions
   providedIn: 'root'
 })
 export class StateWrapperService {
+  constructor(private readonly ordersService: OrdersService) { }
 
   private stateTransitions: AllowedStateTransitions | undefined = undefined;
   private longestStateSequence: OrderStatus[] | undefined = undefined;
   private readonly initialState = OrderStatus.IN_PROGRESS;
   private skippableStates: OrderStatus[] | undefined;
-
-  constructor(private readonly ordersService: OrdersService) { }
 
   /**
    * Retrieves the allowed state transitions for orders.

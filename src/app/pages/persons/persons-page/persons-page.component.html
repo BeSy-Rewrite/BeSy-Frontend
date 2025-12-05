@@ -17,19 +17,19 @@
     </div>
   </mat-tab>
 
-  <mat-tab label="Neue Person anlegen" class="overflow-visible">
+  <mat-tab label="Neue Person anlegen">
     <mat-divider
       style="background-color: darkgrey; color: darkgrey"
     ></mat-divider>
-    <div class="add-person-page" style="justify-content: flex-end overflow-visible">
-      <div class="form-container flex space-x-5 pt-3 overflow-y-visible">
-        <div class="person-data-container bg-white overflow-visible">
+    <div class="add-person-page" style="justify-content: flex-end">
+      <div class="form-container flex space-x-5 pt-3">
+        <div class="person-data-container p-8 bg-white">
           <app-form-component
             [config]="personsFormConfig"
             [formGroup]="personForm"
           ></app-form-component>
         </div>
-        <div class="address-data-container bg-white overflow-visible">
+        <div class="address-data-container bg-white">
           <app-address-form
             [config]="addressFormConfig"
             [formGroup]="addressForm"
@@ -40,7 +40,7 @@
           ></app-address-form>
         </div>
       </div>
-      <div class="buttons flex justify-end overflow-visible">
+      <div class="buttons flex justify-end">
         <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
         <button
           mat-raised-button
