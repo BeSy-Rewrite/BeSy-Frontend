@@ -9,6 +9,8 @@ import {
 import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
+import * as zod from 'zod';
+import { de } from 'zod/v4/locales';
 import { environment } from '../environments/environment';
 import { provideApi } from './api-services-v2';
 import { routes } from './app.routes';
@@ -31,6 +33,9 @@ export const appConfig: ApplicationConfig = {
     provideApi(environment.apiUrl),
   ]
 };
+
+// Configure Zod for German error messages
+zod.config(de());
 
 // Reference: https://www.npmjs.com/package/angular-oauth2-oidc
 export const authCodeFlowConfig: AuthConfig = {

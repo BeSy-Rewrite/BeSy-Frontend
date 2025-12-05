@@ -23,6 +23,7 @@ import { QuotationsListComponent } from '../../../components/order-display/quota
 import { StateHistoryComponent } from "../../../components/order-display/state-history/state-history.component";
 import { Step } from "../../../components/progress-bar/progress-bar.component";
 import { StateDisplayComponent } from "../../../components/state-display/state-display.component";
+import { ToastInvalidOrderComponent } from "../../../components/toast-invalid-order/toast-invalid-order.component";
 import { ToastRequest } from "../../../components/toast/toast.component";
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { STATE_CHANGE_TO_NAMES, STATE_DISPLAY_NAMES, STATE_ICONS } from "../../../display-name-mappings/status-names";
@@ -250,19 +251,20 @@ export class ViewOrderPageComponent implements OnInit {
   highlightFirstInvalidField(error: ZodError) {
     const invalidField = error.issues?.[0]?.path?.at(-1)?.toString();
     if (invalidField && document.querySelector(`.${environment.orderFieldClassPrefix}${invalidField}`)) {
-      this.driverJsService.highlightElement(`.${environment.orderFieldClassPrefix}${invalidField}`, 'Fehler beim Statuswechsel', 'Feld ist ungültig oder unvollständig. Bitte überprüfen Sie die Eingabe.');
+      this.driverJsService.highlightElement(`.${environment.orderFieldClassPrefix}${invalidField}`, 'Fehler beim Statuswechsel', error.issues[0].message);
     }
   }
 
   createErrorToast(error: ZodError, newState: OrderStatus) {
-    for (const issue of error?.issues ?? []) {
-      const errorToast: ToastRequest = {
-        message: `Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState)}' fehlgeschlagen.\n
-          Grund: ${ORDER_FIELD_NAMES[issue?.path.toString()] ?? issue?.path} ist ungültig.`,
-        type: 'error'
-      };
-      this.toastService.addToast(errorToast);
-    }
+    const errorToast: ToastRequest = {
+      message: ToastInvalidOrderComponent,
+      inputs: {
+        targetState: newState,
+        errors: error
+      },
+      type: 'error'
+    };
+    this.toastService.addToast(errorToast);
   }
 
   /**
