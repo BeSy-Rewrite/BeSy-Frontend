@@ -7,7 +7,15 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "update:api": "npx @openapitools/openapi-generator-cli generate -i api-docs.yml -g typescript-angular -o src/app/api-services-v2 --additional-properties=enumPropertyNaming=UPPERCASE"
+    "update:api": "npx @openapitools/openapi-generator-cli generate -i api-docs.yml -g typescript-angular -o src/app/api-services-v2 --additional-properties=enumPropertyNaming=UPPERCASE",
+    "format": "prettier --write \"src/**/*.{ts,html,scss,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss,css}\"",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,html,scss,css}": [
+      "prettier --write"
+    ]
   },
   "private": true,
   "dependencies": {
@@ -38,14 +46,17 @@
     "@angular/compiler-cli": "^21.0.0",
     "@openapitools/openapi-generator-cli": "^2.21.4",
     "@types/jasmine": "~5.1.0",
+    "husky": "^9.1.7",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "lint-staged": "^16.2.7",
     "openapi-typescript-codegen": "^0.29.0",
     "postcss": "^8.5.3",
+    "prettier": "^3.7.4",
     "schematics-scss-migrate": "^2.3.17",
     "typescript": "~5.9.3"
   }

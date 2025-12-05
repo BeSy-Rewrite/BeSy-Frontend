@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+coverage/
+
+# Auto-generated API files (from OpenAPI generator)
+src/app/api-services-v2/
+
+# IDE and editor files
+.idea/
+.vscode/
+*.code-workspace
+
+# Misc
+*.md
+package-lock.json
+angular.json
