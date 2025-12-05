@@ -2,6 +2,7 @@ import { DataSource } from '@angular/cdk/table';
 import { Component, computed, input, OnChanges, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { ItemResponseDTO, OrderResponseDTO } from '../../../api-services-v2';
 import { ITEM_FIELD_NAMES } from '../../../display-name-mappings/item-names';
@@ -56,7 +57,8 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
   ];
 
   constructor(private readonly ordersService: OrdersWrapperService,
-    private readonly subresourceService: OrderSubresourceResolverService
+    private readonly subresourceService: OrderSubresourceResolverService,
+    private readonly snackbar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -71,6 +73,10 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
 
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
+    if (!this.order().id) {
+      this.snackbar.open('Bestellungs-ID ist ungültig. Artikel können nicht geladen werden.', 'Schließen', { duration: 5000 });
+      return;
+    }
     this.ordersService.getOrderItems(this.order().id!).then(items => {
       this.fetchedItems.set(items);
 

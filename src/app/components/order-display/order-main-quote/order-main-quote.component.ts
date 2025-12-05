@@ -2,6 +2,7 @@ import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatDividerModule } from "@angular/material/divider";
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { from } from 'rxjs';
 import { OrderResponseDTO } from '../../../api-services-v2';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
@@ -52,7 +53,8 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
   ];
 
   constructor(private readonly ordersService: OrdersWrapperService,
-    private readonly subresourceService: OrderSubresourceResolverService
+    private readonly subresourceService: OrderSubresourceResolverService,
+    private readonly snackbar: MatSnackBar
   ) { }
 
   ngOnInit(): void {
@@ -67,6 +69,10 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
 
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
+    if (!this.orderData().order.id) {
+      this.snackbar.open('Bestellungs-ID ist ungültig. Artikel können nicht geladen werden.', 'Schließen', { duration: 5000 });
+      return;
+    }
     from(this.ordersService.getOrderItems(this.orderData().order.id!)).subscribe(items => {
       this.currencyCode = this.orderData().order.currency?.code ?? this.currencyCode;
 

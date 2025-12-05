@@ -24,8 +24,8 @@
     <div class="flex flex-col h-fit">
         <h4 class="font-semibold text-lg mb-2">Begründung Lieferantenauswahl:</h4>
         @for (decisionFlag of decisionFlags; track $index) {
-        <p>
-            <mat-checkbox [checked]="orderData().order[decisionFlag]" disabled></mat-checkbox>
+        <p #container>
+            <mat-checkbox [checked]="orderData().order[decisionFlag]" disabled aria-labelledby="container" />
             {{ orderFieldLabels[decisionFlag] }}
         </p>
         }
