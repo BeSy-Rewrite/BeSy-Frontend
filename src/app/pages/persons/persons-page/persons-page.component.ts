@@ -1,9 +1,10 @@
 import { Component, effect, OnInit, signal, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
-import { MatLabel } from '@angular/material/form-field';
-import { MatRadioButton, MatRadioGroup } from '@angular/material/radio';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
@@ -14,6 +15,7 @@ import {
   PersonRequestDTO,
   PersonResponseDTO,
 } from '../../../api-services-v2';
+import { ConfirmDialogComponent } from '../../../components/confirm-dialog/confirm-dialog.component';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
@@ -30,9 +32,8 @@ import { PersonsWrapperService } from '../../../services/wrapper-services/person
     FormComponent,
     MatDividerModule,
     MatButtonModule,
-    MatRadioGroup,
-    MatRadioButton,
-    MatLabel,
+    MatButtonToggleModule,
+    MatIconModule,
   ],
   templateUrl: './persons-page.component.html',
   styleUrls: ['./persons-page.component.scss'],
@@ -42,7 +43,8 @@ export class PersonsPageComponent implements OnInit {
   constructor(
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
-    private readonly personsWrapperService: PersonsWrapperService
+    private readonly personsWrapperService: PersonsWrapperService,
+    private readonly _dialog: MatDialog
   ) {
     effect(() => {
       this.onAddressSelectionModeChanged(this.addressSelectionMode());
@@ -113,6 +115,20 @@ export class PersonsPageComponent implements OnInit {
       this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(this.addresses);
     });
     this.addressFormGroup.disable();
+  }
+
+  onAddressModeChange(event: MatButtonToggleChange): void {
+    this.addressSelectionMode.set(event.value);
+    // Reset form state when switching modes
+    if (event.value === 'new') {
+      this.addressFormGroup.reset();
+      this.addressFormGroup.enable();
+      this.selectedAddressId = undefined;
+    } else {
+      this.addressFormGroup.reset();
+      this.addressFormGroup.disable();
+      this.selectedAddressId = undefined;
+    }
   }
 
   editPerson(row: PersonResponseDTO) {
@@ -237,7 +253,25 @@ export class PersonsPageComponent implements OnInit {
   // Handle back navigation
   // Change tab
   onBack() {
-    this.tabGroup.selectedIndex = 0; // Switch to tab index for "Personenübersicht"
+    // Display confirmation dialog if resetting all forms
+    const dialogRef = this._dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Alle Änderungen zurücksetzen',
+        message:
+          'Möchten Sie wirklich alle Änderungen zurücksetzen? Alle ungespeicherten Änderungen gehen verloren.',
+        confirmButtonText: 'Zurücksetzen',
+        cancelButtonText: 'Abbrechen',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        this.personForm.reset();
+        this.addressFormGroup.reset();
+        this.selectedAddressId = undefined;
+        this.tabGroup.selectedIndex = 0; // Switch to tab index for "Personenübersicht"
+      }
+    });
   }
 
   // Catch emitted event from address-form-component

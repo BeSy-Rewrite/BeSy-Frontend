@@ -13,54 +13,115 @@
 
   <mat-tab label="Neue Person anlegen">
     <mat-divider style="background-color: darkgrey; color: darkgrey"></mat-divider>
-    <div class="add-person-page" style="justify-content: flex-end">
-      <div class="form-container flex space-x-5 pt-3">
-        <div class="person-data-container p-8 bg-white">
+
+    <div class="create-person-container">
+      <!-- Step 1: Person Data -->
+      <div class="step-section">
+        <div class="step-header">
+          <div class="step-indicator">1</div>
+          <div class="step-title">
+            <h2>Personendaten eingeben</h2>
+            <p class="step-subtitle">Pflichtfelder sind mit * gekennzeichnet</p>
+          </div>
+        </div>
+        <div class="step-content">
           <app-form-component
             [config]="personsFormConfig"
             [formGroup]="personForm"
           ></app-form-component>
         </div>
-        <div class="address-data-container bg-white p-8">
-          <div class="address-selection-mode flex flex-col flex-start">
-            <mat-label class="font-bold text-lg">Adressmodus</mat-label>
-            <mat-radio-group
-              class="ml-4 mt-4"
-              [value]="addressSelectionMode()"
-              (change)="addressSelectionMode.set($event.value)"
-            >
-              <mat-radio-button class="mr-4" value="existing"
-                >Vorhandene Adresse auswählen</mat-radio-button
-              >
-              <mat-radio-button value="new">Neue Adresse anlegen</mat-radio-button>
-            </mat-radio-group>
-            <p class="mt-2 text-sm text-red-600">{{ addressModeInfoText() }}</p>
+      </div>
+
+      <!-- Step 2: Address (Optional) -->
+      <div class="step-section">
+        <div class="step-header">
+          <div class="step-indicator">2</div>
+          <div class="step-title">
+            <h2>Bevorzugte Adresse festlegen</h2>
+            <span class="optional-badge">Optional</span>
           </div>
+        </div>
+        <div class="step-content">
+          <!-- Address Mode Selection -->
+          <div class="address-mode-selector">
+            <mat-button-toggle-group
+              [value]="addressSelectionMode()"
+              (change)="onAddressModeChange($event)"
+              class="address-toggle-group"
+            >
+              <mat-button-toggle value="existing">
+                <mat-icon>search</mat-icon>
+                <span>Vorhandene Adresse auswählen</span>
+              </mat-button-toggle>
+              <mat-button-toggle value="new">
+                <mat-icon>add</mat-icon>
+                <span>Neue Adresse anlegen</span>
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
+
+          <!-- Existing Address Selection -->
           @if (addressSelectionMode() === 'existing') {
-            <app-generic-table
-              class="m-4"
-              [dataSource]="addressTableDataSource"
-              [columns]="addressTableColumns"
-              [pageSize]="10"
-              (rowClicked)="onAddressInTableSelected($event)"
-            ></app-generic-table>
+            <div class="address-selection-panel">
+              <div class="info-banner">
+                <mat-icon>info</mat-icon>
+                <span
+                  >Klicken Sie auf eine Zeile, um die Adresse auszuwählen. Die Details werden unten
+                  angezeigt.</span
+                >
+              </div>
+              <app-generic-table
+                [dataSource]="addressTableDataSource"
+                [columns]="addressTableColumns"
+                [pageSize]="5"
+                (rowClicked)="onAddressInTableSelected($event)"
+              ></app-generic-table>
+
+              @if (selectedAddressId) {
+                <div class="selected-address-preview">
+                  <div class="preview-header">
+                    <mat-icon>check_circle</mat-icon>
+                    <span>Ausgewählte Adresse (ID: {{ selectedAddressId }})</span>
+                  </div>
+                  <app-form-component
+                    [config]="addressFormConfig"
+                    [formGroup]="addressFormGroup"
+                  ></app-form-component>
+                </div>
+              }
+            </div>
           }
-          <app-form-component
-            [config]="addressFormConfig"
-            [formGroup]="addressFormGroup"
-          ></app-form-component>
+
+          <!-- New Address Form -->
+          @if (addressSelectionMode() === 'new') {
+            <div class="new-address-panel">
+              <div class="info-banner info-banner--action">
+                <mat-icon>edit</mat-icon>
+                <span>Geben Sie die Daten für die neue Adresse ein.</span>
+              </div>
+              <app-form-component
+                [config]="addressFormConfig"
+                [formGroup]="addressFormGroup"
+              ></app-form-component>
+            </div>
+          }
         </div>
       </div>
-      <div class="buttons flex justify-end">
-        <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
+
+      <!-- Action Buttons -->
+      <div class="action-bar w-full flex justify-between mt-6">
+        <button mat-stroked-button color="warn" (click)="onBack()" class="action-button">
+          <mat-icon>close</mat-icon>
+          Verwerfen
+        </button>
         <button
           mat-raised-button
-          color="warn"
-          (click)="onBack()"
-          aria-label="cancel"
-          style="margin-right: 16px"
+          color="primary"
+          (click)="onSubmit()"
+          class="action-button action-button--primary"
         >
-          Verwerfen
+          <mat-icon>save</mat-icon>
+          Person speichern
         </button>
       </div>
     </div>
