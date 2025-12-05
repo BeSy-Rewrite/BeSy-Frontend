@@ -25,6 +25,7 @@
     "angular-oauth2-oidc": "^19.0.0",
     "autoprefixer": "^10.4.21",
     "currencies-map": "^3.3.5",
+    "driver.js": "^1.4.0",
     "postcss": "^8.5.6",
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.1.13",
