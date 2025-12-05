@@ -21,6 +21,7 @@ import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetParams, FilterPres
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
 import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
+import { CreateOrderPageComponent } from "../create-order-page/create-order-page.component";
 
 /**
  * Component for managing the orders page.
@@ -39,8 +40,9 @@ import { OrdersDataSourceService } from '../../../services/orders-data-source.se
     ReactiveFormsModule,
     MatDividerModule,
     GenericTableComponent,
-    FilterMenuComponent
-  ],
+    FilterMenuComponent,
+    CreateOrderPageComponent
+],
   templateUrl: './orders-page.component.html',
   styleUrl: './orders-page.component.scss'
 })

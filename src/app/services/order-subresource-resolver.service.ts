@@ -5,10 +5,10 @@ import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-na
 import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
 import { OrderDisplayData } from '../models/order-display-data';
 import { CostCenterWrapperService } from './wrapper-services/cost-centers-wrapper.service';
-import { CurrencyWrapperService } from './wrapper-services/currencies-wrapper.service';
 import { PersonsWrapperService } from './wrapper-services/persons-wrapper.service';
 import { SuppliersWrapperService } from './wrapper-services/suppliers-wrapper.service';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
+import { CurrenciesWrapperService } from './wrapper-services/currencies-wrapper.service';
 
 /**
  * Union of identifier types used to look up subresources.
@@ -108,7 +108,7 @@ export class OrderSubresourceResolverService {
    * Inject API clients or services here to provide `fetchAll` functions.
    */
   constructor(
-    private readonly currenciesService: CurrencyWrapperService,
+    private readonly currenciesService: CurrenciesWrapperService,
     private readonly usersService: UsersWrapperService,
     private readonly personsService: PersonsWrapperService,
     private readonly costCentersService: CostCenterWrapperService,

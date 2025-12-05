@@ -7,29 +7,6 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
   newAddressSubtitle: 'Neue Adresse anlegen',
   fields: [
     {
-      // to be decided how this field will be handled
-      //
-      name: 'addressMode',
-      label: 'Adressmodus',
-      type: 'radio',
-      required: true,
-      options: [
-        { label: 'Existierende Addresse wählen', value: 'existing' },
-        { label: 'Neue Adresse anlegen', value: 'new' }
-      ],
-      defaultValue: 'existing',
-      emitAsSignal: true,
-      editable: false
-    },
-    {
-      label: 'Existierende Adressen',
-      type: 'table',
-      name: 'existingAddresses',
-      required: false,
-      editable: false
-    },
-
-    {
       name: 'building_name',
       label: 'Gebäudename',
       type: 'text',

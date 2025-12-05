@@ -1,13 +1,18 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding } from '@angular/router';
 
-import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
+import {
+  provideHttpClient,
+  withFetch,
+  withInterceptorsFromDi,
+} from '@angular/common/http';
 import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
 import { environment } from '../environments/environment';
 import { provideApi } from './api-services-v2';
 import { routes } from './app.routes';
+import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -15,22 +20,17 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding()),
     provideLuxonDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'de-DE' },
-    provideHttpClient(
-      withFetch(),
-      withInterceptorsFromDi(),
-    ),
+    provideHttpClient(withFetch(), withInterceptorsFromDi()),
     provideOAuthClient({
       resourceServer: {
         allowedUrls: [environment.apiUrl],
-        sendAccessToken: true
+        sendAccessToken: true,
       },
     }),
+    UnsavedChangesGuard,
     provideApi(environment.apiUrl),
   ]
 };
-
-
-
 
 // Reference: https://www.npmjs.com/package/angular-oauth2-oidc
 export const authCodeFlowConfig: AuthConfig = {

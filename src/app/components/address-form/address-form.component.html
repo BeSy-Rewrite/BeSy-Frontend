@@ -1,5 +1,5 @@
-<div class="form-header p-8">
-  <h4 class="text-2xl font-medium mb-6 text-gray-800">
+<div class="form-header">
+  <h4 class="text-2xl font-medium mb-2 text-gray-800">
     {{ config.title }}
   </h4>
 
@@ -12,7 +12,7 @@
   </h2>
   <mat-divider class="my-4"></mat-divider>
   <form [formGroup]="formGroup" class="w-full">
-    <table class="w-full mb-5">
+    <table class="w-full mt-2">
       @for (field of config.fields; track field.name) {
       <tr class="align-top">
         <td class="py-2">
@@ -20,7 +20,7 @@
 
           <!-- Textfeld -->
           @case ('text') {
-          <mat-form-field class="w-4/5">
+          <mat-form-field class="w-full">
             <mat-label>{{ field.label }}</mat-label>
             <input
               matInput
@@ -49,7 +49,7 @@
 
           <!-- Select -->
           @case ('select') {
-          <mat-form-field class="w-4/5">
+          <mat-form-field class="w-full">
             <mat-select [formControlName]="field.name">
               @for (opt of field.options ?? []; track opt.value) {
               <mat-option [value]="opt.value">{{ opt.label }}</mat-option>
@@ -77,7 +77,7 @@
 
           <!-- Radio -->
           @case ('radio') {
-          <div class="w-4/5">
+          <div class="w-full">
             <mat-radio-group [formControlName]="field.name" class="radio-group">
               @for (opt of field.options ?? []; track opt.value) {
               <mat-radio-button [value]="opt.value">{{
@@ -107,7 +107,7 @@
 
           <!-- Checkbox -->
           @case ('checkbox') {
-          <div class="w-4/5">
+          <div class="w-full">
             <mat-checkbox [formControlName]="field.name"></mat-checkbox>
             @if (formGroup.get(field.name)?.invalid &&
             formGroup.get(field.name)?.touched) {
@@ -118,7 +118,7 @@
 
           <!-- Number -->
           @case ('number') {
-          <mat-form-field class="w-4/5">
+          <mat-form-field class="w-full">
             <mat-label>{{ field.label }}</mat-label>
             <input
               matInput
@@ -148,7 +148,7 @@
 
           <!-- Date -->
           @case ('date') {
-          <mat-form-field class="w-4/5">
+          <mat-form-field class="w-full">
             <mat-label>{{ field.label }}</mat-label>
             <input
               matInput
@@ -178,7 +178,7 @@
 
           <!-- Email -->
           @case ('email') {
-          <mat-form-field class="w-4/5">
+          <mat-form-field class="w-full">
             <mat-label>{{ field.label }}</mat-label>
             <input
               matInput
@@ -192,7 +192,7 @@
             }
           </mat-form-field>
           } @case ('tel') {
-          <mat-form-field class="w-4/5">
+          <mat-form-field class="w-full">
             <mat-label>{{ field.label }}</mat-label>
             <input
               matInput
@@ -234,7 +234,7 @@
           } }
           <!-- Textarea -->
           @case ('textarea') {
-          <mat-form-field class="w-4/5">
+          <mat-form-field class="w-full">
             <mat-label>{{ field.label }}</mat-label>
             <textarea
               matInput

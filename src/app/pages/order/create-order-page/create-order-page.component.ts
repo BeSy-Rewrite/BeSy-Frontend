@@ -1,710 +1,182 @@
-import { CommonModule } from '@angular/common';
-import {
-  Component,
-  computed,
-  OnInit,
-  signal
-} from '@angular/core';
-import { AbstractControl, FormControl, FormGroup, FormsModule, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatButton } from '@angular/material/button';
-import {
-  MatButtonToggle,
-  MatButtonToggleGroup,
-} from '@angular/material/button-toggle';
-import { MatOptionModule } from '@angular/material/core';
-import { MatDivider } from '@angular/material/divider';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatRadioButton, MatRadioModule } from '@angular/material/radio';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTableDataSource } from '@angular/material/table';
-import { Router } from '@angular/router';
-import { map, Observable, startWith } from 'rxjs';
-import {
-  AddressRequestDTO,
-  AddressResponseDTO,
-  ApprovalRequestDTO,
-  CostCenterResponseDTO,
-  ItemRequestDTO,
-  OrderRequestDTO,
-  PersonResponseDTO,
-  QuotationRequestDTO,
-  VatResponseDTO
-} from '../../../api-services-v2';
-import { FormComponent, FormConfig } from '../../../components/form-component/form-component.component';
-import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
+import { Component, OnInit } from '@angular/core';
+import { FormGroup } from '@angular/forms';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
+import { MatTabsModule } from '@angular/material/tabs';
+import { MatDivider } from '@angular/material/divider';
+import { FormComponent } from '../../../components/form-component/form-component.component';
 import {
-  ORDER_ADDRESS_FORM_CONFIG,
-  ORDER_APPROVAL_FORM_CONFIG,
-  ORDER_QUOTATION_FORM_CONFIG
+  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
+  ORDER_GENERAL_FORM_CONFIG,
+  ORDER_QUERIES_PERSON_FORM_CONFIG,
+  ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
 } from '../../../configs/order/order-config';
-import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
 import {
-  ButtonColor,
-  TableActionButton,
-  TableColumn,
-} from '../../../models/generic-table';
+  OrderResponseDTOFormatted,
+  OrdersWrapperService,
+} from '../../../services/wrapper-services/orders-wrapper.service';
+import { CostCenterResponseDTO } from '../../../api-services-v2';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
-import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
-import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
-import { PersonsWrapperService } from './../../../services/wrapper-services/persons-wrapper.service';
+import {
+  PersonsWrapperService,
+  PersonWithFullName,
+} from '../../../services/wrapper-services/persons-wrapper.service';
+import { MatButtonModule } from '@angular/material/button';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-order-page',
   imports: [
-    ProgressBarComponent,
+    MatTabsModule,
     MatDivider,
     FormComponent,
-    MatButton,
-    GenericTableComponent,
-    MatInputModule,
     MatAutocompleteModule,
-    MatOptionModule,
-    CommonModule,
-    MatFormFieldModule,
-    ReactiveFormsModule,
-    FormsModule,
-    MatButtonToggle,
-    MatButtonToggleGroup,
-    MatRadioButton,
-    MatRadioModule,
+    MatButtonModule,
+    ProgressBarComponent,
   ],
   templateUrl: './create-order-page.component.html',
-  styleUrl: './create-order-page.component.scss',
+  styleUrls: ['./create-order-page.component.scss'],
 })
 export class CreateOrderPageComponent implements OnInit {
-  postOrderDTO: OrderRequestDTO = {} as OrderRequestDTO;
+  progressBarStepIndex = 0; // assigned based on the current status of the order
 
-  // Item variables
-  items = signal<ItemRequestDTO[]>([]);
-  itemTableDataSource = new MatTableDataSource<ItemRequestDTO>([]);
-  orderItemFormConfig: FormConfig = ORDER_ITEM_FORM_CONFIG;
-  orderItemFormGroup = new FormGroup({});
+  postOrder: OrderResponseDTOFormatted = {};
 
-  footerContent = computed(() => {
-    const sum = this.items().reduce(
-      (total, item) =>
-        total + (item.price_per_unit || 0) * (item.quantity || 0),
-      0
-    );
-    console.log('Summe:', sum);
-    return `Gesamt: ${sum.toFixed(2)} €`;
-  });
-  orderItemColumns: TableColumn<ItemRequestDTO>[] = [
-    { id: 'name', label: 'Artikelbezeichnung' },
-    { id: 'quantity', label: 'Anzahl' },
-    { id: 'comment', label: 'Kommentar' },
-    {
-      id: 'price_per_unit',
-      label: 'Stückpreis',
-      footerContent: this.footerContent,
-    },
-  ];
-  orderItemTableActions: TableActionButton[] = [
-    {
-      id: 'delete',
-      label: 'Delete',
-      buttonType: 'filled',
-      color: ButtonColor.WARN,
-      action: (row: ItemRequestDTO) => this.deleteItem(row),
-    },
-  ];
+  generalFormGroup = new FormGroup({});
+  generalFormConfig = ORDER_GENERAL_FORM_CONFIG;
 
-  // Recipient address variables
-  recipientAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
-  recipientAddressFormGroup = new FormGroup({});
-  recipientAddressId?: number; // Save id of the selected recipient address for the post
-  recipientHasPreferredAddress = false;
-  recipientAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
-  recipientInfoText = '';
-  selectedRecipientPerson?: PersonResponseDTO;
-  selectedInvoicePerson?: PersonResponseDTO;
-  personControlRecipient = new FormControl<PersonResponseDTO | string>('', {
-    nonNullable: false,
-    updateOn: 'change',
-    validators: [this.validatePersonSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
-  });
-  filteredPersonsRecipient!: Observable<PersonResponseDTO[]>;
-
-  // Invoice address variables
-  invoiceAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
-  invoiceAddressFormGroup = new FormGroup({});
-  invoiceAddressId?: number; // Save id of the selected invoice address for the post
-  invoiceHasPreferredAddress = false;
-  invoiceAddressOption: 'preferred' | 'existing' | 'new' = 'preferred';
-  invoiceInfoText = '';
-  personControlInvoice = new FormControl<PersonResponseDTO | string>('', {
-    nonNullable: false,
-    updateOn: 'change',
-    validators: [this.validatePersonSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
-  });
-  filteredPersonsInvoice!: Observable<PersonResponseDTO[]>;
-
-  // Shared recipient/invoice address variables
-  persons: PersonResponseDTO[] = []; // Store all persons locally for the autocomplete input
-  addressTableDataSource: MatTableDataSource<AddressResponseDTO> =
-    new MatTableDataSource<AddressResponseDTO>([]);
-  addressTableColumns = [
-    { id: 'id', label: 'ID' },
-    { id: 'street', label: 'Straße' },
-    { id: 'town', label: 'Stadt' },
-    { id: 'postal_code', label: 'Postleitzahl' },
-    { id: 'country', label: 'Land' },
-  ];
-  sameAsRecipient: boolean = true;
-
-  // Quotation variables
-  quotationFormConfig = ORDER_QUOTATION_FORM_CONFIG;
-  quotationFormGroup = new FormGroup({});
-  quotations: QuotationRequestDTO[] = [];
-  quotationTableDataSource = new MatTableDataSource<QuotationRequestDTO>(
-    this.quotations
-  );
-  orderQuotationColumns: TableColumn<QuotationRequestDTO>[] = [
-    { id: 'index', label: 'Nummer' },
-    { id: 'price', label: 'Preis' },
-    { id: 'company_name', label: 'Anbieter' },
-    { id: 'company_city', label: 'Ort' },
-  ];
-  orderQuotationTableActions: TableActionButton[] = [
-    {
-      id: 'delete',
-      label: 'Delete',
-      buttonType: 'filled',
-      color: ButtonColor.WARN,
-      action: (row: QuotationRequestDTO) => this.deleteQuotation(row),
-    },
-  ];
-
-  // Approval variables
-  approvalFormConfig = ORDER_APPROVAL_FORM_CONFIG;
-  approvalFormGroup = new FormGroup({});
-  postApprovalDTO: ApprovalRequestDTO = {} as ApprovalRequestDTO;
-
-  // Cost center variables
   costCenters: CostCenterResponseDTO[] = [];
-  primaryCostCenterControl = new FormControl<CostCenterResponseDTO | string>(
-    '',
-    {
-      nonNullable: false,
-      updateOn: 'change',
-      validators: [this.validateCostCentersSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
-    }
-  );
-  filteredPrimaryCostCenters!: Observable<CostCenterResponseDTO[]>;
+  primaryCostCenterFormGroup = new FormGroup({});
+  primaryCostCenterFormConfig = ORDER_PRIMARY_COST_CENTER_FORM_CONFIG;
 
-  secondaryCostCenterControl = new FormControl<CostCenterResponseDTO | string>(
-    '',
-    {
-      nonNullable: false,
-      updateOn: 'change',
-      validators: [this.validateCostCentersSelection.bind(this)], // Custom validator to ensure a valid PersonResponseDTO is selected, as Angular's built-in requireSelection somehow blocks the onSelectionChange event
-    }
-  );
-  filteredSecondaryCostCenters!: Observable<CostCenterResponseDTO[]>;
+  secondaryCostCenterFormGroup = new FormGroup({});
+  secondaryCostCenterFormConfig = ORDER_SECONDARY_COST_CENTER_FORM_CONFIG;
 
-  constructor(private readonly router: Router,
-    private readonly _notifications: MatSnackBar,
-    private readonly personsWrapperService: PersonsWrapperService,
-    private readonly vatWrapperService: VatWrapperService,
-    private readonly costCentersService: CostCenterWrapperService,
-    private readonly ordersService: OrdersWrapperService
-  ) { }
-  // Currency and VAT variables
+  persons: PersonWithFullName[] = [];
+  queriesPersonFormGroup = new FormGroup({});
+  queriesPersonFormConfig = ORDER_QUERIES_PERSON_FORM_CONFIG;
+
+  constructor(
+    private costCenterWrapperService: CostCenterWrapperService,
+    private personsWrapperService: PersonsWrapperService,
+    private _notifications: MatSnackBar,
+    private orderWrapperService: OrdersWrapperService,
+    private router: Router
+  ) {}
 
   async ngOnInit(): Promise<void> {
-    // Load initial data for the VAT options field in the form
-    const vatOptions = await this.vatWrapperService.getAllVats();
-    this.setDropdownVatOptions(vatOptions);
+    // Load cost centers and persons
+    [this.costCenters, this.persons] = await Promise.all([
+      this.costCenterWrapperService.getAllCostCenters(),
+      this.personsWrapperService.getAllPersonsWithFullName(),
+    ]);
 
-    // Initialize the person dropdown in the address form with data from the api
-    // and set up filtering for the autocomplete inputs
-    this.persons = await this.personsWrapperService.getAllPersons();
-    this.filteredPersonsRecipient =
-      this.personControlRecipient.valueChanges.pipe(
-        startWith(''),
-        map((value) => {
-          const searchText =
-            typeof value === 'string'
-              ? value
-              : this.displayPerson(value as PersonResponseDTO);
+    // Format cost centers and persons for the autocomplete fields
+    this.formatCostCenters();
+    this.formatPersons();
+  }
 
-          return this._filter(searchText || '');
-        })
-      );
-    this.filteredPersonsInvoice = this.personControlInvoice.valueChanges.pipe(
-      startWith(''),
-      map((value) => {
-        const searchText =
-          typeof value === 'string'
-            ? value
-            : this.displayPerson(value as PersonResponseDTO);
-
-        return this._filter(searchText || '');
-      })
+  /**
+   * Updates the form configuration with the retrieved options.
+   * @returns {Promise<void>}
+   */
+  private formatCostCenters() {
+    const primaryCostCenterField = this.primaryCostCenterFormConfig.fields.find(
+      (f) => f.name === 'primary_cost_center_id'
     );
+    if (!primaryCostCenterField) return;
 
-    this.costCenters = await this.costCentersService.getAllCostCenters();
-    this.filteredPrimaryCostCenters =
-      this.primaryCostCenterControl.valueChanges.pipe(
-        startWith(''),
-        map((value) => {
-          const searchText =
-            typeof value === 'string'
-              ? value
-              : this.displayCostCenter(value as CostCenterResponseDTO);
+    primaryCostCenterField.options = this.costCenters.map((cc) => ({
+      label: cc.name ?? '', // If name undefined -> empty string
+      value: cc.id ?? 0, // If id undefined -> 0
+    }));
 
-          return this._filterCostCenters(searchText || '');
-        })
+    const secondaryCostCenterField =
+      this.secondaryCostCenterFormConfig.fields.find(
+        (f) => f.name === 'secondary_cost_center_id'
       );
-    console.log('Gefilterte Kostenstellen:', this.filteredPrimaryCostCenters);
-    this.filteredSecondaryCostCenters =
-      this.secondaryCostCenterControl.valueChanges.pipe(
-        startWith(''),
-        map((value) => {
-          const searchText =
-            typeof value === 'string'
-              ? value
-              : this.displayCostCenter(value as CostCenterResponseDTO);
+    if (!secondaryCostCenterField) return;
 
-          return this._filterCostCenters(searchText || '');
-        })
-      );
-  }
-
-  /**
-   * Adds a new item to the locally stored items list and updates the table data source
-   */
-  onAddItem() {
-    if (this.orderItemFormGroup.valid) {
-      const newItem = this.orderItemFormGroup.value as ItemRequestDTO;
-      this.items.update((curr) => [...curr, newItem]);
-      this.itemTableDataSource.data = this.items(); // Update the table data source
-      this.orderItemFormGroup.reset(); // Formular zurücksetzen
-    } else {
-      this.orderItemFormGroup.markAllAsTouched(); // Markiere alle Felder als berührt, um Validierungsfehler anzuzeigen
-    }
-  }
-
-  /**
-   * Deletes an item from the locally stored items list and updates the table data source
-   * @param item The item to be deleted from the items list
-   */
-  deleteItem(item: ItemRequestDTO) {
-    this.items.update((curr) => curr.filter((i) => i !== item));
-    this.itemTableDataSource.data = this.items(); // Aktualisiere die Datenquelle der Tabelle
-  }
-
-  /**
-   * Sets the dropdown options for the VAT fields in the form
-   * @param vatOptions The list of VAT options to set in the dropdown
-   */
-  private setDropdownVatOptions(vatOptions: VatResponseDTO[]) {
-    // set options for dropdown fields
-    this.orderItemFormConfig.fields.find(
-      (field) => field.name === 'vat_value'
-    )!.options = vatOptions.map((vat) => ({
-      value: vat.value,
-      label: `${vat.description} (${vat.value}%)`,
+    secondaryCostCenterField.options = this.costCenters.map((cc) => ({
+      label: cc.name ?? '', // If name undefined -> empty string
+      value: cc.id ?? 0, // If id undefined -> 0
     }));
   }
 
   /**
-   * Filters the list of persons based on the search string
-   * @param search The search string to filter persons by
-   * @returns The filtered list of persons
+   * Loads all persons and updates the form configuration with the retrieved options.
+   * @returns {Promise<void>}
    */
-  private _filter(search: string): PersonResponseDTO[] {
-    const filterValue = search.toLowerCase();
-    return this.persons.filter((p) =>
-      `${p.name} ${p.surname}`.toLowerCase().includes(filterValue)
+  private formatPersons() {
+    const queriesPersonField = this.queriesPersonFormConfig.fields.find(
+      (f) => f.name === 'queries_person_id'
     );
+    if (!queriesPersonField) return;
+
+    queriesPersonField.options = this.persons.map((p) => ({
+      label: p.fullName ?? '', // If fullName undefined -> empty string
+      value: p.id ?? 0, // If id undefined -> 0
+    }));
   }
 
   /**
-   * Controls how the person is displayed in the autocomplete input
-   * @param person The person object or string to display
-   * @returns The display string for the person
+   * Creates a new order based on the filled form data.
+   * Validates the form data before sending the create request.
    */
-  displayPerson(person: PersonResponseDTO | string): string {
-    if (!person) return '';
-    return typeof person === 'string'
-      ? person
-      : `${person.name} ${person.surname}`;
-  }
+  async createOrder() {
+    if (
+      this.generalFormGroup.valid &&
+      this.primaryCostCenterFormGroup.valid &&
+      this.secondaryCostCenterFormGroup.valid &&
+      this.queriesPersonFormGroup.valid
+    ) {
+      // All forms are valid, normalize the autocomplete fields
+      this.postOrder = {
+        ...this.generalFormGroup.value,
+        ...this.primaryCostCenterFormGroup.value,
+        ...this.secondaryCostCenterFormGroup.value,
+        ...this.queriesPersonFormGroup.value,
+      } as OrderResponseDTOFormatted;
 
-  /**
-   * Validates that the selected value is a valid PersonResponseDTO object with an id property
-   * @param control The form control to validate
-   * @returns A validation error object if invalid, or null if valid
-   */
-  validatePersonSelection(control: AbstractControl): ValidationErrors | null {
-    const value = control.value;
-    // Check if the value is an object and has an 'id' property
-    if (value && typeof value === 'object' && 'id' in value) {
-      return null; // ok
-    }
-    return { invalidPerson: true }; // No valid person selected
-  }
-
-  /** Handle selection of a person from the autocomplete options
-   * @param person The selected person from the autocomplete dropdown
-   * @param isRecipient Boolean flag indicating if the selected person is the recipient (true) or the invoice party (false)
-   */
-  async onPersonSelected(person: PersonResponseDTO, isRecipient: boolean) {
-    // Locally track the selected person based on the context (recipient or invoice)
-    if (isRecipient) {
-      this.selectedRecipientPerson = person;
-      this.personControlRecipient.setValue(person);
-    } else {
-      this.selectedInvoicePerson = person;
-      this.personControlInvoice.setValue(person);
-    }
-
-    // Check if the selected person has a preferred address
-
-    if (person.address_id) {
-      const preferredAddress: AddressResponseDTO =
-        await this.personsWrapperService.getPersonAddressById(person.id!);
-
-      if (isRecipient) {
-        this.recipientHasPreferredAddress = true;
-        this.recipientAddressOption = 'preferred';
-        this.recipientAddressId = preferredAddress.id;
-        this.recipientAddressFormGroup.patchValue(preferredAddress);
-        this.recipientAddressFormConfig.title =
-          'Hinterlegte bevorzugte Adresse';
-        this.recipientInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
-        this.recipientAddressFormGroup.disable();
-      } else {
-        this.invoiceHasPreferredAddress = true;
-        this.invoiceAddressOption = 'preferred';
-        this.invoiceAddressId = preferredAddress.id;
-        this.invoiceAddressFormGroup.patchValue(preferredAddress);
-        this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
-        this.invoiceInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb oder wählen Sie eine andere Option.';
-        this.invoiceAddressFormGroup.disable();
-      }
-      // Load all addresses of any person into the address table for selection
-      this.addressTableDataSource.data =
-        await this.personsWrapperService.getAllPersonsAddresses();
-    }
-  }
-
-  /**
-   * Add a new quotation to the locally stored quotations list and update the table data source
-   */
-  onAddQuotation() {
-    if (this.quotationFormGroup.valid) {
-      const newQuotation = this.quotationFormGroup.value as QuotationRequestDTO;
-      this.quotations.push(newQuotation);
-      this.quotationFormGroup.reset(); // Reset the form
-    } else {
-      this.quotationFormGroup.markAllAsTouched(); // Mark all fields as touched to show validation errors
-    }
-  }
-
-  /**
-   * Remove a quotation from the locally stored quotations list and update the table data source
-   * @param quotation The quotation to be deleted
-   */
-  deleteQuotation(quotation: QuotationRequestDTO) {
-    this.quotations = this.quotations.filter((q) => q !== quotation);
-    this.quotationTableDataSource.data = this.quotations; // Update the table data source
-  }
-
-  /**
-   * Handle selection of an address from the address table
-   * @param address The selected address from the table
-   * @param isRecipientAddress Boolean flag indicating if the address is for the recipient (true) or the invoice (false)
-   */
-  onAddressSelected(address: AddressResponseDTO, isRecipientAddress: boolean) {
-    // Wird aufgerufen, wenn in der Adress-Tabelle eine Zeile ausgewählt wird
-    if (isRecipientAddress) {
-      this.recipientAddressFormGroup.patchValue(address);
-      this.recipientAddressId = address.id;
-    } else {
-      this.invoiceAddressFormGroup.patchValue(address);
-      this.invoiceAddressId = address.id;
-    }
-  }
-
-  /** Handle change of address option (preferred, existing, new)
-   * @param option The selected address option
-   * @param isRecipient Boolean flag indicating if the option change is for the recipient (true) or the invoice (false)
-   */
-  onAddressOptionChange(option: string, isRecipient: boolean) {
-    // Recipient address mode has changed
-    if (isRecipient) {
-      this.recipientAddressOption = option as any;
-
-      if (option === 'preferred' && this.selectedRecipientPerson?.address_id) {
-        this.personsWrapperService.getPersonAddressById(this.selectedRecipientPerson.id!).then(
-          (addr) => this.recipientAddressFormGroup.patchValue(addr)
-        );
-        this.recipientInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
-        this.recipientAddressFormConfig.title =
-          'Hinterlegte bevorzugte Adresse';
-        this.recipientAddressFormGroup.disable();
-      } else if (option === 'existing') {
-        this.recipientAddressFormGroup.reset();
-        this.recipientAddressFormGroup.disable();
-        this.recipientAddressFormConfig.title = 'Bestehende Adresse überprüfen';
-        this.recipientInfoText = 'Adressdaten überprüfen';
-      } else if (option === 'new') {
-        this.recipientAddressFormGroup.reset();
-        this.recipientAddressFormGroup.enable();
-        this.recipientAddressFormConfig.title = 'Neue Adresse erstellen';
-        this.recipientInfoText =
-          'Neue Adresse erstellen: bitte Formular ausfüllen.';
-      }
-    }
-    // Invoice address mode has changed
-    else {
-      this.invoiceAddressOption = option as any;
-
-      if (option === 'preferred' && this.selectedInvoicePerson?.address_id) {
-        this.personsWrapperService.getPersonAddressById(this.selectedInvoicePerson.id!).then(
-          (addr) => this.invoiceAddressFormGroup.patchValue(addr)
-        );
-        this.invoiceInfoText =
-          'Für diese Person ist eine bevorzugte Adresse hinterlegt. Bitte überprüfen Sie die Daten im Formular unterhalb.';
-        this.invoiceAddressFormConfig.title = 'Hinterlegte bevorzugte Adresse';
-        this.invoiceAddressFormGroup.disable();
-      } else if (option === 'existing') {
-        this.invoiceAddressFormGroup.reset();
-        this.invoiceAddressFormGroup.disable();
-        this.invoiceAddressFormConfig.title = 'Bestehende Adresse überprüfen';
-        this.invoiceInfoText = 'Adressdaten überprüfen';
-      } else if (option === 'new') {
-        this.invoiceAddressFormGroup.reset();
-        this.invoiceAddressFormGroup.enable();
-        this.invoiceAddressFormConfig.title = 'Neue Adresse erstellen';
-        this.invoiceInfoText =
-          'Neue Adresse erstellen: bitte Formular ausfüllen.';
-      }
-    }
-  }
-
-  /**
-   * Save the address form inputs locally in the postOrderDTO object
-   * @returns A promise that resolves when the operation is complete
-   */
-  async locallySaveAddressFormInput() {
-    // Set recipient and invoice person
-    if (this.selectedRecipientPerson) {
-      this.postOrderDTO.delivery_person_id = this.selectedRecipientPerson.id;
-    }
-
-    // Is the invoice address and person the same as the recipient address?
-    if (this.sameAsRecipient) {
-      this.postOrderDTO.invoice_person_id =
-        this.postOrderDTO.delivery_person_id;
-    }
-    // If not, check if an invoice person has been selected
-    else if (this.selectedInvoicePerson) {
-      this.postOrderDTO.invoice_person_id = this.selectedInvoicePerson.id;
-    } else {
-      this._notifications.open(
-        'Bitte wählen Sie eine Person für die Rechnungsadresse aus (Feld: Rechnungsadresse).',
-        undefined,
-        { duration: 3000 }
+      const requestOrder = this.orderWrapperService.mapFormattedOrderToRequest(
+        this.postOrder
       );
-      return;
-    }
 
-    // Handle address saving based on the selected addressModes
+      // Create order, show notifications based on the result
+      // and navigate to the edit page of the newly created order
+      const createdOrder = await this.orderWrapperService.createOrder(
+        requestOrder
+      );
+      console.log('Created Order:', createdOrder);
 
-    // Delivery address
-    if (this.recipientAddressOption === 'new') {
-      this.recipientAddressFormGroup.markAllAsTouched();
-      if (this.recipientAddressFormGroup.valid) {
-        // If the form is valid, create a new address via the API and store the returned ID
-        const newAddress: AddressRequestDTO = this.recipientAddressFormGroup
-          .value as AddressRequestDTO;
-        try {
-          const createdAddress: AddressResponseDTO =
-            await this.personsWrapperService.createPersonAddress(newAddress);
-          this.postOrderDTO.delivery_address_id = createdAddress.id;
-        } catch (error) {
-          this._notifications.open(
-            'Fehler beim Speichern der Lieferadresse. Bitte überprüfen Sie die Eingaben im Lieferadress-Formular und versuchen Sie es später erneut.',
-            undefined,
-            { duration: 3000 }
-          );
-        }
-      } else {
-        this._notifications.open(
-          'Bitte überprüfen Sie die Eingaben im Lieferadress-Formular. Alle Pflichtfelder müssen ausgefüllt sein.',
-          undefined,
-          { duration: 3000 }
-        );
-      }
-    } else if (this.recipientAddressOption === 'preferred') {
-      // Use the stored selectedRecipientPerson to assign the preferred address to the delivery_address_id-field
-      if (this.selectedRecipientPerson?.address_id) {
-        this.postOrderDTO.delivery_address_id =
-          this.selectedRecipientPerson.address_id;
-      } else {
-        this._notifications.open(
-          'Fehler beim Laden der bevorzugten Lieferadresse. Die Adresse konnte nicht gefunden werden. Bitte wählen Sie eine andere Adresse oder versuchen Sie es später erneut.',
-          undefined,
-          { duration: 3000 }
-        );
-        return;
-      }
-    } else {
-      // Use the address id stored in recipientAddressId to assign to the postOrderDTO
-      if (this.recipientAddressId) {
-        this.postOrderDTO.delivery_address_id = this.recipientAddressId;
-      } else {
-        this._notifications.open(
-          'Bitte wählen Sie eine Lieferadresse aus der Tabelle aus (Lieferadresse).',
-          undefined,
-          { duration: 3000 }
-        );
-        return;
-      }
-    }
-
-    // Invoice address
-    if (this.sameAsRecipient) {
-      this.postOrderDTO.invoice_address_id =
-        this.postOrderDTO.delivery_address_id;
-    } else {
-      if (this.invoiceAddressOption === 'new') {
-        this.invoiceAddressFormGroup.markAllAsTouched();
-        if (this.invoiceAddressFormGroup.valid) {
-          // If the form is valid, create a new address via the API and store the returned ID
-          const newAddress: AddressRequestDTO = this.invoiceAddressFormGroup
-            .value as AddressRequestDTO;
-          try {
-            const createdAddress: AddressResponseDTO =
-              await this.personsWrapperService.createPersonAddress(newAddress);
-            this.postOrderDTO.invoice_address_id = createdAddress.id;
-          } catch (error) {
-            this._notifications.open(
-              'Fehler beim Speichern der Adresse. Bitte versuchen sie es später erneut.',
-              undefined,
-              { duration: 3000 }
-            );
-          }
-        } else {
-          this._notifications.open(
-            'Bitte überprüfen Sie die Eingaben in dem Adressfeld.',
-            undefined,
-            { duration: 3000 }
-          );
-        }
-      } else if (this.invoiceAddressOption === 'preferred') {
-        if (this.selectedInvoicePerson?.address_id) {
-          this.postOrderDTO.invoice_address_id =
-            this.selectedInvoicePerson.address_id;
-        } else {
-          this._notifications.open(
-            'Fehler beim Laden der bevorzugten Adresse. Die präferierte Adresse konnte nicht gefunden werden. Bitte versuchen sie es später erneut',
-            undefined,
-            { duration: 3000 }
-          );
-          return;
-        }
-      } else {
-        if (this.invoiceAddressId) {
-          this.postOrderDTO.invoice_address_id = this.invoiceAddressId;
-        } else {
-          this._notifications.open(
-            'Bitte wählen Sie eine Adresse aus der Tabelle aus.',
-            undefined,
-            { duration: 3000 }
-          );
-          return;
-        }
-      }
-    }
-  }
-
-  /** Save the approval form inputs locally in the postApprovalDTO object
-   */
-  locallySaveApprovalFormInput() {
-    // Get raw form values and normalize undefined (unchecked) to false.
-    // This prevents having to check whether a property has changed or not
-    // when editing an order with existing approval flags.
-    // E.g. if flagEdvPermission was true and the user unchecks it, the property
-    // would be undefined in the form value and thus not included in the postApprovalDTO.
-    // By normalizing undefined to false, we ensure that all flags are explicitly set.
-    const raw = this.approvalFormGroup.value;
-    const normalized = Object.fromEntries(
-      Object.entries(raw).map(([k, v]) => [k, v ?? false])
-    );
-
-    this.postApprovalDTO = normalized as ApprovalRequestDTO;
-
-    console.log(this.postApprovalDTO);
-    this._notifications.open(
-      'Zustimmungen wurden zwischengespeichert.',
-      undefined,
-      { duration: 3000 }
-    );
-  }
-
-  onCostCenterSelected(costCenter: CostCenterResponseDTO, isPrimary: boolean) {
-    if (isPrimary) {
-      this.primaryCostCenterControl.setValue(costCenter);
-      this.postOrderDTO.primary_cost_center_id = costCenter.id;
-    } else {
-      this.secondaryCostCenterControl.setValue(costCenter);
-      this.postOrderDTO.secondary_cost_center_id = costCenter.id;
-    }
-  }
-
-  private _filterCostCenters(search: string): CostCenterResponseDTO[] {
-    const filterValue = search.toLowerCase();
-    console.log('FilterValue:', filterValue);
-    console.log('CostCenters:', this.costCenters);
-    return this.costCenters.filter((cc) =>
-      `${cc.name}`.toLowerCase().includes(filterValue)
-    );
-  }
-
-  displayCostCenter(costCenter: CostCenterResponseDTO | string): string {
-    if (!costCenter) return '';
-    return typeof costCenter === 'string' ? costCenter : `${costCenter.name}`;
-  }
-
-  validateCostCentersSelection(
-    control: AbstractControl
-  ): ValidationErrors | null {
-    const value = control.value;
-    // Check if the value is an object and has an 'id' property
-    if (value && typeof value === 'object' && 'id' in value) {
-      return null; // ok
-    }
-    return { invalidCostCenter: true }; // No valid cost center selected
-  }
-
-  saveOrder() {
-    console.log('PostOrderDTO vor dem Speichern:', this.postOrderDTO);
-    this.ordersService.createOrder(this.postOrderDTO)
-      .then((order) => {
+      if (createdOrder && createdOrder.id) {
         this._notifications.open(
           'Bestellung erfolgreich erstellt.',
-          undefined,
-          { duration: 3000 }
+          'Schließen',
+          {
+            duration: 5000,
+          }
         );
-        this.router.navigate(['/orders', order.id]);
-      })
-      .catch((error) => {
-        console.error('Fehler beim Erstellen der Bestellung:', error);
+
+        // Navigate to the edit page of the newly created order
+        this.router.navigate(['/orders', createdOrder.id, 'edit']);
+      } else {
         this._notifications.open(
-          'Fehler beim Erstellen der Bestellung. Bitte überprüfen Sie Ihre Eingaben und versuchen Sie es erneut.',
-          undefined,
-          { duration: 5000 }
+          'Interner Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.',
+          'Schließen',
+          {
+            duration: 5000,
+          }
         );
-      });
+      }
+    } else {
+      this.generalFormGroup.markAllAsTouched();
+      this._notifications.open(
+        'Bitte füllen Sie alle Pflichtfelder aus.',
+        'Schließen',
+        { duration: 5000 }
+      );
+    }
   }
 }
