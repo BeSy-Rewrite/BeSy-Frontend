@@ -1,5 +1,5 @@
 @if (order().queries_person_id) {
-<div class="-m-1.5">
+<div [class]="`-m-1.5 ${environment.orderFieldClassPrefix}queries_person_id`">
     <app-person-details [personId]="order().queries_person_id!" />
 </div>
 } @else {

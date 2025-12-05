@@ -8,42 +8,53 @@ import "driver.js/dist/driver.css";
 })
 export class DriverJsTourService {
 
-  driverObject = driver({
-    showProgress: true,
-    steps: [
-      {
-        popover: {
-          title: 'First Step',
-          description: 'This is the first step. Next element will be loaded dynamically.',
-          // By passing onNextClick, you can override the default behavior of the next button.
-          // This will prevent the driver from moving to the next step automatically.
-          // You can then manually call driverObj.moveNext() to move to the next step.
-          onNextClick: () => {
-            // .. load element dynamically
-            // .. and then call
-            this.router.navigate(['orders']).then(() => setTimeout(() => this.driverObject.moveNext(), 10));
-          },
-        },
-      },
-      {
-        element: '.order-list',
-        popover: {
-          title: 'Order List',
-          description: 'This step highlights the order list.',
-        },
-      },
-      { popover: { title: 'Last Step', description: 'This is the last step.' } }
-    ]
-  });
-
   constructor(private readonly router: Router) { }
 
+  /**
+   * Starts the driver.js tour.
+   */
   startTour() {
-    this.driverObject.drive();
+    const driverObject = driver({
+      showProgress: true,
+      steps: [
+        {
+          popover: {
+            title: 'First Step',
+            description: 'This is the first step. Next element will be loaded dynamically.',
+            // By passing onNextClick, you can override the default behavior of the next button.
+            // This will prevent the driver from moving to the next step automatically.
+            // You can then manually call driverObj.moveNext() to move to the next step.
+            onNextClick: () => {
+              // .. load element dynamically
+              // .. and then call
+              this.router.navigate(['orders']).then(() => setTimeout(() => driverObject.moveNext(), 10));
+            },
+          },
+        },
+        {
+          element: '.order-list',
+          popover: {
+            title: 'Order List',
+            description: 'This step highlights the order list.',
+          },
+        },
+        { popover: { title: 'Last Step', description: 'This is the last step.' } }
+      ]
+    });
+
+
+    driverObject.drive();
   }
 
+  /**
+   * Highlights an element on the page with a popover.
+   * @param selector CSS selector of the element to highlight
+   * @param title Title of the popover
+   * @param description Description text of the popover
+   */
   highlightElement(selector: string, title: string, description: string) {
-    this.driverObject.highlight({
+    const highlightDriver = driver();
+    highlightDriver.highlight({
       element: selector,
       popover: {
         title,

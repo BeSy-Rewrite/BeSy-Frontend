@@ -2,7 +2,7 @@
 
     <div class="flex flex-col h-fit gap-2">
         @for (key of additionalInfoKeys; track $index) {
-        <div [class]="`${key} flex gap-16 w-fit`">
+        <div [class]="`${environment.orderFieldClassPrefix}${key} flex gap-16 w-fit`">
             <h3 class="font-semibold w-36">{{ orderFieldLabels[key] }}:</h3>
 
             <p class="w-fit min-w-16">
@@ -26,7 +26,7 @@
     <div class="flex flex-col h-fit">
         <h4 class="font-semibold text-lg mb-2">Begründung Lieferantenauswahl:</h4>
         @for (decisionFlag of decisionFlags; track $index) {
-        <p #container [class]="decisionFlag">
+        <p #container [class]="`${environment.orderFieldClassPrefix}${decisionFlag}`">
             <mat-checkbox [checked]="orderData().order[decisionFlag]" disabled aria-labelledby="container" />
             {{ orderFieldLabels[decisionFlag] }}
         </p>

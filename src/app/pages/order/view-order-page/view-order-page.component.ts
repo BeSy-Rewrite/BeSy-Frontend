@@ -9,6 +9,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
+import { ZodError } from "zod";
 import { environment } from "../../../../environments/environment";
 import { OrderStatus, UserResponseDTO } from '../../../api-services-v2';
 import { setupDialog } from "../../../components/dialog/dialog.component";
@@ -79,6 +80,7 @@ interface StateChangeButtons {
   styleUrl: './view-order-page.component.scss'
 })
 export class ViewOrderPageComponent implements OnInit {
+  environment = environment;
   /**
    * The order and its formatted data to display.
    */
@@ -238,19 +240,29 @@ export class ViewOrderPageComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Fehler bei der Validierung des Statuswechsels:', err);
-        const invalidField = err.issues[0]?.path.at(-1) ?? '';
-        this.driverJsService.highlightElement(`.${invalidField}`, 'Fehler beim Statuswechsel', 'Bitte beheben Sie diesen Fehler, bevor Sie den Status ändern.');
-        for (const error of err?.issues ?? []) {
-          const errorToast: ToastRequest = {
-            message: `Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState)}' fehlgeschlagen.\n
-          Grund: ${ORDER_FIELD_NAMES[error?.path] ?? error?.path} ist ungültig.`,
-            type: 'error'
-          };
-          this.toastService.addToast(errorToast);
-        }
+        this.highlightFirstInvalidField(err);
+        this.createErrorToast(err, newState);
       }
     });
+  }
+
+
+  highlightFirstInvalidField(error: ZodError) {
+    const invalidField = error.issues?.[0]?.path?.at(-1)?.toString();
+    if (invalidField && document.querySelector(`.${environment.orderFieldClassPrefix}${invalidField}`)) {
+      this.driverJsService.highlightElement(`.${environment.orderFieldClassPrefix}${invalidField}`, 'Fehler beim Statuswechsel', 'Feld ist ungültig oder unvollständig. Bitte überprüfen Sie die Eingabe.');
+    }
+  }
+
+  createErrorToast(error: ZodError, newState: OrderStatus) {
+    for (const issue of error?.issues ?? []) {
+      const errorToast: ToastRequest = {
+        message: `Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState)}' fehlgeschlagen.\n
+          Grund: ${ORDER_FIELD_NAMES[issue?.path.toString()] ?? issue?.path} ist ungültig.`,
+        type: 'error'
+      };
+      this.toastService.addToast(errorToast);
+    }
   }
 
   /**
