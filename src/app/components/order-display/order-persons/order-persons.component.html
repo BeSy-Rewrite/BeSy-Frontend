@@ -1,19 +1,7 @@
-<div class="flex flex-wrap gap-16">
-
-    @for (personId of personMappings.keys(); track $index) {
-    <div class="flex flex-row gap-4 grow">
-
-        <div class="flex flex-col gap-2 items-end">
-            @for (role of personMappings.get(personId); track $index) {
-            <h2 class="text-xl">
-                {{getGenderedWord(orderFieldNames[role], personGenderMap.get(personId) ?? 'd')}}
-            </h2>
-            }
-        </div>
-
-        <app-person-details [personId]="personId"
-            (personGenderLoaded)="personGenderMap.set(personId, $event)"></app-person-details>
-    </div>
-    }
-
-</div>
+@if (order().queries_person_id) {
+  <div class="-m-1.5">
+    <app-person-details [personId]="order().queries_person_id!" />
+  </div>
+} @else {
+  <p>Keine Ansprechperson für Rückfragen angegeben.</p>
+}

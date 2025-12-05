@@ -105,6 +105,15 @@ export interface ItemTableModel {
   vat_type: 'netto' | 'brutto';
 }
 
+export const ORDER_EDIT_TABS = [
+  'General',
+  'MainOffer',
+  'Items',
+  'Quotations',
+  'Addresses',
+  'Approvals',
+] as const;
+
 /**
  * Model for the quotations table used in the order edit/create page
  */
@@ -471,7 +480,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
         this.orderName.set(this.formattedOrderDTO.content_description ?? 'Fehler: Kein Name');
         this.orderBesyId.set(
-          `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year}-${this.formattedOrderDTO.auto_index}`
+          `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year!.slice(-2)}-${this.formattedOrderDTO.auto_index}`
         );
         const loginCredentials = this.userWrapperService.getCurrentUser();
         console.log(loginCredentials);

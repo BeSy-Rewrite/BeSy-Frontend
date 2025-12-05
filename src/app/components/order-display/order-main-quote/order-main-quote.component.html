@@ -1,0 +1,41 @@
+<div class="flex flex-wrap gap-x-24 gap-y-12">
+  <div class="grid grid-cols-[max-content_1fr] h-fit gap-x-16 gap-y-2">
+    @for (key of additionalInfoKeys; track $index) {
+      <h3 class="font-semibold">{{ orderFieldLabels[key] }}:</h3>
+
+      <p>
+        {{ orderData().orderDisplay[key] }}
+
+        @if (key === 'quote_price') {
+          @if (isPriceProbablyBrutto) {
+            (brutto)
+          } @else if (isPriceProbablyNetto) {
+            (netto)
+          } @else {
+            - Berechnete Summen: {{ totalGrossPriceFormatted }} / {{ totalNetPriceFormatted }}<br />
+          }
+        }
+      </p>
+    }
+  </div>
+
+  <div class="flex flex-col h-fit">
+    <h4 class="font-semibold text-lg mb-2">Begründung Lieferantenauswahl:</h4>
+    @for (decisionFlag of decisionFlags; track $index) {
+      <p #container>
+        <mat-checkbox
+          [checked]="orderData().order[decisionFlag]"
+          disabled
+          aria-labelledby="container"
+        />
+        {{ orderFieldLabels[decisionFlag] }}
+      </p>
+    }
+  </div>
+
+  @if (orderData().order.flag_decision_other_reasons) {
+    <div>
+      {{ orderData().order.decision_other_reasons_description }}
+    </div>
+  }
+</div>

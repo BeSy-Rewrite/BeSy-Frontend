@@ -1,113 +1,126 @@
 <div>
+  <div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
+    <app-state-display [order]="internalOrder().order" />
+    <mat-divider class="bg-gray-400" />
+  </div>
 
-    <div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
-        <app-state-display [order]="internalOrder().order" />
-        <mat-divider class="bg-gray-400" />
-    </div>
+  <div class="mb-4 float-left flex flex-col items-start min-w-fit">
+    <h1 class="font-semibold text-2xl mb-2">
+      {{ internalOrder().orderDisplay.content_description }}
+    </h1>
 
-    <div class="mb-4 float-left flex flex-col items-start min-w-fit">
-        <h1 class="font-semibold text-2xl mb-2">{{internalOrder().orderDisplay.content_description}}</h1>
+    <span class="min-w-fit">
+      Erstellt von:
+      <button
+        matButton
+        color="primary"
+        class="w-fit"
+        [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
+        [cdkCopyToClipboard]="owner?.email ?? ''"
+      >
+        {{ owner?.name }} {{ owner?.surname }}
+      </button>
+    </span>
+    <span class="min-w-fit">
+      Bestellnummer:
+      <button
+        matButton
+        color="primary"
+        class="w-fit"
+        [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number"
+        matTooltip="Bestellnummer kopieren"
+      >
+        {{ internalOrder().orderDisplay.besy_number }}
+      </button>
+    </span>
+    <span class="min-w-fit">
+      ID:
+      <button
+        matButton
+        color="primary"
+        class="w-fit"
+        [cdkCopyToClipboard]="currentUrl()"
+        matTooltip="Link kopieren"
+      >
+        #&nbsp;{{ internalOrder().order.id }}
+        <mat-icon iconPositionEnd>link</mat-icon>
+      </button>
+    </span>
+  </div>
 
-        <span class="min-w-fit">
-            Erstellt von:
-            <button
-                    matButton
-                    color="primary"
-                    class="w-fit"
-                    [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
-                    [cdkCopyToClipboard]="owner?.email ?? ''">
-                {{owner?.name}} {{owner?.surname}}
-            </button>
-        </span>
-        <span class="min-w-fit">
-            Bestellnummer:
-            <button
-                    matButton
-                    color="primary"
-                    class="w-fit"
-                    [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number"
-                    matTooltip="Bestellnummer kopieren">
-                {{internalOrder().orderDisplay.besy_number}}
-            </button>
-        </span>
-        <span class="min-w-fit">
-            ID:
-            <button
-                    matButton
-                    color="primary"
-                    class="w-fit"
-                    [cdkCopyToClipboard]="currentUrl()"
-                    matTooltip="Link kopieren">
-                #&nbsp;{{internalOrder().order.id}}
-                <mat-icon iconPositionEnd>link</mat-icon>
-            </button>
-        </span>
+  <div class="sticky top-0 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
+    <button mat-raised-button color="primary" (click)="export()">
+      <mat-icon iconPositionStart>download</mat-icon>
+      Exportieren
+    </button>
+    @if (internalOrder().order.status === orderStates.IN_PROGRESS) {
+      <a
+        mat-raised-button
+        color="primary"
+        [routerLink]="['/orders', internalOrder().order.id, 'edit']"
+        [disabled]="internalOrder().order.status !== orderStates.IN_PROGRESS"
+      >
+        Bearbeiten
+      </a>
+    }
 
-    </div>
+    @for (state of stateChangeButtons; track $index) {
+      <button
+        [matButton]="state.style ?? 'elevated'"
+        [color]="state.color"
+        (click)="changeOrderState(state.state)"
+        [matTooltip]="state.tooltip"
+      >
+        {{ state.label }} {{ state.icon }}
+      </button>
+    }
+  </div>
 
-    <div class="sticky top-0 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
-        <button
-                mat-raised-button
-                color="primary"
-                (click)="export()">
-            <mat-icon iconPositionStart>download</mat-icon>
-            Exportieren
-        </button>
+  <div class="flex flex-wrap gap-12 mt-8 w-full h-fit">
+    <mat-divider class="bg-he-red-200 w-full" />
+    <app-order-main-information [orderData]="internalOrder()" class="w-full" />
 
-        @if (internalOrder().order.status === orderStates.IN_PROGRESS) {
-        <a
-           mat-raised-button
-           color="primary"
-           [routerLink]="['/orders', internalOrder().order.id, 'edit']"
-           [disabled]="internalOrder().order.status !== orderStates.IN_PROGRESS">
-            Bearbeiten
-        </a>
-        }
+    @for (section of sections; track section.id) {
+      <div [class]="section.isFullWidth ? 'w-full' : 'grow'">
+        <div class="flex flex-row justify-between">
+          <h3 [id]="section.title" class="text-2xl mb-2">{{ section.title }}</h3>
 
-        @for (state of stateChangeButtons; track $index) {
-        <button
-                [matButton]="state.style ?? 'elevated'"
-                [color]="state.color"
-                (click)="changeOrderState(state.state)"
-                [matTooltip]="state.tooltip">
-            {{ state.label }} {{ state.icon }}
-        </button>
-        }
-    </div>
-
-
-
-
-    <div class="flex flex-col gap-12 mt-8 w-full">
-
-        <mat-divider class="bg-he-red-200 w-full" />
-
-        <app-order-main-information [orderData]="internalOrder()" />
-
-
-        <div class="flex flex-wrap gap-4 h-fit">
-
-            @for (section of sections; track section.id) {
-            <div [class]="'mb-12 ' + (section.isFullWidth ? 'w-full' : 'grow')">
-
-                <h3 class="text-2xl mb-2">{{section.title}}</h3>
-                <mat-divider class="bg-he-red-200 !mb-2" />
-
-                @switch (section.id) {
-                @case ('quotations') { <app-quotations-list [orderId]="internalOrder().order.id!" /> }
-                @case ('documents') { <app-order-documents [order]="internalOrder().order" /> }
-                @case ('contacts') { <app-order-persons [order]="internalOrder().order" /> }
-                @case ('approvals') { <app-approvals [orderId]="internalOrder().order.id!" /> }
-                @case ('history') { <app-state-history [order]="internalOrder().order" /> }
-                }
-
-            </div>
-            }
-
+          @if (showEditButton(section)) {
+            <a
+              matButton
+              color="primary"
+              [routerLink]="['edit']"
+              [queryParams]="{ tab: section.editTabId }"
+              >Bearbeiten</a
+            >
+          }
         </div>
+        <mat-divider class="bg-he-red-200 !mb-2" />
 
-
-    </div>
-
-
+        @switch (section.id) {
+          @case ('main-quote') {
+            <app-order-main-quote [orderData]="internalOrder()" />
+          }
+          @case ('articles') {
+            <app-order-article-list [order]="internalOrder().order" />
+          }
+          @case ('quotations') {
+            <app-quotations-list [orderId]="internalOrder().order.id!" />
+          }
+          @case ('documents') {
+            <app-order-documents [order]="internalOrder().order" />
+          }
+          @case ('contacts') {
+            <app-order-persons [order]="internalOrder().order" />
+          }
+          @case ('approvals') {
+            <app-approvals [orderId]="internalOrder().order.id!" />
+          }
+          @case ('history') {
+            <app-state-history [order]="internalOrder().order" />
+          }
+        }
+      </div>
+    }
+  </div>
 </div>
