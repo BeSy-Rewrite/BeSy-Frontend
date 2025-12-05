@@ -11,7 +11,10 @@ import {
   ORDER_QUOTATION_FORM_CONFIG,
   ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG,
 } from '../../../configs/order/order-config';
-import { PersonsWrapperService, PersonWithFullName } from '../../../services/wrapper-services/persons-wrapper.service';
+import {
+  PersonsWrapperService,
+  PersonWithFullName,
+} from '../../../services/wrapper-services/persons-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 import {
   Component,
@@ -23,7 +26,11 @@ import {
   OnInit,
 } from '@angular/core';
 import { MatDivider } from '@angular/material/divider';
-import { FormComponent, FormField, FormConfig } from '../../../components/form-component/form-component.component';
+import {
+  FormComponent,
+  FormField,
+  FormConfig,
+} from '../../../components/form-component/form-component.component';
 import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
 import {
   AbstractControl,
@@ -62,7 +69,10 @@ import {
   CurrencyWithDisplayName,
 } from '../../../services/wrapper-services/currencies-wrapper.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import { OrderResponseDTOFormatted, OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import {
+  OrderResponseDTOFormatted,
+  OrdersWrapperService,
+} from '../../../services/wrapper-services/orders-wrapper.service';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { MatIcon } from '@angular/material/icon';
@@ -73,6 +83,8 @@ import { StateDisplayComponent } from '../../../components/state-display/state-d
 import { EditOrderResolvedData } from '../../../resolver/edit-order-resolver';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes.guard';
 import { UnsavedTab } from '../../../components/unsaved-changes-dialog/unsaved-changes-dialog.component';
+import { ConfirmDialogComponent } from '../../../components/confirm-dialog/confirm-dialog.component';
+import { MatDialog } from '@angular/material/dialog';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -140,9 +152,7 @@ interface AddressOptionConfig {
   templateUrl: './edit-order-page.component.html',
   styleUrl: './edit-order-page.component.scss',
 })
-export class EditOrderPageComponent
-  implements OnInit, HasUnsavedChanges, OnDestroy
-{
+export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDestroy {
   constructor(
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
@@ -153,7 +163,8 @@ export class EditOrderPageComponent
     private readonly vatWrapperService: VatWrapperService,
     private readonly costCenterWrapperService: CostCenterWrapperService,
     private readonly route: ActivatedRoute,
-    private readonly userWrapperService: UsersWrapperService
+    private readonly userWrapperService: UsersWrapperService,
+    private readonly _dialog: MatDialog
   ) {
     effect(() => {
       this.itemTableDataSource.data = this.items();
@@ -213,10 +224,7 @@ export class EditOrderPageComponent
   // Compute the footer content for the items table, showing the total sum of all items
   footerContent = computed(() => {
     const sum = this.items().reduce((total, item) => {
-      const price =
-        this.orderWrapperService.parseGermanPriceToNumber(
-          item.price_per_unit
-        ) ?? 0;
+      const price = this.orderWrapperService.parseGermanPriceToNumber(item.price_per_unit) ?? 0;
       const quantity = item.quantity ?? 0;
 
       const vat = Number(item.vat_value) || 0;
@@ -271,8 +279,7 @@ export class EditOrderPageComponent
   deliveryAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
   deliveryAddressFormGroup = new FormGroup({});
   deliveryPersonHasPreferredAddress: boolean = false;
-  deliveryAddressOption: 'preferred' | 'existing' | 'new' | 'selected' =
-    'selected';
+  deliveryAddressOption: 'preferred' | 'existing' | 'new' | 'selected' = 'selected';
   deliveryPersonHasExistingAddress: boolean = false;
   selectedDeliveryPerson: PersonWithFullName | undefined;
   deliveryInfoText = '';
@@ -287,8 +294,7 @@ export class EditOrderPageComponent
   invoiceAddressFormConfig: FormConfig = ORDER_ADDRESS_FORM_CONFIG;
   invoiceAddressFormGroup = new FormGroup({});
   invoicePersonHasPreferredAddress: boolean = false;
-  invoiceAddressOption: 'preferred' | 'existing' | 'new' | 'selected' =
-    'selected';
+  invoiceAddressOption: 'preferred' | 'existing' | 'new' | 'selected' = 'selected';
   invoicePersonHasExistingAddress: boolean = false;
   invoiceInfoText = '';
   invoicePersonFormConfig = ORDER_INVOICE_PERSON_FORM_CONFIG;
@@ -395,7 +401,7 @@ export class EditOrderPageComponent
       this.generalFormGroup,
       this.primaryCostCenterFormGroup,
       this.secondaryCostCenterFormGroup,
-      this.queriesPersonFormGroup
+      this.queriesPersonFormGroup,
     ],
     Items: [this.orderItemFormGroup],
     MainOffer: [this.mainOfferFormGroup, this.supplierDecisionReasonFormGroup],
@@ -404,10 +410,10 @@ export class EditOrderPageComponent
       this.deliveryAddressFormGroup,
       this.deliveryPersonFormGroup,
       this.invoiceAddressFormGroup,
-      this.invoicePersonFormGroup
+      this.invoicePersonFormGroup,
     ],
     Approvals: [this.approvalFormGroup],
-    Documents: [] // No form groups for documents tab
+    Documents: [], // No form groups for documents tab
   };
 
   /**
@@ -421,7 +427,7 @@ export class EditOrderPageComponent
     Quotations: true,
     Addresses: true,
     Approvals: true,
-    Documents: false
+    Documents: false,
   });
 
   /**
@@ -442,8 +448,7 @@ export class EditOrderPageComponent
   ngOnInit(): void {
     window.addEventListener('beforeunload', this.onBeforeUnload);
     // Get resolved data from route
-    const resolvedData: EditOrderResolvedData =
-      this.route.snapshot.data['orderData'];
+    const resolvedData: EditOrderResolvedData = this.route.snapshot.data['orderData'];
 
     this.editOrderId = resolvedData.order.id!;
     this.order = resolvedData.order;
@@ -453,12 +458,9 @@ export class EditOrderPageComponent
       this.loadAllOrderData().then(() => {
         // Setup tab sync subscription
         this.tabSyncSub?.unsubscribe();
-        this.tabSyncSub = this.route.queryParamMap.subscribe((params) => {
+        this.tabSyncSub = this.route.queryParamMap.subscribe(params => {
           const tabParam = params.get('tab');
-          if (
-            tabParam &&
-            Object.hasOwn(this.tabMap, tabParam)
-          ) {
+          if (tabParam && Object.hasOwn(this.tabMap, tabParam)) {
             this.switchToTab(tabParam as (typeof this.tabOrder)[number], {
               updateUrl: false,
             });
@@ -467,9 +469,7 @@ export class EditOrderPageComponent
           }
         });
 
-        this.orderName.set(
-          this.formattedOrderDTO.content_description ?? 'Fehler: Kein Name'
-        );
+        this.orderName.set(this.formattedOrderDTO.content_description ?? 'Fehler: Kein Name');
         this.orderBesyId.set(
           `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year}-${this.formattedOrderDTO.auto_index}`
         );
@@ -501,19 +501,14 @@ export class EditOrderPageComponent
    * by fetching it from various services.
    */
   private async initializeStaticData() {
-    [
-      this.vatOptions,
-      this.persons,
-      this.suppliers,
-      this.costCenters,
-      this.currencies,
-    ] = await Promise.all([
-      this.vatWrapperService.getAllVats(),
-      this.personsWrapperService.getAllPersonsWithFullName(),
-      this.suppliersWrapperService.getAllSuppliers(),
-      this.costCenterWrapperService.getAllCostCenters(),
-      this.currenciesWrapperService.getAllCurrenciesWithSymbol(),
-    ]);
+    [this.vatOptions, this.persons, this.suppliers, this.costCenters, this.currencies] =
+      await Promise.all([
+        this.vatWrapperService.getAllVats(),
+        this.personsWrapperService.getAllPersonsWithFullName(),
+        this.suppliersWrapperService.getAllSuppliers(),
+        this.costCenterWrapperService.getAllCostCenters(),
+        this.currenciesWrapperService.getAllCurrenciesWithSymbol(),
+      ]);
     this.formatPersons();
     this.setDropdownVatOptions();
     this.formatSuppliers();
@@ -529,12 +524,10 @@ export class EditOrderPageComponent
       const newItem = this.orderItemFormGroup.value as ItemTableModel;
 
       // Format price to German format
-      newItem.price_per_unit = this.orderWrapperService.formatPriceToGerman(
-        newItem.price_per_unit
-      );
+      newItem.price_per_unit = this.orderWrapperService.formatPriceToGerman(newItem.price_per_unit);
 
       // Add the new item to the items list
-      this.items.update((curr) => [...curr, newItem]);
+      this.items.update(curr => [...curr, newItem]);
       this.itemTableDataSource.data = this.items(); // Update the table data source
 
       this.orderItemFormGroup.reset();
@@ -553,7 +546,7 @@ export class EditOrderPageComponent
     if (item.item_id) {
       this.itemsToDelete.add(item);
     }
-    this.items.update((curr) => curr.filter((i) => i !== item));
+    this.items.update(curr => curr.filter(i => i !== item));
   }
 
   /**
@@ -562,12 +555,11 @@ export class EditOrderPageComponent
    */
   private setDropdownVatOptions() {
     // set options for dropdown fields
-    this.orderItemFormConfig.fields.find(
-      (field) => field.name === 'vat_value'
-    )!.options = this.vatOptions.map((vat) => ({
-      value: vat.value,
-      label: `${vat.description} (${vat.value}%)`,
-    }));
+    this.orderItemFormConfig.fields.find(field => field.name === 'vat_value')!.options =
+      this.vatOptions.map(vat => ({
+        value: vat.value,
+        label: `${vat.description} (${vat.value}%)`,
+      }));
   }
 
   /**
@@ -576,28 +568,28 @@ export class EditOrderPageComponent
   private formatPersons() {
     // Configure the config for the queries person autocomplete input, as this field is handled in a seperate form component
     const queriesPersonField = this.queriesPersonFormConfig.fields.find(
-      (field) => field.name === 'queries_person_id'
+      field => field.name === 'queries_person_id'
     );
     if (!queriesPersonField) return;
-    queriesPersonField.options = this.persons.map((person) => ({
+    queriesPersonField.options = this.persons.map(person => ({
       label: person.fullName, // Label shown in the dropdown of the autocomplete
       value: person.id, // value which is returned when selecting an option
     }));
 
     const deliveryPersonField = this.deliveryPersonFormConfig.fields.find(
-      (field) => field.name === 'delivery_person_id'
+      field => field.name === 'delivery_person_id'
     );
     if (!deliveryPersonField) return;
-    deliveryPersonField.options = this.persons.map((person) => ({
+    deliveryPersonField.options = this.persons.map(person => ({
       label: person.fullName,
       value: person.id,
     }));
 
     const invoicePersonField = this.invoicePersonFormConfig.fields.find(
-      (field) => field.name === 'invoice_person_id'
+      field => field.name === 'invoice_person_id'
     );
     if (!invoicePersonField) return;
-    invoicePersonField.options = this.persons.map((person) => ({
+    invoicePersonField.options = this.persons.map(person => ({
       label: person.fullName,
       value: person.id,
     }));
@@ -609,22 +601,21 @@ export class EditOrderPageComponent
    */
   private formatCostCenters() {
     const primaryCostCenterField = this.primaryCostCenterFormConfig.fields.find(
-      (f) => f.name === 'primary_cost_center_id'
+      f => f.name === 'primary_cost_center_id'
     );
     if (!primaryCostCenterField) return;
 
-    primaryCostCenterField.options = this.costCenters.map((cc) => ({
+    primaryCostCenterField.options = this.costCenters.map(cc => ({
       label: `${cc.name ?? ''} (${cc.id ?? ''})`,
       value: cc.id ?? 0, // If id undefined -> 0
     }));
 
-    const secondaryCostCenterField =
-      this.secondaryCostCenterFormConfig.fields.find(
-        (f) => f.name === 'secondary_cost_center_id'
-      );
+    const secondaryCostCenterField = this.secondaryCostCenterFormConfig.fields.find(
+      f => f.name === 'secondary_cost_center_id'
+    );
     if (!secondaryCostCenterField) return;
 
-    secondaryCostCenterField.options = this.costCenters.map((cc) => ({
+    secondaryCostCenterField.options = this.costCenters.map(cc => ({
       label: `${cc.name ?? ''} (${cc.id ?? ''})`, // If name undefined -> empty string
       value: cc.id ?? 0, // If id undefined -> 0
     }));
@@ -641,10 +632,8 @@ export class EditOrderPageComponent
   onAddQuotation() {
     if (this.quotationFormGroup.valid) {
       const newQuotation = this.quotationFormGroup.value as QuotationTableModel;
-      newQuotation.price = this.orderWrapperService.formatPriceToGerman(
-        newQuotation.price
-      );
-      this.quotations.update((curr) => [...curr, newQuotation]);
+      newQuotation.price = this.orderWrapperService.formatPriceToGerman(newQuotation.price);
+      this.quotations.update(curr => [...curr, newQuotation]);
       this.quotationFormGroup.reset(); // Reset the form
     } else {
       this.quotationFormGroup.markAllAsTouched(); // Mark all fields as touched to show validation errors
@@ -660,7 +649,7 @@ export class EditOrderPageComponent
     if (quotation.index !== undefined) {
       this.quotationsToDelete.add(quotation);
     }
-    this.quotations.update((curr) => curr.filter((q) => q !== quotation));
+    this.quotations.update(curr => curr.filter(q => q !== quotation));
   }
 
   /**
@@ -668,15 +657,9 @@ export class EditOrderPageComponent
    * @param field The form field containing the selected person
    * @param isRecipient Boolean flag indicating if the selected person is the delivery_person (true) or the invoice_person (false)
    */
-  async onAddressPersonSelected(
-    field: { field: string; value: any },
-    isRecipient: boolean
-  ) {
+  async onAddressPersonSelected(field: { field: string; value: any }, isRecipient: boolean) {
     // Load all addresses of any person into the address table for selection
-    if (
-      !this.addressTableDataSource.data ||
-      this.addressTableDataSource.data.length === 0
-    ) {
+    if (!this.addressTableDataSource.data || this.addressTableDataSource.data.length === 0) {
       this.addressTableDataSource.data = this.personAddresses;
     }
 
@@ -696,7 +679,7 @@ export class EditOrderPageComponent
     }
 
     // Find the selected person from the locally stored persons
-    const person = this.persons.find((p) => p.id === field.value.value);
+    const person = this.persons.find(p => p.id === field.value.value);
     if (!person) return;
 
     if (isRecipient) {
@@ -706,15 +689,12 @@ export class EditOrderPageComponent
     }
 
     if (!this.personAddresses) {
-      this.personAddresses =
-        await this.personsWrapperService.getAllPersonsWithFullName();
+      this.personAddresses = await this.personsWrapperService.getAllPersonsWithFullName();
     }
 
     // Check if the selected person has a preferred address
     if (person.address_id) {
-      const preferredAddress = this.personAddresses.find(
-        (addr) => addr.id === person.address_id
-      );
+      const preferredAddress = this.personAddresses.find(addr => addr.id === person.address_id);
 
       if (!preferredAddress) {
         if (isRecipient) {
@@ -758,10 +738,7 @@ export class EditOrderPageComponent
    * @param address The selected address from the table
    * @param isRecipientAddress Boolean flag indicating if the address is for the recipient (true) or the invoice (false)
    */
-  onAddressInTableSelected(
-    address: AddressResponseDTO,
-    isRecipientAddress: boolean
-  ) {
+  onAddressInTableSelected(address: AddressResponseDTO, isRecipientAddress: boolean) {
     // Patch the selected address into the appropriate form group
     if (isRecipientAddress) {
       this.deliveryAddressFormGroup.patchValue(address);
@@ -778,8 +755,7 @@ export class EditOrderPageComponent
    */
   async onAddressOptionChanged(option: string, isRecipient: boolean) {
     if (!this.personAddresses) {
-      this.personAddresses =
-        await this.personsWrapperService.getAllPersonsWithFullName();
+      this.personAddresses = await this.personsWrapperService.getAllPersonsWithFullName();
     }
 
     const typedOption = option as AddressOption;
@@ -788,10 +764,9 @@ export class EditOrderPageComponent
       switch (typedOption) {
         case 'preferred':
           if (this.selectedDeliveryPerson?.address_id) {
-            const preferredAddress =
-              await this.personsWrapperService.getPersonAddressById(
-                this.selectedDeliveryPerson.id!
-              );
+            const preferredAddress = await this.personsWrapperService.getPersonAddressById(
+              this.selectedDeliveryPerson.id!
+            );
             this.applyAddressOption('preferred', true, preferredAddress);
           }
           break;
@@ -799,7 +774,7 @@ export class EditOrderPageComponent
         case 'existing':
           if (this.deliveryPersonHasExistingAddress) {
             const existingAddress = this.personAddresses.find(
-              (addr) => addr.id === this.formattedOrderDTO.delivery_address_id!
+              addr => addr.id === this.formattedOrderDTO.delivery_address_id!
             );
             this.applyAddressOption('existing', true, existingAddress);
           }
@@ -817,10 +792,9 @@ export class EditOrderPageComponent
       switch (typedOption) {
         case 'preferred':
           if (this.selectedInvoicePerson?.address_id) {
-            const preferredAddress =
-              await this.personsWrapperService.getPersonAddressById(
-                this.selectedInvoicePerson.id!
-              );
+            const preferredAddress = await this.personsWrapperService.getPersonAddressById(
+              this.selectedInvoicePerson.id!
+            );
             this.applyAddressOption('preferred', false, preferredAddress);
           }
           break;
@@ -828,7 +802,7 @@ export class EditOrderPageComponent
         case 'existing':
           if (this.invoicePersonHasExistingAddress) {
             const existingAddress = this.personAddresses.find(
-              (addr) => addr.id === this.formattedOrderDTO.invoice_address_id!
+              addr => addr.id === this.formattedOrderDTO.invoice_address_id!
             );
             this.applyAddressOption('existing', false, existingAddress);
           }
@@ -850,14 +824,11 @@ export class EditOrderPageComponent
    * @param target The target object to patch the address data into.
    * @returns {Promise<boolean>} Returns true if the address saving process was successful, false otherwise
    */
-  async patchAddressOrder(
-    target: Partial<OrderResponseDTOFormatted>
-  ): Promise<boolean> {
+  async patchAddressOrder(target: Partial<OrderResponseDTOFormatted>): Promise<boolean> {
     // Set recipient and invoice person
     if (this.selectedDeliveryPerson) {
       // retrieve selected recipient person from autocomplete input from field delivery_person_id
-      target.delivery_person_id =
-        this.deliveryPersonFormGroup.get('delivery_person_id')!.value;
+      target.delivery_person_id = this.deliveryPersonFormGroup.get('delivery_person_id')!.value;
     } else if (!this.selectedDeliveryPerson) {
       target.delivery_person_id = undefined;
     }
@@ -868,8 +839,7 @@ export class EditOrderPageComponent
     }
     // If not, check if an invoice person has been selected
     else if (this.selectedInvoicePerson) {
-      target.invoice_person_id =
-        this.invoicePersonFormGroup.get('invoice_person_id')!.value;
+      target.invoice_person_id = this.invoicePersonFormGroup.get('invoice_person_id')!.value;
     } else if (!this.selectedInvoicePerson) {
       target.invoice_person_id = undefined;
     }
@@ -877,12 +847,8 @@ export class EditOrderPageComponent
     // Handle address saving based on the selected addressModes
 
     // If the address options didn't change, return
-    if (this.deliveryAddressOption === 'existing' && this.sameAsRecipient)
-      return true;
-    else if (
-      this.deliveryAddressOption === 'existing' &&
-      this.invoiceAddressOption === 'existing'
-    )
+    if (this.deliveryAddressOption === 'existing' && this.sameAsRecipient) return true;
+    else if (this.deliveryAddressOption === 'existing' && this.invoiceAddressOption === 'existing')
       return true;
 
     // Recipient address
@@ -896,11 +862,9 @@ export class EditOrderPageComponent
           const createdAddress: AddressResponseDTO =
             await this.personsWrapperService.createPersonAddress(newAddress);
           target.delivery_address_id = createdAddress.id;
-          this._notifications.open(
-            'Neue Lieferadresse wurde gespeichert.',
-            undefined,
-            { duration: 3000 }
-          );
+          this._notifications.open('Neue Lieferadresse wurde gespeichert.', undefined, {
+            duration: 3000,
+          });
         } catch (error) {
           this._notifications.open(
             'Fehler beim Speichern der Lieferadresse. Bitte überprüfen Sie die Eingaben im Lieferadress-Formular und versuchen Sie es später erneut.',
@@ -977,12 +941,12 @@ export class EditOrderPageComponent
         return false;
       }
     } else if (this.selectedInvoiceAddressIdFromTable) {
-        // Use the address id stored in selectedInvoiceAddressId to assign to the target
-        target.invoice_address_id = this.selectedInvoiceAddressIdFromTable;
-      } else {
-        // No address selected from the table, set the field to undefined to prevent accidental overwriting
-        target.invoice_address_id = undefined;
-      }
+      // Use the address id stored in selectedInvoiceAddressId to assign to the target
+      target.invoice_address_id = this.selectedInvoiceAddressIdFromTable;
+    } else {
+      // No address selected from the table, set the field to undefined to prevent accidental overwriting
+      target.invoice_address_id = undefined;
+    }
     return true;
   }
 
@@ -1010,23 +974,21 @@ export class EditOrderPageComponent
    * @returns
    */
   private setCurrenciesDropdownOptions() {
-    const mainOfferField = this.mainOfferFormConfig.fields.find(
-      (f) => f.name === 'currency_short'
-    );
+    const mainOfferField = this.mainOfferFormConfig.fields.find(f => f.name === 'currency_short');
     if (!mainOfferField) return;
 
-    mainOfferField.options = this.currencies.map((c) => ({
+    mainOfferField.options = this.currencies.map(c => ({
       label: c.displayName ?? '', // Falls displayName undefined -> leere Zeichenkette
       value: c.code ?? '', // Falls code undefined -> leere Zeichenkette
     }));
 
     mainOfferField.defaultValue = this.currencies
-      .filter((c) => c.code === 'EUR')
-      .map((c) => ({
+      .filter(c => c.code === 'EUR')
+      .map(c => ({
         label: c.displayName ?? '',
         value: c.code ?? '',
       }))[0];
-    this.mainOfferConfigRefreshTrigger.update((n) => n + 1);
+    this.mainOfferConfigRefreshTrigger.update(n => n + 1);
   }
 
   /**
@@ -1034,12 +996,10 @@ export class EditOrderPageComponent
    * @returns A promise that resolves when the suppliers have been loaded and the dropdown options set
    */
   private formatSuppliers() {
-    const field = this.mainOfferFormConfig.fields.find(
-      (f) => f.name === 'supplier_id'
-    );
+    const field = this.mainOfferFormConfig.fields.find(f => f.name === 'supplier_id');
     if (!field) return;
 
-    field.options = this.suppliers.map((s) => ({
+    field.options = this.suppliers.map(s => ({
       label: s.name ?? '', // If name undefined -> empty string
       value: s.id ?? 0, // If id undefined -> 0
     }));
@@ -1056,9 +1016,7 @@ export class EditOrderPageComponent
     } else if (field.field === 'supplier_id' && !field.value) {
       // If supplier is deselected, clear the customer_id field and its options
       this.mainOfferFormGroup.patchValue({ customer_id: null });
-      const customerIdField = this.mainOfferFormConfig.fields.find(
-        (f) => f.name === 'customer_id'
-      );
+      const customerIdField = this.mainOfferFormConfig.fields.find(f => f.name === 'customer_id');
       if (customerIdField) {
         customerIdField.options = [];
       }
@@ -1069,9 +1027,7 @@ export class EditOrderPageComponent
       // Set the selected currency signal based on the selected value
 
       // Find the selected currency in the currencies array
-      const selected = this.currencies.find(
-        (c) => c.code === (field.value?.value ?? field.value)
-      );
+      const selected = this.currencies.find(c => c.code === (field.value?.value ?? field.value));
 
       // Update the selectedCurrency signal with the found currency or default to EUR
       this.selectedCurrency.set({
@@ -1089,23 +1045,17 @@ export class EditOrderPageComponent
     try {
       // Fetch customer IDs for the selected supplier
       const customerIds =
-        await this.suppliersWrapperService.getCustomersIdsBySupplierId(
-          supplierId
-        );
-      const customerIdField = this.mainOfferFormConfig.fields.find(
-        (f) => f.name === 'customer_id'
-      );
+        await this.suppliersWrapperService.getCustomersIdsBySupplierId(supplierId);
+      const customerIdField = this.mainOfferFormConfig.fields.find(f => f.name === 'customer_id');
       if (customerIdField) {
-        customerIdField.options = customerIds.map((c) => ({
+        customerIdField.options = customerIds.map(c => ({
           label: c.customer_id ?? '', // Falls customer_identifier undefined -> leere Zeichenkette
           value: c.customer_id ?? 0, // Falls id undefined -> 0
         }));
       }
     } catch (error) {
       console.error('Fehler beim Laden der Customer-IDs:', error);
-      const customerIdField = this.mainOfferFormConfig.fields.find(
-        (f) => f.name === 'customer_id'
-      );
+      const customerIdField = this.mainOfferFormConfig.fields.find(f => f.name === 'customer_id');
       if (customerIdField) {
         customerIdField.options = [
           { label: 'Fehler beim Laden der Customer-IDs', value: undefined },
@@ -1127,7 +1077,7 @@ export class EditOrderPageComponent
         // Add the decision_other_reason_description field if not already present
         if (
           !this.supplierDecisionReasonFormConfig.fields.some(
-            (f) => f.name === 'decision_other_reasons_description'
+            f => f.name === 'decision_other_reasons_description'
           )
         ) {
           this.supplierDecisionReasonFormConfig.fields.push({
@@ -1147,21 +1097,16 @@ export class EditOrderPageComponent
         // Remove the decision_other_reason_description field if it exists
         this.supplierDecisionReasonFormConfig.fields =
           this.supplierDecisionReasonFormConfig.fields.filter(
-            (f) => f.name !== 'decision_other_reasons_description'
+            f => f.name !== 'decision_other_reasons_description'
           );
 
-        if (
-          this.supplierDecisionReasonFormGroup.get(
-            'decision_other_reasons_description'
-          )
-        ) {
-          this.supplierDecisionReasonFormGroup.removeControl(
-            'decision_other_reasons_description'
-          );
+        if (this.supplierDecisionReasonFormGroup.get('decision_other_reasons_description')) {
+          this.supplierDecisionReasonFormGroup.removeControl('decision_other_reasons_description');
         }
       }
+    } else {
+      return;
     }
-    else {return;}
   }
 
   /**
@@ -1175,16 +1120,12 @@ export class EditOrderPageComponent
     const [mappedItems, quotations, approvals] = await Promise.all([
       this.orderWrapperService
         .getOrderItems(this.editOrderId)
-        .then((responseItems) =>
-          this.orderWrapperService.mapItemResponseToTableModel(responseItems)
-        ),
+        .then(responseItems => this.orderWrapperService.mapItemResponseToTableModel(responseItems)),
 
       this.orderWrapperService
         .getOrderQuotations(this.editOrderId)
-        .then((responseQuotations) =>
-          this.orderWrapperService.mapQuotationResponseToTableModel(
-            responseQuotations
-          )
+        .then(responseQuotations =>
+          this.orderWrapperService.mapQuotationResponseToTableModel(responseQuotations)
         ),
 
       this.orderWrapperService.getOrderApprovals(this.editOrderId),
@@ -1292,9 +1233,7 @@ export class EditOrderPageComponent
       );
     }
     // Update the currency footer in the item table based on the loaded order currency
-    const selected = this.currencies.find(
-      (c) => c.code === this.formattedOrderDTO.currency?.value
-    );
+    const selected = this.currencies.find(c => c.code === this.formattedOrderDTO.currency?.value);
     this.selectedCurrency.set({
       code: selected?.code ?? 'EUR',
       symbol: selected?.symbol ?? '€',
@@ -1315,13 +1254,11 @@ export class EditOrderPageComponent
     configRef: { current: FormConfig },
     refreshTrigger: WritableSignal<number>
   ) {
-    const fieldConfig = configRef.current.fields.find(
-      (f) => f.name === fieldName
-    );
+    const fieldConfig = configRef.current.fields.find(f => f.name === fieldName);
     if (!fieldConfig) return;
 
     fieldConfig.defaultValue = value;
-    refreshTrigger.update((v) => v + 1); // Trigger a refresh by updating the signal
+    refreshTrigger.update(v => v + 1); // Trigger a refresh by updating the signal
   }
 
   /**
@@ -1336,23 +1273,42 @@ export class EditOrderPageComponent
    * @param formType The type of form to reset. Can be 'General', 'MainOffer', 'Items', 'Quotations', 'Addresses', 'Approvals', or 'All' to reset all forms.
    */
   resetToDefault(
-    formType:
-      | 'General'
-      | 'MainOffer'
-      | 'Items'
-      | 'Quotations'
-      | 'Addresses'
-      | 'Approvals'
-      | 'All'
+    formType: 'General' | 'MainOffer' | 'Items' | 'Quotations' | 'Addresses' | 'Approvals' | 'All'
   ) {
-    // Display confirmation dialog before resetting
-    const confirmation = confirm(
-      'Möchten Sie wirklich alle Änderungen verwerfen und zum ursprünglichen Zustand zurückkehren?'
-    );
-    if (!confirmation) return;
+    // Display confirmation dialog if resetting all forms
+    if (formType === 'All') {
+      const dialogRef = this._dialog.open(ConfirmDialogComponent, {
+        data: {
+          title: 'Alle Änderungen zurücksetzen',
+          message:
+            'Möchten Sie wirklich alle Änderungen zurücksetzen? Alle ungespeicherten Änderungen gehen verloren.',
+          confirmButtonText: 'Zurücksetzen',
+          cancelButtonText: 'Abbrechen',
+        },
+      });
 
-    const formsToReset = formType === 'All' ? this.tabOrder : [formType];
+      dialogRef.afterClosed().subscribe(result => {
+        if (result === true) {
+          this.resetForms([
+            'General',
+            'MainOffer',
+            'Items',
+            'Quotations',
+            'Addresses',
+            'Approvals',
+          ]);
+        }
+      });
+    } else {
+      this.resetForms([formType]);
+    }
+  }
 
+  /**
+   * Resets the specified forms to their default state.
+   * @param formsToReset Array of form types to reset.
+   */
+  private resetForms(formsToReset: string[]) {
     for (const form of formsToReset) {
       switch (form) {
         case 'General':
@@ -1382,19 +1338,15 @@ export class EditOrderPageComponent
 
   private resetItems() {
     // Filter out all items that do not have an item_id (newly added items)
-    this.items.update((curr) =>
-      curr.filter((item) => item.item_id !== undefined)
-    );
+    this.items.update(curr => curr.filter(item => item.item_id !== undefined));
     this.orderItemFormGroup.reset();
     this.itemsToDelete.clear();
     this.setDefaultVatValueByLoadedItems();
-    this.orderItemFormConfigRefreshTrigger.update((n) => n + 1);
+    this.orderItemFormConfigRefreshTrigger.update(n => n + 1);
   }
 
   private resetQuotations() {
-    this.quotations.update((curr) =>
-      curr.filter((quotation) => quotation.index !== undefined)
-    );
+    this.quotations.update(curr => curr.filter(quotation => quotation.index !== undefined));
     this.quotationFormGroup.reset();
     this.quotationsToDelete.clear();
   }
@@ -1405,8 +1357,7 @@ export class EditOrderPageComponent
   private async patchAddressFormsWithOrderData() {
     // Load all addresses of any person into the address table for selection
     if (this.personAddresses.length === 0) {
-      this.personAddresses =
-        await this.personsWrapperService.getAllPersonsAddresses();
+      this.personAddresses = await this.personsWrapperService.getAllPersonsAddresses();
       this.addressTableDataSource.data = this.personAddresses;
     }
 
@@ -1419,7 +1370,7 @@ export class EditOrderPageComponent
         this.deliveryPersonConfigRefreshTrigger
       );
       this.selectedDeliveryPerson = this.persons.find(
-        (p) => p.id === this.formattedOrderDTO.delivery_person_id?.value
+        p => p.id === this.formattedOrderDTO.delivery_person_id?.value
       );
       if (this.selectedDeliveryPerson?.address_id) {
         this.deliveryPersonHasPreferredAddress = true;
@@ -1430,15 +1381,14 @@ export class EditOrderPageComponent
     if (this.formattedOrderDTO.delivery_address_id) {
       // Find the delivery address from the locally stored person addresses
       const deliveryAddress = this.personAddresses.find(
-        (addr) => addr.id === this.formattedOrderDTO.delivery_address_id
+        addr => addr.id === this.formattedOrderDTO.delivery_address_id
       );
 
       if (!deliveryAddress) return;
 
       this.deliveryPersonHasExistingAddress = true;
       this.deliveryAddressFormGroup.patchValue(deliveryAddress);
-      this.deliveryAddressFormConfig.subtitle =
-        'Aktuell gespeicherte Lieferadresse';
+      this.deliveryAddressFormConfig.subtitle = 'Aktuell gespeicherte Lieferadresse';
       this.deliveryAddressOption = 'existing';
       this.deliveryAddressFormGroup.disable();
       this.deliveryInfoText =
@@ -1454,7 +1404,7 @@ export class EditOrderPageComponent
         this.invoicePersonConfigRefreshTrigger
       );
       this.selectedInvoicePerson = this.persons.find(
-        (p) => p.id === this.formattedOrderDTO.invoice_person_id?.value
+        p => p.id === this.formattedOrderDTO.invoice_person_id?.value
       );
       if (this.selectedInvoicePerson?.address_id) {
         this.invoicePersonHasPreferredAddress = true;
@@ -1465,7 +1415,7 @@ export class EditOrderPageComponent
     if (this.formattedOrderDTO.invoice_address_id) {
       // Find the invoice address from the locally stored person addresses
       const invoiceAddress = this.personAddresses.find(
-        (addr) => addr.id === this.formattedOrderDTO.invoice_address_id
+        addr => addr.id === this.formattedOrderDTO.invoice_address_id
       );
 
       if (!invoiceAddress) return;
@@ -1473,8 +1423,7 @@ export class EditOrderPageComponent
       this.invoicePersonHasExistingAddress = true;
       this.invoiceAddressOption = 'existing';
       this.invoiceAddressFormGroup.patchValue(invoiceAddress);
-      this.invoiceAddressFormConfig.subtitle =
-        'Aktuell gespeicherte Rechnungsadresse';
+      this.invoiceAddressFormConfig.subtitle = 'Aktuell gespeicherte Rechnungsadresse';
       this.invoiceAddressFormGroup.disable();
       this.invoiceInfoText =
         'Dies ist die aktuell gespeicherte Rechnungsadresse dieser Person. Sie können die Daten im Formular unterhalb überprüfen.';
@@ -1487,8 +1436,7 @@ export class EditOrderPageComponent
         this.formattedOrderDTO.invoice_person_id.value !==
           this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
-        this.formattedOrderDTO.invoice_address_id !==
-          this.formattedOrderDTO.delivery_address_id)
+        this.formattedOrderDTO.invoice_address_id !== this.formattedOrderDTO.delivery_address_id)
     ) {
       this.sameAsRecipient = false;
     }
@@ -1498,10 +1446,7 @@ export class EditOrderPageComponent
    * Switches to the specified tab.
    * @param tabName The name of the tab to switch to.
    */
-  switchToTab(
-    tabName: (typeof this.tabOrder)[number],
-    options: { updateUrl?: boolean } = {}
-  ) {
+  switchToTab(tabName: (typeof this.tabOrder)[number], options: { updateUrl?: boolean } = {}) {
     const index = this.tabMap[tabName];
     if (index !== undefined) {
       this.selectedTabIndex.set(index);
@@ -1670,18 +1615,13 @@ export class EditOrderPageComponent
   async patchItemsOrder(): Promise<boolean> {
     // prepare items that need to be created (no item_id -> new)
     const itemsToCreate = this.items()
-      .filter((item) => !item.item_id)
-      .map((item) =>
-        this.orderWrapperService.mapItemTableModelToItemRequestDTO(item)
-      );
+      .filter(item => !item.item_id)
+      .map(item => this.orderWrapperService.mapItemTableModelToItemRequestDTO(item));
 
     // create all new items if any got added
     if (itemsToCreate.length > 0) {
       try {
-        await this.orderWrapperService.createOrderItems(
-          this.editOrderId,
-          itemsToCreate
-        );
+        await this.orderWrapperService.createOrderItems(this.editOrderId, itemsToCreate);
       } catch (error) {
         console.error('Fehler beim Erstellen von Items:', error);
         this._notifications.open(
@@ -1694,12 +1634,8 @@ export class EditOrderPageComponent
 
       // refresh items from backend if any were created
       try {
-        const updatedItems = await this.orderWrapperService.getOrderItems(
-          this.editOrderId
-        );
-        this.items.set(
-          this.orderWrapperService.mapItemResponseToTableModel(updatedItems)
-        );
+        const updatedItems = await this.orderWrapperService.getOrderItems(this.editOrderId);
+        this.items.set(this.orderWrapperService.mapItemResponseToTableModel(updatedItems));
       } catch (error) {
         console.error('Fehler beim Laden aktualisierter Items:', error);
         this._notifications.open(
@@ -1714,10 +1650,7 @@ export class EditOrderPageComponent
     // delete items marked for deletion, bail out on first failure
     for (const itemToDelete of this.itemsToDelete) {
       try {
-        await this.orderWrapperService.deleteItemOfOrder(
-          this.editOrderId,
-          itemToDelete.item_id!
-        );
+        await this.orderWrapperService.deleteItemOfOrder(this.editOrderId, itemToDelete.item_id!);
       } catch (error) {
         console.error('Fehler beim Löschen eines Artikels:', error);
         this._notifications.open(
@@ -1742,19 +1675,14 @@ export class EditOrderPageComponent
   async patchQuotationsOrder(): Promise<boolean> {
     // prepare quotations that need to be created (no quotation_index -> new)
     const quotationsToCreate = this.quotations()
-      .filter((quotation) => !quotation.index)
-      .map((quotation) =>
-        this.orderWrapperService.mapQuotationTableModelToQuotationRequestDTO(
-          quotation
-        )
+      .filter(quotation => !quotation.index)
+      .map(quotation =>
+        this.orderWrapperService.mapQuotationTableModelToQuotationRequestDTO(quotation)
       );
     // create all new quotations if any got added
     if (quotationsToCreate.length > 0) {
       try {
-        await this.orderWrapperService.createOrderQuotations(
-          this.editOrderId,
-          quotationsToCreate
-        );
+        await this.orderWrapperService.createOrderQuotations(this.editOrderId, quotationsToCreate);
       } catch (error) {
         console.error('Fehler beim Erstellen von Angeboten:', error);
         this._notifications.open(
@@ -1768,12 +1696,11 @@ export class EditOrderPageComponent
       // refresh quotations from backend if any were created
       if (quotationsToCreate.length > 0) {
         try {
-          const updatedQuotations =
-            await this.orderWrapperService.getOrderQuotations(this.editOrderId);
+          const updatedQuotations = await this.orderWrapperService.getOrderQuotations(
+            this.editOrderId
+          );
           this.quotations.set(
-            this.orderWrapperService.mapQuotationResponseToTableModel(
-              updatedQuotations
-            )
+            this.orderWrapperService.mapQuotationResponseToTableModel(updatedQuotations)
           );
         } catch (error) {
           console.error('Fehler beim Laden aktualisierter Angebote:', error);
@@ -1816,7 +1743,6 @@ export class EditOrderPageComponent
    * @returns {Promise<boolean>} Returns true if the patch was successful, false otherwise.
    */
   private async submitApprovalPatch(): Promise<boolean> {
-
     // If order is not in status completed, the approvals can't be changed
     if (this.formattedOrderDTO.status !== OrderStatus.COMPLETED) return true;
 
@@ -1829,10 +1755,7 @@ export class EditOrderPageComponent
       this.approvalsFromForm
     );
 
-    console.log(
-      'Changed approval fields to be patched:',
-      changedApprovalFields
-    );
+    console.log('Changed approval fields to be patched:', changedApprovalFields);
 
     // If no approval fields have changed, return
     if (Object.keys(changedApprovalFields).length === 0) {
@@ -1840,15 +1763,10 @@ export class EditOrderPageComponent
     }
     // Send the approval patch to the backend
     try {
-      await this.orderWrapperService.patchOrderApprovals(
-        this.editOrderId,
-        changedApprovalFields
-      );
-      this._notifications.open(
-        'Zustimmungen wurden erfolgreich gespeichert.',
-        undefined,
-        { duration: 3000 }
-      );
+      await this.orderWrapperService.patchOrderApprovals(this.editOrderId, changedApprovalFields);
+      this._notifications.open('Zustimmungen wurden erfolgreich gespeichert.', undefined, {
+        duration: 3000,
+      });
       return true;
     } catch (error) {
       console.error('Fehler beim Speichern der Zustimmungen:', error);
@@ -1894,11 +1812,10 @@ export class EditOrderPageComponent
     console.log('Current formattedOrderDTO:', this.formattedOrderDTO);
     console.log('Submitting order patch with DTO:', this.patchOrderDTO);
     // Check which fields have been modified and prepare the patch DTO accordingly
-    const changedFields =
-      this.orderWrapperService.compareOrdersAndReturnChangedFields(
-        this.formattedOrderDTO,
-        this.patchOrderDTO
-      );
+    const changedFields = this.orderWrapperService.compareOrdersAndReturnChangedFields(
+      this.formattedOrderDTO,
+      this.patchOrderDTO
+    );
     console.log('Changed fields to be patched:', changedFields);
 
     // If no fields have changed, return
@@ -1908,18 +1825,12 @@ export class EditOrderPageComponent
 
     // Submit the patch to the backend and update the local formattedOrderDTO with the response
     try {
-      this.formattedOrderDTO =
-        await this.orderWrapperService.mapOrderResponseToFormatted(
-          await this.orderWrapperService.patchOrderById(
-            this.formattedOrderDTO.id!,
-            changedFields
-          )
-        );
-      this._notifications.open(
-        'Bestellung wurde erfolgreich aktualisiert.',
-        undefined,
-        { duration: 3000 }
+      this.formattedOrderDTO = await this.orderWrapperService.mapOrderResponseToFormatted(
+        await this.orderWrapperService.patchOrderById(this.formattedOrderDTO.id!, changedFields)
       );
+      this._notifications.open('Bestellung wurde erfolgreich aktualisiert.', undefined, {
+        duration: 3000,
+      });
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Bestellung:', error);
       this._notifications.open(
@@ -1971,10 +1882,7 @@ export class EditOrderPageComponent
     },
     MainOffer: {
       tabName: 'Hauptangebot',
-      configs: [
-        this.mainOfferFormConfig,
-        this.supplierDecisionReasonFormConfig,
-      ],
+      configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
     },
     Addresses: {
       tabName: 'Adressdaten',
@@ -2004,11 +1912,11 @@ export class EditOrderPageComponent
 
     // Tab Items
     const addedItemsNames: string[] = this.items()
-      .filter((item) => !item.item_id)
-      .map((item) => item.name || 'Unbenannter Artikel');
+      .filter(item => !item.item_id)
+      .map(item => item.name || 'Unbenannter Artikel');
 
     const deletedItemsNames: string[] = Array.from(this.itemsToDelete).map(
-      (item) => item.name || 'Unbenannter Artikel'
+      item => item.name || 'Unbenannter Artikel'
     );
 
     if (addedItemsNames.length > 0 && deletedItemsNames.length > 0) {
@@ -2022,55 +1930,42 @@ export class EditOrderPageComponent
     } else if (addedItemsNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Bestellpositionen',
-        fields: [
-          'Ungespeicherte hinzugefügte Artikel: ' + addedItemsNames.join(', '),
-        ],
+        fields: ['Ungespeicherte hinzugefügte Artikel: ' + addedItemsNames.join(', ')],
       });
     } else if (deletedItemsNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Bestellpositionen',
-        fields: [
-          'Ungespeicherte gelöschte Artikel: ' + deletedItemsNames.join(', '),
-        ],
+        fields: ['Ungespeicherte gelöschte Artikel: ' + deletedItemsNames.join(', ')],
       });
     }
 
     // Tab Quotations
     const addedQuotationsCompanyNames: string[] = this.quotations()
-      .filter((quotation) => !quotation.index)
-      .map((quotation) => quotation.company_name || 'Unbenanntes Angebot');
+      .filter(quotation => !quotation.index)
+      .map(quotation => quotation.company_name || 'Unbenanntes Angebot');
 
-    const deletedQuotationsCompanyNames: string[] = Array.from(
-      this.quotationsToDelete
-    ).map((quotation) => quotation.company_name || 'Unbenanntes Angebot');
+    const deletedQuotationsCompanyNames: string[] = Array.from(this.quotationsToDelete).map(
+      quotation => quotation.company_name || 'Unbenanntes Angebot'
+    );
 
-    if (
-      addedQuotationsCompanyNames.length > 0 &&
-      deletedQuotationsCompanyNames.length > 0
-    ) {
+    if (addedQuotationsCompanyNames.length > 0 && deletedQuotationsCompanyNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Vergleichsangebote',
         fields: [
-          'Ungespeicherte hinzugefügte Angebote: ' +
-            addedQuotationsCompanyNames.join(', '),
-          'Ungespeicherte gelöschte Angebote: ' +
-            deletedQuotationsCompanyNames.join(', '),
+          'Ungespeicherte hinzugefügte Angebote: ' + addedQuotationsCompanyNames.join(', '),
+          'Ungespeicherte gelöschte Angebote: ' + deletedQuotationsCompanyNames.join(', '),
         ],
       });
     } else if (addedQuotationsCompanyNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Vergleichsangebote',
-        fields: [
-          'Ungespeicherte hinzugefügte Angebote: ' +
-            addedQuotationsCompanyNames.join(', '),
-        ],
+        fields: ['Ungespeicherte hinzugefügte Angebote: ' + addedQuotationsCompanyNames.join(', ')],
       });
     } else if (deletedQuotationsCompanyNames.length > 0) {
       unsavedTabs.push({
         tabName: 'Vergleichsangebote',
         fields: [
-          'Ungespeicherte gelöschte Angebote von: ' +
-            deletedQuotationsCompanyNames.join(', '),
+          'Ungespeicherte gelöschte Angebote von: ' + deletedQuotationsCompanyNames.join(', '),
         ],
       });
     }
@@ -2088,9 +1983,7 @@ export class EditOrderPageComponent
     if (Object.keys(changedApprovalFields).length > 0) {
       const fieldLabels: string[] = [];
       for (const fieldName of Object.keys(changedApprovalFields)) {
-        const field = this.approvalFormConfig.fields.find(
-          (f) => f.name === fieldName
-        );
+        const field = this.approvalFormConfig.fields.find(f => f.name === fieldName);
         if (field?.label) {
           fieldLabels.push(field.label);
         } else {
@@ -2103,18 +1996,11 @@ export class EditOrderPageComponent
       });
     }
 
-
     // Create a deep copy and patch with current form values
-    const currentOrderState: OrderResponseDTOFormatted = structuredClone(
-      this.formattedOrderDTO
-    );
+    const currentOrderState: OrderResponseDTOFormatted = structuredClone(this.formattedOrderDTO);
 
     const formsToPatch = this.tabOrder.filter(
-      (tab) =>
-        tab !== 'Items' &&
-        tab !== 'Quotations' &&
-        tab !== 'Approvals' &&
-        tab !== 'Documents'
+      tab => tab !== 'Items' && tab !== 'Quotations' && tab !== 'Approvals' && tab !== 'Documents'
     );
 
     for (const form of formsToPatch) {
@@ -2122,11 +2008,10 @@ export class EditOrderPageComponent
     }
 
     // Compare and get changed fields
-    const changedFields =
-      this.orderWrapperService.compareOrdersAndReturnChangedFields(
-        this.formattedOrderDTO,
-        currentOrderState
-      );
+    const changedFields = this.orderWrapperService.compareOrdersAndReturnChangedFields(
+      this.formattedOrderDTO,
+      currentOrderState
+    );
 
     console.log('Changed fields for unsaved changes detection:', changedFields);
 
@@ -2147,9 +2032,7 @@ export class EditOrderPageComponent
    * @param changedFieldNames Array of field names that have changed.
    * @returns Record mapping tab names to arrays of field labels.
    */
-  private mapChangedFieldsToTabs(
-    changedFieldNames: string[]
-  ): Record<string, string[]> {
+  private mapChangedFieldsToTabs(changedFieldNames: string[]): Record<string, string[]> {
     const tabChanges: Record<string, string[]> = {};
 
     for (const fieldName of changedFieldNames) {
@@ -2170,10 +2053,7 @@ export class EditOrderPageComponent
    * Mapping of field names to tab names and labels for fields not in form configs.
    * Used as a lookup before the generic fallback.
    */
-  private readonly fieldToTabMapping: Record<
-    string,
-    { tabName: string; label: string }
-  > = {
+  private readonly fieldToTabMapping: Record<string, { tabName: string; label: string }> = {
     delivery_person_id: { tabName: 'Adressdaten', label: 'Lieferempfänger' },
     invoice_person_id: { tabName: 'Adressdaten', label: 'Rechnungsempfänger' },
     delivery_address_id: { tabName: 'Adressdaten', label: 'Lieferadresse' },
@@ -2209,11 +2089,9 @@ export class EditOrderPageComponent
     }
 
     // Then search in form configs
-    for (const [, mapping] of Object.entries(
-      this.formConfigToTabMapping
-    )) {
+    for (const [, mapping] of Object.entries(this.formConfigToTabMapping)) {
       for (const config of mapping.configs) {
-        const field = config.fields.find((f) => f.name === fieldName);
+        const field = config.fields.find(f => f.name === fieldName);
         if (field) {
           return {
             tabName: mapping.tabName,
@@ -2236,10 +2114,7 @@ export class EditOrderPageComponent
    * @param isRecipient Whether this is for the delivery (true) or invoice (false) address.
    * @returns The configuration for the address option.
    */
-  private getAddressOptionConfig(
-    option: AddressOption,
-    isRecipient: boolean
-  ): AddressOptionConfig {
+  private getAddressOptionConfig(option: AddressOption, isRecipient: boolean): AddressOptionConfig {
     const configs: Record<AddressOption, AddressOptionConfig> = {
       preferred: {
         subtitle: 'Hinterlegte bevorzugte Adresse',
@@ -2347,7 +2222,7 @@ export class EditOrderPageComponent
       Quotations: false,
       Addresses: false,
       Approvals: false,
-      Documents: false
+      Documents: false,
     };
 
     let bannerMessage = '';
@@ -2361,13 +2236,16 @@ export class EditOrderPageComponent
         newEditability['Quotations'] = true;
         newEditability['Addresses'] = true;
         newEditability['Approvals'] = false;
-        this.readOnlyBannerMessageApprovalTab.set('Die Bestellung befindet sich noch in Bearbeitung. Zustimmungen können erst nach Abschluss der Bestellung bearbeitet werden.');
+        this.readOnlyBannerMessageApprovalTab.set(
+          'Die Bestellung befindet sich noch in Bearbeitung. Zustimmungen können erst nach Abschluss der Bestellung bearbeitet werden.'
+        );
         break;
 
       case OrderStatus.COMPLETED:
         // Only Approvals tab editable
         newEditability['Approvals'] = true;
-        bannerMessage = 'Die Bestellung wurde abgeschlossen. Nur Zustimmungen können noch bearbeitet werden.';
+        bannerMessage =
+          'Die Bestellung wurde abgeschlossen. Nur Zustimmungen können noch bearbeitet werden.';
         break;
 
       default:
@@ -2425,7 +2303,7 @@ export class EditOrderPageComponent
       [OrderStatus.SENT]: 'Versendet',
       [OrderStatus.SETTLED]: 'Abgerechnet',
       [OrderStatus.ARCHIVED]: 'Archiviert',
-      [OrderStatus.DELETED]: 'Gelöscht'
+      [OrderStatus.DELETED]: 'Gelöscht',
     };
     return statusNames[status ?? ''] ?? status ?? 'Unbekannt';
   }
