@@ -75,7 +75,7 @@ export class OrdersWrapperService {
     private readonly personsWrapperService: PersonsWrapperService,
     private readonly currenciesWrapperService: CurrenciesWrapperService,
     private readonly suppliersWrapperService: SuppliersWrapperService
-  ) {}
+  ) { }
 
   /**
    * @param page Seitenzahl für die Paginierung (beginnend bei 0).
@@ -229,7 +229,7 @@ export class OrdersWrapperService {
   }
 
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
-    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, newState));
+    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, JSON.stringify(newState)));
   }
 
   async getOrderByIDInFormFormat(orderId: number): Promise<OrderResponseDTOFormatted> {
@@ -280,14 +280,14 @@ export class OrdersWrapperService {
     ] = await Promise.all([
       order.primary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-            order.primary_cost_center_id
-          )
+          order.primary_cost_center_id
+        )
         : Promise.resolve(undefined),
 
       order.secondary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-            order.secondary_cost_center_id
-          )
+          order.secondary_cost_center_id
+        )
         : Promise.resolve(undefined),
 
       order.delivery_person_id
