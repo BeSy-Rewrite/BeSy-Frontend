@@ -228,6 +228,7 @@ export class OrdersWrapperService {
     return await lastValueFrom(this.ordersService.getOrderStatusHistory(orderId));
   }
 
+  // JSON.stringify needed as angular http client otherwise sends plain text instead of application/json
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
     return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, JSON.stringify(newState)));
   }
