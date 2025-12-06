@@ -1,25 +1,8 @@
-<div class="flex flex-col md:flex-row gap-12 md:gap-24">
-
-    <div class="flex flex-col gap-4">
-        @for (field of generalDetailsFields; track $index) {
-        <div [class]="`${environment.orderFieldClassPrefix}${field} flex gap-16 w-fit`">
-            <h3 class="w-44 font-semibold">{{orderFieldLabels[field]}}:</h3>
-            <p class="w-fit min-w-16">{{orderData().orderDisplay[field]}}</p>
-        </div>
-        }
+<div class="flex flex-col gap-4">
+    @for (field of generalDetailsFields; track $index) {
+    <div [class]="`${environment.orderFieldClassPrefix}${field} flex gap-16 w-fit`">
+        <h3 class="w-44 font-semibold">{{orderFieldLabels[field]}}:</h3>
+        <p class="w-fit min-w-16">{{orderData().orderDisplay[field]}}</p>
     </div>
-
-    <div class="flex flex-wrap md:flex-col gap-16 md:gap-8">
-        <div [class]="`${environment.orderFieldClassPrefix}delivery_address_id`">
-            <h3 class="font-semibold text-lg mb-2">Lieferadresse:</h3>
-            <p>{{orderData().orderDisplay.delivery_person_id}}</p>
-            <app-address-display [addressId]="orderData().order.delivery_address_id ?? -1" />
-        </div>
-        <div [class]="`${environment.orderFieldClassPrefix}invoice_address_id`">
-            <h3 class="font-semibold text-lg mb-2">Rechnungsadresse:</h3>
-            <p>{{orderData().orderDisplay.invoice_person_id}}</p>
-            <app-address-display [addressId]="orderData().order.invoice_address_id ?? -1" />
-        </div>
-    </div>
-
+    }
 </div>

@@ -15,6 +15,7 @@ import { OrderStatus, UserResponseDTO } from '../../../api-services-v2';
 import { setupDialog } from "../../../components/dialog/dialog.component";
 import { OrderDocumentsComponent } from "../../../components/documents/order-documents/order-documents.component";
 import { ApprovalsComponent } from '../../../components/order-display/approvals/approvals.component';
+import { OrderAddressesComponent } from "../../../components/order-display/order-addresses/order-addresses.component";
 import { OrderArticleListComponent } from "../../../components/order-display/order-article-list/order-article-list.component";
 import { OrderMainInformationComponent } from '../../../components/order-display/order-main-information/order-main-information.component';
 import { OrderMainQuoteComponent } from "../../../components/order-display/order-main-quote/order-main-quote.component";
@@ -40,7 +41,7 @@ import { UsersWrapperService } from "../../../services/wrapper-services/users-wr
 import { ORDER_EDIT_TABS } from "../edit-order-page/edit-order-page.component";
 
 
-type SectionId = 'main-quote' | 'articles' | 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
+type SectionId = 'main-information' | 'addresses' | 'main-quote' | 'articles' | 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
 interface Section {
   id: SectionId;
   title: string;
@@ -75,7 +76,8 @@ interface StateChangeButtons {
     StateDisplayComponent,
     OrderDocumentsComponent,
     OrderMainQuoteComponent,
-    OrderArticleListComponent
+    OrderArticleListComponent,
+    OrderAddressesComponent
   ],
   templateUrl: './view-order-page.component.html',
   styleUrl: './view-order-page.component.scss'
@@ -95,6 +97,8 @@ export class ViewOrderPageComponent implements OnInit {
   currentUrl = computed(() => globalThis.location.href);
 
   sections: Section[] = [
+    { id: 'main-information', title: 'Allgemeine Informationen', isFullWidth: false, editTabId: "General" },
+    { id: 'addresses', title: 'Adressen', isFullWidth: false, editTabId: "Addresses" },
     { id: 'main-quote', title: 'Hauptangebot', isFullWidth: true, editTabId: "MainOffer" },
     { id: 'articles', title: 'Artikelübersicht', isFullWidth: true, editTabId: "Items" },
     { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true, editTabId: "Quotations" },
