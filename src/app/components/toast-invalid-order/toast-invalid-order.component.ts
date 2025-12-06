@@ -31,21 +31,21 @@ export class ToastInvalidOrderComponent {
   /**
    * The target state that was attempted to be set.
    */
-  targetState = input(undefined, { transform: (value: OrderStatus) => STATE_DISPLAY_NAMES.get(value) ?? 'Unbekannter Status' });
+  targetState = input(undefined, { transform: (value: OrderStatus | undefined) => STATE_DISPLAY_NAMES.get(value ?? '') ?? 'Unbekannter Status' });
 
   /**
    * The list of validation errors to display in the toast.
    */
   zodError = input([], {
     transform: (value: ZodError) => {
-      return value.issues.map(e => {
+      return value?.issues?.map(e => {
         const fieldName = e.path?.at(-1)?.toString() ?? 'unbekanntes_feld';
         return {
           message: e.message,
           fieldDisplayName: ORDER_FIELD_NAMES[fieldName] ?? fieldName,
           fieldName
         } as ToastError;
-      });
+      }) ?? [];
     }
   });
 
@@ -56,8 +56,15 @@ export class ToastInvalidOrderComponent {
    * @param error The ToastError containing field information.
    */
   highlightField(error: ToastError) {
-    if (error.fieldName && document.querySelector(`.${environment.orderFieldClassPrefix}${error.fieldName}`)) {
-      this.driverJsService.highlightElement(`.${environment.orderFieldClassPrefix}${error.fieldName}`, 'Fehler beim Statuswechsel', error.message);
+    if (!error.fieldName) return;
+
+    try {
+      const selector = `.${environment.orderFieldClassPrefix}${error.fieldName}`;
+      if (document.querySelector(selector)) {
+        this.driverJsService.highlightElement(selector, 'Fehler beim Statuswechsel', error.message);
+      }
+    } catch (e) {
+      console.error('Fehler beim Hervorheben des Feldes:', e);
     }
   }
 }

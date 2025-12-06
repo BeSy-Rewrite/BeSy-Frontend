@@ -22,9 +22,7 @@
                    (selectedTabChange)="onTabChanged($event)">
 
         <mat-tab
-            label="Bestellungen verwalten"
-            class="order-list"
-        >
+                 label="Bestellungen verwalten">
 
             <mat-divider class="bg-gray-500"></mat-divider>
             <div class="pt-3 flex flex-row">
@@ -46,7 +44,7 @@
                 <app-generic-table
                                    [class.expanded]="!showFilters"
                                    [class.collapsed]="showFilters"
-                                   class="-ml-96 w-full overflow-auto"
+                                   class="-ml-96 w-full overflow-auto order-list"
                                    [dataSource]="ordersDataSource"
                                    [columns]="ordersTableColumns"
                                    [actions]="actions"

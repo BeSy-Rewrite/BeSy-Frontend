@@ -1,6 +1,8 @@
 <div class="flex flex-col gap-4">
     @for (field of generalDetailsFields; track $index) {
-    <div [class]="`${environment.orderFieldClassPrefix}${field} flex gap-16 w-fit`">
+    <div class="flex gap-16 w-fit"
+         [class]="environment.orderFieldClassPrefix + field">
+
         <h3 class="w-44 font-semibold">{{orderFieldLabels[field]}}:</h3>
         <p class="w-fit min-w-16">{{orderData().orderDisplay[field]}}</p>
     </div>

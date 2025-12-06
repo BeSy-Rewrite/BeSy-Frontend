@@ -253,7 +253,7 @@ export class ViewOrderPageComponent implements OnInit {
    * @param error The ZodError containing validation issues.
    */
   highlightFirstInvalidField(error: ZodError) {
-    const invalidField = error.issues?.[0]?.path?.at(-1)?.toString();
+    const invalidField = error?.issues?.[0]?.path?.at(-1)?.toString();
     if (invalidField && document.querySelector(`.${environment.orderFieldClassPrefix}${invalidField}`)) {
       this.driverJsService.highlightElement(`.${environment.orderFieldClassPrefix}${invalidField}`, 'Fehler beim Statuswechsel', error.issues[0].message);
     }

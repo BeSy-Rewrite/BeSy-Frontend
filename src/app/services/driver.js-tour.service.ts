@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { afterNextRender, Injectable, Injector } from '@angular/core';
 import { Router } from '@angular/router';
 import { driver } from "driver.js";
 import "driver.js/dist/driver.css";
@@ -8,7 +8,11 @@ import "driver.js/dist/driver.css";
 })
 export class DriverJsTourService {
 
-  constructor(private readonly router: Router) { }
+  private readonly highlightDriver = driver();
+
+  constructor(private readonly router: Router,
+    private readonly injector: Injector
+  ) { }
 
   /**
    * Starts the driver.js tour.
@@ -27,7 +31,12 @@ export class DriverJsTourService {
             onNextClick: () => {
               // .. load element dynamically
               // .. and then call
-              this.router.navigate(['orders']).then(() => setTimeout(() => driverObject.moveNext(), 10));
+              this.router.navigate(['/orders']).then(() => {
+                // Wait for the next render cycle to ensure the element is in the DOM
+                afterNextRender(() => {
+                  driverObject.moveNext();
+                }, { injector: this.injector });
+              });
             },
           },
         },
@@ -53,8 +62,7 @@ export class DriverJsTourService {
    * @param description Description text of the popover
    */
   highlightElement(selector: string, title: string, description: string) {
-    const highlightDriver = driver();
-    highlightDriver.highlight({
+    this.highlightDriver.highlight({
       element: selector,
       popover: {
         title,
