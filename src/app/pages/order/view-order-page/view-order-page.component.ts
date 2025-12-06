@@ -244,14 +244,14 @@ export class ViewOrderPageComponent implements OnInit {
           });
         }
       },
-      error: (err) => {
-        this.highlightFirstInvalidField(err);
-        this.createErrorToast(err, newState);
-      }
+      error: (err) => this.createErrorToast(err, newState)
     });
   }
 
-
+  /**
+   * Highlights the first invalid field in the order form based on the ZodError.
+   * @param error The ZodError containing validation issues.
+   */
   highlightFirstInvalidField(error: ZodError) {
     const invalidField = error.issues?.[0]?.path?.at(-1)?.toString();
     if (invalidField && document.querySelector(`.${environment.orderFieldClassPrefix}${invalidField}`)) {
@@ -259,12 +259,17 @@ export class ViewOrderPageComponent implements OnInit {
     }
   }
 
+  /**
+   * Creates and displays an error toast for invalid order state transitions.
+   * @param error The ZodError containing validation issues.
+   * @param newState The new state that was attempted to be set.
+   */
   createErrorToast(error: ZodError, newState: OrderStatus) {
     const errorToast: ToastRequest = {
       message: ToastInvalidOrderComponent,
       inputs: {
         targetState: newState,
-        errors: error
+        zodError: error
       },
       type: 'error'
     };
@@ -303,6 +308,7 @@ export class ViewOrderPageComponent implements OnInit {
     });
   }
 
+  /** Determines whether to show the edit button for a given section. */
   showEditButton(section: Section): boolean {
     if (!section.editTabId) return false;
 
