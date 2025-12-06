@@ -65,7 +65,8 @@ export const routes: Routes = [
     {
         title: 'Personen',
         path: 'persons',
-        component: PersonsPageComponent
+        component: PersonsPageComponent,
+        canActivate: [DefaultGuard]
     },
     {
         title: 'Bestellungen',
