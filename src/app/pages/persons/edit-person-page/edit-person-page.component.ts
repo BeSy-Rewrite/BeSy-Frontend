@@ -1,14 +1,16 @@
-import { Component, effect, OnInit, signal, ViewChild, ViewEncapsulation } from '@angular/core';
+import { AfterViewInit, Component, effect, OnInit, signal, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
+import {
+  MatButtonToggle,
+  MatButtonToggleChange,
+  MatButtonToggleGroup,
+} from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatIconModule } from '@angular/material/icon';
+import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
-import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
-import { Router } from '@angular/router';
+import { MatTabGroup } from '@angular/material/tabs';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
@@ -21,30 +23,22 @@ import { GenericTableComponent } from '../../../components/generic-table/generic
 import { PERSON_ADDRESS_FORM_CONFIG } from '../../../configs/person-address-form-config';
 import { PERSON_FORM_CONFIG } from '../../../configs/person-form';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
+import { EditPersonResolvedData } from '../../../resolver/edit-person.resolver';
 import { PersonsWrapperService } from '../../../services/wrapper-services/persons-wrapper.service';
 
 @Component({
-  selector: 'app-persons-page',
-  imports: [
-    GenericTableComponent,
-    MatTabGroup,
-    MatTabsModule,
-    FormComponent,
-    MatDividerModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatIconModule,
-  ],
-  templateUrl: './persons-page.component.html',
-  styleUrls: ['./persons-page.component.scss'],
-  encapsulation: ViewEncapsulation.None,
+  selector: 'app-edit-person-page',
+  imports: [FormComponent, MatButtonToggleGroup, MatButtonToggle, MatIcon, GenericTableComponent],
+  templateUrl: './edit-person-page.component.html',
+  styleUrl: './edit-person-page.component.scss',
 })
-export class PersonsPageComponent implements OnInit {
+export class EditPersonPageComponent implements OnInit, AfterViewInit {
   constructor(
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
     private readonly personsWrapperService: PersonsWrapperService,
-    private readonly _dialog: MatDialog
+    private readonly _dialog: MatDialog,
+    private readonly route: ActivatedRoute
   ) {
     effect(() => {
       this.onAddressSelectionModeChanged(this.addressSelectionMode());
@@ -54,7 +48,7 @@ export class PersonsPageComponent implements OnInit {
   // Selected address ID in the address-form-table. Used to create a person with this address-id
   selectedAddressId: number | undefined = undefined;
 
-  addressSelectionMode = signal<'existing' | 'new'>('existing');
+  addressSelectionMode = signal<'existing' | 'new' | 'saved'>('existing');
 
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
 
@@ -67,18 +61,6 @@ export class PersonsPageComponent implements OnInit {
       color: ButtonColor.PRIMARY,
       action: (row: PersonResponseDTO) => this.editPerson(row),
     },
-  ];
-
-  // Data source to be displayed in the person-table component
-  personsDataSource: MatTableDataSource<PersonResponseDTO> =
-    new MatTableDataSource<PersonResponseDTO>([]);
-  // Columns to be displayed in the person-table component
-  personsTableColumns = [
-    { id: 'id', label: 'ID' },
-    { id: 'name', label: 'Vorname' },
-    { id: 'surname', label: 'Nachname' },
-    { id: 'email', label: 'E-Mail' },
-    { id: 'phone', label: 'Telefonnummer' },
   ];
 
   // Data source to be displayed in the address-table component
@@ -97,7 +79,7 @@ export class PersonsPageComponent implements OnInit {
   // Form configuration for the generic form component
   personsFormConfig = PERSON_FORM_CONFIG;
   addressFormConfig = PERSON_ADDRESS_FORM_CONFIG;
-  personForm = new FormGroup({});
+  personFormGroup = new FormGroup({});
   addressFormGroup = new FormGroup({});
   addresses: AddressResponseDTO[] = [] as AddressResponseDTO[];
 
@@ -106,15 +88,26 @@ export class PersonsPageComponent implements OnInit {
     'Wählen Sie eine bestehende Adresse aus der Tabelle aus und überprüfen Sie die Daten im Formular darunter.'
   );
 
+  fetchedPerson: PersonResponseDTO | undefined = undefined;
+  fetchedAddress: AddressResponseDTO | undefined = undefined;
+  personHasSavedAddress = signal<boolean>(false);
+
   ngOnInit(): void {
-    this.personsWrapperService.getAllPersons().then(persons => {
-      this.personsDataSource = new MatTableDataSource<PersonResponseDTO>(persons);
-    });
+    const resolvedData: EditPersonResolvedData = this.route.snapshot.data['personData'];
+    this.fetchedPerson = resolvedData.person;
+    this.fetchedAddress = resolvedData.address;
+
     this.personsWrapperService.getAllPersonsAddresses().then(addresses => {
       this.addresses = addresses;
       this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(this.addresses);
     });
-    this.addressFormGroup.disable();
+  }
+
+  ngAfterViewInit(): void {
+    // Defer form initialization to allow FormComponent to create controls first
+    setTimeout(() => {
+      this.initializeFormGroups();
+    });
   }
 
   onAddressModeChange(event: MatButtonToggleChange): void {
@@ -137,9 +130,10 @@ export class PersonsPageComponent implements OnInit {
 
   // * Handle form submission
   async onSubmit() {
+    // !ToDo: Implement put request to update person and address
     // Check if the person form has all required fields set
-    if (!this.personForm.valid) {
-      this.personForm.markAllAsTouched();
+    if (!this.personFormGroup.valid) {
+      this.personFormGroup.markAllAsTouched();
       this._notifications.open('Bitte Personendaten prüfen.', undefined, {
         duration: 3000,
       });
@@ -147,7 +141,7 @@ export class PersonsPageComponent implements OnInit {
     }
 
     // Get person form data
-    const personData = this.personForm.value as PersonRequestDTO;
+    const personData = this.personFormGroup.value as PersonRequestDTO;
 
     // Case 1: an existing address is used to create a person
     if (this.addressSelectionMode() === 'existing') {
@@ -240,13 +234,18 @@ export class PersonsPageComponent implements OnInit {
     }
   }
 
-  private onAddressSelectionModeChanged(mode: 'existing' | 'new'): void {
+  private onAddressSelectionModeChanged(mode: 'existing' | 'new' | 'saved'): void {
     if (mode === 'existing') {
       this.addressModeInfoText.set(
         'Wählen Sie eine bestehende Adresse aus der Tabelle aus und überprüfen Sie die Daten im Formular darunter.'
       );
-    } else {
+      this.selectedAddressId = undefined;
+    } else if (mode === 'new') {
       this.addressModeInfoText.set('Geben Sie die Daten für eine neue Adresse ein.');
+    } else if (mode === 'saved') {
+      this.addressModeInfoText.set('Die aktuell gespeicherte Adresse wird unterhalb angezeigt.');
+      this.addressFormGroup.patchValue(this.fetchedAddress ?? {});
+      this.addressFormGroup.disable();
     }
   }
 
@@ -266,10 +265,10 @@ export class PersonsPageComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
-        this.personForm.reset();
+        // ToDo: Reset forms
+        this.personFormGroup.reset();
         this.addressFormGroup.reset();
         this.selectedAddressId = undefined;
-        this.tabGroup.selectedIndex = 0; // Switch to tab index for "Personenübersicht"
       }
     });
   }
@@ -287,6 +286,18 @@ export class PersonsPageComponent implements OnInit {
     } else {
       this.selectedAddressId = undefined;
       this.addressFormGroup.reset();
+    }
+  }
+
+  private initializeFormGroups() {
+    // Initialize person form group
+    this.personFormGroup.patchValue(this.fetchedPerson ?? {});
+    // Initialize person form with fetched data)
+    if (this.fetchedAddress) {
+      this.addressFormGroup.patchValue(this.fetchedAddress);
+      this.addressSelectionMode.set('saved');
+      this.addressFormGroup.disable();
+      this.personHasSavedAddress.set(true);
     }
   }
 }

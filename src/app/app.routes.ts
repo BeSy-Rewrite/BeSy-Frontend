@@ -9,11 +9,13 @@ import { CreateOrderPageComponent } from './pages/order/create-order-page/create
 import { EditOrderPageComponent } from './pages/order/edit-order-page/edit-order-page.component';
 import { OrdersPageComponent } from './pages/order/orders-page/orders-page.component';
 import { ViewOrderPageComponent } from './pages/order/view-order-page/view-order-page.component';
+import { EditPersonPageComponent } from './pages/persons/edit-person-page/edit-person-page.component';
 import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.component';
 import { EditSuppliersPageComponent } from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
 import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 import { EditOrderResolver } from './resolver/edit-order-resolver';
+import { EditPersonResolver } from './resolver/edit-person.resolver';
 import { OrderResolver } from './resolver/order.resolver';
 
 export const routes: Routes = [
@@ -63,6 +65,15 @@ export const routes: Routes = [
     title: 'Personen',
     path: 'persons',
     component: PersonsPageComponent,
+  },
+  {
+    title: 'Person bearbeiten',
+    path: 'persons/:id/edit',
+    component: EditPersonPageComponent,
+    resolve: {
+      personData: EditPersonResolver,
+    },
+    canActivate: [DefaultGuard],
   },
   {
     title: 'Bestellungen',
