@@ -3,6 +3,7 @@ import { MatButtonModule } from "@angular/material/button";
 import { MatDividerModule } from "@angular/material/divider";
 import { MatIconModule } from "@angular/material/icon";
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
 import { ZodError } from 'zod';
 import { environment } from '../../../environments/environment';
 import { OrderStatus } from '../../api-services-v2';
@@ -22,12 +23,18 @@ type ToastError = {
     MatDividerModule,
     MatIconModule,
     MatButtonModule,
-    MatTooltipModule
+    MatTooltipModule,
+    RouterModule
   ],
   templateUrl: './toast-invalid-order.component.html',
   styleUrl: './toast-invalid-order.component.scss',
 })
 export class ToastInvalidOrderComponent {
+  /**
+   * The ID of the order that failed validation.
+   */
+  orderId = input.required<number>();
+
   /**
    * The target state that was attempted to be set.
    */

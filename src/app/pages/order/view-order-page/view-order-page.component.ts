@@ -268,6 +268,7 @@ export class ViewOrderPageComponent implements OnInit {
     const errorToast: ToastRequest = {
       message: ToastInvalidOrderComponent,
       inputs: {
+        orderId: this.internalOrder().order.id!,
         targetState: newState,
         zodError: error
       },
