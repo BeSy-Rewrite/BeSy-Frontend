@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, computed, ElementRef, input, model, OnChanges, OnInit, output, signal, viewChild } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -27,10 +27,9 @@ import { FilterChipData } from '../../../models/filter/filter-chip-data';
     MatInputModule,
     MatAutocompleteModule,
     ReactiveFormsModule,
-    CommonModule,
     MatIconModule,
     MatTooltipModule
-  ],
+],
   templateUrl: './chip-selection.component.html',
   styleUrl: './chip-selection.component.scss'
 })

@@ -1,15 +1,22 @@
+<!-- Drop or click to select a file -->
 <div
-    class="dropzone border-he-darkblue-200 rounded-md bg-[#e2e2e2] w-4/5 p-8 text-center border-2 border-dashed relative">
-    <button mat-raised-button color="primary" class="w-fit z-10" (click)="fileInput.click()">
-        <mat-icon>attach_file</mat-icon>
-        @if (selectedFile()) {
-        Datei ändern
-        } @else {
-        Datei auswählen
-        }
-    </button>
+     class="dropzone border-he-darkblue-200 rounded-md bg-[#e2e2e2] w-full p-4 text-center border-2 border-dashed relative flex flex-col items-center justify-center">
+
+    <div class="mt-4">
+        <button mat-raised-button color="primary" class="w-fit z-10" (click)="fileInput.click()">
+            <mat-icon>attach_file</mat-icon>
+            @if (selectedFile()) {
+            Datei ändern
+            } @else {
+            Datei auswählen
+            }
+        </button>
+        <span class="ml-4">{{selectedFile()?.name}}</span>
+    </div>
+
+    <p class="mt-4 text-sm text-gray-600">Ziehen Sie eine Datei hierher oder klicken Sie auf die Schaltfläche, um eine
+        Datei auszuwählen.</p>
 
     <input (change)="onFileSelected($event)" #fileInput type="file" [accept]="accept()" [required]="required()">
 
-    <span class="ml-4">{{selectedFile()?.name}}</span>
 </div>

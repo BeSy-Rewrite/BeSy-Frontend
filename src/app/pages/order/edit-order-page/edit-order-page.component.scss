@@ -1,0 +1,37 @@
+$form-width: calc(6 / 10 * 100%); // 60% der Breite des Containers
+
+.create-order-page {
+
+  min-height: 100vh;
+}
+
+.general-info-container,
+.item-container,
+.quotation-container,
+.recipient-container,
+.delivery-address-container,
+.main-offer-tab-container,
+.approval-container,
+.document-container {
+  width: $form-width;
+  margin: 0 auto; // center the divs horizontally
+  padding: 1rem;
+}
+
+.tab-divider {
+  background: purple;
+  margin-bottom: 1rem;
+  height: 2px;
+}
+
+::ng-deep .mat-mdc-tab-body-wrapper {
+  overflow: visible !important;
+}
+::ng-deep .mat-mdc-tab-body {
+  overflow: visible !important;
+}
+::ng-deep .mat-mdc-tab-body-content {
+  overflow: visible !important;
+}
+
+

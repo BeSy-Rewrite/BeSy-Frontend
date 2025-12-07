@@ -7,21 +7,28 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "update:api": "npx @openapitools/openapi-generator-cli generate -i api-docs.yml -g typescript-angular -o src/app/api-services-v2 --additional-properties=enumPropertyNaming=UPPERCASE"
+    "update:api": "npx @openapitools/openapi-generator-cli generate -i api-docs.yml -g typescript-angular -o src/app/api-services-v2 --additional-properties=enumPropertyNaming=UPPERCASE",
+    "format": "prettier --write \"src/**/*.{ts,html,scss,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,html,scss,css}\"",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,html,scss,css}": [
+      "npx prettier --write"
+    ]
   },
   "private": true,
   "dependencies": {
-    "@angular/cdk": "^20.1.3",
-    "@angular/common": "^20.1.3",
-    "@angular/compiler": "^20.1.3",
-    "@angular/core": "^20.1.3",
-    "@angular/forms": "^20.1.3",
-    "@angular/material": "^20.1.3",
-    "@angular/material-luxon-adapter": "^20.1.4",
-    "@angular/platform-browser": "^20.1.3",
-    "@angular/platform-browser-dynamic": "^20.1.3",
-    "@angular/router": "^20.1.3",
-    "@openapitools/openapi-generator-cli": "^2.21.4",
+    "@angular/cdk": "^21.0.0",
+    "@angular/common": "^21.0.0",
+    "@angular/compiler": "^21.0.0",
+    "@angular/core": "^21.0.0",
+    "@angular/forms": "^21.0.0",
+    "@angular/material": "^21.0.0",
+    "@angular/material-luxon-adapter": "^21.0.0",
+    "@angular/platform-browser": "^21.0.0",
+    "@angular/platform-browser-dynamic": "^21.0.0",
+    "@angular/router": "^21.0.0",
     "@tailwindcss/postcss": "^4.1.11",
     "angular-oauth2-oidc": "^19.0.0",
     "autoprefixer": "^10.4.21",
@@ -31,21 +38,28 @@
     "rxjs": "~7.8.0",
     "tailwindcss": "^4.1.13",
     "tslib": "^2.3.0",
+    "zod": "^4.1.13",
     "zone.js": "~0.15.0"
   },
   "devDependencies": {
-    "@angular/build": "^20.1.2",
-    "@angular/cli": "^20.1.2",
-    "@angular/compiler-cli": "^20.1.3",
+    "@angular/build": "^21.0.0",
+    "@angular/cli": "^21.0.0",
+    "@angular/compiler-cli": "^21.0.0",
+    "@openapitools/openapi-generator-cli": "^2.21.4",
     "@types/jasmine": "~5.1.0",
+    "husky": "^9.1.7",
     "jasmine-core": "~5.6.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "lint-staged": "^16.2.7",
     "openapi-typescript-codegen": "^0.29.0",
+    "postcss": "^8.5.3",
+    "prettier": "^3.7.4",
+    "prettier-plugin-organize-imports": "^4.3.0",
     "schematics-scss-migrate": "^2.3.17",
-    "typescript": "~5.8.3"
+    "typescript": "~5.9.3"
   }
 }

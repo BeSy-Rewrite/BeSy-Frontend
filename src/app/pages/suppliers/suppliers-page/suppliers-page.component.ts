@@ -1,22 +1,14 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormGroup } from '@angular/forms';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDivider } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTableDataSource } from '@angular/material/table';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import {
   AddressRequestDTO,
-  AddressResponseDTO,
   CustomerIdRequestDTO,
   SupplierRequestDTO,
   SupplierResponseDTO,
-  SuppliersService,
   VatResponseDTO,
 } from '../../../api-services-v2';
-import { AddressFormComponent } from '../../../components/address-form/address-form.component';
-import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
 import { CUSTOMER_ID_FORM_CONFIG } from '../../../configs/create-customer-id-config';
@@ -24,6 +16,12 @@ import { SUPPLIER_FORM_CONFIG } from '../../../configs/create-supplier-config';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { MatDivider } from '@angular/material/divider';
+import { FormComponent } from '../../../components/form-component/form-component.component';
+import { AddressFormComponent } from '../../../components/address-form/address-form.component';
+import { MatButtonModule } from '@angular/material/button';
+import { FormGroup } from '@angular/forms';
+import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -40,6 +38,7 @@ import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapp
   styleUrl: './suppliers-page.component.scss',
 })
 export class SuppliersPageComponent implements OnInit {
+
   // ! ID of the selected address in the table. Keep default undefinded!
   selectedAddressId: number | undefined = undefined;
 
@@ -84,19 +83,6 @@ export class SuppliersPageComponent implements OnInit {
     { id: 'website', label: 'Website' },
   ];
 
-  // Data source to be displayed in the address-table component
-  addressTableDataSource: MatTableDataSource<AddressResponseDTO> =
-    new MatTableDataSource<AddressResponseDTO>([]);
-
-  // Columns to be displayed in the address-table component
-  addressTableColumns = [
-    { id: 'id', label: 'ID' },
-    { id: 'street', label: 'Straße' },
-    { id: 'town', label: 'Stadt' },
-    { id: 'postal_code', label: 'Postleitzahl' },
-    { id: 'country', label: 'Land' },
-  ];
-
   // Form configuration for the generic form component
   supplierFormConfig = SUPPLIER_FORM_CONFIG;
   addressFormConfig = ADDRESS_FORM_CONFIG;
@@ -106,33 +92,21 @@ export class SuppliersPageComponent implements OnInit {
   addressForm = new FormGroup({});
   customerIdForm = new FormGroup({});
 
-  // * To track whether the user wants to use an existing address or create a new one
-  // * Used to decide which form to display & which API endpoint to call in which order
-  addressMode: string | undefined = undefined;
-
   constructor(private readonly router: Router,
     private readonly _notifications: MatSnackBar,
-    private readonly suppliersService: SuppliersWrapperService,
-    private readonly _suppliersService: SuppliersService,
-    private readonly vatService: VatWrapperService
+    private readonly suppliersWrapperService: SuppliersWrapperService,
+    private readonly vatWrapperService: VatWrapperService
   ) { }
 
   async ngOnInit(): Promise<void> {
     // Load initial data for the supplier table
-    const suppliers = await this.suppliersService.getAllSuppliers();
+    const suppliers = await this.suppliersWrapperService.getAllSuppliers();
     this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(
       suppliers
     );
 
-    // Load initial data for the address table
-    this._suppliersService.getAllSupplierAddresses().subscribe((addresses) => {
-      this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(
-        addresses
-      );
-    });
-
     // Load initial data for the VAT options field in the form
-    const vatOptions = await this.vatService.getAllVats();
+    const vatOptions = await this.vatWrapperService.getAllVats();
     this.setDropdownOptions(vatOptions);
   }
 
@@ -151,21 +125,6 @@ export class SuppliersPageComponent implements OnInit {
     this.router.navigate(['/suppliers/', row.id, 'view']);
   }
 
-  // Signals to be handled coming from the supplier-form-component
-  onFormValueChanged(event: { field: string; value: any }) {
-    /* if (event.field === 'addressMode') {
-      this.addressMode = event.value;
-    } */
-  }
-
-  // Signals to be handled coming from the address-form-component
-  onAddressFormValueChanged(event: { field: string; value: any }) {
-    // Handle address form value changes if needed
-    if (event.field === 'addressMode') {
-      this.addressMode = event.value;
-    }
-  }
-
   // * Handle form submission
   async onSubmit() {
     // Check if both forms are valid
@@ -176,20 +135,9 @@ export class SuppliersPageComponent implements OnInit {
         this.addressForm.getRawValue() as AddressRequestDTO;
       const customerIdValue = this.customerIdForm.value as CustomerIdRequestDTO;
 
-      // Remove addressMode and existingAddresses from the addressFormValue before sending to the API,
-      // as typescript is not able to to match form fields only to their matching counterpart
-      // For whatever reason, the api-request completely ignores the AddressRequestDTO and sends whatever is in the form
-      if ('addressMode' in addressFormValue) {
-        delete addressFormValue.addressMode;
-      }
-
-      if ('existingAddresses' in addressFormValue) {
-        delete addressFormValue.existingAddresses;
-      }
-
       try {
         // create Supplier
-        const response = await this.suppliersService.createSupplier({
+        const response = await this.suppliersWrapperService.createSupplier({
           ...supplierFormValue,
           address: addressFormValue,
         });
@@ -197,7 +145,7 @@ export class SuppliersPageComponent implements OnInit {
         // create Customer-Id if customer_id field is not empty and supplier-create response is valid
         if (customerIdValue.customer_id?.trim() && response.id !== undefined) {
           try {
-            await this.suppliersService.createSupplierCustomerId(response.id, {
+            await this.suppliersWrapperService.createSupplierCustomerId(response.id, {
               ...customerIdValue,
             });
           } catch (error) {
@@ -238,7 +186,6 @@ export class SuppliersPageComponent implements OnInit {
     this.supplierForm.reset();
     this.addressForm.reset();
     this.tabGroup.selectedIndex = 0; // Switch to tab index for "Lieferantenübersicht"
-    this.addressMode = 'new';
   }
 
   // * Catch emitted event from address-form-component

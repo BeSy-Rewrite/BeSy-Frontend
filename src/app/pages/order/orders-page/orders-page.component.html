@@ -1,13 +1,12 @@
 <div class="h-fit orders-page">
     <button
-        class="!fixed top-22.5 left-2.5 z-10"
-        [class.open]="showFilterButton"
-        [class.closed]="!showFilterButton"
-        matFab
-        extended
-        color="primary"
-        (click)="toggleShowFilters()"
-    >
+            class="!fixed top-22.5 left-2.5 z-10"
+            [class.open]="showFilterButton"
+            [class.closed]="!showFilterButton"
+            matFab
+            extended
+            color="primary"
+            (click)="toggleShowFilters()">
         @if (showFilters) {
         <mat-icon>close</mat-icon>
         } @else {
@@ -17,11 +16,10 @@
     </button>
 
     <mat-tab-group
-        #tabGroup
-        mat-stretch-tabs="true"
-        mat-align-tabs="start"
-        (selectedTabChange)="onTabChanged($event)"
-    >
+                   #tabGroup
+                   mat-stretch-tabs="true"
+                   mat-align-tabs="start"
+                   (selectedTabChange)="onTabChanged($event)">
 
         <mat-tab
             label="Bestellungen verwalten"
@@ -32,29 +30,27 @@
             <div class="pt-3 flex flex-row">
 
                 <div
-                    [class.open]="showFilters"
-                    [class.closed]="!showFilters"
-                    class="w-96 pb-2"
-                >
+                     [class.open]="showFilters"
+                     [class.closed]="!showFilters"
+                     class="w-96 pb-2">
 
                     <app-filter-menu
-                        (filtersChanged)="onFiltersChanged($event)"
-                        [ordersTableColumns]="ordersTableColumns"
-                        (selectedColumnsChanged)="onSelectedColumnsChanged($event)"
-                        [initialPreset]="initialPreset"
-                    />
+                                     (filtersChanged)="onFiltersChanged($event)"
+                                     (selectedColumnsChanged)="onSelectedColumnsChanged($event)"
+                                     (resetedFilters)="onFiltersReset()"
+                                     [ordersTableColumns]="ordersTableColumns"
+                                     [initialPreset]="initialPreset" />
 
                 </div>
 
                 <app-generic-table
-                    [class.expanded]="!showFilters"
-                    [class.collapsed]="showFilters"
-                    class="-ml-96 w-full overflow-auto"
-                    [dataSource]="ordersDataSource"
-                    [columns]="ordersTableColumns"
-                    [actions]="actions"
-                    [pageSize]="25"
-                ></app-generic-table>
+                                   [class.expanded]="!showFilters"
+                                   [class.collapsed]="showFilters"
+                                   class="-ml-96 w-full overflow-auto"
+                                   [dataSource]="ordersDataSource"
+                                   [columns]="ordersTableColumns"
+                                   [actions]="actions"
+                                   [pageSize]="25"></app-generic-table>
 
             </div>
 
@@ -63,9 +59,7 @@
         <mat-tab label="Neue Bestellung anlegen">
             <mat-divider class="bg-gray-500"></mat-divider>
 
-            <div class="text-center justify-center pt-3 h-100">
-                Placeholder for order creation component
-            </div>
+            <app-create-order-page></app-create-order-page>
 
         </mat-tab>
 

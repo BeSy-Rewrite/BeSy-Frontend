@@ -42,6 +42,8 @@ model/quotationResponseDTO.ts
 model/sort.ts
 model/supplierRequestDTO.ts
 model/supplierResponseDTO.ts
+model/userPreferencesRequestDTO.ts
+model/userPreferencesResponseDTO.ts
 model/userResponseDTO.ts
 model/vatResponseDTO.ts
 param.ts

@@ -1,16 +1,19 @@
 import { Routes } from '@angular/router';
 import { ApproveOrdersGuard } from './guards/approve-orders.guard';
 import { DefaultGuard } from './guards/default.guard';
+import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
 import { CostCentersPageComponent } from './pages/cost-center/cost-center-component/cost-center-page.component';
 import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
+import { EditOrderPageComponent } from './pages/order/edit-order-page/edit-order-page.component';
 import { OrdersPageComponent } from './pages/order/orders-page/orders-page.component';
 import { ViewOrderPageComponent } from './pages/order/view-order-page/view-order-page.component';
 import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.component';
 import { EditSuppliersPageComponent } from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
 import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
+import { EditOrderResolver } from './resolver/edit-order-resolver';
 import { OrderResolver } from './resolver/order.resolver';
 
 export const routes: Routes = [
@@ -35,24 +38,39 @@ export const routes: Routes = [
         ]
     },
     {
+        title: 'Bestellung erstellen',
+        path: 'orders/create',
+        component: CreateOrderPageComponent,
+        canActivate: [DefaultGuard]
+    },
+    {
         title: 'Bestellungen',
         path: 'orders/:id',
         component: ViewOrderPageComponent,
         resolve: {
             order: OrderResolver
         },
-        canActivate: [DefaultGuard]
+        canActivate: [DefaultGuard],
+    },
+    {
+        title: 'Bestellung bearbeiten',
+        path: 'orders/:id/edit',
+        component: EditOrderPageComponent,
+        resolve: {
+            orderData: EditOrderResolver
+        },
+        canActivate: [DefaultGuard],
+        canDeactivate: [UnsavedChangesGuard]
+    },
+    {
+        title: 'Personen',
+        path: 'persons',
+        component: PersonsPageComponent
     },
     {
         title: 'Bestellungen',
         path: 'orders',
         component: OrdersPageComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Bestellung erstellen',
-        path: 'orders/create',
-        component: CreateOrderPageComponent,
         canActivate: [DefaultGuard]
     },
     {

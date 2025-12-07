@@ -2,17 +2,20 @@
 <mat-dialog-content>
     <h3 class="mb-2">Bitte wählen Sie ein Dokument zum Hochladen aus.</h3>
 
-    <div class="-mt-12 -mb-8 min-w-full overflow-x-hidden">
+    @if (!data.invoiceId) {
+    <div class="min-w-full overflow-x-hidden px-8">
         <app-form-component [config]="documentFormConfig" [formGroup]="documentFormGroup" />
     </div>
+    }
 
-    <form class="flex flex-col gap-2 mb-8">
+    <form class="flex flex-col gap-2 my-8">
 
+        @if (!data.invoiceId) {
         <label for="radio-buttons" id="radio-button-label">
-            Bestehendes Dokument verknüpfen?
+            Bestehendes Paperless-Dokument verknüpfen?
         </label>
         <mat-radio-group id="radio-buttons" aria-labelledby="radio-button-label" [formControl]="linkExistingDocument"
-            class="flex flex-row mt-2 mb-4 mx-8">
+                         class="flex flex-row mt-2 mb-4 mx-8">
             <mat-radio-button class="mr-4" [value]="true">
                 Ja
             </mat-radio-button>
@@ -20,19 +23,20 @@
                 Nein
             </mat-radio-button>
         </mat-radio-group>
+        }
 
         <div class="px-8 w-full">
-            @if (linkExistingDocument.value) {
-            <mat-form-field class="w-4/5">
+            @if (linkExistingDocument.value && !data.invoiceId) {
+            <mat-form-field class="w-full">
                 <mat-label>Bestehende Paperless-ID eingeben</mat-label>
                 <input matInput type="number" [formControl]="existingDocumentId"
-                    [required]="linkExistingDocument.value">
+                       [required]="linkExistingDocument.value && !data.invoiceId" />
             </mat-form-field>
 
             } @else {
 
             <app-file-input [required]="!linkExistingDocument.value" (fileChange)="onFileSelected($event)"
-                accept="application/pdf" />
+                            accept="application/pdf" />
             }
         </div>
     </form>

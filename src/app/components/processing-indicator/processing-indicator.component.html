@@ -5,4 +5,9 @@
             <mat-spinner diameter="50" color="primary"></mat-spinner>
         </div>
     </mat-dialog-content>
+
+    <mat-dialog-actions align="end">
+        <button mat-flat-button color="primary" (click)="closeIfAllowed()"
+                [disabled]="!data.isClosable()">Im Hintergrund weiterverarbeiten</button>
+    </mat-dialog-actions>
 </div>
