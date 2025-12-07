@@ -27,7 +27,6 @@ import {
 } from '../../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
-import { DriverJsTourService } from '../../../services/driver.js-tour.service';
 import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
 import { CreateOrderPageComponent } from '../create-order-page/create-order-page.component';
 
@@ -94,13 +93,8 @@ export class OrdersPageComponent implements OnInit {
   constructor(
     private readonly router: Router,
     route: ActivatedRoute,
-    private readonly _snackBar: MatSnackBar,
-    tourService: DriverJsTourService
+    private readonly _snackBar: MatSnackBar
   ) {
-    tourService.callbacks['setFilterMenuVisibility'] = (bool: boolean) => {
-      this.showFilters = bool;
-    };
-
     this.routeSnapshot = route.snapshot;
     // Set actions for specific columns in the table.
     for (const col of ordersTableConfig.filter(col => ['id', 'besy_number'].includes(col.id))) {
