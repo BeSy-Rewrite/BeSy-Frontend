@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, viewChild } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, viewChild } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,8 +9,9 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
+import { MatTabChangeEvent, MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, ActivatedRouteSnapshot, Params, Router } from '@angular/router';
+import { first } from 'rxjs';
 import { FilterMenuComponent } from '../../../components/filter/filter-menu/filter-menu.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-table/orders-filter-menu-config';
@@ -27,6 +28,7 @@ import {
 } from '../../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
+import { DriverJsTourService } from '../../../services/driver.js-tour.service';
 import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
 import { CreateOrderPageComponent } from '../create-order-page/create-order-page.component';
 
@@ -48,7 +50,7 @@ import { CreateOrderPageComponent } from '../create-order-page/create-order-page
     MatDividerModule,
     GenericTableComponent,
     FilterMenuComponent,
-    CreateOrderPageComponent,
+    CreateOrderPageComponent
   ],
   templateUrl: './orders-page.component.html',
   styleUrl: './orders-page.component.scss',
@@ -86,6 +88,8 @@ export class OrdersPageComponent implements OnInit {
 
   private readonly dataSourceService = inject(OrdersDataSourceService);
 
+  tabGroup = viewChild.required(MatTabGroup);
+
   /**
    * Constructor for the OrdersPageComponent.
    * @param router - Angular Router for navigation.
@@ -93,7 +97,9 @@ export class OrdersPageComponent implements OnInit {
   constructor(
     private readonly router: Router,
     route: ActivatedRoute,
-    private readonly _snackBar: MatSnackBar
+    private readonly _snackBar: MatSnackBar,
+    private readonly driverJsTourService: DriverJsTourService,
+    private readonly injector: Injector
   ) {
     this.routeSnapshot = route.snapshot;
     // Set actions for specific columns in the table.
@@ -129,6 +135,8 @@ export class OrdersPageComponent implements OnInit {
     this.ordersTable()
       .paginator()
       .page.subscribe(() => this.updateUrlParams());
+
+    this.registerTourSteps();
   }
 
   /**
@@ -370,5 +378,95 @@ export class OrdersPageComponent implements OnInit {
       params['sort_by'] = sorting.map(s => `${s.id},${s.direction}`).join(';');
     }
     return params.sort_by ? params : {};
+  }
+
+  /**
+   * Registers the tour steps for the OrdersPageComponent.
+   * These steps will guide users through the main features of the orders page.
+   */
+  private registerTourSteps() {
+    /**
+     * Helper function to switch tabs and continue the tour.
+     * @param targetIndex Index of the tab to switch to
+     */
+    const switchTabAndContinue = (targetIndex: number) => {
+      if (this.tabGroup().selectedIndex === targetIndex) {
+        this.driverJsTourService.getTourDriver().moveNext();
+      } else {
+        this.tabGroup().animationDone.pipe(first()).subscribe(() => afterNextRender({
+          read: () => this.driverJsTourService.getTourDriver().moveNext(),
+        },
+          { injector: this.injector }
+        ));
+        this.tabGroup().selectedIndex = targetIndex;
+      }
+    };
+
+    this.driverJsTourService.registerStepsForComponent('OrdersPageComponent', [
+      {
+        element: '.tour-orders-page',
+        popover: {
+          title: 'Bestellübersicht',
+          description: 'Über diese Seite können Sie alle Bestellungen einsehen, verwalten und neue Bestellungen erstellen.',
+          onNextClick: () => switchTabAndContinue(0)
+        },
+      },
+      {
+        element: '.tour-orders-table',
+        popover: {
+          title: 'Bestellungstabelle',
+          description: 'In dieser Tabelle werden alle Bestellungen angezeigt. Sie können auf eine Bestellung klicken, um deren Details anzusehen.'
+        },
+      },
+      {
+        element: '.tour-filter-button',
+        popover: {
+          title: 'Filter-Button',
+          description: 'Über diesen Button können Sie die Filterleiste ein- und ausblenden, um Ihre Bestellungen gezielt zu filtern.',
+          onNextClick: () => {
+            this.showFilters = true;
+            this.driverJsTourService.getTourDriver().moveNext();
+          }
+        },
+      },
+      {
+        element: '.tour-filter-menu',
+        popover: {
+          title: 'Filter Menu',
+          description: 'In diesem Bereich können Sie die Filter für die Bestellungen anpassen.'
+        },
+      },
+      ...this.driverJsTourService.getStepsForComponent('FilterMenuComponent'),
+      {
+        element: '.tour-filter-button',
+        popover: {
+          title: 'Filter-Button',
+          description: 'Schließen Sie die Filterleiste über diesen Button, um mehr Platz für die Tabelle zu haben.',
+          onNextClick: () => {
+            this.showFilters = false;
+            this.driverJsTourService.getTourDriver().moveNext();
+          }
+        },
+      },
+      {
+        popover: {
+          title: 'Nächster Tab',
+          description: 'Neue Bestellungen können Sie im nächsten Tab erstellen.',
+          onNextClick: () => switchTabAndContinue(1),
+        },
+      },
+      {
+        element: '.tour-order-creation',
+        popover: {
+          title: 'Bestellung erstellen',
+          description: 'Wechseln Sie zu diesem Tab, um eine neue Bestellung zu erstellen.',
+        },
+      },
+      ...this.driverJsTourService.getStepsForComponent('CreateOrderPageComponent'),
+    ]);
+  }
+
+  startTour() {
+    this.driverJsTourService.startTour(['OrdersPageComponent']);
   }
 }
