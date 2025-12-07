@@ -1,4 +1,4 @@
-<div>
+<div class="pb-16">
 
     <div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
         <app-state-display [order]="internalOrder().order" />
@@ -6,9 +6,13 @@
     </div>
 
     <div class="mb-4 float-left flex flex-col items-start min-w-fit">
-        <h1 class="font-semibold text-2xl mb-2">{{internalOrder().orderDisplay.content_description}}</h1>
+        <h1 class="font-semibold text-2xl mb-2"
+            [class]="environment.orderFieldClassPrefix + 'content_description'">
+            {{internalOrder().orderDisplay.content_description}}
+        </h1>
 
-        <span class="min-w-fit">
+        <span class="min-w-fit"
+              [class]="environment.orderFieldClassPrefix + 'owner_id'">
             Erstellt von:
             <button
                     matButton
@@ -30,7 +34,8 @@
                 {{internalOrder().orderDisplay.besy_number}}
             </button>
         </span>
-        <span class="min-w-fit">
+        <span class="min-w-fit"
+              [class]="environment.orderFieldClassPrefix + 'id'">
             ID:
             <button
                     matButton
@@ -57,7 +62,7 @@
         <a
            mat-raised-button
            color="primary"
-           [routerLink]="['/orders', internalOrder().order.id, 'edit']"
+           [routerLink]="['edit']"
            [disabled]="internalOrder().order.status !== orderStates.IN_PROGRESS">
             Bearbeiten
         </a>
@@ -76,12 +81,6 @@
 
 
     <div class="flex flex-wrap gap-12 mt-8 w-full h-fit">
-
-        <mat-divider class="bg-he-red-200 w-full" />
-        <app-order-main-information
-                                    [orderData]="internalOrder()"
-                                    class="w-full" />
-
 
         @for (section of sections; track section.id) {
         <div [class]="(section.isFullWidth ? 'w-full' : 'grow')">
@@ -103,6 +102,8 @@
             <mat-divider class="bg-he-red-200 !mb-2" />
 
             @switch (section.id) {
+            @case ('main-information') { <app-order-main-information [orderData]="internalOrder()" /> }
+            @case ('addresses') { <app-order-addresses [orderData]="internalOrder()" /> }
             @case ('main-quote') { <app-order-main-quote [orderData]="internalOrder()" /> }
             @case ('articles') { <app-order-article-list [order]="internalOrder().order" /> }
             @case ('quotations') { <app-quotations-list [orderId]="internalOrder().order.id!" /> }

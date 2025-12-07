@@ -96,7 +96,7 @@ export class UserPreferencesService {
       catchError(error => {
         console.error('Error loading filter presets:', error);
         this._snackBar.open('Fehler beim Laden der Filtervorgaben: ' + error.message, 'Schließen', { duration: 5000 });
-        return of(this.removeCurrentUserPresets(ORDERS_FILTER_PRESETS));
+        return this.getValidDefaultPresets();
       })
     );
   }
@@ -120,7 +120,7 @@ export class UserPreferencesService {
       catchError(error => {
         console.error('Error saving filter preset:', error);
         this._snackBar.open('Fehler beim Speichern der Filtervorgabe: ' + error.message, 'Schließen', { duration: 5000 });
-        return of(this.removeCurrentUserPresets(ORDERS_FILTER_PRESETS));
+        return this.getValidDefaultPresets();
       })
     );
   }
@@ -134,11 +134,20 @@ export class UserPreferencesService {
       catchError(error => {
         console.error('Error deleting filter preset:', error);
         this._snackBar.open('Fehler beim Löschen der Filtervorgabe: ' + error.message, 'Schließen', { duration: 5000 });
-        return of(this.removeCurrentUserPresets(ORDERS_FILTER_PRESETS));
+        return this.getValidDefaultPresets();
       })
     );
   }
 
+  /**
+   * Retrieves valid default filter presets for the current user.
+   * @returns An Observable of an array of OrdersFilterPreset.
+   */
+  getValidDefaultPresets(): Observable<OrdersFilterPreset[]> {
+    return this.usersWrapper.getCurrentUser().pipe(
+      mergeMap(user => user?.id == undefined ? of(this.removeCurrentUserPresets(ORDERS_FILTER_PRESETS)) : this.resolveCurrentUserInPresets(ORDERS_FILTER_PRESETS))
+    );
+  }
 
   /**
    * Parses a preset string or object and ensures date ranges are properly formatted.

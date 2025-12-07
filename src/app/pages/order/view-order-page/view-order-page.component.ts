@@ -9,11 +9,13 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 import { MatTabsModule } from "@angular/material/tabs";
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
+import { ZodError } from "zod";
 import { environment } from "../../../../environments/environment";
 import { OrderStatus, UserResponseDTO } from '../../../api-services-v2';
 import { setupDialog } from "../../../components/dialog/dialog.component";
 import { OrderDocumentsComponent } from "../../../components/documents/order-documents/order-documents.component";
 import { ApprovalsComponent } from '../../../components/order-display/approvals/approvals.component';
+import { OrderAddressesComponent } from "../../../components/order-display/order-addresses/order-addresses.component";
 import { OrderArticleListComponent } from "../../../components/order-display/order-article-list/order-article-list.component";
 import { OrderMainInformationComponent } from '../../../components/order-display/order-main-information/order-main-information.component';
 import { OrderMainQuoteComponent } from "../../../components/order-display/order-main-quote/order-main-quote.component";
@@ -22,12 +24,14 @@ import { QuotationsListComponent } from '../../../components/order-display/quota
 import { StateHistoryComponent } from "../../../components/order-display/state-history/state-history.component";
 import { Step } from "../../../components/progress-bar/progress-bar.component";
 import { StateDisplayComponent } from "../../../components/state-display/state-display.component";
+import { ToastInvalidOrderComponent } from "../../../components/toast-invalid-order/toast-invalid-order.component";
 import { ToastRequest } from "../../../components/toast/toast.component";
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { STATE_CHANGE_TO_NAMES, STATE_DISPLAY_NAMES, STATE_ICONS } from "../../../display-name-mappings/status-names";
 import { AllowedStateTransitions } from "../../../models/allowed-states-transitions";
 import { DisplayableOrder } from '../../../models/displayable-order';
 import { AuthenticationService } from "../../../services/authentication.service";
+import { DriverJsTourService } from "../../../services/driver.js-tour.service";
 import { OrderStateValidityService } from "../../../services/order-state-validity.service";
 import { OrderSubresourceResolverService } from "../../../services/order-subresource-resolver.service";
 import { ToastService } from "../../../services/toast.service";
@@ -37,7 +41,7 @@ import { UsersWrapperService } from "../../../services/wrapper-services/users-wr
 import { ORDER_EDIT_TABS } from "../edit-order-page/edit-order-page.component";
 
 
-type SectionId = 'main-quote' | 'articles' | 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
+type SectionId = 'main-information' | 'addresses' | 'main-quote' | 'articles' | 'quotations' | 'contacts' | 'approvals' | 'history' | 'documents';
 interface Section {
   id: SectionId;
   title: string;
@@ -72,12 +76,14 @@ interface StateChangeButtons {
     StateDisplayComponent,
     OrderDocumentsComponent,
     OrderMainQuoteComponent,
-    OrderArticleListComponent
+    OrderArticleListComponent,
+    OrderAddressesComponent
   ],
   templateUrl: './view-order-page.component.html',
   styleUrl: './view-order-page.component.scss'
 })
 export class ViewOrderPageComponent implements OnInit {
+  environment = environment;
   /**
    * The order and its formatted data to display.
    */
@@ -91,6 +97,8 @@ export class ViewOrderPageComponent implements OnInit {
   currentUrl = computed(() => globalThis.location.href);
 
   sections: Section[] = [
+    { id: 'main-information', title: 'Allgemeine Informationen', isFullWidth: false, editTabId: "General" },
+    { id: 'addresses', title: 'Adressen', isFullWidth: false, editTabId: "Addresses" },
     { id: 'main-quote', title: 'Hauptangebot', isFullWidth: true, editTabId: "MainOffer" },
     { id: 'articles', title: 'Artikelübersicht', isFullWidth: true, editTabId: "Items" },
     { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true, editTabId: "Quotations" },
@@ -120,6 +128,7 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly dialog: MatDialog,
     private readonly orderStateValidityService: OrderStateValidityService,
     private readonly toastService: ToastService,
+    private readonly driverJsService: DriverJsTourService,
   ) { }
 
   /**
@@ -235,18 +244,36 @@ export class ViewOrderPageComponent implements OnInit {
           });
         }
       },
-      error: (err) => {
-        console.error('Fehler bei der Validierung des Statuswechsels:', err);
-        for (const error of err?.errors ?? []) {
-          const errorToast: ToastRequest = {
-            message: `Statuswechsel zu '${STATE_DISPLAY_NAMES.get(newState)}' fehlgeschlagen.\n
-          Grund: ${ORDER_FIELD_NAMES[error?.path] ?? error?.path} ist ungültig.`,
-            type: 'error'
-          };
-          this.toastService.addToast(errorToast);
-        }
-      }
+      error: (err) => this.createErrorToast(err, newState)
     });
+  }
+
+  /**
+   * Highlights the first invalid field in the order form based on the ZodError.
+   * @param error The ZodError containing validation issues.
+   */
+  highlightFirstInvalidField(error: ZodError) {
+    const invalidField = error?.issues?.[0]?.path?.at(-1)?.toString();
+    if (invalidField && document.querySelector(`.${environment.orderFieldClassPrefix}${invalidField}`)) {
+      this.driverJsService.highlightElement(`.${environment.orderFieldClassPrefix}${invalidField}`, 'Fehler beim Statuswechsel', error.issues[0].message);
+    }
+  }
+
+  /**
+   * Creates and displays an error toast for invalid order state transitions.
+   * @param error The ZodError containing validation issues.
+   * @param newState The new state that was attempted to be set.
+   */
+  createErrorToast(error: ZodError, newState: OrderStatus) {
+    const errorToast: ToastRequest = {
+      message: ToastInvalidOrderComponent,
+      inputs: {
+        targetState: newState,
+        zodError: error
+      },
+      type: 'error'
+    };
+    this.toastService.addToast(errorToast);
   }
 
   /**
@@ -281,6 +308,7 @@ export class ViewOrderPageComponent implements OnInit {
     });
   }
 
+  /** Determines whether to show the edit button for a given section. */
   showEditButton(section: Section): boolean {
     if (!section.editTabId) return false;
 

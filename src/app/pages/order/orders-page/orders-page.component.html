@@ -6,12 +6,11 @@
     matFab
     extended
     color="primary"
-    (click)="toggleShowFilters()"
-  >
+    (click)="toggleShowFilters()">
     @if (showFilters) {
-      <mat-icon>close</mat-icon>
+    <mat-icon>close</mat-icon>
     } @else {
-      <mat-icon>filter_list</mat-icon>
+    <mat-icon>filter_list</mat-icon>
     }
     Filter
   </button>
@@ -20,10 +19,11 @@
     #tabGroup
     mat-stretch-tabs="true"
     mat-align-tabs="start"
-    (selectedTabChange)="onTabChanged($event)"
-  >
+    (selectedTabChange)="onTabChanged($event)">
+
     <mat-tab label="Bestellungen verwalten">
       <mat-divider class="bg-gray-500"></mat-divider>
+
       <div class="pt-3 flex flex-row">
         <div [class.open]="showFilters" [class.closed]="!showFilters" class="w-96 pb-2">
           <app-filter-menu
@@ -32,8 +32,7 @@
             (selectedColumnsChanged)="onSelectedColumnsChanged($event)"
             (resetedFilters)="onFiltersReset()"
             [ordersTableColumns]="ordersTableColumns"
-            [initialPreset]="initialPreset"
-          />
+            [initialPreset]="initialPreset" />
         </div>
 
         <app-generic-table
@@ -43,8 +42,7 @@
           [dataSource]="ordersDataSource"
           [columns]="ordersTableColumns"
           [actions]="actions"
-          [pageSize]="25"
-        ></app-generic-table>
+          [pageSize]="25"></app-generic-table>
       </div>
     </mat-tab>
 
@@ -53,5 +51,6 @@
 
       <app-create-order-page></app-create-order-page>
     </mat-tab>
+
   </mat-tab-group>
 </div>

@@ -1,4 +1,5 @@
 import { Component, input } from '@angular/core';
+import { environment } from '../../../../environments/environment';
 import { OrderResponseDTO } from '../../../api-services-v2';
 import { PersonDetailsComponent } from '../../person-details/person-details.component';
 
@@ -12,6 +13,7 @@ import { PersonDetailsComponent } from '../../person-details/person-details.comp
   styleUrl: './order-persons.component.scss'
 })
 export class OrderPersonsComponent {
+  environment = environment;
   /** The order whose persons should be displayed */
   order = input.required<OrderResponseDTO>();
 }

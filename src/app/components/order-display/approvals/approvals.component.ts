@@ -2,6 +2,7 @@ import { Component, input, OnChanges, OnInit, signal } from '@angular/core';
 import { MatCheckboxModule } from "@angular/material/checkbox";
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { environment } from '../../../../environments/environment';
 import { APPROVALS_FIELD_DESCRIPTIONS, APPROVALS_FIELD_NAMES } from '../../../display-name-mappings/approvals-names';
 import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
 
@@ -16,6 +17,7 @@ import { OrdersWrapperService } from '../../../services/wrapper-services/orders-
   styleUrl: './approvals.component.scss'
 })
 export class ApprovalsComponent implements OnInit, OnChanges {
+  environment = environment;
   isInitialized = false;
 
   orderId = input.required<number>();

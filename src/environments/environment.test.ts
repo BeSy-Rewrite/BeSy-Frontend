@@ -1,6 +1,6 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://api.test.besy.hs-esslingen.com/api/v1',
+    apiUrl: 'https://test.besy.hs-esslingen.com/api/v1',
     paperlessUrl: 'https://paperless.test.besy.hs-esslingen.com',
 
     // Keycloak configuration
@@ -14,5 +14,7 @@ export const environment = {
     // Caching and performance, in milliseconds
     cacheDurationMs: 5 * 60 * 1000, // 5 minutes
     searchAndFilterDebounceMs: 100,
-    saveActiveFiltersDebounceMs: 5000
+    saveActiveFiltersDebounceMs: 5000,
+
+    orderFieldClassPrefix: 'order-field-'
 };
