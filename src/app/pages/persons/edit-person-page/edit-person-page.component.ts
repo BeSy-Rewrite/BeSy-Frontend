@@ -1,5 +1,13 @@
 import { Location } from '@angular/common';
-import { AfterViewInit, Component, effect, OnInit, signal, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  effect,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -48,7 +56,8 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
     private readonly personsWrapperService: PersonsWrapperService,
     private readonly _dialog: MatDialog,
     private readonly route: ActivatedRoute,
-    private readonly location: Location
+    private readonly location: Location,
+    private readonly cdr: ChangeDetectorRef
   ) {
     effect(() => {
       this.onAddressSelectionModeChanged(this.addressSelectionMode());
@@ -115,17 +124,17 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    // Defer form initialization to allow FormComponent to create controls first
-    // Use setTimeout to ensure change detection has run and conditional components are rendered
-    setTimeout(() => {
-      this.initializeFormGroups();
-      setTimeout(() => {
-        if (this.fetchedAddress) {
-          this.addressFormGroup.patchValue(this.fetchedAddress);
-          this.addressFormGroup.disable();
-        }
-      }, 0);
-    }, 0);
+    // Initialize form groups after view is ready
+    this.initializeFormGroups();
+
+    // Trigger change detection to ensure FormComponent has created all controls
+    this.cdr.detectChanges();
+
+    // Now that controls are created, patch and disable the address form if needed
+    if (this.fetchedAddress) {
+      this.addressFormGroup.patchValue(this.fetchedAddress);
+      this.addressFormGroup.disable();
+    }
   }
 
   /**
