@@ -1,13 +1,15 @@
-<h2 mat-dialog-title>Presets</h2>
+<div class="tour-edit-presets-dialog">
+    <h2 mat-dialog-title>Presets</h2>
 
-<mat-dialog-content>
+    <mat-dialog-content>
 
-    <app-generic-table [dataSource]="datasource" [columns]="columns" [actions]="actions" />
+        <app-generic-table [dataSource]="datasource" [columns]="columns" [actions]="actions" />
 
-</mat-dialog-content>
+    </mat-dialog-content>
 
-<mat-dialog-actions align="end">
-    <button mat-stroked-button cdkFocusInitial (click)="close()" color="warn">abbrechen</button>
-    <button mat-flat-button (click)="saveChanges()" color="primary"
+    <mat-dialog-actions align="end">
+        <button mat-stroked-button cdkFocusInitial (click)="close()" color="warn">abbrechen</button>
+        <button mat-flat-button (click)="saveChanges()" color="primary"
             [disabled]="isUnchanged()">speichern</button>
-</mat-dialog-actions>
+    </mat-dialog-actions>
+</div>

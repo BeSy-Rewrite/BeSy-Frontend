@@ -1,17 +1,16 @@
-<div class="h-fit orders-page">
+<div class="h-fit tour-orders-page">
   <button
-    class="!fixed top-22.5 left-2.5 z-10"
+    class="!fixed top-22.5 left-2.5 z-10 tour-filter-button"
     [class.open]="showFilterButton"
     [class.closed]="!showFilterButton"
     matFab
     extended
     color="primary"
-    (click)="toggleShowFilters()"
-  >
+    (click)="toggleShowFilters()">
     @if (showFilters) {
-      <mat-icon>close</mat-icon>
+    <mat-icon>close</mat-icon>
     } @else {
-      <mat-icon>filter_list</mat-icon>
+    <mat-icon>filter_list</mat-icon>
     }
     Filter
   </button>
@@ -20,37 +19,43 @@
     #tabGroup
     mat-stretch-tabs="true"
     mat-align-tabs="start"
-    (selectedTabChange)="onTabChanged($event)"
-  >
+    (selectedTabChange)="onTabChanged($event)">
+
     <mat-tab label="Bestellungen verwalten">
       <mat-divider class="bg-gray-500"></mat-divider>
+
       <div class="pt-3 flex flex-row">
         <div [class.open]="showFilters" [class.closed]="!showFilters" class="w-96 pb-2">
           <app-filter-menu
+            class="tour-filter-menu"
             (filtersChanged)="onFiltersChanged($event)"
             (selectedColumnsChanged)="onSelectedColumnsChanged($event)"
             (resetedFilters)="onFiltersReset()"
             [ordersTableColumns]="ordersTableColumns"
-            [initialPreset]="initialPreset"
-          />
+            [initialPreset]="initialPreset" />
         </div>
 
         <app-generic-table
           [class.expanded]="!showFilters"
           [class.collapsed]="showFilters"
-          class="-ml-96 w-full overflow-auto order-list"
+          class="-ml-96 w-full overflow-auto tour-orders-table"
           [dataSource]="ordersDataSource"
           [columns]="ordersTableColumns"
           [actions]="actions"
-          [pageSize]="25"
-        ></app-generic-table>
+          [pageSize]="25"></app-generic-table>
       </div>
     </mat-tab>
 
     <mat-tab label="Neue Bestellung anlegen">
       <mat-divider class="bg-gray-500"></mat-divider>
 
-      <app-create-order-page></app-create-order-page>
+      <app-create-order-page class="tour-order-creation"></app-create-order-page>
     </mat-tab>
+
   </mat-tab-group>
 </div>
+
+<button mat-mini-fab class="help-button !fixed bottom-4 right-6 z-10" color="accent" (click)="startTour()"
+  matTooltip="Bestellungsansicht erklären lassen" aria-label="Bestellungsansicht erklären lassen">
+  <mat-icon>help</mat-icon>
+</button>

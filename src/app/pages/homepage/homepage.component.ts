@@ -12,6 +12,6 @@ export class HomepageComponent {
   constructor(private readonly driverJsTourService: DriverJsTourService) {}
 
   startTour() {
-    this.driverJsTourService.startTour();
+    this.driverJsTourService.startDemoTour();
   }
 }

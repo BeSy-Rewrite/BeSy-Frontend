@@ -3,9 +3,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
-import { LoginComponent } from "../login-indicator/login.component";
-import { NavbarButtonComponent } from '../navbar-button/navbar-button.component';
 import { filter } from 'rxjs';
+import { LoginComponent } from '../login-indicator/login.component';
+import { NavbarButtonComponent } from '../navbar-button/navbar-button.component';
 
 @Component({
   selector: 'app-homebar',
@@ -15,7 +15,7 @@ import { filter } from 'rxjs';
     MatMenuModule,
     RouterModule,
     LoginComponent,
-    NavbarButtonComponent
+    NavbarButtonComponent,
   ],
   templateUrl: './homebar.component.html',
   styleUrls: ['./homebar.component.scss'],
@@ -29,19 +29,17 @@ export class HomebarComponent {
     { name: 'Bestellungen', path: '/orders' },
     { name: 'Lieferanten', path: '/suppliers' },
     { name: 'Personen', path: '/persons' },
-    { name: 'Kostenstellen', path: '/cost-centers' }
+    { name: 'Kostenstellen', path: '/cost-centers' },
   ];
 
   constructor(public readonly router: Router) {
     // Only update activeMenuItem on successful navigation end
-    router.events
-      .pipe(filter(event => event instanceof NavigationEnd))
-      .subscribe(() => {
-        const currentLinkIndex = this.links.findIndex(
-          link => link.path === `/${router.url.split('/')[1]}`
-        );
-        this.activeMenuItem.set(currentLinkIndex !== -1 ? currentLinkIndex : 0);
-        this.isMobileMenuOpen.set(false);
-      });
+    router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
+      const currentLinkIndex = this.links.findIndex(
+        link => link.path === `/${router.url.split('/')[1]}`
+      );
+      this.activeMenuItem.set(currentLinkIndex === -1 ? 0 : currentLinkIndex);
+      this.isMobileMenuOpen.set(false);
+    });
   }
 }

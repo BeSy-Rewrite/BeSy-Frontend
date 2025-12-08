@@ -1,8 +1,11 @@
 <div class="homebar fixed top-0 left-0 w-full h-20 z-[10000] bg-he-darkblue flex items-center">
-
   <a class="flex min-w-fit items-center mx-8" routerLink="/">
-    <img class="h-16" src="assets/pics/heonline_logo-white-red.svg" alt="Logo der Hochschule Esslingen">
-    <img class="h-11" src="assets/pics/favicon.png" alt="Logo des InventarisierungsSystems">
+    <img
+      class="h-16"
+      src="assets/pics/heonline_logo-white-red.svg"
+      alt="Logo der Hochschule Esslingen"
+    />
+    <img class="h-11" src="assets/pics/favicon.png" alt="Logo des InventarisierungsSystems" />
   </a>
 
   <div class="-m-4 lg:hidden flex flex-row items-center align-baseline">
@@ -11,12 +14,17 @@
     </button>
 
     <a class="ml-2 h-fit text-he-grey text-lg" [routerLink]="links[activeMenuItem()].path">{{
-      links[activeMenuItem()].name }}</a>
+      links[activeMenuItem()].name
+    }}</a>
   </div>
 
   <mat-menu #menu="matMenu">
     @for (link of links; track $index) {
-      <a mat-menu-item [routerLink]="link.path">
+      <a
+        mat-menu-item
+        [routerLink]="link.path"
+        (click)="activeMenuItem.set($index); isMobileMenuOpen.set(false)"
+      >
         {{ link.name }}
       </a>
     }
@@ -24,8 +32,12 @@
 
   <nav class="hidden lg:flex homebar__navigation gap-4">
     @for (link of links; track $index) {
-    <app-navbar-button label="{{ link.name }}" routerLink="{{ link.path }}"
-      [isExact]="link.path === '/'"></app-navbar-button>
+      <app-navbar-button
+        label="{{ link.name }}"
+        routerLink="{{ link.path }}"
+        [isExact]="link.path === '/'"
+        [class]="link.name"
+      ></app-navbar-button>
     }
   </nav>
 

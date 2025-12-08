@@ -1,27 +1,37 @@
-import { Component, inject, OnInit, viewChild } from '@angular/core';
+import { afterNextRender, Component, inject, Injector, OnInit, viewChild } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from "@angular/material/input";
+import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatTabChangeEvent, MatTabsModule } from '@angular/material/tabs';
+import { MatTabChangeEvent, MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, ActivatedRouteSnapshot, Params, Router } from '@angular/router';
+import { first } from 'rxjs';
 import { FilterMenuComponent } from '../../../components/filter/filter-menu/filter-menu.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-table/orders-filter-menu-config';
 import { ordersTableConfig } from '../../../configs/orders-table/orders-table-config';
 import { DataSourceSorting } from '../../../models/datasource-sorting';
 import { ActiveFilters } from '../../../models/filter/filter-menu-types';
-import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetParams, FilterPresetType, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter/filter-presets';
+import {
+  ChipFilterPreset,
+  DateRangeFilterPreset,
+  FilterPresetParams,
+  FilterPresetType,
+  OrdersFilterPreset,
+  RangeFilterPreset,
+} from '../../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
+import { DriverJsTourService } from '../../../services/driver.js-tour.service';
 import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
-import { CreateOrderPageComponent } from "../create-order-page/create-order-page.component";
+import { CreateOrderPageComponent } from '../create-order-page/create-order-page.component';
 
 /**
  * Component for managing the orders page.
@@ -39,12 +49,13 @@ import { CreateOrderPageComponent } from "../create-order-page/create-order-page
     FormsModule,
     ReactiveFormsModule,
     MatDividerModule,
+    MatTooltipModule,
     GenericTableComponent,
     FilterMenuComponent,
     CreateOrderPageComponent
-],
+  ],
   templateUrl: './orders-page.component.html',
-  styleUrl: './orders-page.component.scss'
+  styleUrl: './orders-page.component.scss',
 })
 export class OrdersPageComponent implements OnInit {
   /** Columns to display in the orders table. */
@@ -55,7 +66,13 @@ export class OrdersPageComponent implements OnInit {
 
   /** Actions available for each row in the table. */
   actions: TableActionButton[] = [
-    { id: 'view', label: 'Ansehen', buttonType: 'filled', color: ButtonColor.PRIMARY, action: (row) => this.onViewOrder(row) }
+    {
+      id: 'view',
+      label: 'Ansehen',
+      buttonType: 'filled',
+      color: ButtonColor.PRIMARY,
+      action: row => this.onViewOrder(row),
+    },
   ];
 
   /** Flag to show or hide filters. */
@@ -73,6 +90,8 @@ export class OrdersPageComponent implements OnInit {
 
   private readonly dataSourceService = inject(OrdersDataSourceService);
 
+  tabGroup = viewChild.required(MatTabGroup);
+
   /**
    * Constructor for the OrdersPageComponent.
    * @param router - Angular Router for navigation.
@@ -81,11 +100,13 @@ export class OrdersPageComponent implements OnInit {
     private readonly router: Router,
     route: ActivatedRoute,
     private readonly _snackBar: MatSnackBar,
+    private readonly driverJsTourService: DriverJsTourService,
+    private readonly injector: Injector
   ) {
     this.routeSnapshot = route.snapshot;
     // Set actions for specific columns in the table.
     for (const col of ordersTableConfig.filter(col => ['id', 'besy_number'].includes(col.id))) {
-      col.action = (row) => this.onViewOrder(row);
+      col.action = row => this.onViewOrder(row);
     }
 
     if (Object.keys(this.routeSnapshot.queryParams).length > 0) {
@@ -113,7 +134,11 @@ export class OrdersPageComponent implements OnInit {
       this.dataSourceService.setNextSorting(sorting);
     }
 
-    this.ordersTable().paginator().page.subscribe(() => this.updateUrlParams());
+    this.ordersTable()
+      .paginator()
+      .page.subscribe(() => this.updateUrlParams());
+
+    this.registerTourSteps();
   }
 
   /**
@@ -123,7 +148,7 @@ export class OrdersPageComponent implements OnInit {
   onSelectedColumnsChanged(selected: string[]) {
     this.ordersTableColumns = ordersTableConfig.map(col => ({
       ...col,
-      isInvisible: !selected?.includes(col.id)
+      isInvisible: !selected?.includes(col.id),
     }));
     this.updateUrlParams();
   }
@@ -173,7 +198,13 @@ export class OrdersPageComponent implements OnInit {
    * Updates the URL parameters to reflect the current filters, pagination, and sorting.
    */
   updateUrlParams() {
-    this.router.navigate([], { queryParams: { ...this.getFiltersAsParams(), ...this.getPaginationAsParams(), ...this.getSortingAsParams() } });
+    this.router.navigate([], {
+      queryParams: {
+        ...this.getFiltersAsParams(),
+        ...this.getPaginationAsParams(),
+        ...this.getSortingAsParams(),
+      },
+    });
   }
 
   /**
@@ -202,8 +233,8 @@ export class OrdersPageComponent implements OnInit {
    * @returns An object containing pageIndex and pageSize.
    */
   parsePaginationFromUrlParams(params: Params): { pageIndex: number; pageSize: number } {
-    const pageIndex = params['page'] ? Number.parseInt(params['page'], 10) ?? 0 : 0;
-    const pageSize = params['page_size'] ? Number.parseInt(params['page_size'], 10) ?? 25 : 25;
+    const pageIndex = params['page'] ? (Number.parseInt(params['page'], 10) ?? 0) : 0;
+    const pageSize = params['page_size'] ? (Number.parseInt(params['page_size'], 10) ?? 25) : 25;
     return { pageIndex, pageSize };
   }
 
@@ -215,7 +246,7 @@ export class OrdersPageComponent implements OnInit {
   parseFilterPresetFromUrlParams(params: Params) {
     const preset: OrdersFilterPreset = {
       label: 'urlParams',
-      appliedFilters: []
+      appliedFilters: [],
     };
     for (const [key, value] of Object.entries(params)) {
       let filterSettings: FilterPresetType | undefined;
@@ -251,7 +282,7 @@ export class OrdersPageComponent implements OnInit {
 
       return {
         id: key as keyof ActiveFilters,
-        chipIds
+        chipIds,
       };
     }
     return undefined;
@@ -266,8 +297,8 @@ export class OrdersPageComponent implements OnInit {
         id: key as keyof ActiveFilters,
         dateRange: {
           start: start ? new Date(start) : null,
-          end: end ? new Date(end) : null
-        }
+          end: end ? new Date(end) : null,
+        },
       };
     }
     return undefined;
@@ -280,7 +311,7 @@ export class OrdersPageComponent implements OnInit {
 
       return {
         id: key as keyof ActiveFilters,
-        range: { start, end }
+        range: { start, end },
       };
     }
     return undefined;
@@ -306,7 +337,11 @@ export class OrdersPageComponent implements OnInit {
           end = filter.dateRange.end?.toISOString().split('T')[0];
         } catch (e) {
           console.error('Error converting date range to string:', e);
-          this._snackBar.open('Fehler beim Verarbeiten eines Datumsfilters. Bitte überprüfen Sie Ihre Filtereinstellungen.', 'Schließen', { duration: 5000 });
+          this._snackBar.open(
+            'Fehler beim Verarbeiten eines Datumsfilters. Bitte überprüfen Sie Ihre Filtereinstellungen.',
+            'Schließen',
+            { duration: 5000 }
+          );
         }
 
         params[filter.id] = (start ?? '') + '_' + (end ?? '');
@@ -345,5 +380,100 @@ export class OrdersPageComponent implements OnInit {
       params['sort_by'] = sorting.map(s => `${s.id},${s.direction}`).join(';');
     }
     return params.sort_by ? params : {};
+  }
+
+  /** Starts the guided tour for the orders page component. */
+  startTour() {
+    scrollTo({ top: 0, behavior: 'smooth' });
+    this.driverJsTourService.startTour([OrdersPageComponent]);
+  }
+
+  /**
+   * Registers the tour steps for the OrdersPageComponent.
+   * These steps will guide users through the main features of the orders page.
+   */
+  private registerTourSteps() {
+    /**
+     * Helper function to switch tabs and continue the tour.
+     * @param targetIndex Index of the tab to switch to
+     */
+    const afterTabSwitch = (targetIndex: number, action: () => void) => {
+      if (this.tabGroup().selectedIndex === targetIndex) {
+        action();
+      } else {
+        this.tabGroup().animationDone.pipe(first()).subscribe(() => afterNextRender({
+          read: () => action(),
+        },
+          { injector: this.injector }
+        ));
+        this.tabGroup().selectedIndex = targetIndex;
+      }
+    };
+
+    this.driverJsTourService.registerStepsForComponent(OrdersPageComponent, () => [
+      {
+        element: '.tour-orders-page',
+        popover: {
+          title: 'Bestellübersicht',
+          description: 'Über diese Seite können Sie alle Bestellungen einsehen, verwalten und neue Bestellungen erstellen.',
+          onNextClick: () => afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().moveNext()),
+        },
+      },
+      {
+        element: '.tour-orders-table',
+        popover: {
+          title: 'Bestellungstabelle',
+          description: 'In dieser Tabelle werden alle Bestellungen angezeigt. Sie können auf eine Bestellung klicken, um deren Details anzusehen.',
+        },
+      },
+      {
+        element: '.tour-filter-button',
+        popover: {
+          title: 'Filter-Button',
+          description: 'Über diesen Button können Sie die Filterleiste ein- und ausblenden, um Ihre Bestellungen gezielt zu filtern.',
+          onPrevClick: () => {
+            this.showFilters = false;
+            this.driverJsTourService.getTourDriver().movePrevious();
+          },
+          onPopoverRender: () => this.showFilters = true,
+        },
+      },
+      {
+        element: '.tour-filter-menu',
+        popover: {
+          title: 'Filter Menu',
+          description: 'In diesem Bereich können Sie die Filter für die Bestellungen anpassen.',
+        },
+      },
+      ...this.driverJsTourService.getStepsForComponent(FilterMenuComponent),
+      {
+        element: '.tour-filter-button',
+        popover: {
+          title: 'Filter-Button',
+          description: 'Schließen Sie die Filterleiste über diesen Button, um mehr Platz für die Tabelle zu haben.',
+          onPrevClick: () => {
+            this.showFilters = true;
+            this.driverJsTourService.getTourDriver().movePrevious();
+          },
+          onPopoverRender: () => this.showFilters = false,
+        },
+      },
+      {
+        popover: {
+          title: 'Nächster Tab',
+          description: 'Neue Bestellungen können Sie im nächsten Tab erstellen.',
+          onPrevClick: () => afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().movePrevious()),
+          onPopoverRender: () => this.tabGroup().selectedIndex = 1,
+        },
+      },
+      {
+        element: '.tour-order-creation',
+        popover: {
+          title: 'Bestellung erstellen',
+          description: 'Wechseln Sie zu diesem Tab, um eine neue Bestellung zu erstellen.',
+        },
+      },
+      ...this.driverJsTourService.getStepsForComponent(CreateOrderPageComponent),
+    ]);
   }
 }

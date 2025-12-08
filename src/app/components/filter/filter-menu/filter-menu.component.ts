@@ -1,16 +1,17 @@
-import { Component, computed, effect, input, OnInit, output, signal, viewChild, WritableSignal } from '@angular/core';
+import { afterNextRender, Component, computed, effect, Injector, input, OnInit, output, signal, viewChild, WritableSignal } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatChipListbox, MatChipSelectionChange, MatChipsModule } from "@angular/material/chips";
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { debounceTime, forkJoin, from, of, tap } from 'rxjs';
+import { MatTooltipModule } from "@angular/material/tooltip";
+import { debounceTime, first, forkJoin, from, of, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { CostCenterResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../../../api-services-v2';
 import { LAST_ACTIVE_FILTERS_KEY, ORDERS_FILTER_PRESETS } from '../../../configs/orders-table/order-filter-presets-config';
@@ -23,6 +24,7 @@ import { ActiveFilters } from '../../../models/filter/filter-menu-types';
 import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetType, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter/filter-presets';
 import { FilterRange, isNumericRange } from '../../../models/filter/filter-range';
 import { TableColumn } from '../../../models/generic-table';
+import { DriverJsTourService } from '../../../services/driver.js-tour.service';
 import { UserPreferencesService } from '../../../services/user-preferences.service';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { PersonsWrapperService } from '../../../services/wrapper-services/persons-wrapper.service';
@@ -52,6 +54,7 @@ export const SAVED_FILTER_PRESETS_KEY = 'savedPresets';
     FormsModule,
     ReactiveFormsModule,
     MatIconModule,
+    MatTooltipModule,
     DateRangePickerComponent,
     ChipSelectionComponent,
     RangeSelectionSliderComponent,
@@ -130,7 +133,9 @@ export class FilterMenuComponent implements OnInit {
       appliedFilters
     };
   });
+
   selectedColumnIds = signal<string[]>([]);
+  isColumnSelectionExpanded = signal<boolean>(false);
 
   /** Configuration for all available filters in the menu. */
   availableFilters = ORDERS_FILTER_MENU_CONFIG;
@@ -190,7 +195,9 @@ export class FilterMenuComponent implements OnInit {
     private readonly personsService: PersonsWrapperService,
     private readonly suppliersService: SuppliersWrapperService,
     readonly dialog: MatDialog,
-    private readonly preferencesService: UserPreferencesService
+    private readonly preferencesService: UserPreferencesService,
+    private readonly driverJsTourService: DriverJsTourService,
+    private readonly injector: Injector
   ) {
     effect(() => {
       this.filtersChanged.emit(this.activeFilters());
@@ -230,6 +237,8 @@ export class FilterMenuComponent implements OnInit {
     ]).subscribe(() => {
       this.setupPersistentFilters();
     });
+
+    this.registerTourSteps();
   }
 
   /**
@@ -372,6 +381,7 @@ export class FilterMenuComponent implements OnInit {
         });
       }
     });
+    return dialogRef;
   }
 
   /**
@@ -384,6 +394,7 @@ export class FilterMenuComponent implements OnInit {
         this.setPresets(result);
       }
     });
+    return dialogRef;
   }
 
   /**
@@ -565,4 +576,143 @@ export class FilterMenuComponent implements OnInit {
     return names.join(' ');
   }
 
+  /** Starts the guided tour for the filter menu component. */
+  startTour() {
+    scrollTo({ top: 0, behavior: 'smooth' });
+    this.driverJsTourService.startTour([FilterMenuComponent]);
+  }
+
+  /**
+   * Registers the tour steps for the FilterMenuComponent.
+   * These steps will guide users through the main features of the filter menu.
+   */
+  private registerTourSteps() {
+    let dialogRef: MatDialogRef<any> | undefined;
+
+    const afterDialogRender = (ref: MatDialogRef<any>, action: () => void) => {
+      dialogRef?.close();
+      dialogRef = ref;
+      ref.afterOpened()
+        .pipe(first())
+        .subscribe(() => {
+          afterNextRender({
+            read: () => action()
+          },
+            { injector: this.injector });
+        });
+    };
+
+    this.driverJsTourService.registerStepsForComponent(FilterMenuComponent, () => [
+      {
+        element: '.tour-expand-all-filters',
+        popover: {
+          title: 'Alle Filter ausklappen',
+          description: 'Klicken Sie hier, um alle Filterabschnitte im Filtermenü gleichzeitig zu erweitern.',
+          onPopoverRender: () => this.accordion().openAll()
+        },
+      },
+      {
+        element: '.tour-collapse-all-filters',
+        popover: {
+          title: 'Alle Filter einklappen',
+          description: 'Klicken Sie hier, um alle Filterabschnitte im Filtermenü gleichzeitig zu schließen.',
+          onPopoverRender: () => this.accordion().closeAll()
+        },
+      },
+      {
+        element: '.tour-reset-filters',
+        popover: {
+          title: 'Filter zurücksetzen',
+          description: 'Über diesen Button können Sie alle aktiven Filter zurücksetzen und die Standardansicht wiederherstellen.',
+        },
+      },
+      {
+        element: '.tour-filter-presets',
+        popover: {
+          title: 'Filter-Presets',
+          description: 'Hier können Sie vordefinierte Filterkombinationen auswählen und erstellen, um schnell bestimmte Ansichten zu laden.',
+        },
+      },
+      {
+        element: '.tour-save-filter-preset',
+        popover: {
+          title: 'Filter-Preset speichern',
+          description: 'Hier können Sie die aktuellen Filtereinstellungen als neues Preset speichern, um sie später schnell wiederverwenden zu können.',
+          onNextClick: () => afterDialogRender(
+            this.saveCurrentFiltersAsPreset(),
+            () => this.driverJsTourService.getTourDriver().moveNext()
+          )
+        },
+      },
+      {
+        element: '.tour-save-preset-dialog',
+        disableActiveInteraction: true,
+        popover: {
+          title: 'Neues Filter-Preset',
+          description: 'Geben Sie hier einen Namen für Ihr neues Filter-Preset ein und speichern Sie es, um die aktuellen Filtereinstellungen zu sichern.',
+          onPopoverRender: (popover) => this.driverJsTourService.placePopoverOntopDialog(popover),
+          onPrevClick: () => {
+            dialogRef?.close();
+            this.driverJsTourService.getTourDriver().movePrevious();
+          },
+          onCloseClick: () => {
+            dialogRef?.close();
+            this.driverJsTourService.getTourDriver().destroy();
+          },
+          onNextClick: () => {
+            dialogRef?.close();
+            this.driverJsTourService.getTourDriver().moveNext();
+          }
+        },
+      },
+      {
+        element: '.tour-edit-filter-presets',
+        popover: {
+          title: 'Filter-Presets bearbeiten',
+          description: 'Hier können Sie Ihre gespeicherten Filter-Presets verwalten, um sie umzubenennen oder zu löschen.',
+          onPrevClick: () => afterDialogRender(
+            this.saveCurrentFiltersAsPreset(),
+            () => this.driverJsTourService.getTourDriver().movePrevious()
+          ),
+          onNextClick: () => afterDialogRender(
+            this.editFilterPresets(),
+            () => this.driverJsTourService.getTourDriver().moveNext()
+          ),
+        },
+      },
+      {
+        element: '.tour-edit-presets-dialog',
+        disableActiveInteraction: true,
+        popover: {
+          title: 'Filter-Presets verwalten',
+          description: 'Verwalten Sie hier Ihre gespeicherten Filter-Presets. Sie können Presets umbenennen oder löschen, um Ihre Filteroptionen aktuell zu halten.',
+          onPopoverRender: (popover) => this.driverJsTourService.placePopoverOntopDialog(popover),
+          onPrevClick: () => {
+            dialogRef?.close();
+            this.driverJsTourService.getTourDriver().movePrevious();
+          },
+          onCloseClick: () => {
+            dialogRef?.close();
+            this.driverJsTourService.getTourDriver().destroy();
+          },
+          onNextClick: () => {
+            dialogRef?.close();
+            this.driverJsTourService.getTourDriver().moveNext();
+          }
+        },
+      },
+      {
+        element: '.tour-filter-column-selection',
+        popover: {
+          title: 'Spaltenauswahl',
+          description: 'Hier können Sie die sichtbaren Spalten in der Tabelle auswählen oder abwählen.',
+          onPrevClick: () => afterDialogRender(
+            this.editFilterPresets(),
+            () => this.driverJsTourService.getTourDriver().movePrevious()
+          ),
+          onPopoverRender: () => this.isColumnSelectionExpanded.set(true),
+        },
+      }
+    ]);
+  }
 }
