@@ -2081,6 +2081,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     invoice_address_id: { tabName: 'Adressdaten', label: 'Rechnungsadresse' },
     supplier_id: { tabName: 'Hauptangebot', label: 'Lieferant' },
     currency_short: { tabName: 'Hauptangebot', label: 'Währung' },
+    decision_other_reasons_description: {
+      tabName: 'Hauptangebot',
+      label: 'Begründung für sonstige Gründe',
+    },
     primary_cost_center_id: {
       tabName: 'Allgemeine Angaben',
       label: 'Primäre Kostenstelle',
