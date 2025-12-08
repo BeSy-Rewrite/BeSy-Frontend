@@ -10,6 +10,7 @@ import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { debounceTime, first, forkJoin, from, of, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { CostCenterResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../../../api-services-v2';
@@ -53,6 +54,7 @@ export const SAVED_FILTER_PRESETS_KEY = 'savedPresets';
     FormsModule,
     ReactiveFormsModule,
     MatIconModule,
+    MatTooltipModule,
     DateRangePickerComponent,
     ChipSelectionComponent,
     RangeSelectionSliderComponent,
@@ -574,6 +576,12 @@ export class FilterMenuComponent implements OnInit {
     return names.join(' ');
   }
 
+  /** Starts the guided tour for the filter menu component. */
+  startTour() {
+    scrollTo({ top: 0, behavior: 'smooth' });
+    this.driverJsTourService.startTour([FilterMenuComponent]);
+  }
+
   /**
    * Registers the tour steps for the OrdersPageComponent.
    * These steps will guide users through the main features of the orders page.
@@ -639,6 +647,7 @@ export class FilterMenuComponent implements OnInit {
       },
       {
         element: '.tour-save-preset-dialog',
+        disableActiveInteraction: true,
         popover: {
           title: 'Neues Filter-Preset',
           description: 'Geben Sie hier einen Namen für Ihr neues Filter-Preset ein und speichern Sie es, um die aktuellen Filtereinstellungen zu sichern.',
@@ -674,6 +683,7 @@ export class FilterMenuComponent implements OnInit {
       },
       {
         element: '.tour-edit-presets-dialog',
+        disableActiveInteraction: true,
         popover: {
           title: 'Filter-Presets verwalten',
           description: 'Verwalten Sie hier Ihre gespeicherten Filter-Presets. Sie können Presets umbenennen oder löschen, um Ihre Filteroptionen aktuell zu halten.',

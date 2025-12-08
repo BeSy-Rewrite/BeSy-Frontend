@@ -23,6 +23,7 @@ export class DriverJsTourService {
     this.tourDriver.destroy();
     this.tourDriver = driver({
       showProgress: true,
+      smoothScroll: true,
       steps: this.getStepsForComponents(components),
     });
     this.tourDriver.drive();

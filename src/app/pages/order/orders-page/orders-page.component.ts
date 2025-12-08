@@ -10,6 +10,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabChangeEvent, MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { ActivatedRoute, ActivatedRouteSnapshot, Params, Router } from '@angular/router';
 import { first } from 'rxjs';
 import { FilterMenuComponent } from '../../../components/filter/filter-menu/filter-menu.component';
@@ -48,6 +49,7 @@ import { CreateOrderPageComponent } from '../create-order-page/create-order-page
     FormsModule,
     ReactiveFormsModule,
     MatDividerModule,
+    MatTooltipModule,
     GenericTableComponent,
     FilterMenuComponent,
     CreateOrderPageComponent
@@ -380,6 +382,12 @@ export class OrdersPageComponent implements OnInit {
     return params.sort_by ? params : {};
   }
 
+  /** Starts the guided tour for the orders page component. */
+  startTour() {
+    scrollTo({ top: 0, behavior: 'smooth' });
+    this.driverJsTourService.startTour([OrdersPageComponent]);
+  }
+
   /**
    * Registers the tour steps for the OrdersPageComponent.
    * These steps will guide users through the main features of the orders page.
@@ -408,14 +416,14 @@ export class OrdersPageComponent implements OnInit {
         popover: {
           title: 'Bestellübersicht',
           description: 'Über diese Seite können Sie alle Bestellungen einsehen, verwalten und neue Bestellungen erstellen.',
-          onNextClick: () => afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().moveNext())
+          onNextClick: () => afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().moveNext()),
         },
       },
       {
         element: '.tour-orders-table',
         popover: {
           title: 'Bestellungstabelle',
-          description: 'In dieser Tabelle werden alle Bestellungen angezeigt. Sie können auf eine Bestellung klicken, um deren Details anzusehen.'
+          description: 'In dieser Tabelle werden alle Bestellungen angezeigt. Sie können auf eine Bestellung klicken, um deren Details anzusehen.',
         },
       },
       {
@@ -427,14 +435,14 @@ export class OrdersPageComponent implements OnInit {
             this.showFilters = false;
             this.driverJsTourService.getTourDriver().movePrevious();
           },
-          onPopoverRender: () => this.showFilters = true
+          onPopoverRender: () => this.showFilters = true,
         },
       },
       {
         element: '.tour-filter-menu',
         popover: {
           title: 'Filter Menu',
-          description: 'In diesem Bereich können Sie die Filter für die Bestellungen anpassen.'
+          description: 'In diesem Bereich können Sie die Filter für die Bestellungen anpassen.',
         },
       },
       ...this.driverJsTourService.getStepsForComponent(FilterMenuComponent),
@@ -467,9 +475,5 @@ export class OrdersPageComponent implements OnInit {
       },
       ...this.driverJsTourService.getStepsForComponent(CreateOrderPageComponent),
     ]);
-  }
-
-  startTour() {
-    this.driverJsTourService.startTour([OrdersPageComponent]);
   }
 }
