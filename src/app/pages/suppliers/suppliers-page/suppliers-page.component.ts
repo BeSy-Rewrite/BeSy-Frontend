@@ -23,7 +23,7 @@ import { CUSTOMER_ID_FORM_CONFIG } from '../../../configs/create-customer-id-con
 import { SUPPLIER_FORM_CONFIG } from '../../../configs/create-supplier-config';
 import { NOMINATIM_SEARCH_CONFIG } from '../../../configs/supplier/supplier-config';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
-import { NominatimService } from '../../../services/nominatim.service';
+import { NominatimMappedAddress, NominatimService } from '../../../services/nominatim.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 
@@ -94,13 +94,24 @@ export class SuppliersPageComponent implements OnInit {
   addressFormConfig = ADDRESS_FORM_CONFIG;
   customerIdFormConfig = CUSTOMER_ID_FORM_CONFIG;
 
-  supplierForm = new FormGroup({});
-  addressForm = new FormGroup({});
+  supplierFormGroup = new FormGroup({});
+  addressFormGroup = new FormGroup({});
   customerIdForm = new FormGroup({});
 
   addressMode = signal<'new' | 'search'>('search');
   nominatimAddressFormConfig = NOMINATIM_SEARCH_CONFIG;
   nominatimAddressFormGroup = new FormGroup({});
+  nominatimResponseTableColumns = [
+    { id: 'name', label: 'Bezeichnung' },
+    { id: 'street', label: 'Straße' },
+    { id: 'building_number', label: 'Hausnummer' },
+    { id: 'postal_code', label: 'Postleitzahl' },
+    { id: 'town', label: 'Ort' },
+    { id: 'country', label: 'Land' },
+  ];
+  nominatimTableDataSource = signal<MatTableDataSource<NominatimMappedAddress>>(
+    new MatTableDataSource<NominatimMappedAddress>([])
+  );
 
   constructor(
     private readonly router: Router,
@@ -129,12 +140,12 @@ export class SuppliersPageComponent implements OnInit {
     this.router.navigate(['/suppliers/', row.id, 'edit']);
   }
 
-  // ToDo: Implement delete logic
+  // Placeholder: add delete logic when backend endpoint is ready
   deleteSupplier(row: SupplierResponseDTO) {
     // Implement delete logic here
   }
 
-  // ToDo: Implement view logic
+  // Placeholder: view navigation
   viewSupplier(row: SupplierResponseDTO) {
     this.router.navigate(['/suppliers/', row.id, 'view']);
   }
@@ -142,10 +153,10 @@ export class SuppliersPageComponent implements OnInit {
   // * Handle form submission
   async onSubmit() {
     // Check if both forms are valid
-    if (this.supplierForm.valid && this.addressForm.valid) {
+    if (this.supplierFormGroup.valid && this.addressFormGroup.valid) {
       // Both forms are valid, check the address mode to determine whether to use an existing address or create a new one
-      const supplierFormValue = this.supplierForm.value as SupplierRequestDTO;
-      const addressFormValue = this.addressForm.getRawValue() as AddressRequestDTO;
+      const supplierFormValue = this.supplierFormGroup.value as SupplierRequestDTO;
+      const addressFormValue = this.addressFormGroup.getRawValue() as AddressRequestDTO;
       const customerIdValue = this.customerIdForm.value as CustomerIdRequestDTO;
 
       try {
@@ -181,8 +192,8 @@ export class SuppliersPageComponent implements OnInit {
       }
     } else {
       // Handle form errors
-      this.supplierForm.markAllAsTouched();
-      this.addressForm.markAllAsTouched();
+      this.supplierFormGroup.markAllAsTouched();
+      this.addressFormGroup.markAllAsTouched();
       this._notifications.open('Bitte überprüfen Sie die Eingaben im Formular', undefined, {
         duration: 3000,
       });
@@ -191,8 +202,8 @@ export class SuppliersPageComponent implements OnInit {
 
   // * Handle back navigation
   onBack() {
-    this.supplierForm.reset();
-    this.addressForm.reset();
+    this.supplierFormGroup.reset();
+    this.addressFormGroup.reset();
     this.tabGroup.selectedIndex = 0; // Switch to tab index for "Lieferantenübersicht"
   }
 
@@ -213,11 +224,16 @@ export class SuppliersPageComponent implements OnInit {
     );
   }
 
-  onSearch($event: any) {
-    const query = $event.target.value;
-    this.nominatimService.throttledSearch(query).subscribe(results => {
-      console.log('Nominatim search results:', results);
-      // Handle the search results (e.g., display them in the UI)
+  onSearch(query: string) {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+
+    this.nominatimService.throttledSearch(trimmedQuery).subscribe(results => {
+      this.nominatimTableDataSource().data = results;
     });
+  }
+
+  onAddressInTableSelected($event: any) {
+    this.addressFormGroup.patchValue($event);
   }
 }

@@ -15,3 +15,37 @@
 ::ng-deep .mat-form-field-ripple {
   background-color: #ff884d;
 }
+
+.search-field-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+  border: 1px solid #c4c7cc;
+  border-radius: 8px;
+  background: #f5f7fa;
+}
+
+.search-input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  font-size: 16px;
+  padding: 0.5rem 0;
+  outline: none;
+}
+
+.search-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.search-actions .mat-mdc-icon-button {
+  color: #3a7ee5;
+}
+
+.search-error {
+  margin-top: 0.25rem;
+}

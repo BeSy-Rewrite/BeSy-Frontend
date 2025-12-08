@@ -250,32 +250,41 @@
           </mat-form-field>
         }
         @case ('search') {
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>{{ field.label }}</mat-label>
+          <div class="search-field-container">
             <input
-              matInput
+              class="search-input"
               [formControlName]="field.name"
               [required]="field.required"
               type="search"
+              [placeholder]="field.label"
+              (keyup.enter)="emitSearch(field.name)"
             />
-            @if (formGroup.get(field.name)?.invalid && formGroup.get(field.name)?.touched) {
-              <mat-error>Bitte gültigen Wert eingeben!</mat-error>
-            }
-            @if (field.tooltip) {
-              <!-- Help-Icon mit Tooltip im Suffix -->
+            <div class="search-actions">
               <button
                 mat-icon-button
-                matSuffix
-                matTooltip="{{ field.tooltip }}"
-                matTooltipPosition="above"
                 type="button"
-                aria-label="Mehr Informationen"
-                class="tooltip-icon"
+                aria-label="Suche starten"
+                (click)="emitSearch(field.name)"
               >
-                <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+                <mat-icon>search</mat-icon>
               </button>
-            }
-          </mat-form-field>
+              @if (field.tooltip) {
+                <button
+                  mat-icon-button
+                  matTooltip="{{ field.tooltip }}"
+                  matTooltipPosition="above"
+                  type="button"
+                  aria-label="Mehr Informationen"
+                  class="tooltip-icon"
+                >
+                  <mat-icon style="color: rgb(58, 126, 229)">help</mat-icon>
+                </button>
+              }
+            </div>
+          </div>
+          @if (formGroup.get(field.name)?.invalid && formGroup.get(field.name)?.touched) {
+            <div class="mat-error search-error">Bitte gültigen Wert eingeben!</div>
+          }
         }
         @case ('table') {
           <app-generic-table

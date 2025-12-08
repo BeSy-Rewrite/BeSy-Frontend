@@ -10,10 +10,11 @@ import {
 } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatDatepickerModule } from "@angular/material/datepicker";
+import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -24,7 +25,6 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
 import { CustomerIdResponseDTO } from '../../api-services-v2';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 
 export interface FormField {
   name: string;
@@ -80,13 +80,13 @@ export interface FormConfig {
     MatIconModule,
     MatCheckboxModule,
     MatAutocompleteModule,
-    MatDatepickerModule
+    MatDatepickerModule,
   ],
   templateUrl: './form-component.component.html',
   styleUrls: ['./form-component.component.scss'],
 })
 export class FormComponent implements OnInit {
-  constructor(private readonly fb: FormBuilder) { }
+  constructor(private readonly fb: FormBuilder) {}
 
   @Input() config!: FormConfig;
   @Input() formGroup!: FormGroup;
@@ -104,20 +104,19 @@ export class FormComponent implements OnInit {
 
   // Signal emitted when a form field with emitAsSignal=true changes its value
   valueChanged = output<{ field: string; value: any }>();
+  // Signal emitted when a search field triggers the search action
+  searchEvent = output<string>();
 
   // Filtered options for autocomplete fields
-  filteredOptions: { [fieldName: string]: { label: string; value: any }[] } =
-    {};
-  @ViewChildren('autoInput') autoInputs!: QueryList<
-    ElementRef<HTMLInputElement>
-  >;
+  filteredOptions: { [fieldName: string]: { label: string; value: any }[] } = {};
+  @ViewChildren('autoInput') autoInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
   ngOnInit() {
     this.updateFormControls();
   }
 
   private editModeDisableFields() {
-    this.config.fields.forEach((field) => {
+    this.config.fields.forEach(field => {
       if (!field.editable) {
         this.formGroup.get(field.name)?.disable();
       }
@@ -135,16 +134,12 @@ export class FormComponent implements OnInit {
     if (typeof value === 'string') {
       // Benutzer tippt selbst
       filterValue = value.toLowerCase();
-    } else if (
-      value &&
-      typeof value === 'object' &&
-      typeof value.label === 'string'
-    ) {
+    } else if (value && typeof value === 'object' && typeof value.label === 'string') {
       // Benutzer hat bereits ein Objekt ausgewählt
       filterValue = value.label.toLowerCase();
     }
 
-    this.filteredOptions[field.name] = (field.options ?? []).filter((opt) =>
+    this.filteredOptions[field.name] = (field.options ?? []).filter(opt =>
       opt.label.toLowerCase().includes(filterValue)
     );
   }
@@ -161,8 +156,13 @@ export class FormComponent implements OnInit {
     }
   }
 
+  emitSearch(fieldName: string) {
+    const query = this.formGroup.get(fieldName)?.value ?? '';
+    this.searchEvent.emit(typeof query === 'string' ? query.trim() : '');
+  }
+
   private updateFormControls() {
-    this.config.fields.forEach((field) => {
+    this.config.fields.forEach(field => {
       // If the control already exists, do not overwrite it (to preserve user input)
       if (!this.formGroup.get(field.name)) {
         this.formGroup.addControl(
@@ -179,10 +179,7 @@ export class FormComponent implements OnInit {
 
         // Set default value if it's an object and matches one of the options
         if (field.defaultValue && field.options?.length > 0) {
-          const match =
-            field.options.find(
-              (opt) => opt.value === field.defaultValue.value
-            ) || null;
+          const match = field.options.find(opt => opt.value === field.defaultValue.value) || null;
 
           // Set the control value to the matching option object
           if (match) {
@@ -192,7 +189,7 @@ export class FormComponent implements OnInit {
 
         // Handle filtering for Autocomplete fields
         if (field.filterable) {
-          control?.valueChanges.subscribe((val) => {
+          control?.valueChanges.subscribe(val => {
             this.filterOptions(field, val);
           });
         }
@@ -204,10 +201,7 @@ export class FormComponent implements OnInit {
 
         // Set default value if it matches one of the options
         if (field.defaultValue && field.options?.length > 0) {
-          const match =
-            field.options.find(
-              (opt) => opt.value === field.defaultValue
-            ) || null;
+          const match = field.options.find(opt => opt.value === field.defaultValue) || null;
 
           // Set the control value to the matching option value
           if (match) {
@@ -221,10 +215,7 @@ export class FormComponent implements OnInit {
 
         // Set default value if it matches one of the options
         if (field.defaultValue && field.options?.length > 0) {
-          const match =
-            field.options.find(
-              (opt) => opt.value === field.defaultValue
-            ) || null;
+          const match = field.options.find(opt => opt.value === field.defaultValue) || null;
 
           // Set the control value to the matching option value
           if (match) {
@@ -236,7 +227,7 @@ export class FormComponent implements OnInit {
       // Emit value changes as signals if configured as such in the config
       if (field.emitAsSignal) {
         const control = this.formGroup.get(field.name);
-        control?.valueChanges.subscribe((val) => {
+        control?.valueChanges.subscribe(val => {
           this.valueChanged.emit({ field: field.name, value: val });
         });
       }

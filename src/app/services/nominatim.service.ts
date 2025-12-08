@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { AddressRequestDTO } from '../api-services-v2';
 
 export interface NominatimResult {
   display_name: string;
@@ -37,6 +38,12 @@ export interface NominatimResponseDTO {
   boundingbox: [string, string, string, string];
 }
 
+// Mapped Nominatim result for our forms: structured address plus optional name
+export interface NominatimMappedAddress extends AddressRequestDTO {
+  id: number;
+  name?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -64,15 +71,42 @@ export class NominatimService {
   throttledSearch(
     query: string,
     params: Record<string, string> = {}
-  ): Observable<NominatimResponseDTO[]> {
+  ): Observable<NominatimMappedAddress[]> {
     if (!this.canSendRequest()) {
       // verworfen → gib ein leeres Observable zurück
-      return new Observable<NominatimResponseDTO[]>(observer => {
+      return new Observable<NominatimMappedAddress[]>(observer => {
         observer.complete();
       });
     }
 
-    return this.search(query, params);
+    return new Observable<NominatimMappedAddress[]>(observer => {
+      // Prüfe Cache
+      if (this.cache.has(query)) {
+        const cachedResults = this.cache.get(query)!;
+        const mappedResults = cachedResults.map((result, index) =>
+          this.mapToAddressRequest(result as NominatimResponseDTO, index)
+        );
+        observer.next(mappedResults);
+        observer.complete();
+        return;
+      }
+
+      // Führe die Suche durch
+      this.search(query, params).subscribe({
+        next: results => {
+          // Cache die Ergebnisse
+          this.cache.set(query, results);
+          const mappedResults = results.map((result, index) =>
+            this.mapToAddressRequest(result, index)
+          );
+          observer.next(mappedResults);
+          observer.complete();
+        },
+        error: err => {
+          observer.error(err);
+        },
+      });
+    });
   }
 
   private search(
@@ -94,5 +128,33 @@ export class NominatimService {
     };
 
     return this.http.get<NominatimResponseDTO[]>(url, { headers, params: httpParams });
+  }
+
+  // Convert a Nominatim response item into our AddressRequestDTO plus name
+  mapToAddressRequest(result: NominatimResponseDTO, id: number): NominatimMappedAddress {
+    const addr = result.address || {};
+
+    const street = addr.road || addr['pedestrian'] || addr['footway'] || addr['cycleway'] || '';
+    const town =
+      addr.town ||
+      addr['city'] ||
+      addr['village'] ||
+      addr['hamlet'] ||
+      addr['municipality'] ||
+      addr['suburb'] ||
+      addr.county ||
+      '';
+    const county = addr.county || addr['state_district'] || addr['state'] || addr['region'];
+
+    return {
+      id,
+      name: result.name,
+      building_number: addr.house_number,
+      street,
+      postal_code: addr.postcode,
+      country: addr.country,
+      county,
+      town, // required in DTO, fallbacks above ensure a string
+    };
   }
 }

@@ -22,7 +22,7 @@
               <div class="person-data-container overflow-visible">
                 <app-form-component
                   [config]="supplierFormConfig"
-                  [formGroup]="supplierForm"
+                  [formGroup]="supplierFormGroup"
                 ></app-form-component>
               </div>
               <div class="customer-data-container overflow-visible mt-8">
@@ -65,13 +65,25 @@
                     (searchEvent)="onSearch($event)"
                   ></app-form-component>
                 </div>
+                <div class="address-search-results mt-4">
+                  <app-generic-table
+                    [dataSource]="nominatimTableDataSource()"
+                    [columns]="nominatimResponseTableColumns"
+                    [pageSize]="5"
+                    (rowClicked)="onAddressInTableSelected($event)"
+                  ></app-generic-table>
+                </div>
+                <app-form-component
+                  [config]="addressFormConfig"
+                  [formGroup]="addressFormGroup"
+                ></app-form-component>
               }
               @if (addressMode() === 'new') {
                 <div class="address-data-container overflow-visible flex-1">
-                  <app-address-form
+                  <app-form-component
                     [config]="addressFormConfig"
-                    [formGroup]="addressForm"
-                  ></app-address-form>
+                    [formGroup]="addressFormGroup"
+                  ></app-form-component>
                 </div>
               }
 
