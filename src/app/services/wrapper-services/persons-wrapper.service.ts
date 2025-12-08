@@ -61,7 +61,7 @@ export class PersonsWrapperService {
 
     return {
       ...person,
-      fullName: `${person.name} ${person.surname}`,
+      fullName: [person.name, person.surname].filter(Boolean).join(' '),
     } as PersonWithFullName;
   }
 

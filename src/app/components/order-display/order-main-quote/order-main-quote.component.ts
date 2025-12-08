@@ -4,6 +4,7 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { from } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import { OrderResponseDTO } from '../../../api-services-v2';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
@@ -18,6 +19,8 @@ import { OrdersWrapperService } from '../../../services/wrapper-services/orders-
   styleUrl: './order-main-quote.component.scss',
 })
 export class OrderMainQuoteComponent implements OnInit, OnChanges {
+  environment = environment;
+
   orderData = input.required<DisplayableOrder>();
 
   orderFieldLabels = ORDER_FIELD_NAMES;
@@ -31,6 +34,8 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
   totalNetPriceFormatted = '';
 
   additionalInfoKeys: (keyof OrderDisplayData)[] = [
+    'supplier_id',
+    'customer_id',
     'quote_number',
     'quote_date',
     'quote_price',

@@ -1,29 +1,29 @@
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTabsModule } from '@angular/material/tabs';
+import { Router } from '@angular/router';
+import { CostCenterResponseDTO } from '../../../api-services-v2';
 import { FormComponent } from '../../../components/form-component/form-component.component';
+import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import {
-  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_GENERAL_FORM_CONFIG,
+  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_QUERIES_PERSON_FORM_CONFIG,
   ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
 } from '../../../configs/order/order-config';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   OrderResponseDTOFormatted,
   OrdersWrapperService,
 } from '../../../services/wrapper-services/orders-wrapper.service';
-import { CostCenterResponseDTO } from '../../../api-services-v2';
-import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   PersonsWrapperService,
   PersonWithFullName,
 } from '../../../services/wrapper-services/persons-wrapper.service';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-order-page',
@@ -83,22 +83,21 @@ export class CreateOrderPageComponent implements OnInit {
    */
   private formatCostCenters() {
     const primaryCostCenterField = this.primaryCostCenterFormConfig.fields.find(
-      (f) => f.name === 'primary_cost_center_id'
+      f => f.name === 'primary_cost_center_id'
     );
     if (!primaryCostCenterField) return;
 
-    primaryCostCenterField.options = this.costCenters.map((cc) => ({
+    primaryCostCenterField.options = this.costCenters.map(cc => ({
       label: cc.name ?? '', // If name undefined -> empty string
       value: cc.id ?? 0, // If id undefined -> 0
     }));
 
-    const secondaryCostCenterField =
-      this.secondaryCostCenterFormConfig.fields.find(
-        (f) => f.name === 'secondary_cost_center_id'
-      );
+    const secondaryCostCenterField = this.secondaryCostCenterFormConfig.fields.find(
+      f => f.name === 'secondary_cost_center_id'
+    );
     if (!secondaryCostCenterField) return;
 
-    secondaryCostCenterField.options = this.costCenters.map((cc) => ({
+    secondaryCostCenterField.options = this.costCenters.map(cc => ({
       label: cc.name ?? '', // If name undefined -> empty string
       value: cc.id ?? 0, // If id undefined -> 0
     }));
@@ -110,11 +109,11 @@ export class CreateOrderPageComponent implements OnInit {
    */
   private formatPersons() {
     const queriesPersonField = this.queriesPersonFormConfig.fields.find(
-      (f) => f.name === 'queries_person_id'
+      f => f.name === 'queries_person_id'
     );
     if (!queriesPersonField) return;
 
-    queriesPersonField.options = this.persons.map((p) => ({
+    queriesPersonField.options = this.persons.map(p => ({
       label: p.fullName ?? '', // If fullName undefined -> empty string
       value: p.id ?? 0, // If id undefined -> 0
     }));
@@ -139,25 +138,20 @@ export class CreateOrderPageComponent implements OnInit {
         ...this.queriesPersonFormGroup.value,
       } as OrderResponseDTOFormatted;
 
-      const requestOrder = this.orderWrapperService.mapFormattedOrderToRequest(
-        this.postOrder
-      );
+      const requestOrder = this.orderWrapperService.mapFormattedOrderToRequest(this.postOrder);
 
       // Create order, show notifications based on the result
       // and navigate to the edit page of the newly created order
-      const createdOrder = await this.orderWrapperService.createOrder(
-        requestOrder
-      );
+      const createdOrder = await this.orderWrapperService.createOrder(requestOrder).catch(error => {
+        console.error('Error creating order:', error);
+        return null;
+      });
       console.log('Created Order:', createdOrder);
 
-      if (createdOrder && createdOrder.id) {
-        this._notifications.open(
-          'Bestellung erfolgreich erstellt.',
-          'Schließen',
-          {
-            duration: 5000,
-          }
-        );
+      if (createdOrder?.id) {
+        this._notifications.open('Bestellung erfolgreich erstellt.', 'Schließen', {
+          duration: 5000,
+        });
 
         // Navigate to the edit page of the newly created order
         this.router.navigate(['/orders', createdOrder.id, 'edit']);
@@ -172,11 +166,9 @@ export class CreateOrderPageComponent implements OnInit {
       }
     } else {
       this.generalFormGroup.markAllAsTouched();
-      this._notifications.open(
-        'Bitte füllen Sie alle Pflichtfelder aus.',
-        'Schließen',
-        { duration: 5000 }
-      );
+      this._notifications.open('Bitte füllen Sie alle Pflichtfelder aus.', 'Schließen', {
+        duration: 5000,
+      });
     }
   }
 }

@@ -2,18 +2,22 @@ import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
 import { UserPreferencesResponseDTO } from '../api-services-v2';
-import { CURRENT_USER_PLACEHOLDER, ORDERS_FILTER_PRESETS } from '../configs/orders-table/order-filter-presets-config';
+import {
+  CURRENT_USER_PLACEHOLDER,
+  ORDERS_FILTER_PRESETS,
+} from '../configs/orders-table/order-filter-presets-config';
 import { FilterDateRange } from '../models/filter/filter-date-range';
 import { FilterPresetType, OrdersFilterPreset } from '../models/filter/filter-presets';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UserPreferencesService {
-
-  constructor(private readonly usersWrapper: UsersWrapperService,
-    private readonly _snackBar: MatSnackBar,) { }
+  constructor(
+    private readonly usersWrapper: UsersWrapperService,
+    private readonly _snackBar: MatSnackBar
+  ) {}
 
   /**
    * Executes an action for the current user by retrieving their user ID first.
@@ -42,12 +46,18 @@ export class UserPreferencesService {
    * @returns An Observable of UserPreferencesResponseDTO containing the updated preferences.
    */
   addPreferences(preferences: UserPreferencesResponseDTO): Observable<UserPreferencesResponseDTO> {
-    return this.executeForCurrentUser(userId => this.usersWrapper.addUserPreferences(userId, preferences)).pipe(
+    return this.executeForCurrentUser(userId =>
+      this.usersWrapper.addUserPreferences(userId, preferences)
+    ).pipe(
       catchError(error => {
         console.error('Error adding user preferences:', error);
-        this._snackBar.open('Fehler beim Hinzufügen der Präferenzen: ' + error.message, 'Schließen', { duration: 5000 });
+        this._snackBar.open(
+          'Fehler beim Hinzufügen der Präferenzen: ' + error.message,
+          'Schließen',
+          { duration: 5000 }
+        );
         return of({
-          order_filter_preferences: []
+          order_filter_preferences: [],
         });
       })
     );
@@ -58,13 +68,19 @@ export class UserPreferencesService {
    * @param preferences The preferences to delete.
    * @returns An Observable of UserPreferencesResponseDTO containing the updated preferences.
    */
-  deletePreferences(preferences: UserPreferencesResponseDTO): Observable<UserPreferencesResponseDTO> {
-    return this.executeForCurrentUser(userId => this.usersWrapper.deleteFromUserPreferences(userId, preferences)).pipe(
+  deletePreferences(
+    preferences: UserPreferencesResponseDTO
+  ): Observable<UserPreferencesResponseDTO> {
+    return this.executeForCurrentUser(userId =>
+      this.usersWrapper.deleteFromUserPreferences(userId, preferences)
+    ).pipe(
       catchError(error => {
         console.error('Error deleting user preferences:', error);
-        this._snackBar.open('Fehler beim Löschen der Präferenzen: ' + error.message, 'Schließen', { duration: 5000 });
+        this._snackBar.open('Fehler beim Löschen der Präferenzen: ' + error.message, 'Schließen', {
+          duration: 5000,
+        });
         return of({
-          order_filter_preferences: []
+          order_filter_preferences: [],
         });
       })
     );
@@ -75,13 +91,17 @@ export class UserPreferencesService {
    * @param preferences An Observable of UserPreferencesResponseDTO containing the user's preferences.
    * @returns An Observable of an array of OrdersFilterPreset.
    */
-  private getFullPresetList(preferences: Observable<UserPreferencesResponseDTO>): Observable<OrdersFilterPreset[]> {
+  private getFullPresetList(
+    preferences: Observable<UserPreferencesResponseDTO>
+  ): Observable<OrdersFilterPreset[]> {
     return forkJoin({
       preferences,
-      defaultPresets: this.resolveCurrentUserInPresets(ORDERS_FILTER_PRESETS)
+      defaultPresets: this.resolveCurrentUserInPresets(ORDERS_FILTER_PRESETS),
     }).pipe(
       map(({ preferences, defaultPresets }) => {
-        const savedPresets = preferences.order_filter_preferences.map(preset => this.parseAndCheckPreset(preset))
+        const savedPresets = preferences.order_filter_preferences.map(preset =>
+          this.parseAndCheckPreset(preset)
+        );
         return [...defaultPresets, ...savedPresets];
       })
     );
@@ -95,8 +115,10 @@ export class UserPreferencesService {
     return this.getFullPresetList(this.getPreferences()).pipe(
       catchError(error => {
         console.error('Error loading filter presets:', error);
-        this._snackBar.open('Fehler beim Laden der Filtervorgaben: ' + error.message, 'Schließen', { duration: 5000 });
-        return of(this.removeCurrentUserPresets(ORDERS_FILTER_PRESETS));
+        this._snackBar.open('Fehler beim Laden der Filtervorgaben: ' + error.message, 'Schließen', {
+          duration: 5000,
+        });
+        return this.getValidDefaultPresets();
       })
     );
   }
@@ -107,20 +129,26 @@ export class UserPreferencesService {
    */
   getCustomPresets(): Observable<OrdersFilterPreset[]> {
     return this.getPreferences().pipe(
-      map(preferences => preferences.order_filter_preferences.map(preset => this.parseAndCheckPreset(preset)))
+      map(preferences =>
+        preferences.order_filter_preferences.map(preset => this.parseAndCheckPreset(preset))
+      )
     );
   }
 
   savePreset(preset: OrdersFilterPreset) {
     return this.getFullPresetList(
       this.addPreferences({
-        order_filter_preferences: [JSON.stringify(preset)]
+        order_filter_preferences: [JSON.stringify(preset)],
       })
     ).pipe(
       catchError(error => {
         console.error('Error saving filter preset:', error);
-        this._snackBar.open('Fehler beim Speichern der Filtervorgabe: ' + error.message, 'Schließen', { duration: 5000 });
-        return of(this.removeCurrentUserPresets(ORDERS_FILTER_PRESETS));
+        this._snackBar.open(
+          'Fehler beim Speichern der Filtervorgabe: ' + error.message,
+          'Schließen',
+          { duration: 5000 }
+        );
+        return this.getValidDefaultPresets();
       })
     );
   }
@@ -128,17 +156,36 @@ export class UserPreferencesService {
   deletePreset(preset: OrdersFilterPreset) {
     return this.getFullPresetList(
       this.deletePreferences({
-        order_filter_preferences: [JSON.stringify(preset)]
+        order_filter_preferences: [JSON.stringify(preset)],
       })
     ).pipe(
       catchError(error => {
         console.error('Error deleting filter preset:', error);
-        this._snackBar.open('Fehler beim Löschen der Filtervorgabe: ' + error.message, 'Schließen', { duration: 5000 });
-        return of(this.removeCurrentUserPresets(ORDERS_FILTER_PRESETS));
+        this._snackBar.open(
+          'Fehler beim Löschen der Filtervorgabe: ' + error.message,
+          'Schließen',
+          { duration: 5000 }
+        );
+        return this.getValidDefaultPresets();
       })
     );
   }
 
+  /**
+   * Retrieves valid default filter presets for the current user.
+   * @returns An Observable of an array of OrdersFilterPreset.
+   */
+  getValidDefaultPresets(): Observable<OrdersFilterPreset[]> {
+    return this.usersWrapper
+      .getCurrentUser()
+      .pipe(
+        mergeMap(user =>
+          user?.id == undefined
+            ? of(this.removeCurrentUserPresets(ORDERS_FILTER_PRESETS))
+            : this.resolveCurrentUserInPresets(ORDERS_FILTER_PRESETS)
+        )
+      );
+  }
 
   /**
    * Parses a preset string or object and ensures date ranges are properly formatted.
@@ -168,17 +215,18 @@ export class UserPreferencesService {
   private fixDateRange(date: FilterDateRange): FilterDateRange {
     return {
       start: typeof date.start === 'string' ? new Date(Date.parse(date.start)) : date.start,
-      end: typeof date.end === 'string' ? new Date(Date.parse(date.end)) : date.end
+      end: typeof date.end === 'string' ? new Date(Date.parse(date.end)) : date.end,
     };
   }
-
 
   /**
    * Resolves the current user in the given filter presets.
    * @param filterPresets The array of OrdersFilterPreset to resolve the current user in.
    * @returns An observable of the resolved OrdersFilterPreset array.
    */
-  resolveCurrentUserInPresets(filterPresets: OrdersFilterPreset[]): Observable<OrdersFilterPreset[]> {
+  resolveCurrentUserInPresets(
+    filterPresets: OrdersFilterPreset[]
+  ): Observable<OrdersFilterPreset[]> {
     return this.usersWrapper.getCurrentUser().pipe(
       map(user => {
         if (!user?.id) {
@@ -196,10 +244,15 @@ export class UserPreferencesService {
    * @param userId The ID of the current user.
    * @returns The modified array of OrdersFilterPreset.
    */
-  private replaceCurrentUserInPresets(filterPresets: OrdersFilterPreset[], userId: string): OrdersFilterPreset[] {
+  private replaceCurrentUserInPresets(
+    filterPresets: OrdersFilterPreset[],
+    userId: string
+  ): OrdersFilterPreset[] {
     return filterPresets.map(preset => ({
       ...preset,
-      appliedFilters: preset.appliedFilters.map(f => this.replaceCurrentUserInAppliedFilter(f, userId))
+      appliedFilters: preset.appliedFilters.map(f =>
+        this.replaceCurrentUserInAppliedFilter(f, userId)
+      ),
     }));
   }
 
@@ -218,18 +271,19 @@ export class UserPreferencesService {
       ...filter,
       chipIds: filter.chipIds.map((id: number | string | undefined) =>
         id === CURRENT_USER_PLACEHOLDER ? userId : id
-      )
+      ),
     };
   }
 
   removeCurrentUserPresets(presets: OrdersFilterPreset[]): OrdersFilterPreset[] {
-    const filteredPresets = presets.filter(preset =>
-      !preset.appliedFilters.some(filter => {
-        if ('chipIds' in filter) {
-          return filter.chipIds?.includes(CURRENT_USER_PLACEHOLDER);
-        }
-        return false;
-      })
+    const filteredPresets = presets.filter(
+      preset =>
+        !preset.appliedFilters.some(filter => {
+          if ('chipIds' in filter) {
+            return filter.chipIds?.includes(CURRENT_USER_PLACEHOLDER);
+          }
+          return false;
+        })
     );
     console.warn(`Removed ${CURRENT_USER_PLACEHOLDER} presets due to missing user context.`);
     return filteredPresets;

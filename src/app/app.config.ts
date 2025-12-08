@@ -1,14 +1,12 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
-import { provideRouter, withComponentInputBinding } from '@angular/router';
+import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 
-import {
-  provideHttpClient,
-  withFetch,
-  withInterceptorsFromDi,
-} from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
 import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
+import * as zod from 'zod';
+import { de } from 'zod/v4/locales';
 import { environment } from '../environments/environment';
 import { provideApi } from './api-services-v2';
 import { routes } from './app.routes';
@@ -17,7 +15,7 @@ import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
-    provideRouter(routes, withComponentInputBinding()),
+    provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     provideLuxonDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'de-DE' },
     provideHttpClient(withFetch(), withInterceptorsFromDi()),
@@ -29,8 +27,11 @@ export const appConfig: ApplicationConfig = {
     }),
     UnsavedChangesGuard,
     provideApi(environment.apiUrl),
-  ]
+  ],
 };
+
+// Configure Zod for German error messages
+zod.config(de());
 
 // Reference: https://www.npmjs.com/package/angular-oauth2-oidc
 export const authCodeFlowConfig: AuthConfig = {

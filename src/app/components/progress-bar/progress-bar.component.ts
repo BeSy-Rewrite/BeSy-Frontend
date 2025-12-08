@@ -52,7 +52,7 @@ export class ProgressBarComponent {
    * @returns The corresponding color class.
    */
   getColorClass(i: number): string {
-    if (this.steps().at(i - 1)?.isSkippable) {
+    if (this.steps().at(i - 1)?.isSkippable && !this.isCompleted(i - 1)) {
       return this.getColorClass(i - 1);
     }
     if (this.isActive(i - 1)) {
