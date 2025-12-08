@@ -587,15 +587,14 @@ export class FilterMenuComponent implements OnInit {
    * These steps will guide users through the main features of the orders page.
    */
   private registerTourSteps() {
-    let dialogRef: MatDialogRef<any>;
+    let dialogRef: MatDialogRef<any> | undefined;
 
-    const afterDialogReder = (ref: MatDialogRef<any>, action: () => void) => {
+    const afterDialogRender = (ref: MatDialogRef<any>, action: () => void) => {
       dialogRef?.close();
       dialogRef = ref;
       ref.afterOpened()
         .pipe(first())
         .subscribe(() => {
-          console.log('afterNextRender');
           afterNextRender({
             read: () => action()
           },
@@ -639,7 +638,7 @@ export class FilterMenuComponent implements OnInit {
         popover: {
           title: 'Filter-Preset speichern',
           description: 'Hier können Sie die aktuellen Filtereinstellungen als neues Preset speichern, um sie später schnell wiederverwenden zu können.',
-          onNextClick: () => afterDialogReder(
+          onNextClick: () => afterDialogRender(
             this.saveCurrentFiltersAsPreset(),
             () => this.driverJsTourService.getTourDriver().moveNext()
           )
@@ -671,11 +670,11 @@ export class FilterMenuComponent implements OnInit {
         popover: {
           title: 'Filter-Presets bearbeiten',
           description: 'Hier können Sie Ihre gespeicherten Filter-Presets verwalten, um sie umzubenennen oder zu löschen.',
-          onPrevClick: () => afterDialogReder(
+          onPrevClick: () => afterDialogRender(
             this.saveCurrentFiltersAsPreset(),
             () => this.driverJsTourService.getTourDriver().movePrevious()
           ),
-          onNextClick: () => afterDialogReder(
+          onNextClick: () => afterDialogRender(
             this.editFilterPresets(),
             () => this.driverJsTourService.getTourDriver().moveNext()
           ),
@@ -707,7 +706,7 @@ export class FilterMenuComponent implements OnInit {
         popover: {
           title: 'Spaltenauswahl',
           description: 'Hier können Sie die sichtbaren Spalten in der Tabelle auswählen oder abwählen.',
-          onPrevClick: () => afterDialogReder(
+          onPrevClick: () => afterDialogRender(
             this.editFilterPresets(),
             () => this.driverJsTourService.getTourDriver().movePrevious()
           ),

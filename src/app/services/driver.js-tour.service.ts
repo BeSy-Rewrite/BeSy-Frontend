@@ -34,7 +34,6 @@ export class DriverJsTourService {
    * @param driverSteps Array of driver.js steps for the component
    */
   registerStepsForComponent(component: any, driverStepsSource: () => DriveStep[]) {
-    console.log(`Registering ${driverStepsSource().length} steps for component: ${component.name}`);
     this.componentSteps.set(component.name, driverStepsSource);
   }
 
