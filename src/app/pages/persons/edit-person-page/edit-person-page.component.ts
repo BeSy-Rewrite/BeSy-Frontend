@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { AfterViewInit, Component, effect, OnInit, signal, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -46,7 +47,8 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
     private readonly _notifications: MatSnackBar,
     private readonly personsWrapperService: PersonsWrapperService,
     private readonly _dialog: MatDialog,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
+    private readonly location: Location
   ) {
     effect(() => {
       this.onAddressSelectionModeChanged(this.addressSelectionMode());
@@ -146,6 +148,13 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
 
   editPerson(row: PersonResponseDTO) {
     this.router.navigate(['/persons/', row.id, 'edit']);
+  }
+
+  /**
+   * Navigates back to the previous page using the browser history.
+   */
+  onNavigateBack(): void {
+    this.location.back();
   }
 
   // * Handle form submission
@@ -251,7 +260,7 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
 
   // Handle back navigation
   // Change tab
-  onBack() {
+  onRevertChanges() {
     // Display confirmation dialog if resetting all forms
     const dialogRef = this._dialog.open(ConfirmDialogComponent, {
       data: {

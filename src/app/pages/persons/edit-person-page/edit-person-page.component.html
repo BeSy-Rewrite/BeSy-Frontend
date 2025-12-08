@@ -1,3 +1,10 @@
+<div class="page-back-bar">
+  <button mat-raised-button color="secondary" class="back-button" (click)="onNavigateBack()">
+    <mat-icon>arrow_back</mat-icon>
+    Zurück
+  </button>
+</div>
+
 <div class="create-person-container">
   <!-- Step 1: Person Data -->
   <div class="step-section">
@@ -113,7 +120,7 @@
 
   <!-- Action Buttons -->
   <div class="action-bar">
-    <button mat-raised-button color="warn" (click)="onBack()" class="action-button">
+    <button mat-raised-button color="warn" (click)="onRevertChanges()" class="action-button">
       <mat-icon>close</mat-icon>
       Verwerfen
     </button>

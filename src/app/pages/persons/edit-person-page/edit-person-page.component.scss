@@ -176,6 +176,22 @@
   // Form styling is handled by form-component
 }
 
+// Page Back Bar
+.page-back-bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+
+  .back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+  }
+}
+
 // Action Bar
 .action-bar {
   display: flex;
