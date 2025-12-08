@@ -3,14 +3,11 @@ import { environment } from '../../../../environments/environment';
 import { OrderResponseDTO } from '../../../api-services-v2';
 import { PersonDetailsComponent } from '../../person-details/person-details.component';
 
-
 @Component({
   selector: 'app-order-persons',
-  imports: [
-    PersonDetailsComponent
-  ],
+  imports: [PersonDetailsComponent],
   templateUrl: './order-persons.component.html',
-  styleUrl: './order-persons.component.scss'
+  styleUrl: './order-persons.component.scss',
 })
 export class OrderPersonsComponent {
   environment = environment;

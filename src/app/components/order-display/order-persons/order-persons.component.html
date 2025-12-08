@@ -1,11 +1,9 @@
 <div [class]="environment.orderFieldClassPrefix + 'queries_person_id'">
-
-    @if (order().queries_person_id) {
+  @if (order().queries_person_id) {
     <div class="-m-1.5">
-        <app-person-details [personId]="order().queries_person_id!" />
+      <app-person-details [personId]="order().queries_person_id!" />
     </div>
-    } @else {
+  } @else {
     <p>Keine Ansprechperson für Rückfragen angegeben.</p>
-    }
-
+  }
 </div>

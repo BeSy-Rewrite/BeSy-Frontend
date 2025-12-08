@@ -7,7 +7,6 @@ import 'driver.js/dist/driver.css';
   providedIn: 'root',
 })
 export class DriverJsTourService {
-
   private readonly highlightDriver = driver();
   private tourDriver = driver();
 
@@ -99,9 +98,9 @@ export class DriverJsTourService {
    */
   placePopoverOntopDialog(popover: PopoverDOM) {
     const parent = popover.wrapper.parentNode;
-    parent?.querySelectorAll('[popover]').forEach((el: any) => {
-      el.removeAttribute('popover');
-    });
+    for (const element of parent?.querySelectorAll('[popover]') ?? []) {
+      element.removeAttribute('popover');
+    }
     popover.wrapper.setAttribute('popover', 'manual');
   }
 
@@ -131,9 +130,12 @@ export class DriverJsTourService {
               // .. and then call
               this.router.navigate(['/orders']).then(() => {
                 // Wait for the next render cycle to ensure the element is in the DOM
-                afterNextRender(() => {
-                  driverObject.moveNext();
-                }, { injector: this.injector });
+                afterNextRender(
+                  () => {
+                    driverObject.moveNext();
+                  },
+                  { injector: this.injector }
+                );
               });
             },
           },

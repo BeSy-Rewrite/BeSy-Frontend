@@ -5,9 +5,7 @@ import { AddressDisplayComponent } from '../address-display/address-display.comp
 
 @Component({
   selector: 'app-order-addresses',
-  imports: [
-    AddressDisplayComponent
-  ],
+  imports: [AddressDisplayComponent],
   templateUrl: './order-addresses.component.html',
   styleUrl: './order-addresses.component.scss',
 })

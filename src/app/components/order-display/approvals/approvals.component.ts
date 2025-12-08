@@ -1,20 +1,19 @@
 import { Component, input, OnChanges, OnInit, signal } from '@angular/core';
-import { MatCheckboxModule } from "@angular/material/checkbox";
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from '../../../../environments/environment';
-import { APPROVALS_FIELD_DESCRIPTIONS, APPROVALS_FIELD_NAMES } from '../../../display-name-mappings/approvals-names';
+import {
+  APPROVALS_FIELD_DESCRIPTIONS,
+  APPROVALS_FIELD_NAMES,
+} from '../../../display-name-mappings/approvals-names';
 import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
 
 @Component({
   selector: 'app-approvals',
-  imports: [
-    MatCheckboxModule,
-    MatIconModule,
-    MatTooltipModule
-  ],
+  imports: [MatCheckboxModule, MatIconModule, MatTooltipModule],
   templateUrl: './approvals.component.html',
-  styleUrl: './approvals.component.scss'
+  styleUrl: './approvals.component.scss',
 })
 export class ApprovalsComponent implements OnInit, OnChanges {
   environment = environment;
@@ -26,7 +25,7 @@ export class ApprovalsComponent implements OnInit, OnChanges {
   approvalNames = APPROVALS_FIELD_NAMES;
   approvalDescriptions = APPROVALS_FIELD_DESCRIPTIONS;
 
-  constructor(private readonly ordersService: OrdersWrapperService) { }
+  constructor(private readonly ordersService: OrdersWrapperService) {}
 
   ngOnInit(): void {
     this.isInitialized = true;
@@ -34,8 +33,7 @@ export class ApprovalsComponent implements OnInit, OnChanges {
   }
 
   ngOnChanges(): void {
-    if (this.isInitialized)
-      this.fetchData();
+    if (this.isInitialized) this.fetchData();
   }
 
   fetchData(): void {
@@ -46,5 +44,4 @@ export class ApprovalsComponent implements OnInit, OnChanges {
       }
     });
   }
-
 }

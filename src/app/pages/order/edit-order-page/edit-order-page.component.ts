@@ -14,7 +14,6 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
-  Validators,
 } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButton } from '@angular/material/button';
@@ -1100,10 +1099,16 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
             placeholder: 'Geben Sie die Begründung ein',
           } as FormField);
 
-          this.supplierDecisionReasonFormGroup.addControl(
-            'decision_other_reasons_description',
-            new FormControl('', Validators.required)
-          );
+          // Trigger refresh of the form config to reflect the changes
+          this.mainOfferConfigRefreshTrigger.update(n => n + 1);
+
+          // Ensure the control exists before setting the value
+          if (!this.supplierDecisionReasonFormGroup.get('decision_other_reasons_description')) {
+            this.supplierDecisionReasonFormGroup.addControl(
+              'decision_other_reasons_description',
+              new FormControl(this.formattedOrderDTO.decision_other_reasons_description || '')
+            );
+          }
         }
       } else {
         // Remove the decision_other_reason_description field if it exists
@@ -1446,7 +1451,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       (this.formattedOrderDTO.invoice_person_id &&
         this.formattedOrderDTO.delivery_person_id &&
         this.formattedOrderDTO.invoice_person_id.value !==
-        this.formattedOrderDTO.delivery_person_id.value) ||
+          this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
         this.formattedOrderDTO.invoice_address_id !== this.formattedOrderDTO.delivery_address_id)
     ) {
@@ -1616,7 +1621,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     Object.assign(target, this.supplierDecisionReasonFormGroup.value);
     target.supplier_id = this.mainOfferFormGroup.get('supplier_id')?.value;
 
-    console.log('Patch DTO nach Main Offer Patch:', target);
+    // If the flag for other reasons is not set, clear the description field
+    if (!target.flag_decision_other_reasons) {
+      target.decision_other_reasons_description = '';
+    }
+
     return true;
   }
 
@@ -1883,28 +1892,28 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     string,
     { tabName: string; configs: FormConfig[] }
   > = {
-      General: {
-        tabName: 'Allgemeine Angaben',
-        configs: [
-          this.generalFormConfig,
-          this.queriesPersonFormConfig,
-          this.primaryCostCenterFormConfig,
-          this.secondaryCostCenterFormConfig,
-        ],
-      },
-      MainOffer: {
-        tabName: 'Hauptangebot',
-        configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
-      },
-      Addresses: {
-        tabName: 'Adressdaten',
-        configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
-      },
-      Approvals: {
-        tabName: 'Genehmigungen',
-        configs: [this.approvalFormConfig],
-      },
-    };
+    General: {
+      tabName: 'Allgemeine Angaben',
+      configs: [
+        this.generalFormConfig,
+        this.queriesPersonFormConfig,
+        this.primaryCostCenterFormConfig,
+        this.secondaryCostCenterFormConfig,
+      ],
+    },
+    MainOffer: {
+      tabName: 'Hauptangebot',
+      configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
+    },
+    Addresses: {
+      tabName: 'Adressdaten',
+      configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
+    },
+    Approvals: {
+      tabName: 'Genehmigungen',
+      configs: [this.approvalFormConfig],
+    },
+  };
 
   /**
    * Checks if there are unsaved changes in the form.
@@ -2072,6 +2081,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     invoice_address_id: { tabName: 'Adressdaten', label: 'Rechnungsadresse' },
     supplier_id: { tabName: 'Hauptangebot', label: 'Lieferant' },
     currency_short: { tabName: 'Hauptangebot', label: 'Währung' },
+    decision_other_reasons_description: {
+      tabName: 'Hauptangebot',
+      label: 'Begründung für sonstige Gründe',
+    },
     primary_cost_center_id: {
       tabName: 'Allgemeine Angaben',
       label: 'Primäre Kostenstelle',

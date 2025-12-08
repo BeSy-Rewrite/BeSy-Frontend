@@ -1,18 +1,22 @@
 <div class="flex flex-wrap md:flex-col lg:flex-row gap-x-16 gap-y-8">
-    <div
-         [class]="[environment.orderFieldClassPrefix + 'delivery_address_id',
-         environment.orderFieldClassPrefix + 'delivery_person_id']">
-
-        <h3 class="font-semibold text-lg mb-2">Lieferadresse:</h3>
-        <p>{{orderData().orderDisplay.delivery_person_id}}</p>
-        <app-address-display [addressId]="orderData().order.delivery_address_id ?? -1" />
-    </div>
-    <div
-         [class]="[environment.orderFieldClassPrefix + 'invoice_address_id',
-         environment.orderFieldClassPrefix + 'invoice_person_id']">
-
-        <h3 class="font-semibold text-lg mb-2">Rechnungsadresse:</h3>
-        <p>{{orderData().orderDisplay.invoice_person_id}}</p>
-        <app-address-display [addressId]="orderData().order.invoice_address_id ?? -1" />
-    </div>
+  <div
+    [class]="[
+      environment.orderFieldClassPrefix + 'delivery_address_id',
+      environment.orderFieldClassPrefix + 'delivery_person_id',
+    ]"
+  >
+    <h3 class="font-semibold text-lg mb-2">Lieferadresse:</h3>
+    <p>{{ orderData().orderDisplay.delivery_person_id }}</p>
+    <app-address-display [addressId]="orderData().order.delivery_address_id ?? -1" />
+  </div>
+  <div
+    [class]="[
+      environment.orderFieldClassPrefix + 'invoice_address_id',
+      environment.orderFieldClassPrefix + 'invoice_person_id',
+    ]"
+  >
+    <h3 class="font-semibold text-lg mb-2">Rechnungsadresse:</h3>
+    <p>{{ orderData().orderDisplay.invoice_person_id }}</p>
+    <app-address-display [addressId]="orderData().order.invoice_address_id ?? -1" />
+  </div>
 </div>

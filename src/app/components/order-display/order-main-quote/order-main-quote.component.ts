@@ -1,7 +1,7 @@
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from "@angular/material/checkbox";
-import { MatDividerModule } from "@angular/material/divider";
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { from } from 'rxjs';
 import { environment } from '../../../../environments/environment';
@@ -14,13 +14,9 @@ import { OrdersWrapperService } from '../../../services/wrapper-services/orders-
 
 @Component({
   selector: 'app-order-main-quote',
-  imports: [
-    MatDividerModule,
-    MatButtonModule,
-    MatCheckboxModule
-  ],
+  imports: [MatDividerModule, MatButtonModule, MatCheckboxModule],
   templateUrl: './order-main-quote.component.html',
-  styleUrl: './order-main-quote.component.scss'
+  styleUrl: './order-main-quote.component.scss',
 })
 export class OrderMainQuoteComponent implements OnInit, OnChanges {
   environment = environment;
@@ -56,10 +52,11 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
     'flag_decision_other_reasons',
   ];
 
-  constructor(private readonly ordersService: OrdersWrapperService,
+  constructor(
+    private readonly ordersService: OrdersWrapperService,
     private readonly subresourceService: OrderSubresourceResolverService,
     private readonly snackbar: MatSnackBar
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadOrderItems();
@@ -74,7 +71,11 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
     if (!this.orderData().order.id) {
-      this.snackbar.open('Bestellungs-ID ist ungültig. Artikel können nicht geladen werden.', 'Schließen', { duration: 5000 });
+      this.snackbar.open(
+        'Bestellungs-ID ist ungültig. Artikel können nicht geladen werden.',
+        'Schließen',
+        { duration: 5000 }
+      );
       return;
     }
     from(this.ordersService.getOrderItems(this.orderData().order.id!)).subscribe(items => {
@@ -86,8 +87,10 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
       this.isPriceProbablyBrutto = this.isQuotePriceEqualsTo(totalGrossPrice);
       this.isPriceProbablyNetto = this.isQuotePriceEqualsTo(totalNetPrice);
 
-      this.totalNetPriceFormatted = this.subresourceService.formatPrice(totalNetPrice, this.currencyCode) + '\u00A0(netto)';
-      this.totalGrossPriceFormatted = this.subresourceService.formatPrice(totalGrossPrice, this.currencyCode) + '\u00A0(brutto)';
+      this.totalNetPriceFormatted =
+        this.subresourceService.formatPrice(totalNetPrice, this.currencyCode) + '\u00A0(netto)';
+      this.totalGrossPriceFormatted =
+        this.subresourceService.formatPrice(totalGrossPrice, this.currencyCode) + '\u00A0(brutto)';
     });
   }
 
@@ -96,5 +99,4 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
     const quotePrice = this.orderData().order['quote_price'];
     return Math.abs((quotePrice ?? 0) - price) < 0.01;
   }
-
 }

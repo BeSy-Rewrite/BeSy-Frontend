@@ -1,20 +1,20 @@
 export const environment = {
-    production: true,
-    apiUrl: 'https://test.besy.hs-esslingen.com/api/v1',
-    paperlessUrl: 'https://paperless.test.besy.hs-esslingen.com',
+  production: true,
+  apiUrl: 'https://test.besy.hs-esslingen.com/api/v1',
+  paperlessUrl: 'https://paperless.test.besy.hs-esslingen.com',
 
-    // Keycloak configuration
-    identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
-    clientId: 'besy-test',
-    requiredRole: "orderer",
-    approveOrdersRole: "approver",
+  // Keycloak configuration
+  identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
+  clientId: 'besy-test',
+  requiredRole: 'orderer',
+  approveOrdersRole: 'approver',
 
-    nominatimUrl: 'https://nominatim.openstreetmap.org/search',
+  nominatimUrl: 'https://nominatim.openstreetmap.org/search',
 
-    // Caching and performance, in milliseconds
-    cacheDurationMs: 5 * 60 * 1000, // 5 minutes
-    searchAndFilterDebounceMs: 100,
-    saveActiveFiltersDebounceMs: 5000,
+  // Caching and performance, in milliseconds
+  cacheDurationMs: 5 * 60 * 1000, // 5 minutes
+  searchAndFilterDebounceMs: 100,
+  saveActiveFiltersDebounceMs: 5000,
 
-    orderFieldClassPrefix: 'order-field-'
+  orderFieldClassPrefix: 'order-field-',
 };

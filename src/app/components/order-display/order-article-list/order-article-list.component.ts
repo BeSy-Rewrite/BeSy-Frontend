@@ -1,7 +1,7 @@
 import { DataSource } from '@angular/cdk/table';
 import { Component, computed, input, OnChanges, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from "@angular/material/divider";
+import { MatDividerModule } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { ItemResponseDTO, OrderResponseDTO } from '../../../api-services-v2';
@@ -14,16 +14,11 @@ import { GenericTableComponent } from '../../generic-table/generic-table.compone
 
 @Component({
   selector: 'app-order-article-list',
-  imports: [
-    MatDividerModule,
-    MatButtonModule,
-    GenericTableComponent
-  ],
+  imports: [MatDividerModule, MatButtonModule, GenericTableComponent],
   templateUrl: './order-article-list.component.html',
-  styleUrl: './order-article-list.component.scss'
+  styleUrl: './order-article-list.component.scss',
 })
 export class OrderArticleListComponent implements OnInit, OnChanges {
-
   /** The order data to display the items for */
   order = input.required<OrderResponseDTO>();
 
@@ -52,14 +47,23 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
     { id: 'vat', label: this.itemFieldLabels['vat'] },
     { id: 'vat_type', label: this.itemFieldLabels['vat_type'] },
     { id: 'price_per_unit', label: this.itemFieldLabels['price_per_unit'] },
-    { id: 'quantity', label: this.itemFieldLabels['quantity'], footerContent: this.totalQuantityFormatted },
-    { id: 'price_total', label: this.itemFieldLabels['price_total'], footerContent: this.totalPriceFormatted },
+    {
+      id: 'quantity',
+      label: this.itemFieldLabels['quantity'],
+      footerContent: this.totalQuantityFormatted,
+    },
+    {
+      id: 'price_total',
+      label: this.itemFieldLabels['price_total'],
+      footerContent: this.totalPriceFormatted,
+    },
   ];
 
-  constructor(private readonly ordersService: OrdersWrapperService,
+  constructor(
+    private readonly ordersService: OrdersWrapperService,
     private readonly subresourceService: OrderSubresourceResolverService,
     private readonly snackbar: MatSnackBar
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadOrderItems();
@@ -74,7 +78,11 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
   /** Loads the items for the current order and computes totals. */
   private loadOrderItems(): void {
     if (!this.order().id) {
-      this.snackbar.open('Bestellungs-ID ist ungültig. Artikel können nicht geladen werden.', 'Schließen', { duration: 5000 });
+      this.snackbar.open(
+        'Bestellungs-ID ist ungültig. Artikel können nicht geladen werden.',
+        'Schließen',
+        { duration: 5000 }
+      );
       return;
     }
     this.ordersService.getOrderItems(this.order().id!).then(items => {
@@ -99,14 +107,22 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
       preferred_list: (item.preferred_list ?? '') + (item.preferred_list_number ?? ''),
       vat: item.vat?.value?.toString() + '%',
       vat_type: item.vat_type ?? '',
-      price_per_unit: this.subresourceService.formatPrice(item.price_per_unit ?? 0, this.currencyCode),
+      price_per_unit: this.subresourceService.formatPrice(
+        item.price_per_unit ?? 0,
+        this.currencyCode
+      ),
       quantity: quantity.trim(),
-      price_total: this.subresourceService.formatPrice(this.subresourceService.calculateTotalGrossPrice([item]), this.currencyCode),
+      price_total: this.subresourceService.formatPrice(
+        this.subresourceService.calculateTotalGrossPrice([item]),
+        this.currencyCode
+      ),
       tooltips: {
-        vat: item.vat ? `MwSt.: ${item.vat.value}% (${item.vat.description})` : 'Keine MwSt. angegeben',
+        vat: item.vat
+          ? `MwSt.: ${item.vat.value}% (${item.vat.description})`
+          : 'Keine MwSt. angegeben',
         preferred_list: this.subresourceService.formatPreferredList(item.preferred_list),
-        price_total: `Gesamtbruttopreis für Menge: ${quantity.trim()}`
-      }
-    }
+        price_total: `Gesamtbruttopreis für Menge: ${quantity.trim()}`,
+      },
+    };
   }
 }

@@ -12,7 +12,7 @@ import { INVOICE_FIELD_NAMES } from '../../../display-name-mappings/invoice-name
 import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
-import { GenericTableComponent } from "../../generic-table/generic-table.component";
+import { GenericTableComponent } from '../../generic-table/generic-table.component';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
 import { DocumentUploadComponent } from '../document-upload/document-upload.component';
 
@@ -23,14 +23,9 @@ type DisplayableInvoice = Omit<InvoiceResponseDTO, 'price'> & {
 
 @Component({
   selector: 'app-order-documents',
-  imports: [
-    MatButtonModule,
-    MatIconModule,
-    GenericTableComponent,
-    NgClass
-  ],
+  imports: [MatButtonModule, MatIconModule, GenericTableComponent, NgClass],
   templateUrl: './order-documents.component.html',
-  styleUrl: './order-documents.component.scss'
+  styleUrl: './order-documents.component.scss',
 })
 export class OrderDocumentsComponent implements OnInit, OnChanges {
   /**
@@ -52,9 +47,11 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
     { id: 'date', label: INVOICE_FIELD_NAMES.date },
     { id: 'created_date', label: INVOICE_FIELD_NAMES.created_date },
     {
-      id: 'paperless_id', label: INVOICE_FIELD_NAMES.paperless_id, action: (row) => this.handlePaperlessIdClick(row),
+      id: 'paperless_id',
+      label: INVOICE_FIELD_NAMES.paperless_id,
+      action: row => this.handlePaperlessIdClick(row),
     },
-    { id: 'order_id', label: INVOICE_FIELD_NAMES.order_id, isInvisible: true }
+    { id: 'order_id', label: INVOICE_FIELD_NAMES.order_id, isInvisible: true },
   ];
   actions: TableActionButton[] = [
     {
@@ -63,9 +60,8 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       buttonType: 'outlined',
       color: ButtonColor.PRIMARY,
       action: (row: DisplayableInvoice) => {
-        if (row.id)
-          this.downloadDocument(row);
-      }
+        if (row.id) this.downloadDocument(row);
+      },
     },
     {
       id: 'preview',
@@ -73,9 +69,8 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       buttonType: 'outlined',
       color: ButtonColor.PRIMARY,
       action: (row: DisplayableInvoice) => {
-        if (row.id)
-          this.openDocumentPreview(row);
-      }
+        if (row.id) this.openDocumentPreview(row);
+      },
     },
     {
       id: 'view',
@@ -84,8 +79,8 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       color: ButtonColor.PRIMARY,
       action: (row: DisplayableInvoice) => {
         window.open(`${environment.paperlessUrl}/documents/${row.paperless_id}`, '_blank');
-      }
-    }
+      },
+    },
   ];
 
   constructor(
@@ -94,7 +89,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
     private readonly _snackBar: MatSnackBar,
     private readonly dialogRef: MatDialog,
     @Inject(DomSanitizer) private readonly sanitizer: DomSanitizer
-  ) { }
+  ) {}
 
   /**
    * Initializes the component by fetching and formatting the order documents.
@@ -111,8 +106,10 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
         created_date: this.resourceResolverService.formatDate(invoice.created_date),
         price: this.resourceResolverService.formatPrice(invoice.price, 'EUR'),
         tooltips: {
-          paperless_id: invoice.paperless_id ? 'Klicken zum Kopieren der Paperless ID' : 'Keine Paperless ID vorhanden. Klicke zum erneuten Hochladen.'
-        }
+          paperless_id: invoice.paperless_id
+            ? 'Klicken zum Kopieren der Paperless ID'
+            : 'Keine Paperless ID vorhanden. Klicke zum erneuten Hochladen.',
+        },
       }));
 
       this.dataSource.data = this.documents;
@@ -166,7 +163,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
         previewImageURL: this.sanitizer.bypassSecurityTrustUrl(previewImageURL),
         onDownload: () => {
           this.downloadDocument(row);
-        }
+        },
       },
     });
   }
@@ -181,9 +178,9 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
         invoiceId,
         onComplete: () => {
           this.ngOnInit();
-        }
+        },
       },
-      minWidth: '60%'
+      minWidth: '60%',
     });
   }
 
@@ -204,10 +201,11 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       return false;
     }
     if (!row.paperless_id) {
-      this._snackBar.open('Keine Paperless ID vorhanden für dieses Dokument.', 'Schließen', { duration: 3000 });
+      this._snackBar.open('Keine Paperless ID vorhanden für dieses Dokument.', 'Schließen', {
+        duration: 3000,
+      });
       return false;
     }
     return true;
   }
-
 }
