@@ -1,29 +1,29 @@
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { MatButtonModule } from '@angular/material/button';
 import { MatDivider } from '@angular/material/divider';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTabsModule } from '@angular/material/tabs';
+import { Router } from '@angular/router';
+import { CostCenterResponseDTO } from '../../../api-services-v2';
 import { FormComponent } from '../../../components/form-component/form-component.component';
+import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
 import {
-  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_GENERAL_FORM_CONFIG,
+  ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
   ORDER_QUERIES_PERSON_FORM_CONFIG,
   ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
 } from '../../../configs/order/order-config';
+import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   OrderResponseDTOFormatted,
   OrdersWrapperService,
 } from '../../../services/wrapper-services/orders-wrapper.service';
-import { CostCenterResponseDTO } from '../../../api-services-v2';
-import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   PersonsWrapperService,
   PersonWithFullName,
 } from '../../../services/wrapper-services/persons-wrapper.service';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-create-order-page',
@@ -63,7 +63,7 @@ export class CreateOrderPageComponent implements OnInit {
     private _notifications: MatSnackBar,
     private orderWrapperService: OrdersWrapperService,
     private router: Router
-  ) {}
+  ) { }
 
   async ngOnInit(): Promise<void> {
     // Load cost centers and persons
@@ -147,10 +147,13 @@ export class CreateOrderPageComponent implements OnInit {
       // and navigate to the edit page of the newly created order
       const createdOrder = await this.orderWrapperService.createOrder(
         requestOrder
-      );
+      ).catch((error) => {
+        console.error('Error creating order:', error);
+        return null;
+      });
       console.log('Created Order:', createdOrder);
 
-      if (createdOrder && createdOrder.id) {
+      if (createdOrder?.id) {
         this._notifications.open(
           'Bestellung erfolgreich erstellt.',
           'Schließen',

@@ -1,0 +1,19 @@
+<h1 class="my-2 font-semibold">Statuswechsel zu '{{targetState()}}' für Bestellung <a class="text-blue-500 underline"
+        [routerLink]="`/orders/${orderId()}`">{{orderId()}}</a> fehlgeschlagen.</h1>
+
+<ul>
+
+    @for (error of zodError(); track $index) {
+    <mat-divider />
+
+    <div class="flex flex-row gap-4 items-center">
+        <button matIconButton (click)="highlightField(error)"
+            matTooltip="Fehlerhaftes Feld hervorheben"
+            aria-label="Fehlerhaftes Feld hervorheben">
+            <mat-icon color="warn">error</mat-icon>
+        </button>
+        <li class="my-2"><span class="font-semibold">{{error.fieldDisplayName}}</span> - {{error.message}}</li>
+    </div>
+    }
+
+</ul>

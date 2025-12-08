@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { PersonResponseDTO, PersonsService } from '../../api-services-v2';
 import { lastValueFrom, map } from 'rxjs';
+import { PersonResponseDTO, PersonsService } from '../../api-services-v2';
 
 // Interface for person with full name
 export interface PersonWithFullName extends PersonResponseDTO {
@@ -56,7 +56,7 @@ export class PersonsWrapperService {
 
     return {
       ...person,
-      fullName: `${person.name} ${person.surname}` as string,
+      fullName: [person.name, person.surname].filter(Boolean).join(' '),
     } as PersonWithFullName;
   }
 
@@ -88,4 +88,3 @@ export class PersonsWrapperService {
     ));
   }
 }
-

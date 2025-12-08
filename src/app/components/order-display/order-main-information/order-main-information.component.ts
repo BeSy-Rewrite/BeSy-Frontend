@@ -3,6 +3,7 @@ import { Component, computed, input, OnChanges, OnInit, signal } from '@angular/
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from "@angular/material/divider";
 import { MatTableDataSource } from '@angular/material/table';
+import { environment } from '../../../../environments/environment';
 import { ItemResponseDTO } from '../../../api-services-v2';
 import { ITEM_FIELD_NAMES } from '../../../display-name-mappings/item-names';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
@@ -12,19 +13,18 @@ import { TableColumn } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
 import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
-import { AddressDisplayComponent } from '../address-display/address-display.component';
 
 @Component({
   selector: 'app-order-main-information',
   imports: [
     MatDividerModule,
     MatButtonModule,
-    AddressDisplayComponent,
   ],
   templateUrl: './order-main-information.component.html',
   styleUrl: './order-main-information.component.scss'
 })
 export class OrderMainInformationComponent implements OnInit, OnChanges {
+  environment = environment;
 
   /** The order data to display */
   orderData = input.required<DisplayableOrder>();
@@ -74,16 +74,6 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
     { id: 'price_per_unit', label: ITEM_FIELD_NAMES['price_per_unit'] },
     { id: 'quantity', label: ITEM_FIELD_NAMES['quantity'], footerContent: this.totalQuantityFormatted },
     { id: 'price_total', label: ITEM_FIELD_NAMES['price_total'], footerContent: this.totalPriceFormatted },
-  ];
-
-  additionalInfoKeys: (keyof OrderDisplayData)[] = [
-    'supplier_id',
-    'customer_id',
-    'quote_number',
-    'quote_date',
-    'quote_price',
-    'quote_sign',
-    'currency',
   ];
 
   constructor(private readonly ordersService: OrdersWrapperService,

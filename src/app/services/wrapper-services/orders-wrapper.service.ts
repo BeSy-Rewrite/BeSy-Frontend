@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { from, lastValueFrom, map, Observable } from 'rxjs';
+import { from, lastValueFrom, map, mergeMap, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import {
   ApprovalResponseDTO,
   ItemRequestDTO,
@@ -23,6 +24,7 @@ import { CostCenterFormatted, CostCenterWrapperService } from './cost-centers-wr
 import { CurrenciesWrapperService, FormattedCurrency } from './currencies-wrapper.service';
 import { FormattedPerson, PersonsWrapperService } from './persons-wrapper.service';
 import { SupplierFormatted, SuppliersWrapperService } from './suppliers-wrapper.service';
+import { UsersWrapperService } from './users-wrapper.service';
 
 export interface OrderResponseDTOFormatted {
   id?: number;
@@ -74,8 +76,9 @@ export class OrdersWrapperService {
     private readonly costCenterWrapperService: CostCenterWrapperService,
     private readonly personsWrapperService: PersonsWrapperService,
     private readonly currenciesWrapperService: CurrenciesWrapperService,
-    private readonly suppliersWrapperService: SuppliersWrapperService
-  ) {}
+    private readonly suppliersWrapperService: SuppliersWrapperService,
+    private readonly usersWrapperService: UsersWrapperService
+  ) { }
 
   /**
    * @param page Seitenzahl für die Paginierung (beginnend bei 0).
@@ -146,7 +149,14 @@ export class OrdersWrapperService {
 
   async createOrder(request: OrderRequestDTO): Promise<OrderResponseDTO> {
     request.booking_year = request.booking_year?.slice(-2); // Ensure only last 2 digits are sent
-    return await lastValueFrom(this.ordersService.createOrder(request));
+    return await lastValueFrom(this.usersWrapperService.getCurrentUser().pipe(
+      mergeMap(user => {
+        if (user.id == undefined) throw new Error('Current user ID is undefined');
+        request.owner_id = Number.parseInt(user.id);
+        console.log('Creating order with owner_id:', request);
+        return this.ordersService.createOrder(request);
+      })
+    ));
   }
 
   async getOrderById(orderId: number): Promise<OrderResponseDTO> {
@@ -228,8 +238,10 @@ export class OrdersWrapperService {
     return await lastValueFrom(this.ordersService.getOrderStatusHistory(orderId));
   }
 
+  // JSON.stringify needed as angular http client otherwise sends plain text instead of application/json
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
-    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, newState));
+    const requestBody = environment.production ? newState : JSON.stringify(newState);
+    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, requestBody));
   }
 
   async getOrderByIDInFormFormat(orderId: number): Promise<OrderResponseDTOFormatted> {
@@ -280,14 +292,14 @@ export class OrdersWrapperService {
     ] = await Promise.all([
       order.primary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-            order.primary_cost_center_id
-          )
+          order.primary_cost_center_id
+        )
         : Promise.resolve(undefined),
 
       order.secondary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-            order.secondary_cost_center_id
-          )
+          order.secondary_cost_center_id
+        )
         : Promise.resolve(undefined),
 
       order.delivery_person_id
