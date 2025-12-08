@@ -1,7 +1,11 @@
 import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import {
+  MatButtonToggle,
+  MatButtonToggleChange,
+  MatButtonToggleGroup,
+} from '@angular/material/button-toggle';
 import { MatDivider } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -15,7 +19,6 @@ import {
   SupplierResponseDTO,
   VatResponseDTO,
 } from '../../../api-services-v2';
-import { AddressFormComponent } from '../../../components/address-form/address-form.component';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
@@ -35,7 +38,6 @@ import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapp
     MatTab,
     GenericTableComponent,
     FormComponent,
-    AddressFormComponent,
     MatButtonModule,
     MatButtonToggleGroup,
     MatButtonToggle,
@@ -159,6 +161,18 @@ export class SuppliersPageComponent implements OnInit {
       const addressFormValue = this.addressFormGroup.getRawValue() as AddressRequestDTO;
       const customerIdValue = this.customerIdForm.value as CustomerIdRequestDTO;
 
+      // Check if a supplier with the same name already exists --> the backend will throw an error
+
+      const supplierExists = await this.suppliersWrapperService.checkIfSupplierExists(
+        supplierFormValue.name
+      );
+      if (supplierExists) {
+        this._notifications.open('Ein Lieferant mit diesem Namen existiert bereits', undefined, {
+          duration: 3000,
+        });
+        return;
+      }
+
       try {
         // create Supplier
         const response = await this.suppliersWrapperService.createSupplier({
@@ -233,7 +247,12 @@ export class SuppliersPageComponent implements OnInit {
     });
   }
 
-  onAddressInTableSelected($event: any) {
-    this.addressFormGroup.patchValue($event);
+  onAddressInTableSelected(event: NominatimMappedAddress) {
+    this.addressFormGroup.patchValue(event);
+  }
+
+  onAddressModeChange(event: MatButtonToggleChange): void {
+    this.addressMode.set(event.value);
+    this.addressFormGroup.reset();
   }
 }

@@ -43,7 +43,7 @@
               <div class="address-mode-selector mb-4">
                 <mat-button-toggle-group
                   [value]="addressMode()"
-                  (change)="addressMode.set($event.value)"
+                  (change)="onAddressModeChange($event)"
                   class="address-toggle-group"
                 >
                   <mat-button-toggle value="search">
