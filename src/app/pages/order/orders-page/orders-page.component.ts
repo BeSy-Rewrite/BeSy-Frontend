@@ -389,12 +389,12 @@ export class OrdersPageComponent implements OnInit {
      * Helper function to switch tabs and continue the tour.
      * @param targetIndex Index of the tab to switch to
      */
-    const switchTabAndContinue = (targetIndex: number) => {
+    const afterTabSwitch = (targetIndex: number, action: () => void) => {
       if (this.tabGroup().selectedIndex === targetIndex) {
-        this.driverJsTourService.getTourDriver().moveNext();
+        action();
       } else {
         this.tabGroup().animationDone.pipe(first()).subscribe(() => afterNextRender({
-          read: () => this.driverJsTourService.getTourDriver().moveNext(),
+          read: () => action(),
         },
           { injector: this.injector }
         ));
@@ -402,13 +402,13 @@ export class OrdersPageComponent implements OnInit {
       }
     };
 
-    this.driverJsTourService.registerStepsForComponent('OrdersPageComponent', [
+    this.driverJsTourService.registerStepsForComponent(OrdersPageComponent, () => [
       {
         element: '.tour-orders-page',
         popover: {
           title: 'Bestellübersicht',
           description: 'Über diese Seite können Sie alle Bestellungen einsehen, verwalten und neue Bestellungen erstellen.',
-          onNextClick: () => switchTabAndContinue(0)
+          onNextClick: () => afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().moveNext())
         },
       },
       {
@@ -423,10 +423,11 @@ export class OrdersPageComponent implements OnInit {
         popover: {
           title: 'Filter-Button',
           description: 'Über diesen Button können Sie die Filterleiste ein- und ausblenden, um Ihre Bestellungen gezielt zu filtern.',
-          onNextClick: () => {
-            this.showFilters = true;
-            this.driverJsTourService.getTourDriver().moveNext();
-          }
+          onPrevClick: () => {
+            this.showFilters = false;
+            this.driverJsTourService.getTourDriver().movePrevious();
+          },
+          onPopoverRender: () => this.showFilters = true
         },
       },
       {
@@ -436,23 +437,25 @@ export class OrdersPageComponent implements OnInit {
           description: 'In diesem Bereich können Sie die Filter für die Bestellungen anpassen.'
         },
       },
-      ...this.driverJsTourService.getStepsForComponent('FilterMenuComponent'),
+      ...this.driverJsTourService.getStepsForComponent(FilterMenuComponent),
       {
         element: '.tour-filter-button',
         popover: {
           title: 'Filter-Button',
           description: 'Schließen Sie die Filterleiste über diesen Button, um mehr Platz für die Tabelle zu haben.',
-          onNextClick: () => {
-            this.showFilters = false;
-            this.driverJsTourService.getTourDriver().moveNext();
-          }
+          onPrevClick: () => {
+            this.showFilters = true;
+            this.driverJsTourService.getTourDriver().movePrevious();
+          },
+          onPopoverRender: () => this.showFilters = false,
         },
       },
       {
         popover: {
           title: 'Nächster Tab',
           description: 'Neue Bestellungen können Sie im nächsten Tab erstellen.',
-          onNextClick: () => switchTabAndContinue(1),
+          onPrevClick: () => afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().movePrevious()),
+          onPopoverRender: () => this.tabGroup().selectedIndex = 1,
         },
       },
       {
@@ -462,11 +465,11 @@ export class OrdersPageComponent implements OnInit {
           description: 'Wechseln Sie zu diesem Tab, um eine neue Bestellung zu erstellen.',
         },
       },
-      ...this.driverJsTourService.getStepsForComponent('CreateOrderPageComponent'),
+      ...this.driverJsTourService.getStepsForComponent(CreateOrderPageComponent),
     ]);
   }
 
   startTour() {
-    this.driverJsTourService.startTour(['OrdersPageComponent']);
+    this.driverJsTourService.startTour([OrdersPageComponent]);
   }
 }
