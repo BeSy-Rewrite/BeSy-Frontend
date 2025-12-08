@@ -203,6 +203,12 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
           );
           return;
         }
+      } else {
+        this.addressFormGroup.markAllAsTouched();
+        this._notifications.open('Bitte die eingegebenen Adressdaten prüfen.', undefined, {
+          duration: 3000,
+        });
+        return;
       }
     } else if (this.addressSelectionMode() === 'saved' && this.fetchedAddress) {
       addressId = this.fetchedAddress.id!;
@@ -332,12 +338,24 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
   private hasChanges(original: PersonResponseDTO | undefined, updated: PersonRequestDTO): boolean {
     if (!original) return true; // If no original, treat as changes
 
-    // Compare all fields in the updated data with the original
-    for (const key in updated) {
-      if (updated[key as keyof PersonRequestDTO] !== original[key as keyof PersonResponseDTO]) {
-        return true; // Found a difference
+    // Collect all keys from both original and updated
+    const allKeys = new Set<string>([...Object.keys(original), ...Object.keys(updated)]);
+    for (const key of allKeys) {
+      const originalValue = (original as any)[key];
+      const updatedValue = (updated as any)[key];
+      // Special handling for address_id (could be undefined, null, or a number)
+      if (key === 'address_id') {
+        // Treat undefined, null, and number as possible values
+        if ((originalValue ?? null) !== (updatedValue ?? null)) {
+          return true;
+        }
+        continue;
+      }
+      // For other fields, compare values (shallow)
+      if (originalValue !== updatedValue) {
+        return true;
       }
     }
-    return false; // No changes found
+    return false;
   }
 }
