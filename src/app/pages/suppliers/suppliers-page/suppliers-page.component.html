@@ -38,13 +38,42 @@
             ></mat-divider>
 
             <!-- Right column: Address -->
+
             <div class="right-column flex-1 p-8">
-              <div class="address-data-container overflow-visible flex-1">
-                <app-address-form
-                  [config]="addressFormConfig"
-                  [formGroup]="addressForm"
-                ></app-address-form>
+              <div class="address-mode-selector mb-4">
+                <mat-button-toggle-group
+                  [value]="addressMode()"
+                  (change)="addressMode.set($event.value)"
+                  class="address-toggle-group"
+                >
+                  <mat-button-toggle value="search">
+                    <mat-icon>search</mat-icon>
+                    <span>Adresse suchen</span>
+                  </mat-button-toggle>
+                  <mat-button-toggle value="new">
+                    <mat-icon>add</mat-icon>
+                    <span>Neue Adresse anlegen</span>
+                  </mat-button-toggle>
+                </mat-button-toggle-group>
               </div>
+
+              @if (addressMode() === 'search') {
+                <div class="address-search-container overflow-visible flex-1">
+                  <app-form-component
+                    [config]="nominatimAddressFormConfig"
+                    [formGroup]="nominatimAddressFormGroup"
+                    (searchEvent)="onSearch($event)"
+                  ></app-form-component>
+                </div>
+              }
+              @if (addressMode() === 'new') {
+                <div class="address-data-container overflow-visible flex-1">
+                  <app-address-form
+                    [config]="addressFormConfig"
+                    [formGroup]="addressForm"
+                  ></app-address-form>
+                </div>
+              }
 
               <div class="buttons flex justify-end gap-x-2">
                 <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>

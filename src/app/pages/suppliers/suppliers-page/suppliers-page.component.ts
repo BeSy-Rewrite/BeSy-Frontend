@@ -1,5 +1,11 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
+import { MatDivider } from '@angular/material/divider';
+import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import {
@@ -9,19 +15,17 @@ import {
   SupplierResponseDTO,
   VatResponseDTO,
 } from '../../../api-services-v2';
+import { AddressFormComponent } from '../../../components/address-form/address-form.component';
+import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
 import { CUSTOMER_ID_FORM_CONFIG } from '../../../configs/create-customer-id-config';
 import { SUPPLIER_FORM_CONFIG } from '../../../configs/create-supplier-config';
+import { NOMINATIM_SEARCH_CONFIG } from '../../../configs/supplier/supplier-config';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
+import { NominatimService } from '../../../services/nominatim.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
-import { MatDivider } from '@angular/material/divider';
-import { FormComponent } from '../../../components/form-component/form-component.component';
-import { AddressFormComponent } from '../../../components/address-form/address-form.component';
-import { MatButtonModule } from '@angular/material/button';
-import { FormGroup } from '@angular/forms';
-import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -33,12 +37,14 @@ import { MatTableDataSource } from '@angular/material/table';
     FormComponent,
     AddressFormComponent,
     MatButtonModule,
+    MatButtonToggleGroup,
+    MatButtonToggle,
+    MatIcon,
   ],
   templateUrl: './suppliers-page.component.html',
   styleUrl: './suppliers-page.component.scss',
 })
 export class SuppliersPageComponent implements OnInit {
-
   // ! ID of the selected address in the table. Keep default undefinded!
   selectedAddressId: number | undefined = undefined;
 
@@ -92,18 +98,26 @@ export class SuppliersPageComponent implements OnInit {
   addressForm = new FormGroup({});
   customerIdForm = new FormGroup({});
 
-  constructor(private readonly router: Router,
+  addressMode = signal<'new' | 'search'>('search');
+  nominatimAddressFormConfig = NOMINATIM_SEARCH_CONFIG;
+  nominatimAddressFormGroup = new FormGroup({});
+
+  constructor(
+    private readonly router: Router,
     private readonly _notifications: MatSnackBar,
     private readonly suppliersWrapperService: SuppliersWrapperService,
-    private readonly vatWrapperService: VatWrapperService
-  ) { }
+    private readonly vatWrapperService: VatWrapperService,
+    private readonly nominatimService: NominatimService
+  ) {}
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    this.loadInitialData();
+  }
+
+  private async loadInitialData(): Promise<void> {
     // Load initial data for the supplier table
     const suppliers = await this.suppliersWrapperService.getAllSuppliers();
-    this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(
-      suppliers
-    );
+    this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(suppliers);
 
     // Load initial data for the VAT options field in the form
     const vatOptions = await this.vatWrapperService.getAllVats();
@@ -131,8 +145,7 @@ export class SuppliersPageComponent implements OnInit {
     if (this.supplierForm.valid && this.addressForm.valid) {
       // Both forms are valid, check the address mode to determine whether to use an existing address or create a new one
       const supplierFormValue = this.supplierForm.value as SupplierRequestDTO;
-      const addressFormValue =
-        this.addressForm.getRawValue() as AddressRequestDTO;
+      const addressFormValue = this.addressForm.getRawValue() as AddressRequestDTO;
       const customerIdValue = this.customerIdForm.value as CustomerIdRequestDTO;
 
       try {
@@ -149,11 +162,10 @@ export class SuppliersPageComponent implements OnInit {
               ...customerIdValue,
             });
           } catch (error) {
-            this._notifications.open(
-              'Fehler beim Erstellen der Kundennummer',
-              undefined,
-              { duration: 3000 }
-            );
+            console.error('Error creating customer ID:', error);
+            this._notifications.open('Fehler beim Erstellen der Kundennummer', undefined, {
+              duration: 3000,
+            });
           }
         }
 
@@ -162,22 +174,18 @@ export class SuppliersPageComponent implements OnInit {
           duration: 3000,
         });
       } catch (error) {
-        // Show error notification
-        this._notifications.open(
-          'Fehler beim Erstellen des Lieferanten',
-          undefined,
-          { duration: 3000 }
-        );
+        console.error('Error creating supplier:', error);
+        this._notifications.open('Fehler beim Erstellen des Lieferanten', undefined, {
+          duration: 3000,
+        });
       }
     } else {
       // Handle form errors
       this.supplierForm.markAllAsTouched();
       this.addressForm.markAllAsTouched();
-      this._notifications.open(
-        'Bitte überprüfen Sie die Eingaben im Formular',
-        undefined,
-        { duration: 3000 }
-      );
+      this._notifications.open('Bitte überprüfen Sie die Eingaben im Formular', undefined, {
+        duration: 3000,
+      });
     }
   }
 
@@ -197,11 +205,19 @@ export class SuppliersPageComponent implements OnInit {
   // Set dropdown options for the form fields
   setDropdownOptions(vatOptions: VatResponseDTO[]) {
     // set options for dropdown fields
-    this.supplierFormConfig.fields.find(
-      (field) => field.name === 'vat_id'
-    )!.options = vatOptions.map((vat) => ({
-      value: vat.value,
-      label: `${vat.description} (${vat.value}%)`,
-    }));
+    this.supplierFormConfig.fields.find(field => field.name === 'vat_id')!.options = vatOptions.map(
+      vat => ({
+        value: vat.value,
+        label: `${vat.description} (${vat.value}%)`,
+      })
+    );
+  }
+
+  onSearch($event: any) {
+    const query = $event.target.value;
+    this.nominatimService.throttledSearch(query).subscribe(results => {
+      console.log('Nominatim search results:', results);
+      // Handle the search results (e.g., display them in the UI)
+    });
   }
 }

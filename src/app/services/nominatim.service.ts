@@ -1,8 +1,7 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { environment } from '../../environments/environment';
 import { Observable } from 'rxjs';
-
+import { environment } from '../../environments/environment';
 
 export interface NominatimResult {
   display_name: string;
@@ -39,9 +38,9 @@ export interface NominatimResponseDTO {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class AddressAutocompleteServiceService {
+export class NominatimService {
   private readonly apiUrl = environment.nominatimUrl;
   private readonly cache = new Map<string, NominatimResult[]>();
 
@@ -62,7 +61,10 @@ export class AddressAutocompleteServiceService {
   /**
    * Throttled search: nur 1 Request pro Sekunde, alles andere wird verworfen.
    */
-  throttledSearch(query: string, params: Record<string, string> = {}): Observable<NominatimResponseDTO[]> {
+  throttledSearch(
+    query: string,
+    params: Record<string, string> = {}
+  ): Observable<NominatimResponseDTO[]> {
     if (!this.canSendRequest()) {
       // verworfen → gib ein leeres Observable zurück
       return new Observable<NominatimResponseDTO[]>(observer => {
@@ -73,7 +75,10 @@ export class AddressAutocompleteServiceService {
     return this.search(query, params);
   }
 
-  private search(query: string, params: Record<string, string> = {}): Observable<NominatimResponseDTO[]> {
+  private search(
+    query: string,
+    params: Record<string, string> = {}
+  ): Observable<NominatimResponseDTO[]> {
     const url = `${this.apiUrl}`;
     const headers = new HttpHeaders({
       'User-Agent': 'Besy/1.0',
@@ -91,4 +96,3 @@ export class AddressAutocompleteServiceService {
     return this.http.get<NominatimResponseDTO[]>(url, { headers, params: httpParams });
   }
 }
-
