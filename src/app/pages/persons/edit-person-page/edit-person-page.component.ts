@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, effect, OnInit, signal, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
 import {
   MatButtonToggle,
   MatButtonToggleChange,
@@ -28,7 +29,14 @@ import { PersonsWrapperService } from '../../../services/wrapper-services/person
 
 @Component({
   selector: 'app-edit-person-page',
-  imports: [FormComponent, MatButtonToggleGroup, MatButtonToggle, MatIcon, GenericTableComponent],
+  imports: [
+    FormComponent,
+    MatButtonModule,
+    MatButtonToggleGroup,
+    MatButtonToggle,
+    MatIcon,
+    GenericTableComponent,
+  ],
   templateUrl: './edit-person-page.component.html',
   styleUrl: './edit-person-page.component.scss',
 })
@@ -96,6 +104,7 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
     const resolvedData: EditPersonResolvedData = this.route.snapshot.data['personData'];
     this.fetchedPerson = resolvedData.person;
     this.fetchedAddress = resolvedData.address;
+    console.log('Fetched Person:', this.fetchedPerson);
 
     this.personsWrapperService.getAllPersonsAddresses().then(addresses => {
       this.addresses = addresses;
@@ -105,11 +114,22 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
 
   ngAfterViewInit(): void {
     // Defer form initialization to allow FormComponent to create controls first
+    // Use setTimeout to ensure change detection has run and conditional components are rendered
     setTimeout(() => {
       this.initializeFormGroups();
-    });
+      setTimeout(() => {
+        if (this.fetchedAddress) {
+          this.addressFormGroup.patchValue(this.fetchedAddress);
+          this.addressFormGroup.disable();
+        }
+      }, 0);
+    }, 0);
   }
 
+  /**
+   * Handles changes in the address selection mode.
+   * @param event The change event from the address mode toggle group
+   */
   onAddressModeChange(event: MatButtonToggleChange): void {
     this.addressSelectionMode.set(event.value);
     // Reset form state when switching modes
@@ -130,7 +150,6 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
 
   // * Handle form submission
   async onSubmit() {
-    // !ToDo: Implement put request to update person and address
     // Check if the person form has all required fields set
     if (!this.personFormGroup.valid) {
       this.personFormGroup.markAllAsTouched();
@@ -142,95 +161,76 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
 
     // Get person form data
     const personData = this.personFormGroup.value as PersonRequestDTO;
+    let addressId = {} as number;
 
-    // Case 1: an existing address is used to create a person
-    if (this.addressSelectionMode() === 'existing') {
-      if (this.selectedAddressId) {
+    if (this.addressSelectionMode() === 'new') {
+      // Check if the address form has all required fields set
+      if (this.addressFormGroup.valid) {
+        // Create new address and get the id
         try {
-          await this.personsWrapperService.createPerson({
-            ...personData,
-            address_id: this.selectedAddressId,
-          });
-          this._notifications.open('Person erfolgreich erstellt', undefined, {
-            duration: 3000,
-          });
+          const addressData = this.addressFormGroup.value as AddressRequestDTO;
+          const createdAddress = await this.personsWrapperService.createPersonAddress(addressData);
+          if (createdAddress?.id) {
+            addressId = createdAddress.id;
+            console.log('Created Address:', createdAddress);
+          }
         } catch (error) {
-          console.error('Error creating person:', error);
-          this._notifications.open('Fehler beim Erstellen der Person', undefined, {
-            duration: 3000,
-          });
+          console.error('Error creating address:', error);
+          this._notifications.open(
+            'Interner Fehler beim Erstellen der Adresse. Bitte versuchen Sie es später erneut.',
+            undefined,
+            {
+              duration: 5000,
+            }
+          );
+          return;
         }
       }
-      // No address selected in existing addresses
-      // Create person without address
-      else {
-        try {
-          await this.personsWrapperService.createPerson({
-            ...personData,
-          });
-          this._notifications.open('Person erfolgreich erstellt', undefined, {
-            duration: 3000,
-          });
-        } catch (error) {
-          console.error('Error creating person:', error);
-          this._notifications.open('Fehler beim Erstellen der Person', undefined, {
-            duration: 3000,
-          });
-        }
-      }
-
-      return;
-    }
-
-    // Case 2: a new address is created
-    const addressData = this.addressFormGroup.value as AddressRequestDTO;
-
-    // Check if any address field is filled
-    const addressFilled = Object.entries(addressData).some(
-      ([, val]) => val !== null && val !== undefined && String(val).trim() !== ''
-    );
-
-    if (addressFilled) {
-      // Address fields are filled, validate address form
-      if (!this.addressFormGroup.valid) {
-        this.addressFormGroup.markAllAsTouched();
-        this._notifications.open('Bitte Adressdaten prüfen.', undefined, {
+    } else if (this.addressSelectionMode() === 'saved' && this.fetchedAddress) {
+      addressId = this.fetchedAddress.id!;
+    } else if (this.addressSelectionMode() === 'existing') {
+      if (!this.selectedAddressId) {
+        this._notifications.open('Bitte wählen Sie eine Adresse aus der Tabelle aus.', undefined, {
           duration: 3000,
         });
         return;
       }
+      addressId = this.selectedAddressId;
+    }
 
-      try {
-        const addressResponse = await this.personsWrapperService.createPersonAddress(addressData);
-        const addressId = addressResponse.id;
+    // Combine person data with address ID if available
+    const updatedPersonData: PersonRequestDTO = {
+      ...personData,
+      address_id: addressId || undefined,
+    };
 
-        await this.personsWrapperService.createPerson({
-          ...personData,
-          address_id: addressId,
-        });
-
-        this._notifications.open('Person erfolgreich erstellt', undefined, {
-          duration: 3000,
-        });
-      } catch (error) {
-        console.error('Error creating person with new address:', error);
-        this._notifications.open('Fehler beim Erstellen', undefined, {
-          duration: 3000,
-        });
-      }
-    } else {
-      // Create person without address
-      try {
-        await this.personsWrapperService.createPerson(personData);
-        this._notifications.open('Person erfolgreich erstellt (ohne Adresse)', undefined, {
-          duration: 3000,
-        });
-      } catch (error) {
-        console.error('Error creating person without address:', error);
-        this._notifications.open('Fehler beim Erstellen der Person', undefined, {
-          duration: 3000,
-        });
-      }
+    // Check if any changes were made
+    if (!this.hasChanges(this.fetchedPerson, updatedPersonData)) {
+      this._notifications.open('Es wurden keine Änderungen vorgenommen.', undefined, {
+        duration: 3000,
+      });
+      return;
+    }
+    try {
+      // Send update request
+      const updatedPerson = await this.personsWrapperService.updatePerson(
+        this.fetchedPerson!.id!,
+        updatedPersonData
+      );
+      console.log('Updated Person:', updatedPerson);
+      this._notifications.open('Person erfolgreich aktualisiert.', undefined, {
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Error updating person:', error);
+      this._notifications.open(
+        'Interner Fehler beim Aktualisieren der Person. Bitte versuchen Sie es später erneut.',
+        undefined,
+        {
+          duration: 5000,
+        }
+      );
+      return;
     }
   }
 
@@ -265,16 +265,18 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
-        // ToDo: Reset forms
-        this.personFormGroup.reset();
-        this.addressFormGroup.reset();
+        // Reset forms to initial fetched data
+        this.personFormGroup.reset(this.fetchedPerson ?? {});
+        this.addressFormGroup.reset(this.fetchedAddress ?? {});
         this.selectedAddressId = undefined;
       }
     });
   }
 
-  // Catch emitted event from address-form-component
-  // Update selectedAddressId with the selected address ID
+  /**
+   * Handles selection of an address in the address table.
+   * @param $event The selected address from the table or null if none selected
+   */
   onAddressInTableSelected($event: AddressResponseDTO | null) {
     if ($event) {
       this.selectedAddressId = $event.id!;
@@ -289,15 +291,35 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
     }
   }
 
+  /**
+   * Initializes the form groups with fetched data.
+   */
   private initializeFormGroups() {
     // Initialize person form group
     this.personFormGroup.patchValue(this.fetchedPerson ?? {});
     // Initialize person form with fetched data)
     if (this.fetchedAddress) {
-      this.addressFormGroup.patchValue(this.fetchedAddress);
       this.addressSelectionMode.set('saved');
       this.addressFormGroup.disable();
       this.personHasSavedAddress.set(true);
     }
+  }
+
+  /**
+   * Helper function to check if there are changes between the original and updated person data
+   * @param original the original person data
+   * @param updated the updated person data
+   * @returns true if there are changes, false otherwise
+   */
+  private hasChanges(original: PersonResponseDTO | undefined, updated: PersonRequestDTO): boolean {
+    if (!original) return true; // If no original, treat as changes
+
+    // Compare all fields in the updated data with the original
+    for (const key in updated) {
+      if (updated[key as keyof PersonRequestDTO] !== original[key as keyof PersonResponseDTO]) {
+        return true; // Found a difference
+      }
+    }
+    return false; // No changes found
   }
 }

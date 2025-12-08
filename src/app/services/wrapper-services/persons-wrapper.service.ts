@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { lastValueFrom, map } from 'rxjs';
-import { PersonResponseDTO, PersonsService } from '../../api-services-v2';
+import { PersonRequestDTO, PersonResponseDTO, PersonsService } from '../../api-services-v2';
 
 // Interface for person with full name
 export interface PersonWithFullName extends PersonResponseDTO {
@@ -26,8 +26,11 @@ export class PersonsWrapperService {
     return lastValueFrom(this.personsService.getPersonById(id));
   }
 
-  async createPerson(person: any) {
+  async createPerson(person: PersonRequestDTO) {
     return lastValueFrom(this.personsService.createPerson(person));
+  }
+  async updatePerson(id: number, person: PersonRequestDTO) {
+    return lastValueFrom(this.personsService.updatePersonById(id, person));
   }
 
   /**
