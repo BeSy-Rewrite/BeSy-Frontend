@@ -1,4 +1,4 @@
-import { afterNextRender, Injectable, Injector } from '@angular/core';
+import { afterNextRender, Injectable, Injector, Type } from '@angular/core';
 import { Router } from '@angular/router';
 import { driver, DriveStep, PopoverDOM } from 'driver.js';
 import 'driver.js/dist/driver.css';
@@ -12,13 +12,16 @@ export class DriverJsTourService {
 
   private readonly componentSteps: Map<string, () => DriveStep[]> = new Map();
 
-  constructor(private readonly router: Router, private readonly injector: Injector) { }
+  constructor(
+    private readonly router: Router,
+    private readonly injector: Injector
+  ) {}
 
   /**
    * Starts a tour with the given components' registered steps.
-   * @param components Array of component names whose steps should be included in the tour.
+   * @param components Array of component classes whose steps should be included in the tour.
    */
-  startTour(components: any[]) {
+  startTour(components: Type<any>[]) {
     this.tourDriver.destroy();
     this.tourDriver = driver({
       showProgress: true,
@@ -33,7 +36,7 @@ export class DriverJsTourService {
    * @param component Class of the component
    * @param driverSteps Array of driver.js steps for the component
    */
-  registerStepsForComponent(component: any, driverStepsSource: () => DriveStep[]) {
+  registerStepsForComponent(component: Type<any>, driverStepsSource: () => DriveStep[]) {
     console.log(`Registering ${driverStepsSource().length} steps for component: ${component.name}`);
     this.componentSteps.set(component.name, driverStepsSource);
   }
@@ -44,15 +47,17 @@ export class DriverJsTourService {
    * @param component Class of the component
    * @return Array of DriveStep objects for the component
    */
-  getStepsForComponent(component: any): DriveStep[] {
-    return this.componentSteps.get(component.name)?.() ?? [
-      {
-        popover: {
-          title: 'No steps registered',
-          description: `No tour steps found for component: ${component.name}`,
-        }
-      }
-    ];
+  getStepsForComponent(component: Type<any>): DriveStep[] {
+    return (
+      this.componentSteps.get(component.name)?.() ?? [
+        {
+          popover: {
+            title: 'No steps registered',
+            description: `No tour steps found for component: ${component.name}`,
+          },
+        },
+      ]
+    );
   }
 
   /**
@@ -61,7 +66,7 @@ export class DriverJsTourService {
    * @param components Array of component classes
    * @return Array of DriveStep objects for the tour
    */
-  getStepsForComponents(components: any[]): DriveStep[] {
+  getStepsForComponents(components: Type<any>[]): DriveStep[] {
     return components.flatMap(component => this.getStepsForComponent(component));
   }
 
