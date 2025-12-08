@@ -194,15 +194,13 @@
 
 // Action Bar
 .action-bar {
+  margin: 0 auto;
   display: flex;
   gap: 12px;
-  padding: 20px 24px;
-  background: #d7dbe0;
   justify-content: space-between;
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  padding: 20px 0;
   position: sticky;
-  bottom: 0;
+  bottom: 16px;
 }
 
 .action-button {
