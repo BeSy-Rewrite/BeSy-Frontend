@@ -642,6 +642,7 @@ export class FilterMenuComponent implements OnInit {
         popover: {
           title: 'Neues Filter-Preset',
           description: 'Geben Sie hier einen Namen für Ihr neues Filter-Preset ein und speichern Sie es, um die aktuellen Filtereinstellungen zu sichern.',
+          onPopoverRender: (popover) => this.driverJsTourService.placePopoverOntopDialog(popover),
           onPrevClick: () => {
             dialogRef?.close();
             this.driverJsTourService.getTourDriver().movePrevious();
@@ -674,9 +675,9 @@ export class FilterMenuComponent implements OnInit {
       {
         element: '.tour-edit-presets-dialog',
         popover: {
-          popoverClass: 'z-[50000]',
           title: 'Filter-Presets verwalten',
           description: 'Verwalten Sie hier Ihre gespeicherten Filter-Presets. Sie können Presets umbenennen oder löschen, um Ihre Filteroptionen aktuell zu halten.',
+          onPopoverRender: (popover) => this.driverJsTourService.placePopoverOntopDialog(popover),
           onPrevClick: () => {
             dialogRef?.close();
             this.driverJsTourService.getTourDriver().movePrevious();

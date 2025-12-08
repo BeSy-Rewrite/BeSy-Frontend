@@ -1,6 +1,6 @@
 import { afterNextRender, Injectable, Injector } from '@angular/core';
 import { Router } from '@angular/router';
-import { driver, DriveStep } from 'driver.js';
+import { driver, DriveStep, PopoverDOM } from 'driver.js';
 import 'driver.js/dist/driver.css';
 
 @Injectable({
@@ -88,6 +88,20 @@ export class DriverJsTourService {
         description,
       },
     });
+  }
+
+  /**
+   * Places the popover on top of a dialog to ensure visibility.
+   * Necessary when higlighting Angular Material dialogs.
+   * Call in onPopoverRender callback of a tour step.
+   * @param popover The PopoverDOM instance to adjust
+   */
+  placePopoverOntopDialog(popover: PopoverDOM) {
+    const parent = popover.wrapper.parentNode;
+    parent?.querySelectorAll('[popover]').forEach((el: any) => {
+      el.removeAttribute('popover');
+    });
+    popover.wrapper.setAttribute('popover', 'manual');
   }
 
   /**
