@@ -8,9 +8,8 @@ describe('OrderMainQuoteComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [OrderMainQuoteComponent]
-    })
-    .compileComponents();
+      imports: [OrderMainQuoteComponent],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(OrderMainQuoteComponent);
     component = fixture.componentInstance;

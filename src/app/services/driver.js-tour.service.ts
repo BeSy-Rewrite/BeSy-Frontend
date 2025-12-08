@@ -1,18 +1,18 @@
 import { afterNextRender, Injectable, Injector } from '@angular/core';
 import { Router } from '@angular/router';
-import { driver } from "driver.js";
-import "driver.js/dist/driver.css";
+import { driver } from 'driver.js';
+import 'driver.js/dist/driver.css';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class DriverJsTourService {
-
   private readonly highlightDriver = driver();
 
-  constructor(private readonly router: Router,
+  constructor(
+    private readonly router: Router,
     private readonly injector: Injector
-  ) { }
+  ) {}
 
   /**
    * Starts the driver.js tour.
@@ -33,9 +33,12 @@ export class DriverJsTourService {
               // .. and then call
               this.router.navigate(['/orders']).then(() => {
                 // Wait for the next render cycle to ensure the element is in the DOM
-                afterNextRender(() => {
-                  driverObject.moveNext();
-                }, { injector: this.injector });
+                afterNextRender(
+                  () => {
+                    driverObject.moveNext();
+                  },
+                  { injector: this.injector }
+                );
               });
             },
           },
@@ -47,10 +50,9 @@ export class DriverJsTourService {
             description: 'This step highlights the order list.',
           },
         },
-        { popover: { title: 'Last Step', description: 'This is the last step.' } }
-      ]
+        { popover: { title: 'Last Step', description: 'This is the last step.' } },
+      ],
     });
-
 
     driverObject.drive();
   }
@@ -66,8 +68,8 @@ export class DriverJsTourService {
       element: selector,
       popover: {
         title,
-        description
-      }
+        description,
+      },
     });
   }
 }

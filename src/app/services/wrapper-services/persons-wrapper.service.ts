@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { lastValueFrom, map } from 'rxjs';
-import { PersonResponseDTO, PersonsService } from '../../api-services-v2';
+import { PersonRequestDTO, PersonResponseDTO, PersonsService } from '../../api-services-v2';
 
 // Interface for person with full name
 export interface PersonWithFullName extends PersonResponseDTO {
@@ -13,10 +13,10 @@ export interface FormattedPerson {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class PersonsWrapperService {
-  constructor(private readonly personsService: PersonsService) { }
+  constructor(private readonly personsService: PersonsService) {}
 
   async getAllPersons() {
     return lastValueFrom(this.personsService.getAllPersons());
@@ -26,8 +26,11 @@ export class PersonsWrapperService {
     return lastValueFrom(this.personsService.getPersonById(id));
   }
 
-  async createPerson(person: any) {
+  async createPerson(person: PersonRequestDTO) {
     return lastValueFrom(this.personsService.createPerson(person));
+  }
+  async updatePerson(id: number, person: PersonRequestDTO) {
+    return lastValueFrom(this.personsService.updatePersonById(id, person));
   }
 
   /**
@@ -35,14 +38,16 @@ export class PersonsWrapperService {
    * @returns PersonWithFullName[] List of persons with full name
    */
   async getAllPersonsWithFullName() {
-    return lastValueFrom(this.personsService.getAllPersons().pipe(
-      map(persons =>
-        persons.map(person => ({
-          ...person,
-          fullName: [person.name, person.surname].filter(Boolean).join(' ')
-        }))
+    return lastValueFrom(
+      this.personsService.getAllPersons().pipe(
+        map(persons =>
+          persons.map(person => ({
+            ...person,
+            fullName: [person.name, person.surname].filter(Boolean).join(' '),
+          }))
+        )
       )
-    ));
+    );
   }
 
   /**
@@ -83,8 +88,10 @@ export class PersonsWrapperService {
   }
 
   getAddress(addressId: number) {
-    return lastValueFrom(this.personsService.getAllPersonAddresses().pipe(
-      map(addresses => addresses.find(addr => addr.id === addressId))
-    ));
+    return lastValueFrom(
+      this.personsService
+        .getAllPersonAddresses()
+        .pipe(map(addresses => addresses.find(addr => addr.id === addressId)))
+    );
   }
 }

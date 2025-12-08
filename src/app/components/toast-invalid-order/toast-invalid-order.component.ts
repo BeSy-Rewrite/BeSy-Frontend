@@ -1,7 +1,7 @@
 import { Component, input } from '@angular/core';
-import { MatButtonModule } from "@angular/material/button";
-import { MatDividerModule } from "@angular/material/divider";
-import { MatIconModule } from "@angular/material/icon";
+import { MatButtonModule } from '@angular/material/button';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { RouterModule } from '@angular/router';
 import { ZodError } from 'zod';
@@ -19,13 +19,7 @@ type ToastError = {
 
 @Component({
   selector: 'app-toast-invalid-order',
-  imports: [
-    MatDividerModule,
-    MatIconModule,
-    MatButtonModule,
-    MatTooltipModule,
-    RouterModule
-  ],
+  imports: [MatDividerModule, MatIconModule, MatButtonModule, MatTooltipModule, RouterModule],
   templateUrl: './toast-invalid-order.component.html',
   styleUrl: './toast-invalid-order.component.scss',
 })
@@ -38,25 +32,30 @@ export class ToastInvalidOrderComponent {
   /**
    * The target state that was attempted to be set.
    */
-  targetState = input(undefined, { transform: (value: OrderStatus | undefined) => STATE_DISPLAY_NAMES.get(value ?? '') ?? 'Unbekannter Status' });
+  targetState = input(undefined, {
+    transform: (value: OrderStatus | undefined) =>
+      STATE_DISPLAY_NAMES.get(value ?? '') ?? 'Unbekannter Status',
+  });
 
   /**
    * The list of validation errors to display in the toast.
    */
   zodError = input([], {
     transform: (value: ZodError) => {
-      return value?.issues?.map(e => {
-        const fieldName = e.path?.at(-1)?.toString() ?? 'unbekanntes_feld';
-        return {
-          message: e.message,
-          fieldDisplayName: ORDER_FIELD_NAMES[fieldName] ?? fieldName,
-          fieldName
-        } as ToastError;
-      }) ?? [];
-    }
+      return (
+        value?.issues?.map(e => {
+          const fieldName = e.path?.at(-1)?.toString() ?? 'unbekanntes_feld';
+          return {
+            message: e.message,
+            fieldDisplayName: ORDER_FIELD_NAMES[fieldName] ?? fieldName,
+            fieldName,
+          } as ToastError;
+        }) ?? []
+      );
+    },
   });
 
-  constructor(private readonly driverJsService: DriverJsTourService) { }
+  constructor(private readonly driverJsService: DriverJsTourService) {}
 
   /**
    *  Highlights a specific field in the order form based on the provided ToastError.

@@ -9,108 +9,110 @@ import { CreateOrderPageComponent } from './pages/order/create-order-page/create
 import { EditOrderPageComponent } from './pages/order/edit-order-page/edit-order-page.component';
 import { OrdersPageComponent } from './pages/order/orders-page/orders-page.component';
 import { ViewOrderPageComponent } from './pages/order/view-order-page/view-order-page.component';
+import { EditPersonPageComponent } from './pages/persons/edit-person-page/edit-person-page.component';
 import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.component';
 import { EditSuppliersPageComponent } from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
 import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
 import { EditOrderResolver } from './resolver/edit-order-resolver';
+import { EditPersonResolver } from './resolver/edit-person.resolver';
 import { OrderResolver } from './resolver/order.resolver';
 
 export const routes: Routes = [
-    {
-        title: 'BeSy',
-        path: '',
-        component: HomepageComponent
+  {
+    title: 'BeSy',
+    path: '',
+    component: HomepageComponent,
+  },
+  {
+    title: 'Guard Test',
+    path: 'default',
+    component: HomepageComponent,
+    canActivate: [DefaultGuard],
+  },
+  {
+    title: 'Approve Orders Test',
+    path: 'dekanat',
+    component: HomepageComponent,
+    canActivate: [DefaultGuard, ApproveOrdersGuard],
+  },
+  {
+    title: 'Bestellung erstellen',
+    path: 'orders/create',
+    component: CreateOrderPageComponent,
+    canActivate: [DefaultGuard],
+  },
+  {
+    title: 'Bestellungen',
+    path: 'orders/:id',
+    component: ViewOrderPageComponent,
+    resolve: {
+      order: OrderResolver,
     },
-    {
-        title: 'Guard Test',
-        path: 'default',
-        component: HomepageComponent,
-        canActivate: [DefaultGuard]
+    canActivate: [DefaultGuard],
+  },
+  {
+    title: 'Bestellung bearbeiten',
+    path: 'orders/:id/edit',
+    component: EditOrderPageComponent,
+    resolve: {
+      orderData: EditOrderResolver,
     },
-    {
-        title: 'Approve Orders Test',
-        path: 'dekanat',
-        component: HomepageComponent,
-        canActivate: [
-            DefaultGuard,
-            ApproveOrdersGuard
-        ]
+    canActivate: [DefaultGuard],
+    canDeactivate: [UnsavedChangesGuard],
+  },
+  {
+    title: 'Personen',
+    path: 'persons',
+    component: PersonsPageComponent,
+    canActivate: [DefaultGuard],
+  },
+  {
+    title: 'Person bearbeiten',
+    path: 'persons/:id/edit',
+    component: EditPersonPageComponent,
+    resolve: {
+      personData: EditPersonResolver,
     },
-    {
-        title: 'Bestellung erstellen',
-        path: 'orders/create',
-        component: CreateOrderPageComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Bestellungen',
-        path: 'orders/:id',
-        component: ViewOrderPageComponent,
-        resolve: {
-            order: OrderResolver
-        },
-        canActivate: [DefaultGuard],
-    },
-    {
-        title: 'Bestellung bearbeiten',
-        path: 'orders/:id/edit',
-        component: EditOrderPageComponent,
-        resolve: {
-            orderData: EditOrderResolver
-        },
-        canActivate: [DefaultGuard],
-        canDeactivate: [UnsavedChangesGuard]
-    },
-    {
-        title: 'Personen',
-        path: 'persons',
-        component: PersonsPageComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Bestellungen',
-        path: 'orders',
-        component: OrdersPageComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Personen',
-        path: 'persons',
-        component: PersonsPageComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Lieferanten',
-        path: 'suppliers',
-        component: SuppliersPageComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Lieferant bearbeiten',
-        path: 'suppliers/:id/edit',
-        component: EditSuppliersPageComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Kostenstellen',
-        path: 'cost-centers',
-        component: CostCentersPageComponent,
-        canActivate: [DefaultGuard]
-    },
-    {
-        title: 'Unauthorisiert',
-        path: 'unauthorized',
-        component: UnauthorizedComponent
-    },
-    {
-        title: '404 Not Found',
-        path: 'not-found',
-        component: NotFoundComponent
-    },
-    {
-        title: '404 Not Found',
-        path: '**',
-        component: NotFoundComponent
-    }
+    canActivate: [DefaultGuard],
+  },
+  {
+    title: 'Bestellungen',
+    path: 'orders',
+    component: OrdersPageComponent,
+    canActivate: [DefaultGuard],
+  },
+  {
+    title: 'Lieferanten',
+    path: 'suppliers',
+    component: SuppliersPageComponent,
+    canActivate: [DefaultGuard],
+  },
+  {
+    title: 'Lieferant bearbeiten',
+    path: 'suppliers/:id/edit',
+    component: EditSuppliersPageComponent,
+    canActivate: [DefaultGuard],
+  },
+  {
+    title: 'Kostenstellen',
+    path: 'cost-centers',
+    component: CostCentersPageComponent,
+    canActivate: [DefaultGuard],
+  },
+  {
+    title: 'Unauthorisiert',
+    path: 'unauthorized',
+    component: UnauthorizedComponent,
+  },
+  {
+    title: '404 Not Found',
+    path: 'not-found',
+    component: NotFoundComponent,
+  },
+  {
+    title: '404 Not Found',
+    path: '**',
+    component: NotFoundComponent,
+  },
 ];

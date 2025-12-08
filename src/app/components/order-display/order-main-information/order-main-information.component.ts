@@ -1,7 +1,7 @@
 import { DataSource } from '@angular/cdk/table';
 import { Component, computed, input, OnChanges, OnInit, signal } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from "@angular/material/divider";
+import { MatDividerModule } from '@angular/material/divider';
 import { MatTableDataSource } from '@angular/material/table';
 import { environment } from '../../../../environments/environment';
 import { ItemResponseDTO } from '../../../api-services-v2';
@@ -16,12 +16,9 @@ import { OrdersWrapperService } from '../../../services/wrapper-services/orders-
 
 @Component({
   selector: 'app-order-main-information',
-  imports: [
-    MatDividerModule,
-    MatButtonModule,
-  ],
+  imports: [MatDividerModule, MatButtonModule],
   templateUrl: './order-main-information.component.html',
-  styleUrl: './order-main-information.component.scss'
+  styleUrl: './order-main-information.component.scss',
 })
 export class OrderMainInformationComponent implements OnInit, OnChanges {
   environment = environment;
@@ -72,13 +69,22 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
     { id: 'vat', label: ITEM_FIELD_NAMES['vat'] },
     { id: 'vat_type', label: ITEM_FIELD_NAMES['vat_type'] },
     { id: 'price_per_unit', label: ITEM_FIELD_NAMES['price_per_unit'] },
-    { id: 'quantity', label: ITEM_FIELD_NAMES['quantity'], footerContent: this.totalQuantityFormatted },
-    { id: 'price_total', label: ITEM_FIELD_NAMES['price_total'], footerContent: this.totalPriceFormatted },
+    {
+      id: 'quantity',
+      label: ITEM_FIELD_NAMES['quantity'],
+      footerContent: this.totalQuantityFormatted,
+    },
+    {
+      id: 'price_total',
+      label: ITEM_FIELD_NAMES['price_total'],
+      footerContent: this.totalPriceFormatted,
+    },
   ];
 
-  constructor(private readonly ordersService: OrdersWrapperService,
+  constructor(
+    private readonly ordersService: OrdersWrapperService,
     private readonly subresourceService: OrderSubresourceResolverService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     this.loadOrderItems();
@@ -125,15 +131,23 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
       preferred_list: (item.preferred_list ?? '') + (item.preferred_list_number ?? ''),
       vat: item.vat?.value?.toString() + '%',
       vat_type: item.vat_type ?? '',
-      price_per_unit: this.subresourceService.formatPrice(item.price_per_unit ?? 0, this.currencyCode),
+      price_per_unit: this.subresourceService.formatPrice(
+        item.price_per_unit ?? 0,
+        this.currencyCode
+      ),
       quantity: quantity.trim(),
-      price_total: this.subresourceService.formatPrice(this.subresourceService.calculateTotalGrossPrice([item]), this.currencyCode),
+      price_total: this.subresourceService.formatPrice(
+        this.subresourceService.calculateTotalGrossPrice([item]),
+        this.currencyCode
+      ),
       tooltips: {
-        vat: item.vat ? `MwSt.: ${item.vat.value}% (${item.vat.description})` : 'Keine MwSt. angegeben',
+        vat: item.vat
+          ? `MwSt.: ${item.vat.value}% (${item.vat.description})`
+          : 'Keine MwSt. angegeben',
         preferred_list: this.subresourceService.formatPreferredList(item.preferred_list),
-        price_total: `Gesamtbruttopreis für Menge: ${quantity.trim()}`
-      }
-    }
+        price_total: `Gesamtbruttopreis für Menge: ${quantity.trim()}`,
+      },
+    };
   }
 
   /**
@@ -154,5 +168,4 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
     const totalPrice = this.subresourceService.calculateTotalNetPrice(this.fetchedItems());
     return Math.abs((quotePrice ?? 0) - totalPrice) < 0.01;
   }
-
 }

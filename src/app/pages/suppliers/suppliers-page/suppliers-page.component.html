@@ -1,4 +1,4 @@
-<div class="h-screen p-8">
+<div class="h-screen">
   <mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start">
     <mat-tab label="Lieferanten verwalten">
       <mat-divider style="background-color: darkgrey"></mat-divider>
@@ -47,9 +47,7 @@
               </div>
 
               <div class="buttons flex justify-end gap-x-2">
-                <button mat-raised-button color="primary" (click)="onSubmit()">
-                  Speichern
-                </button>
+                <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
                 <button
                   mat-raised-button
                   color="warn"
