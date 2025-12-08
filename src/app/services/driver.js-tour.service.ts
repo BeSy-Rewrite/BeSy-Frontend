@@ -15,7 +15,7 @@ export class DriverJsTourService {
   constructor(
     private readonly router: Router,
     private readonly injector: Injector
-  ) {}
+  ) { }
 
   /**
    * Starts a tour with the given components' registered steps.
@@ -37,7 +37,6 @@ export class DriverJsTourService {
    * @param driverSteps Array of driver.js steps for the component
    */
   registerStepsForComponent(component: Type<any>, driverStepsSource: () => DriveStep[]) {
-    console.log(`Registering ${driverStepsSource().length} steps for component: ${component.name}`);
     this.componentSteps.set(component.name, driverStepsSource);
   }
 
@@ -97,7 +96,7 @@ export class DriverJsTourService {
 
   /**
    * Places the popover on top of a dialog to ensure visibility.
-   * Necessary when higlighting Angular Material dialogs.
+   * Necessary when highlighting Angular Material dialogs.
    * Call in onPopoverRender callback of a tour step.
    * @param popover The PopoverDOM instance to adjust
    */
