@@ -1,6 +1,5 @@
-import { FormConfig } from '../../components/form-component/form-component.component';
 import { Validators } from '@angular/forms';
-
+import { FormConfig } from '../../components/form-component/form-component.component';
 
 export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
   subtitle: 'Lieferadresse für die Bestellung',
@@ -12,7 +11,7 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
       required: true,
       nominatim_param: 'street',
       nominatim_field: 'road',
-      editable: false
+      editable: false,
     },
     {
       name: 'building_number',
@@ -22,14 +21,14 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
       nominatim_param: 'street',
       nominatim_field: 'house_number',
       editable: false,
-      validators: [Validators.pattern('^[0-9]+$')] // Only allow numbers
+      validators: [Validators.pattern('^[0-9]+$')], // Only allow numbers
     },
     {
       name: 'building_name',
       label: 'Gebäudename',
       type: 'text',
       required: false,
-      editable: false
+      editable: false,
     },
     {
       name: 'town',
@@ -38,7 +37,7 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
       required: true,
       nominatim_param: 'city',
       nominatim_field: 'town',
-      editable: false
+      editable: false,
     },
     {
       name: 'postal_code',
@@ -48,7 +47,7 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
       nominatim_param: 'postalcode',
       nominatim_field: 'postcode',
       editable: false,
-      validators: [Validators.pattern('^[0-9]+$')] // Only allow numbers
+      validators: [Validators.pattern('^[0-9]+$')], // Only allow numbers
     },
     {
       name: 'county',
@@ -57,7 +56,7 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
       required: false,
       nominatim_param: 'county',
       nominatim_field: 'county',
-      editable: false
+      editable: false,
     },
     {
       name: 'country',
@@ -66,7 +65,7 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
       required: true,
       nominatim_param: 'country',
       nominatim_field: 'country',
-      editable: false
+      editable: false,
     },
     {
       name: 'comment',
@@ -74,9 +73,9 @@ export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
       type: 'textarea',
       required: false,
       editable: false,
-      validators: [Validators.maxLength(255)]
-    }
-  ]
+      validators: [Validators.maxLength(255)],
+    },
+  ],
 };
 
 export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
@@ -89,7 +88,8 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       required: false,
       editable: true,
       validators: [Validators.maxLength(100)],
-      tooltip: 'Die Angebotsnummer ist eine vom Lieferanten vergebene Nummer, die das Angebot eindeutig identifiziert.'
+      tooltip:
+        'Die Angebotsnummer ist eine vom Lieferanten vergebene Nummer, die das Angebot eindeutig identifiziert.',
     },
     {
       name: 'supplier_id',
@@ -102,7 +102,7 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       options: [],
       editable: true,
       emitAsSignal: true,
-      tooltip: 'Der Lieferant ist das Unternehmen, bei dem die Bestellung aufgegeben wird.'
+      tooltip: 'Der Lieferant ist das Unternehmen, bei dem die Bestellung aufgegeben wird.',
     },
     {
       name: 'customer_id',
@@ -112,7 +112,8 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       // Will be loaded from API: customersId
       options: [{ label: 'Bitte wählen sie zuerst einen Lieferanten aus.', value: undefined }],
       editable: true,
-      tooltip: 'Die Kundennummer wird vom Lieferanten vergeben und dient der eindeutigen Identifikation bei diesem Lieferanten.'
+      tooltip:
+        'Die Kundennummer wird vom Lieferanten vergeben und dient der eindeutigen Identifikation bei diesem Lieferanten.',
     },
     {
       name: 'quote_price',
@@ -121,7 +122,8 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       required: false,
       editable: true,
       //validators: [Validators.pattern('^\\d+,\\d{2}$')]
-      tooltip: 'Der Preis des Hauptangebots ist der Gesamtpreis (netto) des Angebots, welches für die Bestellung zugrunde gelegt wird.'
+      tooltip:
+        'Der Preis des Hauptangebots ist der Gesamtpreis (netto) des Angebots, welches für die Bestellung zugrunde gelegt wird.',
     },
     {
       name: 'currency_short',
@@ -135,14 +137,14 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       editable: true,
       tooltip: 'Die Währung, in welcher der Preis des Hauptangebots angegeben ist.',
       defaultValue: [],
-      emitAsSignal: true
+      emitAsSignal: true,
     },
     {
       name: 'quote_date',
       label: 'Datum des Hauptangebots',
       type: 'date',
       required: false,
-      editable: true
+      editable: true,
     },
     {
       name: 'comment_for_supplier',
@@ -150,9 +152,9 @@ export const ORDER_MAIN_OFFER_FORM_CONFIG: FormConfig = {
       type: 'textarea',
       required: false,
       editable: true,
-      validators: [Validators.maxLength(255)]
-    }
-  ]
+      validators: [Validators.maxLength(255)],
+    },
+  ],
 };
 
 export const ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG: FormConfig = {
@@ -163,35 +165,35 @@ export const ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG: FormConfig = {
       label: 'Günstigstes Angebot',
       type: 'checkbox',
       required: false,
-      defaultValue: false
+      defaultValue: false,
     },
     {
       name: 'flag_decision_most_economical_offer',
       label: 'Wirtschaftlichstes Angebot',
       type: 'checkbox',
       required: false,
-      defaultValue: false
+      defaultValue: false,
     },
     {
       name: 'flag_decision_sole_supplier',
       label: 'Einziger Lieferant',
       type: 'checkbox',
       required: false,
-      defaultValue: false
+      defaultValue: false,
     },
     {
       name: 'flag_decision_contract_partner',
       label: 'Vertragspartner',
       type: 'checkbox',
       required: false,
-      defaultValue: false
+      defaultValue: false,
     },
     {
       name: 'flag_decision_preferred_supplier_list',
       label: 'Lieferant aus der Vorzugsliste',
       type: 'checkbox',
       required: false,
-      defaultValue: false
+      defaultValue: false,
     },
     {
       name: 'flag_decision_other_reasons',
@@ -199,9 +201,10 @@ export const ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG: FormConfig = {
       type: 'checkbox',
       required: false,
       defaultValue: false,
-      emitAsSignal: true
-    }
-  ]
+      emitAsSignal: true,
+      tooltip: 'Wenn kein anderer Grund zutrifft, kann hier ein sonstiger Grund angegeben werden.',
+    },
+  ],
 };
 
 export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
@@ -220,23 +223,23 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
       label: 'Unternehmensname',
       type: 'text',
       required: true,
-      editable: true
+      editable: true,
     },
     {
       name: 'company_city',
       label: 'Unternehmensstadt',
       type: 'text',
       required: true,
-      editable: true
+      editable: true,
     },
     {
       name: 'quote_date',
       label: 'Datum des Vergleichsangebots',
       type: 'date',
       required: true,
-      editable: true
-    }
-  ]
+      editable: true,
+    },
+  ],
 };
 
 export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
@@ -248,7 +251,8 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       type: 'checkbox',
       required: false,
       defaultValue: false,
-      tooltip: 'Für Hardware und Software, die in der Vorzugsliste des Rechenzentrums - RZ nicht enthalten ist, ist die Beschaffung mit dem RZ geklärt und liegt dieser Bestellung bei'
+      tooltip:
+        'Für Hardware und Software, die in der Vorzugsliste des Rechenzentrums - RZ nicht enthalten ist, ist die Beschaffung mit dem RZ geklärt und liegt dieser Bestellung bei',
     },
     {
       name: 'flag_furniture_permission',
@@ -256,7 +260,8 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       type: 'checkbox',
       required: false,
       defaultValue: false,
-      tooltip: 'Für Möbel, die in der Vorzugsliste des Facility Managements nicht enthalten sind, ist die Beschaffung mit dem Facility Management geklärt und liegt dieser Bestellung bei'
+      tooltip:
+        'Für Möbel, die in der Vorzugsliste des Facility Managements nicht enthalten sind, ist die Beschaffung mit dem Facility Management geklärt und liegt dieser Bestellung bei',
     },
     {
       name: 'flag_furniture_room',
@@ -264,7 +269,7 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       type: 'checkbox',
       required: false,
       defaultValue: false,
-      tooltip: 'Der erforderliche Raum für die Aufnahme der Möbel steht zur Verfügung'
+      tooltip: 'Der erforderliche Raum für die Aufnahme der Möbel steht zur Verfügung',
     },
     {
       name: 'flag_investment_room',
@@ -272,7 +277,7 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       type: 'checkbox',
       required: false,
       defaultValue: false,
-      tooltip: 'Der erforderliche Raum für die Aufnahme der Geräte steht zur Verfügung'
+      tooltip: 'Der erforderliche Raum für die Aufnahme der Geräte steht zur Verfügung',
     },
     {
       name: 'flag_investment_structural_measures',
@@ -280,7 +285,8 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       type: 'checkbox',
       required: false,
       defaultValue: false,
-      tooltip: 'Für Gegenstände, die in der Vorzugsliste des Facility Managements nicht enthalten sind, ist die Beschaffung mit dem FM geklärt und liegt dieser Bestellung bei.'
+      tooltip:
+        'Für Gegenstände, die in der Vorzugsliste des Facility Managements nicht enthalten sind, ist die Beschaffung mit dem FM geklärt und liegt dieser Bestellung bei.',
     },
     {
       name: 'flag_media_permission',
@@ -288,9 +294,10 @@ export const ORDER_APPROVAL_FORM_CONFIG: FormConfig = {
       type: 'checkbox',
       required: false,
       defaultValue: false,
-      tooltip: 'Für die Beschaffung ist die Zustimmung der Medientechnik erforderlich. Die Zustimmung der Medientechnik liegt dieser Bestellung bei.'
-    }
-  ]
+      tooltip:
+        'Für die Beschaffung ist die Zustimmung der Medientechnik erforderlich. Die Zustimmung der Medientechnik liegt dieser Bestellung bei.',
+    },
+  ],
 };
 
 export const ORDER_PRIMARY_COST_CENTER_FORM_CONFIG: FormConfig = {
@@ -304,9 +311,9 @@ export const ORDER_PRIMARY_COST_CENTER_FORM_CONFIG: FormConfig = {
       editable: false,
       filterable: true,
       tooltip: 'Pflichtfeld',
-      defaultValue: []
-    }
-  ]
+      defaultValue: [],
+    },
+  ],
 };
 
 export const ORDER_SECONDARY_COST_CENTER_FORM_CONFIG: FormConfig = {
@@ -320,9 +327,9 @@ export const ORDER_SECONDARY_COST_CENTER_FORM_CONFIG: FormConfig = {
       editable: true,
       filterable: true,
       tooltip: 'Pflichtfeld',
-      defaultValue: []
-    }
-  ]
+      defaultValue: [],
+    },
+  ],
 };
 
 export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
@@ -335,7 +342,8 @@ export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
       required: true,
       editable: false,
       validators: [Validators.maxLength(100)],
-      tooltip: 'Name der Bestellung, unter diesem Namen wird die Bestellung in der Übersicht angezeigt.',
+      tooltip:
+        'Name der Bestellung, unter diesem Namen wird die Bestellung in der Übersicht angezeigt.',
     },
     {
       name: 'booking_year',
@@ -345,9 +353,9 @@ export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
       editable: false,
       validators: [Validators.pattern('^[0-9]{4}$')],
       tooltip: 'Das Buchungsjahr gibt an, in welchem Jahr die Bestellung verbucht wird.',
-      defaultValue: new Date().getFullYear().toString()
-    }
-  ]
+      defaultValue: new Date().getFullYear().toString(),
+    },
+  ],
 };
 
 export const ORDER_QUERIES_PERSON_FORM_CONFIG: FormConfig = {
@@ -364,9 +372,9 @@ export const ORDER_QUERIES_PERSON_FORM_CONFIG: FormConfig = {
       editable: true,
       tooltip: 'Die Person, die bei Rückfragen zur Bestellung kontaktiert werden kann.',
       emitAsSignal: true,
-      defaultValue: []
-    }
-  ]
+      defaultValue: [],
+    },
+  ],
 };
 
 export const ORDER_DELIVERY_PERSON_FORM_CONFIG: FormConfig = {
@@ -384,9 +392,9 @@ export const ORDER_DELIVERY_PERSON_FORM_CONFIG: FormConfig = {
       editable: true,
       tooltip: 'Die Person, die für die Lieferung verantwortlich ist.',
       emitAsSignal: true,
-      defaultValue: []
-    }
-  ]
+      defaultValue: [],
+    },
+  ],
 };
 
 export const ORDER_INVOICE_PERSON_FORM_CONFIG: FormConfig = {
@@ -404,7 +412,7 @@ export const ORDER_INVOICE_PERSON_FORM_CONFIG: FormConfig = {
       editable: true,
       tooltip: 'Die Person, die für die Rechnungsstellung verantwortlich ist.',
       emitAsSignal: true,
-      defaultValue: []
-    }
-  ]
+      defaultValue: [],
+    },
+  ],
 };

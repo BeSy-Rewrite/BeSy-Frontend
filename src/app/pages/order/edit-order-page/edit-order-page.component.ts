@@ -14,7 +14,6 @@ import {
   FormGroup,
   FormsModule,
   ReactiveFormsModule,
-  Validators,
 } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButton } from '@angular/material/button';
@@ -1100,10 +1099,16 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
             placeholder: 'Geben Sie die Begründung ein',
           } as FormField);
 
-          this.supplierDecisionReasonFormGroup.addControl(
-            'decision_other_reasons_description',
-            new FormControl('', Validators.required)
-          );
+          // Trigger refresh of the form config to reflect the changes
+          this.mainOfferConfigRefreshTrigger.update(n => n + 1);
+
+          // Ensure the control exists before setting the value
+          if (!this.supplierDecisionReasonFormGroup.get('decision_other_reasons_description')) {
+            this.supplierDecisionReasonFormGroup.addControl(
+              'decision_other_reasons_description',
+              new FormControl(this.formattedOrderDTO.decision_other_reasons_description || '')
+            );
+          }
         }
       } else {
         // Remove the decision_other_reason_description field if it exists
@@ -1616,7 +1621,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     Object.assign(target, this.supplierDecisionReasonFormGroup.value);
     target.supplier_id = this.mainOfferFormGroup.get('supplier_id')?.value;
 
-    console.log('Patch DTO nach Main Offer Patch:', target);
+    // If the flag for other reasons is not set, clear the description field
+    if (!target.flag_decision_other_reasons) {
+      target.decision_other_reasons_description = '';
+    }
+
     return true;
   }
 

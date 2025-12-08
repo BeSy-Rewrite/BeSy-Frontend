@@ -65,6 +65,7 @@ export const routes: Routes = [
     title: 'Personen',
     path: 'persons',
     component: PersonsPageComponent,
+    canActivate: [DefaultGuard],
   },
   {
     title: 'Person bearbeiten',
@@ -79,12 +80,6 @@ export const routes: Routes = [
     title: 'Bestellungen',
     path: 'orders',
     component: OrdersPageComponent,
-    canActivate: [DefaultGuard],
-  },
-  {
-    title: 'Personen',
-    path: 'persons',
-    component: PersonsPageComponent,
     canActivate: [DefaultGuard],
   },
   {
