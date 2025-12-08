@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import {
@@ -47,9 +47,6 @@ import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapp
   styleUrl: './suppliers-page.component.scss',
 })
 export class SuppliersPageComponent implements OnInit {
-  // ! ID of the selected address in the table. Keep default undefinded!
-  selectedAddressId: number | undefined = undefined;
-
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
 
   // Button actions for the table
@@ -115,6 +112,8 @@ export class SuppliersPageComponent implements OnInit {
     new MatTableDataSource<NominatimMappedAddress>([])
   );
 
+  addressIsSelected: WritableSignal<boolean> = signal(false);
+
   constructor(
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
@@ -167,9 +166,13 @@ export class SuppliersPageComponent implements OnInit {
         supplierFormValue.name
       );
       if (supplierExists) {
-        this._notifications.open('Ein Lieferant mit diesem Namen existiert bereits', undefined, {
-          duration: 3000,
-        });
+        this._notifications.open(
+          'Ein Lieferant mit diesem Namen existiert bereits. Bitte bearbeiten sie den entsprechenden Lieferanten oder wählen sie einen anderen Namen aus.',
+          undefined,
+          {
+            duration: 5000,
+          }
+        );
         return;
       }
 
@@ -218,13 +221,10 @@ export class SuppliersPageComponent implements OnInit {
   onBack() {
     this.supplierFormGroup.reset();
     this.addressFormGroup.reset();
+    this.customerIdForm.reset();
+    this.nominatimAddressFormGroup.reset();
+    this.addressIsSelected.set(false);
     this.tabGroup.selectedIndex = 0; // Switch to tab index for "Lieferantenübersicht"
-  }
-
-  // * Catch emitted event from address-form-component
-  // * Update selectedAddressId with the selected address ID
-  onAddressSelected($event: number) {
-    this.selectedAddressId = $event;
   }
 
   // Set dropdown options for the form fields
@@ -247,7 +247,14 @@ export class SuppliersPageComponent implements OnInit {
     });
   }
 
-  onAddressInTableSelected(event: NominatimMappedAddress) {
+  onAddressInTableSelected(event: NominatimMappedAddress | null) {
+    if (!event) {
+      this.addressIsSelected.set(false);
+      this.addressFormGroup.reset();
+      return;
+    }
+    // Populate the address form with the selected address data
+    this.addressIsSelected.set(true);
     this.addressFormGroup.patchValue(event);
   }
 
