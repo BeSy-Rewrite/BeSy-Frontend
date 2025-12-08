@@ -91,7 +91,7 @@ export class DriverJsTourService {
 
   /**
    * Places the popover on top of a dialog to ensure visibility.
-   * Necessary when higlighting Angular Material dialogs.
+   * Necessary when highlighting Angular Material dialogs.
    * Call in onPopoverRender callback of a tour step.
    * @param popover The PopoverDOM instance to adjust
    */

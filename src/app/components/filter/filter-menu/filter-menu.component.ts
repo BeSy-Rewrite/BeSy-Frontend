@@ -583,8 +583,8 @@ export class FilterMenuComponent implements OnInit {
   }
 
   /**
-   * Registers the tour steps for the OrdersPageComponent.
-   * These steps will guide users through the main features of the orders page.
+   * Registers the tour steps for the FilterMenuComponent.
+   * These steps will guide users through the main features of the filter menu.
    */
   private registerTourSteps() {
     let dialogRef: MatDialogRef<any> | undefined;
