@@ -49,7 +49,8 @@ export interface NominatimMappedAddress extends AddressRequestDTO {
 })
 export class NominatimService {
   private readonly apiUrl = environment.nominatimUrl;
-  private readonly cache = new Map<string, NominatimResult[]>();
+  private readonly cache = new Map<string, { results: NominatimResult[]; timestamp: number }>();
+  private readonly cacheTTL = 10 * 60 * 1000; // 10 minutes in milliseconds
 
   private lastRequestTime = 0; // Timestamp der letzten Anfrage in ms
 
@@ -80,10 +81,10 @@ export class NominatimService {
     }
 
     return new Observable<NominatimMappedAddress[]>(observer => {
-      // Prüfe Cache
-      if (this.cache.has(query)) {
-        const cachedResults = this.cache.get(query)!;
-        const mappedResults = cachedResults.map((result, index) =>
+      // Prüfe Cache und Gültigkeitsdauer
+      const cacheEntry = this.cache.get(query);
+      if (cacheEntry && Date.now() - cacheEntry.timestamp < this.cacheTTL) {
+        const mappedResults = cacheEntry.results.map((result, index) =>
           this.mapToAddressRequest(result as NominatimResponseDTO, index)
         );
         observer.next(mappedResults);
@@ -94,8 +95,8 @@ export class NominatimService {
       // Führe die Suche durch
       this.search(query, params).subscribe({
         next: results => {
-          // Cache die Ergebnisse
-          this.cache.set(query, results);
+          // Cache die Ergebnisse mit Timestamp
+          this.cache.set(query, { results, timestamp: Date.now() });
           const mappedResults = results.map((result, index) =>
             this.mapToAddressRequest(result, index)
           );

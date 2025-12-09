@@ -1,4 +1,11 @@
-import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  signal,
+  WritableSignal,
+} from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDialog } from '@angular/material/dialog';
@@ -9,6 +16,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
+  CustomerIdRequestDTO,
   CustomerIdResponseDTO,
   SupplierRequestDTO,
   SupplierResponseDTO,
@@ -19,6 +27,7 @@ import { FormComponent } from '../../../components/form-component/form-component
 import { EDIT_SUPPLIER_ADDRESS_FORM_CONFIG } from '../../../configs/edit/edit-address-config';
 import { EDIT_CUSTOMER_ID_FORM_CONFIG } from '../../../configs/edit/edit-customer-id-config';
 import { SUPPLIER_FORM_CONFIG } from '../../../configs/supplier/supplier-config';
+import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { EditSupplierResolvedData } from '../../../resolver/edit-supplier.resolver';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 @Component({
@@ -46,11 +55,24 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
   customerIdForm = new FormGroup({});
   customerIdFormConfig = EDIT_CUSTOMER_ID_FORM_CONFIG;
 
-  // Customer ID table data to display already existent customer IDs
-  customerIdTableDataSource = new MatTableDataSource<CustomerIdResponseDTO>([]);
-  customerIdTableColumns = [
-    { id: 'customer_id', label: 'Bereits hinzugefügte Kundennummern' },
+  addressIsSelected: WritableSignal<boolean> = signal(false);
+  customerIDs = signal<CustomerIdResponseDTO[]>([]);
+  customerIDsToDelete = signal<CustomerIdResponseDTO[]>([]);
+  customerIDsTableDataSource = new MatTableDataSource<CustomerIdResponseDTO>([]);
+  customerIDsTableColumns = [
+    { id: 'customer_id', label: 'Kundennummer' },
     { id: 'comment', label: 'Kommentar' },
+  ];
+  customerIDsTableActions: TableActionButton[] = [
+    {
+      id: 'delete',
+      label: 'Löschen',
+      buttonType: 'filled',
+      color: ButtonColor.WARN,
+      action: (row: CustomerIdRequestDTO) => {
+        this.onDeleteCustomerID(row);
+      },
+    },
   ];
   supplier: SupplierResponseDTO | undefined = undefined;
   supplierId: number | undefined = undefined;
@@ -60,10 +82,13 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     const supplierData = this.route.snapshot.data['supplierData'] as EditSupplierResolvedData;
     this.supplierId = supplierData.supplier.id;
 
-    // Customer ID table data can be set immediately
-    this.customerIdTableDataSource = new MatTableDataSource<CustomerIdResponseDTO>(
-      supplierData.customerIds || []
+    this.customerIDs.set(
+      (supplierData.customerIds ?? []).map(custId => ({
+        customer_id: custId.customer_id,
+        comment: custId.comment ?? '',
+      }))
     );
+    this.customerIDsTableDataSource.data = this.customerIDs();
 
     this.supplier = supplierData.supplier;
     this.supplierAddress = supplierData.supplierAddress;
@@ -194,5 +219,22 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
         duration: 3000,
       });
     }
+  }
+
+  onDeleteCustomerID(row: CustomerIdResponseDTO) {
+    // !ToDo: Deleting is likely not possible because there is no endpoint for it yet
+    // If the field supplier_id is set, it means the customer ID exists in the backend and needs to be deleted there as well
+    if (row.supplier_id) {
+      this.customerIDsToDelete.update(current => [
+        ...current,
+        { customer_id: row.customer_id, comment: row.comment ?? '' },
+      ]);
+    }
+
+    // Remove from the displayed table
+    this.customerIDs.update(current =>
+      current.filter(item => item.customer_id !== row.customer_id || item.comment !== row.comment)
+    );
+    this.customerIDsTableDataSource.data = this.customerIDs();
   }
 }

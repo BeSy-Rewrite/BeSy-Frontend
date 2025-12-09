@@ -16,8 +16,8 @@
             class=""
             [config]="customerIdFormConfig"
             [formGroup]="customerIdForm"
-            [tableDataSource]="customerIdTableDataSource"
-            [tableColumns]="customerIdTableColumns"
+            [tableDataSource]="customerIDsTableDataSource"
+            [tableColumns]="customerIDsTableColumns"
           ></app-form-component>
         </div>
       </div>
@@ -36,17 +36,9 @@
           ></app-address-form>
         </div>
 
-
         <div class="buttons flex justify-end gap-x-2">
-          <button mat-raised-button color="primary" (click)="onSubmit()">
-            Speichern
-          </button>
-          <button
-            mat-raised-button
-            color="warn"
-            (click)="onBack()"
-            aria-label="cancel"
-          >
+          <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
+          <button mat-raised-button color="warn" (click)="onBack()" aria-label="cancel">
             Verwerfen
           </button>
         </div>
