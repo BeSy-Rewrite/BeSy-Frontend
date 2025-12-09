@@ -50,13 +50,13 @@ export interface NominatimMappedAddress extends AddressRequestDTO {
 export class NominatimService {
   private readonly apiUrl = environment.nominatimUrl;
   private readonly cache = new Map<string, { results: NominatimResult[]; timestamp: number }>();
-  private readonly cacheTTL = 10 * 60 * 1000; // 10 minutes in milliseconds
+  private readonly cacheTTL = 10 * 60 * 1000; // Cache invalidation time: 10 minutes
 
-  private lastRequestTime = 0; // Timestamp der letzten Anfrage in ms
+  private lastRequestTime = 0; // Timestamp of the last request
 
   constructor(private readonly http: HttpClient) {}
 
-  // Delay zwischen den Anfragen
+  // Delay between requests to Nominatim (in ms)
   private canSendRequest(): boolean {
     const now = Date.now();
     if (now - this.lastRequestTime >= 1000) {
@@ -67,21 +67,21 @@ export class NominatimService {
   }
 
   /**
-   * Throttled search: nur 1 Request pro Sekunde, alles andere wird verworfen.
+   * Throttled search: only 1 request per second, all others are discarded.
    */
   throttledSearch(
     query: string,
     params: Record<string, string> = {}
   ): Observable<NominatimMappedAddress[]> {
     if (!this.canSendRequest()) {
-      // verworfen → gib ein leeres Observable zurück
+      // discarded → return an empty Observable
       return new Observable<NominatimMappedAddress[]>(observer => {
         observer.complete();
       });
     }
 
     return new Observable<NominatimMappedAddress[]>(observer => {
-      // Prüfe Cache und Gültigkeitsdauer
+      // Check cache and validity
       const cacheEntry = this.cache.get(query);
       if (cacheEntry && Date.now() - cacheEntry.timestamp < this.cacheTTL) {
         const mappedResults = cacheEntry.results.map((result, index) =>
@@ -92,10 +92,10 @@ export class NominatimService {
         return;
       }
 
-      // Führe die Suche durch
+      // No valid cache → perform search
       this.search(query, params).subscribe({
         next: results => {
-          // Cache die Ergebnisse mit Timestamp
+          // Cache the results with timestamp
           this.cache.set(query, { results, timestamp: Date.now() });
           const mappedResults = results.map((result, index) =>
             this.mapToAddressRequest(result, index)
@@ -131,7 +131,12 @@ export class NominatimService {
     return this.http.get<NominatimResponseDTO[]>(url, { headers, params: httpParams });
   }
 
-  // Convert a Nominatim response item into our AddressRequestDTO plus name
+  /**
+   * Maps a Nominatim response to our AddressRequestDTO format.
+   * @param result The Nominatim response object.
+   * @param id An identifier for the mapped address.
+   * @returns A NominatimMappedAddress object.
+   */
   mapToAddressRequest(result: NominatimResponseDTO, id: number): NominatimMappedAddress {
     const addr = result.address || {};
 

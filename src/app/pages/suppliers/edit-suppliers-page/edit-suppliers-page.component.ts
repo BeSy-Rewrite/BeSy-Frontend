@@ -82,15 +82,17 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     { id: 'customer_id', label: 'Kundennummer' },
     { id: 'comment', label: 'Kommentar' },
   ];
-  customerIDsTableActions: TableActionButton[] = [
+  customerIDsTableActions: TableActionButton<CustomerIdResponseDTO>[] = [
     {
       id: 'delete',
       label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
-      action: (row: CustomerIdRequestDTO) => {
+      action: (row: CustomerIdResponseDTO) => {
+        console.log('Delete action for row:', row);
         this.onDeleteCustomerID(row);
       },
+      showCondition: (row: CustomerIdResponseDTO) => !row.supplier_id,
     },
   ];
   supplier: SupplierResponseDTO | undefined = undefined;
@@ -123,6 +125,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
 
     this.customerIDs.set(
       (supplierData.customerIds ?? []).map(custId => ({
+        supplier_id: this.supplierId,
         customer_id: custId.customer_id,
         comment: custId.comment ?? '',
       }))
@@ -207,15 +210,29 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
 
     try {
       // Update supplier data
-      this.suppliersWrapperService.updateSupplier(this.supplierId!, supplierFormValue);
+      await this.suppliersWrapperService.updateSupplier(this.supplierId!, supplierFormValue);
 
       // If a entry in customerIDs has no supplier_id, it is a new entry and needs to be created
       for (const custId of this.customerIDs()) {
+        // Only create if supplier_id is not set
         if (!custId.supplier_id) {
-          await this.suppliersWrapperService.createSupplierCustomerId(this.supplierId!, {
-            customer_id: custId.customer_id,
-            comment: custId.comment ?? '',
-          } as CustomerIdRequestDTO);
+          const response = await this.suppliersWrapperService.createSupplierCustomerId(
+            this.supplierId!,
+            {
+              customer_id: custId.customer_id,
+              comment: custId.comment ?? '',
+            } as CustomerIdRequestDTO
+          );
+
+          // Update the local signal with the new supplier_id from the backend
+          this.customerIDs.update(current =>
+            current.map(item =>
+              item.customer_id === response.customer_id
+                ? { ...item, supplier_id: this.supplierId }
+                : item
+            )
+          );
+          this.customerIDsTableDataSource.data = this.customerIDs();
         }
       }
 
@@ -266,7 +283,15 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     }
 
     // Add new customer ID to the signal and update the table data source
-    this.customerIDs.update(current => [...current, customerIdFormValue]);
+    // Important: Don't add supplier_id for locally-added entries so they can be deleted
+    const newCustomerId: CustomerIdResponseDTO = {
+      customer_id: customerIdFormValue.customer_id,
+      comment: customerIdFormValue.comment,
+      // supplier_id is intentionally omitted for local entries
+    };
+
+    console.log('Adding new customer ID (local, no supplier_id):', newCustomerId);
+    this.customerIDs.update(current => [...current, newCustomerId]);
     this.customerIDsTableDataSource.data = this.customerIDs();
     this.customerIdForm.reset();
   }
