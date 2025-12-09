@@ -152,8 +152,12 @@ export class SuppliersWrapperService {
    */
   async checkIfSupplierExists(name: string): Promise<boolean> {
     if (!this.isCacheValid()) {
-      await this.getAllSuppliers();
+      const suppliers = await this.getAllSuppliers();
+      return suppliers.some(supplier => supplier.name?.toLowerCase() === name.toLowerCase());
     }
-    return this.supplierCache?.some(supplier => supplier.name === name) || false;
+    return (
+      this.supplierCache?.some(supplier => supplier.name?.toLowerCase() === name.toLowerCase()) ||
+      false
+    );
   }
 }

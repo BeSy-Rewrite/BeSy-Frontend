@@ -87,10 +87,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
       label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
-      action: (row: CustomerIdResponseDTO) => {
-        console.log('Delete action for row:', row);
-        this.onDeleteCustomerID(row);
-      },
+      action: (row: CustomerIdResponseDTO) => this.onDeleteCustomerID(row),
       showCondition: (row: CustomerIdResponseDTO) => !row.supplier_id,
     },
   ];
@@ -210,6 +207,23 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     try {
       // Update supplier data
       await this.suppliersWrapperService.updateSupplier(this.supplierId!, supplierFormValue);
+      // Check if address form contains meaningful data (not just defaults/nulls)
+      const hasAddressData =
+        addressFormValue &&
+        (addressFormValue.street ||
+          addressFormValue.town ||
+          addressFormValue.postal_code ||
+          addressFormValue.building_name ||
+          addressFormValue.building_number ||
+          addressFormValue.county ||
+          addressFormValue.comment ||
+          (addressFormValue.country && addressFormValue.country !== 'Deutschland'));
+
+      if (hasAddressData) {
+        this.addressMode.set('existing');
+        this.addressFormGroup.patchValue(addressFormValue);
+        this.addressFormGroup.disable();
+      }
 
       // If a entry in customerIDs has no supplier_id, it is a new entry and needs to be created
       for (const custId of this.customerIDs()) {
@@ -247,7 +261,9 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
   onDeleteCustomerID(row: CustomerIdResponseDTO) {
     // Remove from the displayed table
     this.customerIDs.update(current =>
-      current.filter(item => item.customer_id !== row.customer_id || item.comment !== row.comment)
+      current.filter(
+        item => !(item.customer_id === row.customer_id && item.comment === row.comment)
+      )
     );
     this.customerIDsTableDataSource.data = this.customerIDs();
   }
@@ -280,7 +296,6 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
       // supplier_id is intentionally omitted for local entries
     };
 
-    console.log('Adding new customer ID (local, no supplier_id):', newCustomerId);
     this.customerIDs.update(current => [...current, newCustomerId]);
     this.customerIDsTableDataSource.data = this.customerIDs();
     this.customerIdForm.reset();

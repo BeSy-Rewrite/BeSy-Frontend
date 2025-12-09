@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, Observer } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { AddressRequestDTO } from '../api-services-v2';
 
@@ -17,7 +17,7 @@ export interface NominatimAddress {
   postcode?: string;
   county?: string;
   country?: string;
-  [key: string]: string | undefined; // fallback für dynamische Keys
+  [key: string]: string | undefined; // fallback for dynamic keys
 }
 
 export interface NominatimResponseDTO {
@@ -53,35 +53,25 @@ export class NominatimService {
   private readonly cacheTTL = 10 * 60 * 1000; // Cache invalidation time: 10 minutes
 
   private lastRequestTime = 0; // Timestamp of the last request
+  private readonly requestQueue: Array<{
+    query: string;
+    params: Record<string, string>;
+    observers: Observer<NominatimMappedAddress[]>[];
+  }> = [];
+  private isProcessingQueue = false;
 
   constructor(private readonly http: HttpClient) {}
 
-  // Delay between requests to Nominatim (in ms)
-  private canSendRequest(): boolean {
-    const now = Date.now();
-    if (now - this.lastRequestTime >= 1000) {
-      this.lastRequestTime = now;
-      return true;
-    }
-    return false;
-  }
-
   /**
-   * Throttled search: only 1 request per second, all others are discarded.
+   * Queued search: requests are queued and processed with 1-second intervals.
+   * Results are cached to avoid duplicate requests.
    */
   throttledSearch(
     query: string,
     params: Record<string, string> = {}
   ): Observable<NominatimMappedAddress[]> {
-    if (!this.canSendRequest()) {
-      // discarded → return an empty Observable
-      return new Observable<NominatimMappedAddress[]>(observer => {
-        observer.complete();
-      });
-    }
-
     return new Observable<NominatimMappedAddress[]>(observer => {
-      // Check cache and validity
+      // Check cache first
       const cacheEntry = this.cache.get(query);
       if (cacheEntry && Date.now() - cacheEntry.timestamp < this.cacheTTL) {
         const mappedResults = cacheEntry.results.map((result, index) =>
@@ -92,21 +82,104 @@ export class NominatimService {
         return;
       }
 
-      // No valid cache → perform search
-      this.search(query, params).subscribe({
-        next: results => {
-          // Cache the results with timestamp
-          this.cache.set(query, { results, timestamp: Date.now() });
-          const mappedResults = results.map((result, index) =>
-            this.mapToAddressRequest(result, index)
-          );
+      // Check if request is already in queue
+      const existingQueueItem = this.requestQueue.find(item => item.query === query);
+      if (existingQueueItem) {
+        // Add observer to existing queue item's observers array
+        existingQueueItem.observers.push(observer);
+        return;
+      }
+
+      // Add to queue with observers array
+      this.requestQueue.push({
+        query,
+        params,
+        observers: [observer],
+      });
+
+      // Start processing queue if not already processing
+      if (!this.isProcessingQueue) {
+        this.processQueue();
+      }
+    });
+  }
+
+  private processQueue(): void {
+    if (this.requestQueue.length === 0) {
+      this.isProcessingQueue = false;
+      return;
+    }
+
+    this.isProcessingQueue = true;
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+
+    // If enough time has passed, process next request immediately
+    if (timeSinceLastRequest >= 1000) {
+      this.processNextRequest();
+    } else {
+      // Wait for remaining time, then process
+      const waitTime = 1000 - timeSinceLastRequest;
+      setTimeout(() => {
+        this.processNextRequest();
+      }, waitTime);
+    }
+  }
+
+  private processNextRequest(): void {
+    if (this.requestQueue.length === 0) {
+      this.isProcessingQueue = false;
+      return;
+    }
+
+    const request = this.requestQueue.shift()!;
+    this.lastRequestTime = Date.now();
+
+    // Check cache again (might have been cached while in queue)
+    const cacheEntry = this.cache.get(request.query);
+    if (cacheEntry && Date.now() - cacheEntry.timestamp < this.cacheTTL) {
+      const mappedResults = cacheEntry.results.map((result, index) =>
+        this.mapToAddressRequest(result as NominatimResponseDTO, index)
+      );
+
+      // Notify all observers
+      for (const observer of request.observers) {
+        observer.next(mappedResults);
+        observer.complete();
+      }
+
+      // Continue processing queue
+      setTimeout(() => this.processQueue(), 1000);
+      return;
+    }
+
+    // Perform actual search
+    this.search(request.query, request.params).subscribe({
+      next: results => {
+        // Cache the results
+        this.cache.set(request.query, { results, timestamp: Date.now() });
+        const mappedResults = results.map((result, index) =>
+          this.mapToAddressRequest(result, index)
+        );
+
+        // Notify all observers
+        for (const observer of request.observers) {
           observer.next(mappedResults);
           observer.complete();
-        },
-        error: err => {
+        }
+
+        // Continue processing queue after delay
+        setTimeout(() => this.processQueue(), 1000);
+      },
+      error: err => {
+        // Notify all observers of error
+        for (const observer of request.observers) {
           observer.error(err);
-        },
-      });
+        }
+
+        // Continue processing queue even on error
+        setTimeout(() => this.processQueue(), 1000);
+      },
     });
   }
 
@@ -125,6 +198,7 @@ export class NominatimService {
       format: 'json',
       addressdetails: '1',
       limit: '5',
+      countrycodes: 'de, at,ch,lu,li, be, nl, uk, fr, us',
       ...params,
     };
 

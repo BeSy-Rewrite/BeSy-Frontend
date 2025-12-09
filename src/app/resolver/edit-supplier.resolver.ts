@@ -41,7 +41,10 @@ export class EditSupplierResolver implements Resolve<EditSupplierResolvedData | 
         if (error?.status === 404) {
           this.router.navigate(['/not-found'], { skipLocationChange: true });
         } else {
-          console.error('Error loading supplier for edit:', error);
+          console.error(
+            `Error loading supplier for edit (status: ${error?.status ?? 'unknown'}, type: ${error?.name ?? 'unknown'}):`,
+            error
+          );
           this.router.navigate(['/not-found'], { skipLocationChange: true });
         }
         return of(null);
