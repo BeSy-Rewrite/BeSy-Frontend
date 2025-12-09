@@ -119,6 +119,17 @@ export class SuppliersPageComponent implements OnInit {
     { id: 'customer_id', label: 'Kundennummer' },
     { id: 'comment', label: 'Kommentar' },
   ];
+  customerIDsTableActions: TableActionButton[] = [
+    {
+      id: 'delete',
+      label: 'Löschen',
+      buttonType: 'filled',
+      color: ButtonColor.WARN,
+      action: (row: CustomerIdRequestDTO) => {
+        this.onDeleteCustomerID(row);
+      },
+    },
+  ];
 
   constructor(
     private readonly router: Router,
@@ -228,10 +239,32 @@ export class SuppliersPageComponent implements OnInit {
       this._notifications.open('Bitte alle Pflichtfelder ausfüllen', undefined, { duration: 3000 });
       return;
     }
+
     const customerIdFormValue = this.customerIdForm.value as CustomerIdRequestDTO;
+
+    // Check if customer ID already exists in the table
+    if (
+      this.customerIDs()
+        .map(item => item.customer_id)
+        .includes(customerIdFormValue.customer_id)
+    ) {
+      this._notifications.open('Diese Kundennummer wurde bereits hinzugefügt', undefined, {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Add new customer ID to the signal and update the table data source
     this.customerIDs.update(current => [...current, customerIdFormValue]);
     this.customerIDsTableDataSource.data = this.customerIDs();
     this.customerIdForm.reset();
+  }
+
+  onDeleteCustomerID(row: CustomerIdRequestDTO) {
+    this.customerIDs.update(current =>
+      current.filter(item => item.customer_id !== row.customer_id || item.comment !== row.comment)
+    );
+    this.customerIDsTableDataSource.data = this.customerIDs();
   }
 
   onSearch(query: string) {
