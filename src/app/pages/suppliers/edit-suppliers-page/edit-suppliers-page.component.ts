@@ -1,45 +1,44 @@
-import { Component, OnInit } from '@angular/core';
+import { AfterViewInit, ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatDivider } from '@angular/material/divider';
-import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import { FormComponent } from '../../../components/form-component/form-component.component';
-import { AddressFormComponent } from '../../../components/address-form/address-form.component';
-import { EDIT_SUPPLIER_ADDRESS_FORM_CONFIG } from '../../../configs/edit/edit-address-config';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
   AddressRequestDTO,
+  AddressResponseDTO,
   CustomerIdResponseDTO,
   SupplierRequestDTO,
-  VatResponseDTO,
-} from '../../../api-services-v2'
-import { EDIT_CUSTOMER_ID_FORM_CONFIG } from '../../../configs/edit/edit-customer-id-config';
-import { MatSnackBar } from '@angular/material/snack-bar';
+  SupplierResponseDTO,
+} from '../../../api-services-v2';
+import { AddressFormComponent } from '../../../components/address-form/address-form.component';
 import { ConfirmDialogComponent } from '../../../components/confirm-dialog/confirm-dialog.component';
-import { MatDialog } from '@angular/material/dialog';
-import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
-import { EDIT_SUPPLIER_FORM_CONFIG } from '../../../configs/edit/edit-supplier-config';
+import { FormComponent } from '../../../components/form-component/form-component.component';
+import { EDIT_SUPPLIER_ADDRESS_FORM_CONFIG } from '../../../configs/edit/edit-address-config';
+import { EDIT_CUSTOMER_ID_FORM_CONFIG } from '../../../configs/edit/edit-customer-id-config';
+import { SUPPLIER_FORM_CONFIG } from '../../../configs/supplier/supplier-config';
+import { EditSupplierResolvedData } from '../../../resolver/edit-supplier.resolver';
+import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 @Component({
   selector: 'app-edit-suppliers-page',
   imports: [MatDivider, FormComponent, AddressFormComponent, MatButtonModule],
   templateUrl: './edit-suppliers-page.component.html',
   styleUrl: './edit-suppliers-page.component.scss',
 })
-export class EditSuppliersPageComponent implements OnInit {
+export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
     private readonly suppliersWrapperService: SuppliersWrapperService,
     private readonly dialog: MatDialog,
-    private readonly vatWrapperService: VatWrapperService
+    private readonly cdr: ChangeDetectorRef
   ) {}
 
-  supplierId!: number | unknown; // ID of the supplier being edited
-
   supplierForm = new FormGroup({});
-  supplierFormConfig = EDIT_SUPPLIER_FORM_CONFIG;
+  supplierFormConfig = SUPPLIER_FORM_CONFIG;
 
   addressForm = new FormGroup({});
   addressFormConfig = EDIT_SUPPLIER_ADDRESS_FORM_CONFIG;
@@ -53,65 +52,44 @@ export class EditSuppliersPageComponent implements OnInit {
     { id: 'customer_id', label: 'Bereits hinzugefügte Kundennummern' },
     { id: 'comment', label: 'Kommentar' },
   ];
+  supplier: SupplierResponseDTO | undefined = undefined;
+  supplierId: number | undefined = undefined;
+  supplierAddress: AddressResponseDTO | undefined = undefined;
 
-  async ngOnInit(): Promise<void> {
-    this.route.paramMap.subscribe(async (params) => {
-      const id = Number(params.get('id'));
-      if (isNaN(id)) {
-        this.router.navigate(['/not-found'], { skipLocationChange: true });
-        return;
-      }
+  ngOnInit(): void {
+    const supplierData = this.route.snapshot.data['supplierData'] as EditSupplierResolvedData;
+    this.supplierId = supplierData.supplier.id;
 
-      this.supplierId = id;
+    // Customer ID table data can be set immediately
+    this.customerIdTableDataSource = new MatTableDataSource<CustomerIdResponseDTO>(
+      supplierData.customerIds || []
+    );
 
-      try {
-        const [supplier, vatOptions, address, customerIds] = await Promise.all([
-          this.suppliersWrapperService.getSupplierById(id),
-          this.vatWrapperService.getAllVats(),
-          this.suppliersWrapperService.getSupplierAddress(id),
-          this.suppliersWrapperService.getCustomersIdsBySupplierId(id)
-        ]);
-
-        // Dropdowns setzen
-        this.setDropdownOptions(vatOptions);
-
-        // Form patchen (jetzt sind Optionen da!)
-        this.supplierForm.patchValue({
-          ...supplier,
-          vat_id: supplier.vat_id ? Number(supplier.vat_id) : null // Convert vat_id from string to number to match with the vat_id in the dropdown
-        })
-        this.addressForm.patchValue(address);
-
-        this.customerIdTableDataSource =
-          new MatTableDataSource<CustomerIdResponseDTO>(customerIds);
-
-        // Titel ersetzen
-        this.supplierFormConfig = {
-          ...EDIT_SUPPLIER_FORM_CONFIG,
-          title: EDIT_SUPPLIER_FORM_CONFIG.title!.replace(
-            '{Lieferantenname}',
-            this.supplierForm.get('name')?.value || '---'
-          ),
-        };
-      } catch (error) {
-        console.error(error);
-        this._notifications.open('Fehler beim Laden der Daten', undefined, {
-          duration: 3000,
-        });
-        this.router.navigate(['/not-found'], { skipLocationChange: true });
-      }
-    });
+    this.supplier = supplierData.supplier;
+    this.supplierAddress = supplierData.supplierAddress;
   }
 
-  // Set dropdown options for the form fields
-  setDropdownOptions(vatOptions: VatResponseDTO[]) {
-    // set options for dropdown fields
-    this.supplierFormConfig.fields.find(
-      (field) => field.name === 'vat_id'
-    )!.options = vatOptions.map((vat) => ({
-      value: vat.value,
-      label: `${vat.description} (${vat.value}%)`,
-    }));
+  ngAfterViewInit(): void {
+    // Ensure change detection runs after view init to avoid ExpressionChangedAfterItHasBeenCheckedError
+    this.cdr.detectChanges();
+
+    // Form patchen (jetzt sind Optionen da!)
+    this.supplierForm.patchValue({
+      ...this.supplier,
+    });
+
+    if (this.supplierAddress) {
+      this.addressForm.patchValue(this.supplierAddress);
+    }
+
+    // Titel ersetzen
+    this.supplierFormConfig = {
+      ...SUPPLIER_FORM_CONFIG,
+      title: SUPPLIER_FORM_CONFIG.title!.replace(
+        '{Lieferantenname}',
+        this.supplierForm.get('name')?.value ?? '---'
+      ),
+    };
   }
 
   /**
@@ -119,6 +97,24 @@ export class EditSuppliersPageComponent implements OnInit {
    */
   onBack() {
     this.router.navigate(['/suppliers']);
+
+    this.supplierForm.patchValue({
+      ...this.supplier,
+      vat_id: this.supplier?.vat_id ? Number(this.supplier.vat_id) : null, // Convert vat_id from string to number to match with the vat_id in the dropdown
+    });
+
+    if (this.supplierAddress) {
+      this.addressForm.patchValue(this.supplierAddress);
+    }
+
+    // Titel ersetzen
+    this.supplierFormConfig = {
+      ...SUPPLIER_FORM_CONFIG,
+      title: SUPPLIER_FORM_CONFIG.title!.replace(
+        '{Lieferantenname}',
+        this.supplierForm.get('name')?.value ?? '---'
+      ),
+    };
   }
 
   /**
@@ -135,7 +131,7 @@ export class EditSuppliersPageComponent implements OnInit {
       },
     });
 
-    dialogRef.afterClosed().subscribe(async (confirmed) => {
+    dialogRef.afterClosed().subscribe(async confirmed => {
       if (confirmed) {
         this.saveSupplierChanges();
       }
@@ -165,21 +161,17 @@ export class EditSuppliersPageComponent implements OnInit {
 
     try {
       // Update supplier data
-      await this.suppliersWrapperService.updateSupplier(
-        this.supplierId as number,
-        supplierRequest
-      );
+      await this.suppliersWrapperService.updateSupplier(this.supplierId as number, supplierRequest);
 
       this._notifications.open('Änderungen gespeichert', undefined, {
         duration: 3000,
       });
     } catch (error) {
+      console.error('Error saving supplier changes:', error);
       // Handle error in API call
-      this._notifications.open(
-        'Fehler beim Speichern der Änderungen',
-        undefined,
-        { duration: 3000 }
-      );
+      this._notifications.open('Fehler beim Speichern der Änderungen', undefined, {
+        duration: 3000,
+      });
     }
 
     // If customer_id field is empty, do not attempt to create a new customer ID
@@ -197,11 +189,10 @@ export class EditSuppliersPageComponent implements OnInit {
       });
     } catch (error) {
       // Handle error in API call
-      this._notifications.open(
-        'Fehler beim Erstellen der Kundennummer',
-        undefined,
-        { duration: 3000 }
-      );
+      console.error('Error creating customer ID:', error);
+      this._notifications.open('Fehler beim Erstellen der Kundennummer', undefined, {
+        duration: 3000,
+      });
     }
   }
 }

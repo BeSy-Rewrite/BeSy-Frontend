@@ -14,8 +14,9 @@ import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.
 import { EditSuppliersPageComponent } from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
 import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
-import { EditOrderResolver } from './resolver/edit-order-resolver';
+import { EditOrderResolver } from './resolver/edit-order.resolver';
 import { EditPersonResolver } from './resolver/edit-person.resolver';
+import { EditSupplierResolver } from './resolver/edit-supplier.resolver';
 import { OrderResolver } from './resolver/order.resolver';
 
 export const routes: Routes = [
@@ -93,6 +94,9 @@ export const routes: Routes = [
     path: 'suppliers/:id/edit',
     component: EditSuppliersPageComponent,
     canActivate: [DefaultGuard],
+    resolve: {
+      supplierData: EditSupplierResolver,
+    },
   },
   {
     title: 'Kostenstellen',

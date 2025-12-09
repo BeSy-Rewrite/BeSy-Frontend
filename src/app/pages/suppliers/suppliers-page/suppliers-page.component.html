@@ -55,6 +55,31 @@
               [formGroup]="customerIdForm"
             ></app-form-component>
           </div>
+          <button
+            mat-raised-button
+            color="primary"
+            class="customer-id-add-button"
+            (click)="onAddCustomerID()"
+            [disabled]="customerIdForm.invalid"
+          >
+            <mat-icon>add</mat-icon>
+            Kundennummer hinzufügen
+          </button>
+          <div class="added-customer-id-preview">
+            @if (customerIDs().length > 0) {
+              <div class="customer-id-table-container mt-6">
+                <div class="customer-id-table-header">
+                  <mat-icon>list_alt</mat-icon>
+                  <span>Hinzugefügte Kundennummer(n)</span>
+                </div>
+                <app-generic-table
+                  [dataSource]="customerIDsTableDataSource"
+                  [columns]="customerIDsTableColumns"
+                  [pageSize]="5"
+                ></app-generic-table>
+              </div>
+            }
+          </div>
         </div>
 
         <!-- Step 3: Address (Required) -->

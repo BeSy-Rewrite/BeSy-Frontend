@@ -97,7 +97,7 @@ export class PersonsPageComponent implements OnInit {
   // Form configuration for the generic form component
   personsFormConfig = PERSON_FORM_CONFIG;
   addressFormConfig = PERSON_ADDRESS_FORM_CONFIG;
-  personForm = new FormGroup({});
+  personFormGroup = new FormGroup({});
   addressFormGroup = new FormGroup({});
   addresses: AddressResponseDTO[] = [] as AddressResponseDTO[];
 
@@ -138,8 +138,8 @@ export class PersonsPageComponent implements OnInit {
   // * Handle form submission
   async onSubmit() {
     // Check if the person form has all required fields set
-    if (!this.personForm.valid) {
-      this.personForm.markAllAsTouched();
+    if (!this.personFormGroup.valid) {
+      this.personFormGroup.markAllAsTouched();
       this._notifications.open('Bitte Personendaten prüfen.', undefined, {
         duration: 3000,
       });
@@ -147,7 +147,7 @@ export class PersonsPageComponent implements OnInit {
     }
 
     // Get person form data
-    const personData = this.personForm.value as PersonRequestDTO;
+    const personData = this.personFormGroup.value as PersonRequestDTO;
 
     // Case 1: an existing address is used to create a person
     if (this.addressSelectionMode() === 'existing') {
@@ -266,7 +266,7 @@ export class PersonsPageComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       if (result === true) {
-        this.personForm.reset();
+        this.personFormGroup.reset();
         this.addressFormGroup.reset();
         this.selectedAddressId = undefined;
         this.tabGroup.selectedIndex = 0; // Switch to tab index for "Personenübersicht"

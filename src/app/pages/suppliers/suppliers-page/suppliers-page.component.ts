@@ -17,18 +17,18 @@ import {
   CustomerIdRequestDTO,
   SupplierRequestDTO,
   SupplierResponseDTO,
-  VatResponseDTO,
 } from '../../../api-services-v2';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
 import { CUSTOMER_ID_FORM_CONFIG } from '../../../configs/create-customer-id-config';
-import { SUPPLIER_FORM_CONFIG } from '../../../configs/create-supplier-config';
-import { NOMINATIM_SEARCH_CONFIG } from '../../../configs/supplier/supplier-config';
+import {
+  NOMINATIM_SEARCH_CONFIG,
+  SUPPLIER_FORM_CONFIG,
+} from '../../../configs/supplier/supplier-config';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { NominatimMappedAddress, NominatimService } from '../../../services/nominatim.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -113,12 +113,17 @@ export class SuppliersPageComponent implements OnInit {
   );
 
   addressIsSelected: WritableSignal<boolean> = signal(false);
+  customerIDs = signal<CustomerIdRequestDTO[]>([]);
+  customerIDsTableDataSource = new MatTableDataSource<CustomerIdRequestDTO>([]);
+  customerIDsTableColumns = [
+    { id: 'customer_id', label: 'Kundennummer' },
+    { id: 'comment', label: 'Kommentar' },
+  ];
 
   constructor(
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
     private readonly suppliersWrapperService: SuppliersWrapperService,
-    private readonly vatWrapperService: VatWrapperService,
     private readonly nominatimService: NominatimService
   ) {}
 
@@ -130,10 +135,6 @@ export class SuppliersPageComponent implements OnInit {
     // Load initial data for the supplier table
     const suppliers = await this.suppliersWrapperService.getAllSuppliers();
     this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(suppliers);
-
-    // Load initial data for the VAT options field in the form
-    const vatOptions = await this.vatWrapperService.getAllVats();
-    this.setDropdownOptions(vatOptions);
   }
 
   // * Handle edit action
@@ -158,7 +159,6 @@ export class SuppliersPageComponent implements OnInit {
       // Both forms are valid, check the address mode to determine whether to use an existing address or create a new one
       const supplierFormValue = this.supplierFormGroup.value as SupplierRequestDTO;
       const addressFormValue = this.addressFormGroup.getRawValue() as AddressRequestDTO;
-      const customerIdValue = this.customerIdForm.value as CustomerIdRequestDTO;
 
       // Check if a supplier with the same name already exists --> the backend will throw an error
 
@@ -183,17 +183,13 @@ export class SuppliersPageComponent implements OnInit {
           address: addressFormValue,
         });
 
-        // create Customer-Id if customer_id field is not empty and supplier-create response is valid
-        if (customerIdValue.customer_id?.trim() && response.id !== undefined) {
-          try {
-            await this.suppliersWrapperService.createSupplierCustomerId(response.id, {
-              ...customerIdValue,
-            });
-          } catch (error) {
-            console.error('Error creating customer ID:', error);
-            this._notifications.open('Fehler beim Erstellen der Kundennummer', undefined, {
-              duration: 3000,
-            });
+        // If there are customer IDs to create, create them
+        if (this.customerIDs().length > 0 && response.id) {
+          for (const customerIdData of this.customerIDs()) {
+            await this.suppliersWrapperService.createSupplierCustomerId(
+              response.id,
+              customerIdData
+            );
           }
         }
 
@@ -227,15 +223,15 @@ export class SuppliersPageComponent implements OnInit {
     this.tabGroup.selectedIndex = 0; // Switch to tab index for "Lieferantenübersicht"
   }
 
-  // Set dropdown options for the form fields
-  setDropdownOptions(vatOptions: VatResponseDTO[]) {
-    // set options for dropdown fields
-    this.supplierFormConfig.fields.find(field => field.name === 'vat_id')!.options = vatOptions.map(
-      vat => ({
-        value: vat.value,
-        label: `${vat.description} (${vat.value}%)`,
-      })
-    );
+  onAddCustomerID() {
+    if (this.customerIdForm.invalid) {
+      this._notifications.open('Bitte alle Pflichtfelder ausfüllen', undefined, { duration: 3000 });
+      return;
+    }
+    const customerIdFormValue = this.customerIdForm.value as CustomerIdRequestDTO;
+    this.customerIDs.update(current => [...current, customerIdFormValue]);
+    this.customerIDsTableDataSource.data = this.customerIDs();
+    this.customerIdForm.reset();
   }
 
   onSearch(query: string) {

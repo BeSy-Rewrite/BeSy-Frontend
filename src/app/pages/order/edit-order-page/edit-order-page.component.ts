@@ -67,7 +67,7 @@ import {
 import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config';
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes.guard';
 import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
-import { EditOrderResolvedData } from '../../../resolver/edit-order-resolver';
+import { EditOrderResolvedData } from '../../../resolver/edit-order.resolver';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   CurrenciesWrapperService,
