@@ -76,7 +76,6 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
 
   addressIsSelected: WritableSignal<boolean> = signal(false);
   customerIDs = signal<CustomerIdResponseDTO[]>([]);
-  customerIDsToDelete = signal<CustomerIdResponseDTO[]>([]);
   customerIDsTableDataSource = new MatTableDataSource<CustomerIdResponseDTO>([]);
   customerIDsTableColumns = [
     { id: 'customer_id', label: 'Kundennummer' },
@@ -246,15 +245,6 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
   }
 
   onDeleteCustomerID(row: CustomerIdResponseDTO) {
-    // !ToDo: Deleting is likely not possible because there is no endpoint for it
-    // If the field supplier_id is set, it means the customer ID exists in the backend and needs to be deleted there as well
-    if (row.supplier_id) {
-      this.customerIDsToDelete.update(current => [
-        ...current,
-        { customer_id: row.customer_id, comment: row.comment ?? '' },
-      ]);
-    }
-
     // Remove from the displayed table
     this.customerIDs.update(current =>
       current.filter(item => item.customer_id !== row.customer_id || item.comment !== row.comment)

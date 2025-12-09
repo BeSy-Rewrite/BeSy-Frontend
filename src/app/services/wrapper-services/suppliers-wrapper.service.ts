@@ -1,6 +1,11 @@
 import { Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
-import { SupplierRequestDTO, SupplierResponseDTO, SuppliersService } from '../../api-services-v2';
+import {
+  CustomerIdRequestDTO,
+  SupplierRequestDTO,
+  SupplierResponseDTO,
+  SuppliersService,
+} from '../../api-services-v2';
 
 export interface SupplierFormatted {
   label: string | undefined;
@@ -23,6 +28,10 @@ export class SuppliersWrapperService {
     );
   }
 
+  /**
+   * Retrieves all suppliers, using cached data if available and valid.
+   * @returns A promise that resolves to an array of all suppliers.
+   */
   async getAllSuppliers() {
     // Return cached suppliers if cache is still valid
     if (this.isCacheValid()) {
@@ -36,29 +45,55 @@ export class SuppliersWrapperService {
     return suppliers;
   }
 
+  /**
+   * Retrieves a supplier by its unique ID, checking the cache first before making an API call.
+   * @param id The unique ID of the supplier to retrieve.
+   * @returns A promise that resolves to the supplier data.
+   */
   async getSupplierById(id: number) {
-    if (!this.isCacheValid()) {
-      await this.getAllSuppliers();
-    }
-    const cachedSupplier = this.supplierCache?.find(supplier => supplier.id === id);
-    if (cachedSupplier) {
-      return cachedSupplier;
+    // Check cache first
+    if (this.isCacheValid()) {
+      const cachedSupplier = this.supplierCache?.find(supplier => supplier.id === id);
+      if (cachedSupplier) {
+        return cachedSupplier;
+      }
     }
     return lastValueFrom(this.suppliersService.getSupplierById(id));
   }
 
-  async createSupplier(supplier: any) {
-    this.supplierCache = undefined; // Invalidate cache
-    return lastValueFrom(this.suppliersService.createSupplier(supplier));
+  /**
+   * Creates a new supplier.
+   * @param supplier The supplier data to create.
+   * @returns A promise that resolves to the created supplier data.
+   */
+  async createSupplier(supplier: SupplierRequestDTO) {
+    try {
+      const response = await lastValueFrom(this.suppliersService.createSupplier(supplier));
+      this.supplierCache = undefined; // Invalidate cache
+      return response;
+    } catch (error) {
+      console.error('Error creating supplier:', supplier?.name ?? '[unknown name]', error);
+      throw error;
+    }
   }
 
+  /**
+   * Updates an existing supplier by its unique ID.
+   * @param id The unique ID of the supplier to update.
+   * @param supplier The updated supplier data.
+   * @returns A promise that resolves to the updated supplier data.
+   */
   async updateSupplier(id: number, supplier: SupplierRequestDTO) {
-    this.supplierCache = undefined; // Invalidate cache
-    const updatedSupplier = await lastValueFrom(
-      this.suppliersService.updateSupplierById(id, supplier)
-    );
-    console.log('Updated supplier:', updatedSupplier);
-    return updatedSupplier;
+    try {
+      const updatedSupplier = await lastValueFrom(
+        this.suppliersService.updateSupplierById(id, supplier)
+      );
+      this.supplierCache = undefined; // Invalidate cache
+      return updatedSupplier;
+    } catch (error) {
+      console.error('Error updating supplier with ID', id, ':', error);
+      throw error;
+    }
   }
 
   /**
@@ -73,14 +108,30 @@ export class SuppliersWrapperService {
     return customerIds;
   }
 
-  async createSupplierCustomerId(supplierId: number, customerId: any) {
+  /**
+   * Creates a new customer ID for a given supplier.
+   * @param supplierId The unique ID of the supplier for which to create a customer ID.
+   * @param customerId The customer ID data to create.
+   * @returns A promise that resolves to the created customer ID data.
+   */
+  async createSupplierCustomerId(supplierId: number, customerId: CustomerIdRequestDTO) {
     return lastValueFrom(this.suppliersService.createSupplierCustomerId(supplierId, customerId));
   }
 
+  /**
+   * Retrieves the address of a supplier by its unique ID.
+   * @param id The unique ID of the supplier whose address is to be retrieved.
+   * @returns A promise that resolves to the supplier's address data.
+   */
   async getSupplierAddress(id: number) {
     return lastValueFrom(this.suppliersService.getSupplierAddress(id));
   }
 
+  /**
+   * Retrieves a supplier formatted for autocomplete by its unique ID.
+   * @param id The unique ID of the supplier to retrieve.
+   * @returns A promise that resolves to the supplier formatted for autocomplete.
+   */
   async getSupplierByIdFormattedForAutocomplete(
     id: number
   ): Promise<SupplierFormatted | undefined> {
@@ -94,6 +145,11 @@ export class SuppliersWrapperService {
     return undefined;
   }
 
+  /**
+   * Checks if a supplier with the given name exists.
+   * @param name The name of the supplier to check.
+   * @returns A promise that resolves to a boolean indicating if the supplier exists.
+   */
   async checkIfSupplierExists(name: string): Promise<boolean> {
     if (!this.isCacheValid()) {
       await this.getAllSuppliers();
