@@ -242,8 +242,7 @@ export class OrdersWrapperService {
 
   // JSON.stringify needed as angular http client otherwise sends plain text instead of application/json
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
-    const requestBody = environment.production ? newState : JSON.stringify(newState);
-    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, requestBody));
+    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, JSON.stringify(newState)));
   }
 
   async getOrderByIDInFormFormat(orderId: number): Promise<OrderResponseDTOFormatted> {
