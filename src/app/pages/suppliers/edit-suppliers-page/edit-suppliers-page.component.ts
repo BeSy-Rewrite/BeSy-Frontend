@@ -216,8 +216,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
           addressFormValue.building_name ||
           addressFormValue.building_number ||
           addressFormValue.county ||
-          addressFormValue.comment ||
-          (addressFormValue.country && addressFormValue.country !== 'Deutschland'));
+          addressFormValue.comment);
 
       if (hasAddressData) {
         this.addressMode.set('existing');
