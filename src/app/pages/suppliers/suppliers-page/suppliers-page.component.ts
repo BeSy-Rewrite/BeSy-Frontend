@@ -282,9 +282,12 @@ export class SuppliersPageComponent implements OnInit {
       this.addressFormGroup.reset();
       return;
     }
-    // Populate the address form with the selected address data
+    // Set selected state first to render form
     this.addressIsSelected.set(true);
-    this.addressFormGroup.patchValue(event);
+    // Defer patch until form controls are created
+    setTimeout(() => {
+      this.addressFormGroup.patchValue(event);
+    });
   }
 
   onAddressModeChange(event: MatButtonToggleChange): void {

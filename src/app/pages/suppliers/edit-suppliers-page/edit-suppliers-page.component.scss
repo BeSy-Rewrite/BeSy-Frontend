@@ -1,0 +1,368 @@
+// Edit Supplier Page - Redesigned Layout
+.edit-supplier-container {
+  max-width: 70%;
+  margin: 0 auto;
+  padding: 24px 16px;
+}
+
+// Edit Header
+.edit-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 32px;
+  padding: 24px;
+  background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+  border-radius: 8px;
+  border-left: 4px solid #3f51b5;
+
+  mat-icon {
+    font-size: 32px;
+    width: 32px;
+    height: 32px;
+    color: #3f51b5;
+  }
+
+  .edit-header-content {
+    h1 {
+      margin: 0 0 4px 0;
+      font-size: 24px;
+      font-weight: 700;
+      color: #1a237e;
+    }
+
+    .edit-header-subtitle {
+      margin: 0;
+      font-size: 14px;
+      color: #512da8;
+    }
+  }
+}
+
+// Step Sections
+.step-section {
+  background: white;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.step-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, #f8f9fa 0%, #fff 100%);
+  border-bottom: 1px solid #e9ecef;
+}
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: #3f51b5;
+  color: white;
+  border-radius: 50%;
+  font-weight: 600;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.step-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #212529;
+  }
+
+  .step-subtitle {
+    margin: 0;
+    font-size: 13px;
+    color: #6c757d;
+    width: 100%;
+  }
+}
+
+.optional-badge {
+  background: #e3f2fd;
+  color: #1976d2;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.required-badge {
+  background: #fce4ec;
+  color: #c2185b;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.step-content {
+  padding: 24px;
+}
+
+// Address Mode Selector
+.address-mode-selector {
+  margin-bottom: 24px;
+}
+
+.address-toggle-group {
+  width: 100%;
+  display: flex;
+
+  .mat-button-toggle {
+    flex: 1;
+
+    .mat-button-toggle-label-content {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 16px;
+    }
+  }
+
+  .mat-button-toggle-checked {
+    background: #e8eaf6;
+    color: #3f51b5;
+  }
+}
+
+// Info Banners
+.info-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #e3f2fd;
+  border-radius: 6px;
+  margin-bottom: 20px;
+  border-left: 4px solid #2196f3;
+
+  mat-icon {
+    color: #1976d2;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  span {
+    font-size: 14px;
+    color: #0d47a1;
+    line-height: 1.5;
+  }
+
+  &.info-banner--action {
+    background: #fff3e0;
+    border-left-color: #ff9800;
+
+    mat-icon {
+      color: #f57c00;
+    }
+
+    span {
+      color: #e65100;
+    }
+  }
+
+  &.info-banner--info {
+    background: #f3e5f5;
+    border-left-color: #9c27b0;
+
+    mat-icon {
+      color: #7b1fa2;
+    }
+
+    span {
+      color: #4a148c;
+    }
+  }
+}
+
+// Customer ID Section
+.customer-id-form-section {
+  margin-bottom: 24px;
+  padding: 16px;
+  background: #fafafa;
+  border-radius: 6px;
+  border: 1px solid #f0f0f0;
+
+  .customer-id-form-title {
+    margin: 0 0 16px 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #424242;
+  }
+}
+
+.customer-id-add-button {
+  display: block;
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px 14px;
+  font-weight: 600;
+  justify-content: center;
+}
+
+.added-customer-id-preview {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+}
+
+.customer-id-table-container {
+  background: #f5f8ff;
+  border: 1px solid #d7e3ff;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(13, 71, 161, 0.08);
+}
+
+.customer-id-table-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #e9f1ff 0%, #d7e3ff 100%);
+  color: #0d47a1;
+  font-weight: 600;
+  border-bottom: 1px solid #d7e3ff;
+
+  mat-icon {
+    color: #1565c0;
+  }
+}
+
+// Address Selection Panels
+.existing-address-panel {
+  margin-top: 16px;
+}
+
+.address-search-panel {
+  .search-input-container {
+    margin-bottom: 20px;
+  }
+
+  .search-results-container {
+    margin-bottom: 20px;
+  }
+}
+
+.selected-address-preview {
+  margin-top: 20px;
+  padding: 16px;
+  background: #f5f5f5;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+
+  .preview-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    color: #1565c0;
+    font-weight: 500;
+
+    mat-icon {
+      color: #1976d2;
+    }
+  }
+
+  .preview-warning {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    background: #fff3e0;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    border-left: 3px solid #ff9800;
+
+    mat-icon {
+      color: #f57c00;
+      flex-shrink: 0;
+      font-size: 20px;
+    }
+
+    span {
+      font-size: 13px;
+      color: #e65100;
+      line-height: 1.4;
+    }
+  }
+}
+
+.new-address-panel {
+  padding: 0;
+}
+
+// Action Bar
+.action-bar {
+  display: flex;
+  gap: 12px;
+  padding: 20px 24px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  bottom: 16px;
+}
+
+.action-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  font-weight: 500;
+
+  &.action-button--primary {
+    padding: 8px 24px;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .edit-supplier-container {
+    padding: 16px 12px;
+  }
+
+  .edit-header {
+    flex-direction: column;
+    text-align: center;
+    margin-bottom: 24px;
+
+    mat-icon {
+      margin-bottom: 8px;
+    }
+  }
+
+  .step-header {
+    padding: 16px;
+  }
+
+  .step-content {
+    padding: 16px;
+  }
+
+  .address-toggle-group {
+    flex-direction: column;
+  }
+
+  .customer-id-add-button {
+    width: 100%;
+  }
+}

@@ -6,7 +6,7 @@ import { SuppliersWrapperService } from './../services/wrapper-services/supplier
 
 export interface EditSupplierResolvedData {
   supplier: SupplierResponseDTO;
-  supplierAddress?: AddressResponseDTO;
+  supplierAddress: AddressResponseDTO;
   customerIds?: CustomerIdResponseDTO[];
 }
 
