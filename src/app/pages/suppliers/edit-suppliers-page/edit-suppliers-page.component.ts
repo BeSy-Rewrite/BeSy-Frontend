@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import {
   AfterViewInit,
   ChangeDetectorRef,
@@ -18,7 +19,7 @@ import { MatDivider } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
@@ -57,12 +58,12 @@ import { SuppliersWrapperService } from '../../../services/wrapper-services/supp
 export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
   constructor(
     private readonly route: ActivatedRoute,
-    private readonly router: Router,
     private readonly _notifications: MatSnackBar,
     private readonly suppliersWrapperService: SuppliersWrapperService,
     private readonly dialog: MatDialog,
     private readonly cdr: ChangeDetectorRef,
-    private readonly nominatimService: NominatimService
+    private readonly nominatimService: NominatimService,
+    private readonly location: Location
   ) {}
 
   supplierForm = new FormGroup({});
@@ -337,5 +338,12 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     } else {
       this.addressFormGroup.patchValue(event);
     }
+  }
+
+  /**
+   * Navigates back to the previous page using the browser history.
+   */
+  onNavigateBack(): void {
+    this.location.back();
   }
 }

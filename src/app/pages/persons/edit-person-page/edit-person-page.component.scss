@@ -1,3 +1,6 @@
+// SCSS Variables
+$content-max-width: 70%;
+
 .person-data-container {
   flex: 0 0 50%;
 }
@@ -6,17 +9,16 @@
   flex: 1;
 }
 
-// New Person Creation - Redesigned Layout
+// Edit Person Page - Redesigned Layout
 .create-person-container {
-  max-width: 70%;
-  margin: 0 auto;
-  padding: 24px 16px;
+  width: 100%;
 }
 
 .step-section {
   background: white;
   border-radius: 8px;
-  margin-bottom: 24px;
+  margin: 0 auto 24px auto;
+  max-width: $content-max-width;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
@@ -173,16 +175,13 @@
 
 // New Address Panel
 .new-address-panel {
-  // Form styling is handled by form-component
+  padding: 0; // Form styling is handled by form-component
 }
 
-// Page Back Bar
+// Page Back Bar - Fixed positioning spanning full width
 .page-back-bar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
+  position: fixed;
+  background: white;
 
   .back-button {
     display: inline-flex;
@@ -195,6 +194,7 @@
 // Action Bar
 .action-bar {
   margin: 0 auto;
+  max-width: $content-max-width;
   display: flex;
   gap: 12px;
   justify-content: space-between;
@@ -219,6 +219,14 @@
 @media (max-width: 768px) {
   .create-person-container {
     padding: 16px 12px;
+  }
+
+  .step-section {
+    max-width: 95%; // Wider on mobile
+  }
+
+  .action-bar {
+    max-width: 95%; // Wider on mobile
   }
 
   .step-header {
