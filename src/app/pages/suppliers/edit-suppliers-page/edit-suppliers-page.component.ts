@@ -63,7 +63,8 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     private readonly dialog: MatDialog,
     private readonly cdr: ChangeDetectorRef,
     private readonly nominatimService: NominatimService,
-    private readonly location: Location
+    private readonly location: Location,
+    private readonly _dialog: MatDialog
   ) {}
 
   supplierForm = new FormGroup({});
@@ -147,9 +148,30 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Revert all changes made in the form to the original loaded supplier data
+   * Handle revert changes action
    */
   onRevertChanges() {
+    const dialogRef = this._dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Alle Änderungen zurücksetzen',
+        message:
+          'Möchten Sie wirklich alle Änderungen zurücksetzen? Alle ungespeicherten Änderungen gehen verloren.',
+        confirmButtonText: 'Zurücksetzen',
+        cancelButtonText: 'Abbrechen',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.revertFormChanges();
+      }
+    });
+  }
+
+  /**
+   * Revert form changes to the original supplier data loaded
+   */
+  private revertFormChanges() {
     this.supplierForm.patchValue({
       ...this.supplier,
     });
