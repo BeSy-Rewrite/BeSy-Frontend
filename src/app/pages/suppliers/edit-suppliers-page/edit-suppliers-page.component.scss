@@ -4,7 +4,58 @@ $content-max-width: 70%;
 // Edit Supplier Page - Redesigned Layout
 .edit-supplier-container {
   width: 100%;
-  padding: 24px 16px;
+}
+
+// Grid Layout
+.grid-div {
+  display: grid;
+  grid-template-columns: 15% 70% 15%;
+  grid-template-areas: 'left middle right';
+  align-items: start;
+}
+
+.left-grid-item {
+  grid-area: left;
+  position: relative;
+  height: 100vh;
+
+  // Position back button at top left
+  .page-back {
+    position: fixed;
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+  }
+
+  // Position discard button in bottom right of left grid item
+  .revert-button {
+    position: fixed;
+    bottom: 12px;
+    left: calc(15%);
+    transform: translateX(-100%);
+    z-index: 100;
+  }
+}
+
+.middle-grid-item {
+  grid-area: middle;
+}
+
+.right-grid-item {
+  grid-area: right;
+  height: 100vh;
+
+  .submit-button {
+    position: fixed;
+    bottom: 12px;
+    right: calc(15%);
+    transform: translateX(100%);
+    z-index: 100;
+  }
 }
 
 // Edit Header
@@ -12,8 +63,7 @@ $content-max-width: 70%;
   display: flex;
   align-items: center;
   gap: 16px;
-  margin: 0 auto 32px auto;
-  max-width: $content-max-width;
+  margin-bottom: 32px;
   padding: 24px;
   background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
   border-radius: 8px;
@@ -46,8 +96,7 @@ $content-max-width: 70%;
 .step-section {
   background: white;
   border-radius: 8px;
-  margin: 0 auto 24px auto;
-  max-width: $content-max-width;
+  margin-bottom: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
@@ -124,19 +173,10 @@ $content-max-width: 70%;
 }
 
 .address-toggle-group {
-  width: 100%;
   display: flex;
 
   .mat-button-toggle {
     flex: 1;
-
-    .mat-button-toggle-label-content {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      padding: 12px 16px;
-    }
   }
 
   .mat-button-toggle-checked {
@@ -377,18 +417,5 @@ $content-max-width: 70%;
 
   .customer-id-add-button {
     width: 100%;
-  }
-}
-
-// Page Back Bar - Fixed positioning spanning full width
-.page-back-bar {
-  position: fixed;
-  padding: 12px 16px;
-
-  .back-button {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-weight: 500;
   }
 }

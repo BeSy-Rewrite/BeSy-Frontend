@@ -112,11 +112,15 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
   fetchedPerson: PersonResponseDTO | undefined = undefined;
   fetchedAddress: AddressResponseDTO | undefined = undefined;
   personHasSavedAddress = signal<boolean>(false);
+  personName = signal<string>('');
 
   ngOnInit(): void {
     const resolvedData: EditPersonResolvedData = this.route.snapshot.data['personData'];
     this.fetchedPerson = resolvedData.person;
     this.fetchedAddress = resolvedData.address;
+    this.personName.set(
+      `${this.fetchedPerson?.name ?? ''} ${this.fetchedPerson?.surname ?? ''}`.trim()
+    );
 
     this.personsWrapperService.getAllPersonsAddresses().then(addresses => {
       this.addresses = addresses;

@@ -45,6 +45,40 @@ $content-max-width: 70%;
 
 .middle-grid-item {
   grid-area: middle;
+
+  // Edit Header
+  .edit-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 0 auto 32px auto;
+    padding: 24px;
+    background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%);
+    border-radius: 8px;
+    border-left: 4px solid #3f51b5;
+
+    mat-icon {
+      font-size: 32px;
+      width: 32px;
+      height: 32px;
+      color: #3f51b5;
+    }
+
+    .edit-header-content {
+      h1 {
+        margin: 0 0 4px 0;
+        font-size: 24px;
+        font-weight: 700;
+        color: #1a237e;
+      }
+
+      .edit-header-subtitle {
+        margin: 0;
+        font-size: 14px;
+        color: #512da8;
+      }
+    }
+  }
 }
 
 .right-grid-item {
