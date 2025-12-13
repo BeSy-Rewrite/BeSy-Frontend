@@ -197,8 +197,9 @@ export class NominatimService {
       q: query,
       format: 'json',
       addressdetails: '1',
-      limit: '5',
-      countrycodes: 'de, at,ch,lu,li, be, nl, uk, fr, us',
+      limit: '10',
+      countrycodes: 'de,at,ch,lu,li,be,nl,uk,fr,us',
+      'accept-language': 'de',
       ...params,
     };
 

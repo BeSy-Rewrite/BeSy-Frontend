@@ -70,6 +70,7 @@ export class SuppliersWrapperService {
     try {
       const response = await lastValueFrom(this.suppliersService.createSupplier(supplier));
       this.supplierCache = undefined; // Invalidate cache
+      this.cacheTimestamp = 0; // Reset cache timestamp
       return response;
     } catch (error) {
       console.error('Error creating supplier:', supplier?.name ?? '[unknown name]', error);
@@ -89,6 +90,7 @@ export class SuppliersWrapperService {
         this.suppliersService.updateSupplierById(id, supplier)
       );
       this.supplierCache = undefined; // Invalidate cache
+      this.cacheTimestamp = 0; // Reset cache timestamp
       return updatedSupplier;
     } catch (error) {
       console.error('Error updating supplier with ID', id, ':', error);
