@@ -199,7 +199,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
       data: {
         title: 'Änderungen bestätigen',
         message:
-          'Hinweis: Die Änderungen der Lieferantendaten sind irreversibel und systemweit für alle Benutzer sichtbar. Sie beeinflussen aber keine bereits getätigten Bestellungen. Möchten Sie fortfahren?',
+          'Hinweis: Die Änderungen der Lieferantendaten sind irreversibel und systemweit für alle Benutzer sichtbar. Sie beeinflussen aber keine bereits erstellten Bestellungen. Möchten Sie fortfahren?',
       },
     });
 
@@ -208,14 +208,16 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
         this.saveSupplierChanges();
       }
     });
-
-    // Prepare form data for submission
   }
 
   // * Save supplier and address changes
   async saveSupplierChanges() {
     if (this.supplierForm.invalid || this.addressFormGroup.invalid) {
-      this._notifications.open('Bitte alle Pflichtfelder ausfüllen', undefined, { duration: 3000 });
+      this._notifications.open(
+        'Änderungen nicht gespeichert: Bitte alle Pflichtfelder ausfüllen',
+        undefined,
+        { duration: 3000 }
+      );
       return;
     }
 
@@ -352,7 +354,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     // Set selected state first to render form
     this.addressIsSelected.set(true);
     if (this.isFirstRender) {
-      // Defer patch until form controls are created
+      // Defer patch on first render until form controls are created
       this.isFirstRender = false;
       setTimeout(() => {
         this.addressFormGroup.patchValue(event);
