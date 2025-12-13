@@ -1,24 +1,69 @@
 // SCSS Variables
 $content-max-width: 70%;
 
-.person-data-container {
-  flex: 0 0 50%;
-}
-
-.address-data-container {
-  flex: 1;
-}
-
 // Edit Person Page - Redesigned Layout
 .create-person-container {
   width: 100%;
 }
 
+// Grid Layout
+.grid-div {
+  display: grid;
+  grid-template-columns: 15% 70% 15%;
+  grid-template-areas: 'left middle right';
+  align-items: start;
+}
+
+.left-grid-item {
+  grid-area: left;
+  position: relative;
+  height: 100vh;
+
+  // Position back button at top left
+  .page-back {
+    position: fixed;
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+  }
+
+  // Position discard button in bottom right of left grid item
+  .revert-button {
+    position: fixed;
+    bottom: 12px;
+    left: calc(15%); // Align to right edge of left grid item minus padding
+    transform: translateX(
+      -100%
+    ); // Move button fully to the left so it's attached to the right side
+    z-index: 100;
+  }
+}
+
+.middle-grid-item {
+  grid-area: middle;
+}
+
+.right-grid-item {
+  grid-area: right;
+  height: 100vh; // Full viewport height for proper positioning
+
+  .submit-button {
+    position: fixed;
+    bottom: 12px;
+    right: calc(15%); // Align to left edge of right grid item minus padding
+    transform: translateX(100%); // Move button fully to the right so it's attached to the left side
+    z-index: 100;
+  }
+}
+
 .step-section {
   background: white;
   border-radius: 8px;
-  margin: 0 auto 24px auto;
-  max-width: $content-max-width;
+  margin-bottom: 24px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
   overflow: hidden;
 }
@@ -178,29 +223,6 @@ $content-max-width: 70%;
   padding: 0; // Form styling is handled by form-component
 }
 
-// Page Back Bar - Fixed positioning spanning full width
-.page-back-bar {
-  position: fixed;
-  background: white;
-
-  .back-button {
-    display: inline-flex;
-    align-items: center;
-  }
-}
-
-// Action Bar
-.action-bar {
-  margin: 0 auto;
-  max-width: $content-max-width;
-  display: flex;
-  gap: 12px;
-  justify-content: space-between;
-  padding: 20px 0;
-  position: sticky;
-  bottom: 16px;
-}
-
 .action-button {
   display: flex;
   align-items: center;
@@ -217,6 +239,29 @@ $content-max-width: 70%;
 @media (max-width: 768px) {
   .create-person-container {
     padding: 16px 12px;
+  }
+
+  .grid-div {
+    display: block; // Stack vertically on mobile
+  }
+
+  .left-grid-item {
+    height: auto;
+    margin-bottom: 16px;
+  }
+
+  .page-back {
+    position: relative;
+    top: auto;
+    left: auto;
+    margin-bottom: 16px;
+  }
+
+  .revert-button {
+    position: relative;
+    bottom: auto;
+    left: auto;
+    transform: none;
   }
 
   .step-section {

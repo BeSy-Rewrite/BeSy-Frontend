@@ -117,7 +117,6 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
     const resolvedData: EditPersonResolvedData = this.route.snapshot.data['personData'];
     this.fetchedPerson = resolvedData.person;
     this.fetchedAddress = resolvedData.address;
-    console.log('Fetched Person:', this.fetchedPerson);
 
     this.personsWrapperService.getAllPersonsAddresses().then(addresses => {
       this.addresses = addresses;
