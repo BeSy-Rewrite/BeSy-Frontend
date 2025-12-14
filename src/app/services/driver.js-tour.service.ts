@@ -10,6 +10,11 @@ export class DriverJsTourService {
   private readonly highlightDriver = driver();
   private tourDriver = driver();
 
+  /**
+   * Map storing registered tour steps for each component by a hash of its class string.
+   *
+   * This is necessary because Angular's AoT compilation alters class names, making them unreliable as keys.
+   */
   private readonly componentSteps: Map<string, () => DriveStep[]> = new Map();
 
   constructor(
@@ -37,7 +42,7 @@ export class DriverJsTourService {
    * @param driverSteps Array of driver.js steps for the component
    */
   registerStepsForComponent(component: Type<any>, driverStepsSource: () => DriveStep[]) {
-    this.componentSteps.set(component.name, driverStepsSource);
+    this.componentSteps.set(this.getHash(component.toString()), driverStepsSource);
   }
 
   /**
@@ -48,7 +53,7 @@ export class DriverJsTourService {
    */
   getStepsForComponent(component: Type<any>): DriveStep[] {
     return (
-      this.componentSteps.get(component.name)?.() ?? [
+      this.componentSteps.get(this.getHash(component.toString()))?.() ?? [
         {
           popover: {
             title: 'No steps registered',
@@ -163,5 +168,16 @@ export class DriverJsTourService {
     });
 
     driverObject.drive();
+  }
+
+  // A simple hash function to generate a hash from a string
+  private getHash(inputString: string): string {
+    let hash = 0;
+    for (let i = 0; i < inputString.length; i++) {
+      const char = inputString.codePointAt(i)!;
+      hash = (hash << 5) - hash + char;
+      hash = Math.trunc(hash); // Convert to 32bit integer
+    }
+    return hash.toString();
   }
 }
