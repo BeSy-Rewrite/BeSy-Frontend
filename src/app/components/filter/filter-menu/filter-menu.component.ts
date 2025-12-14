@@ -1,27 +1,57 @@
-import { afterNextRender, Component, computed, effect, Injector, input, OnInit, output, signal, viewChild, WritableSignal } from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  Injector,
+  input,
+  OnInit,
+  output,
+  signal,
+  viewChild,
+  WritableSignal,
+} from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatChipListbox, MatChipSelectionChange, MatChipsModule } from "@angular/material/chips";
+import { MatChipListbox, MatChipSelectionChange, MatChipsModule } from '@angular/material/chips';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatDividerModule } from "@angular/material/divider";
+import { MatDividerModule } from '@angular/material/divider';
 import { MatAccordion, MatExpansionModule } from '@angular/material/expansion';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
-import { MatTooltipModule } from "@angular/material/tooltip";
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { debounceTime, first, forkJoin, from, of, tap } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { CostCenterResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../../../api-services-v2';
-import { LAST_ACTIVE_FILTERS_KEY, ORDERS_FILTER_PRESETS } from '../../../configs/orders-table/order-filter-presets-config';
+import {
+  CostCenterResponseDTO,
+  PersonResponseDTO,
+  SupplierResponseDTO,
+  UserResponseDTO,
+} from '../../../api-services-v2';
+import {
+  LAST_ACTIVE_FILTERS_KEY,
+  ORDERS_FILTER_PRESETS,
+} from '../../../configs/orders-table/order-filter-presets-config';
 import { ORDERS_FILTER_MENU_CONFIG } from '../../../configs/orders-table/orders-filter-menu-config';
 import { ordersTableConfig } from '../../../configs/orders-table/orders-table-config';
-import { STATE_DISPLAY_NAMES, STATE_ICONS, USED_STATES } from '../../../display-name-mappings/status-names';
+import {
+  STATE_DISPLAY_NAMES,
+  STATE_ICONS,
+  USED_STATES,
+} from '../../../display-name-mappings/status-names';
 import { FilterChipData } from '../../../models/filter/filter-chip-data';
 import { FilterDateRange } from '../../../models/filter/filter-date-range';
 import { ActiveFilters } from '../../../models/filter/filter-menu-types';
-import { ChipFilterPreset, DateRangeFilterPreset, FilterPresetType, OrdersFilterPreset, RangeFilterPreset } from '../../../models/filter/filter-presets';
+import {
+  ChipFilterPreset,
+  DateRangeFilterPreset,
+  FilterPresetType,
+  OrdersFilterPreset,
+  RangeFilterPreset,
+} from '../../../models/filter/filter-presets';
 import { FilterRange, isNumericRange } from '../../../models/filter/filter-range';
 import { TableColumn } from '../../../models/generic-table';
 import { DriverJsTourService } from '../../../services/driver.js-tour.service';
@@ -60,10 +90,9 @@ export const SAVED_FILTER_PRESETS_KEY = 'savedPresets';
     RangeSelectionSliderComponent,
   ],
   templateUrl: './filter-menu.component.html',
-  styleUrl: './filter-menu.component.scss'
+  styleUrl: './filter-menu.component.scss',
 })
 export class FilterMenuComponent implements OnInit {
-
   /** Initial filter preset to apply on component load. */
   initialPreset = input<OrdersFilterPreset | undefined>(undefined);
 
@@ -80,8 +109,12 @@ export class FilterMenuComponent implements OnInit {
    */
   activeFilters = computed<ActiveFilters>(() => {
     return {
-      primary_cost_center_id: this.chips['primary_cost_center_id']().filter(chip => chip.isSelected),
-      secondary_cost_center_id: this.chips['secondary_cost_center_id']().filter(chip => chip.isSelected),
+      primary_cost_center_id: this.chips['primary_cost_center_id']().filter(
+        chip => chip.isSelected
+      ),
+      secondary_cost_center_id: this.chips['secondary_cost_center_id']().filter(
+        chip => chip.isSelected
+      ),
       owner_id: this.chips['owner_id']().filter(chip => chip.isSelected),
       status: this.chips['status']().filter(chip => chip.isSelected),
       delivery_person_id: this.chips['delivery_person_id']().filter(chip => chip.isSelected),
@@ -102,35 +135,37 @@ export class FilterMenuComponent implements OnInit {
    * without needing to select a preset manually
    */
   readonly activeFiltersSignal = computed<OrdersFilterPreset>(() => {
-    const appliedFilters: FilterPresetType[] = Object.entries(this.activeFilters()).map(([key, value]) => {
-      const typedKey = key as keyof ActiveFilters;
-      if (Array.isArray(value)) {
+    const appliedFilters: FilterPresetType[] = Object.entries(this.activeFilters()).map(
+      ([key, value]) => {
+        const typedKey = key as keyof ActiveFilters;
+        if (Array.isArray(value)) {
+          return {
+            id: typedKey,
+            chipIds: value
+              .filter((v: FilterChipData) => v.id !== undefined && v.id !== null)
+              .map((v: FilterChipData) => v.id),
+          } as ChipFilterPreset;
+        } else if (isNumericRange(value)) {
+          return {
+            id: typedKey,
+            range: value,
+          } as RangeFilterPreset;
+        }
         return {
           id: typedKey,
-          chipIds: value
-            .filter((v: FilterChipData) => v.id !== undefined && v.id !== null)
-            .map((v: FilterChipData) => v.id)
-        } as ChipFilterPreset;
-      } else if (isNumericRange(value)) {
-        return {
-          id: typedKey,
-          range: value
-        } as RangeFilterPreset;
+          dateRange: value as FilterDateRange,
+        } as DateRangeFilterPreset;
       }
-      return {
-        id: typedKey,
-        dateRange: value as FilterDateRange
-      } as DateRangeFilterPreset;
-    });
+    );
 
     appliedFilters.push({
       id: 'selectedColumnIds',
-      selectedColumnIds: this.selectedColumnIds()
+      selectedColumnIds: this.selectedColumnIds(),
     });
 
     return {
       label: LAST_ACTIVE_FILTERS_KEY,
-      appliedFilters
+      appliedFilters,
     };
   });
 
@@ -142,36 +177,36 @@ export class FilterMenuComponent implements OnInit {
   /**
    * Signals holding the chip data for each filter key.
    */
-  chips: { [key: string]: WritableSignal<FilterChipData[]>; } = {
-    'primary_cost_center_id': signal<FilterChipData[]>([]),
-    'secondary_cost_center_id': signal<FilterChipData[]>([]),
-    'owner_id': signal<FilterChipData[]>([]),
-    'status': signal<FilterChipData[]>([]),
-    'delivery_person_id': signal<FilterChipData[]>([]),
-    'invoice_person_id': signal<FilterChipData[]>([]),
-    'queries_person_id': signal<FilterChipData[]>([]),
-    'supplier_id': signal<FilterChipData[]>([]),
-    'booking_year': signal<FilterChipData[]>([])
+  chips: { [key: string]: WritableSignal<FilterChipData[]> } = {
+    primary_cost_center_id: signal<FilterChipData[]>([]),
+    secondary_cost_center_id: signal<FilterChipData[]>([]),
+    owner_id: signal<FilterChipData[]>([]),
+    status: signal<FilterChipData[]>([]),
+    delivery_person_id: signal<FilterChipData[]>([]),
+    invoice_person_id: signal<FilterChipData[]>([]),
+    queries_person_id: signal<FilterChipData[]>([]),
+    supplier_id: signal<FilterChipData[]>([]),
+    booking_year: signal<FilterChipData[]>([]),
   };
   /**
    * Signals holding the date range data for each filter key.
    */
-  dateRanges: { [key: string]: WritableSignal<FilterDateRange>; } = {
-    'created_date': signal<FilterDateRange>({ start: null, end: null }),
-    'last_updated_time': signal<FilterDateRange>({ start: null, end: null })
+  dateRanges: { [key: string]: WritableSignal<FilterDateRange> } = {
+    created_date: signal<FilterDateRange>({ start: null, end: null }),
+    last_updated_time: signal<FilterDateRange>({ start: null, end: null }),
   };
   /**
    * Signals holding the range data for each filter key.
    */
-  ranges: { [key: string]: WritableSignal<FilterRange>; } = {
-    'quote_price': signal<FilterRange>({
+  ranges: { [key: string]: WritableSignal<FilterRange> } = {
+    quote_price: signal<FilterRange>({
       start: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'quote_price')?.data?.minValue ?? 0,
-      end: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'quote_price')?.data?.maxValue ?? 10000
+      end: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'quote_price')?.data?.maxValue ?? 10000,
     }),
-    'auto_index': signal<FilterRange>({
+    auto_index: signal<FilterRange>({
       start: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'auto_index')?.data?.minValue ?? 0,
-      end: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'auto_index')?.data?.maxValue ?? 100
-    })
+      end: ORDERS_FILTER_MENU_CONFIG.find(f => f.key === 'auto_index')?.data?.maxValue ?? 100,
+    }),
   };
 
   /** Reference to the accordion UI element. */
@@ -180,7 +215,9 @@ export class FilterMenuComponent implements OnInit {
   presetChips = viewChild.required<MatChipListbox>('presets');
 
   /** Control for the selected columns in the table. */
-  selectedColumnsControl = new FormControl(ordersTableConfig.filter(col => !col.isInvisible).map(col => col.id));
+  selectedColumnsControl = new FormControl(
+    ordersTableConfig.filter(col => !col.isInvisible).map(col => col.id)
+  );
   /** Signal holding all available table columns. */
   ordersTableColumns = input.required<TableColumn<any>[]>();
   /** Emits when the selected columns have changed. */
@@ -203,9 +240,13 @@ export class FilterMenuComponent implements OnInit {
       this.filtersChanged.emit(this.activeFilters());
     });
 
-    toObservable(this.activeFilters).pipe(
-      debounceTime(environment.saveActiveFiltersDebounceMs)
-    ).subscribe(() => this.preferencesService.savePreset(this.activeFiltersSignal()).subscribe());
+    toObservable(this.activeFilters)
+      .pipe(debounceTime(environment.saveActiveFiltersDebounceMs))
+      .subscribe(() =>
+        this.preferencesService
+          .updatePresetByLabel(LAST_ACTIVE_FILTERS_KEY, this.activeFiltersSignal(), true)
+          .subscribe()
+      );
 
     this.preferencesService.getPresets().subscribe(presets => {
       this.setPresets(presets);
@@ -249,7 +290,9 @@ export class FilterMenuComponent implements OnInit {
     if (this.initialPreset()) {
       this.applyPreset(this.initialPreset()!);
     } else {
-      const lastActiveFilters = this.filterPresets().find(preset => preset.label === LAST_ACTIVE_FILTERS_KEY);
+      const lastActiveFilters = this.filterPresets().find(
+        preset => preset.label === LAST_ACTIVE_FILTERS_KEY
+      );
       if (lastActiveFilters) {
         this.clearAllFilters();
         this.applyPreset(lastActiveFilters);
@@ -264,13 +307,11 @@ export class FilterMenuComponent implements OnInit {
   setupCostCenters() {
     return from(this.costCentersService.getAllCostCenters()).pipe(
       tap((costCenters: CostCenterResponseDTO[]) => {
-        const costCenterChips = costCenters.map(
-          center => ({
-            id: center.id,
-            label: center.id + ' - ' + center.name,
-            tooltip: this.getCostCenterTooltip(center)
-          })
-        );
+        const costCenterChips = costCenters.map(center => ({
+          id: center.id,
+          label: center.id + ' - ' + center.name,
+          tooltip: this.getCostCenterTooltip(center),
+        }));
         this.chips['primary_cost_center_id'].set(costCenterChips);
         this.chips['secondary_cost_center_id'].set(costCenterChips.map(chip => ({ ...chip })));
       })
@@ -283,11 +324,13 @@ export class FilterMenuComponent implements OnInit {
   setupUsers() {
     return from(this.usersService.getAllUsers()).pipe(
       tap((users: UserResponseDTO[]) => {
-        this.chips['owner_id'].set(users.map(user => ({
-          id: user.id,
-          label: this.composeFullName(user),
-          tooltip: user.email
-        })));
+        this.chips['owner_id'].set(
+          users.map(user => ({
+            id: user.id,
+            label: this.composeFullName(user),
+            tooltip: user.email,
+          }))
+        );
       })
     );
   }
@@ -307,7 +350,7 @@ export class FilterMenuComponent implements OnInit {
           return {
             id: person.id,
             label: this.composeFullName(person),
-            tooltip: tooltipParts.join(' - ')
+            tooltip: tooltipParts.join(' - '),
           };
         });
         this.chips['queries_person_id'].set(personChips);
@@ -325,7 +368,7 @@ export class FilterMenuComponent implements OnInit {
       USED_STATES.map(id => ({
         id: id,
         label: STATE_ICONS.get(id) + ' ' + STATE_DISPLAY_NAMES.get(id),
-        tooltip: ''
+        tooltip: '',
       }))
     );
     return of(undefined);
@@ -341,7 +384,7 @@ export class FilterMenuComponent implements OnInit {
           suppliers.map(supplier => ({
             id: supplier.id,
             label: supplier.name ?? 'Unbenannter Lieferant',
-            tooltip: supplier.comment
+            tooltip: supplier.comment,
           }))
         );
       })
@@ -353,12 +396,14 @@ export class FilterMenuComponent implements OnInit {
    */
   setupBookingYears() {
     const currentYear = new Date().getFullYear();
-    const bookingYears = Array.from({ length: currentYear - 1999 }, (_, i) => (currentYear - i));
-    this.chips['booking_year'].set(bookingYears.map(year => ({
-      id: year.toString().slice(-2),
-      label: year.toString(),
-      tooltip: ''
-    })));
+    const bookingYears = Array.from({ length: currentYear - 1999 }, (_, i) => currentYear - i);
+    this.chips['booking_year'].set(
+      bookingYears.map(year => ({
+        id: year.toString().slice(-2),
+        label: year.toString(),
+        tooltip: '',
+      }))
+    );
     return of(undefined);
   }
 
@@ -369,7 +414,7 @@ export class FilterMenuComponent implements OnInit {
     const dialogRef = this.dialog.open(FilterPresetsSaveComponent, {
       data: {
         name: 'Meine Filter ' + (this.filterPresets().length + 1 - ORDERS_FILTER_PRESETS.length),
-      }
+      },
     });
 
     dialogRef.afterClosed().subscribe(result => {
@@ -420,9 +465,7 @@ export class FilterMenuComponent implements OnInit {
    */
   clearAllFilters() {
     for (const chipSignal of Object.values(this.chips)) {
-      chipSignal.update(chips => chips.map(chip => (
-        { ...chip, isSelected: false }
-      )));
+      chipSignal.update(chips => chips.map(chip => ({ ...chip, isSelected: false })));
     }
     for (const dateRangeSignal of Object.values(this.dateRanges)) {
       dateRangeSignal.set({ start: null, end: null });
@@ -472,12 +515,12 @@ export class FilterMenuComponent implements OnInit {
       if ('chipIds' in appliedFilter) {
         this.chips[appliedFilter.id]?.update(currentChips =>
           currentChips.map(chip =>
-            appliedFilter.chipIds.includes(chip.id ?? '') ? { ...chip, isSelected: true } : chip));
-      }
-      else if ('dateRange' in appliedFilter) {
+            appliedFilter.chipIds.includes(chip.id ?? '') ? { ...chip, isSelected: true } : chip
+          )
+        );
+      } else if ('dateRange' in appliedFilter) {
         this.dateRanges[appliedFilter.id].set(appliedFilter.dateRange);
-      }
-      else if ('range' in appliedFilter) {
+      } else if ('range' in appliedFilter) {
         this.ranges[appliedFilter.id].set(appliedFilter.range);
       } else if ('selectedColumnIds' in appliedFilter) {
         this.selectedColumnsControl.setValue(appliedFilter.selectedColumnIds);
@@ -494,12 +537,16 @@ export class FilterMenuComponent implements OnInit {
       if ('chipIds' in appliedFilter) {
         this.chips[appliedFilter.id]?.update(currentChips =>
           currentChips.map(chip =>
-            appliedFilter.chipIds.includes(chip.id ?? '') ? { ...chip, isSelected: false } : chip));
+            appliedFilter.chipIds.includes(chip.id ?? '') ? { ...chip, isSelected: false } : chip
+          )
+        );
       } else if ('dateRange' in appliedFilter) {
         this.dateRanges[appliedFilter.id].set({ start: null, end: null });
       } else if ('range' in appliedFilter) {
-        const min = this.availableFilters.find(f => f.key === appliedFilter.id)?.data?.minValue ?? 0;
-        const max = this.availableFilters.find(f => f.key === appliedFilter.id)?.data?.maxValue ?? 100;
+        const min =
+          this.availableFilters.find(f => f.key === appliedFilter.id)?.data?.minValue ?? 0;
+        const max =
+          this.availableFilters.find(f => f.key === appliedFilter.id)?.data?.maxValue ?? 100;
         this.ranges[appliedFilter.id].set({ start: min, end: max });
       }
     }
@@ -521,24 +568,44 @@ export class FilterMenuComponent implements OnInit {
           return false;
 
         case 'chipIds' in presetFilter: {
-          const activeValue = this.activeFilters()[presetFilter.id as keyof ActiveFilters] as FilterChipData[] | undefined;
+          const activeValue = this.activeFilters()[presetFilter.id as keyof ActiveFilters] as
+            | FilterChipData[]
+            | undefined;
           return presetFilter.chipIds.every(id => activeValue?.some(chip => chip.id === id));
         }
 
         case 'dateRange' in presetFilter: {
-          const activeValue = this.activeFilters()[presetFilter.id as keyof ActiveFilters] as FilterDateRange | undefined;
-          if (activeValue && typeof activeValue === 'object' && 'start' in activeValue && 'end' in activeValue) {
-            return activeValue.start === presetFilter.dateRange.start &&
-              activeValue.end === presetFilter.dateRange.end;
+          const activeValue = this.activeFilters()[presetFilter.id as keyof ActiveFilters] as
+            | FilterDateRange
+            | undefined;
+          if (
+            activeValue &&
+            typeof activeValue === 'object' &&
+            'start' in activeValue &&
+            'end' in activeValue
+          ) {
+            return (
+              activeValue.start === presetFilter.dateRange.start &&
+              activeValue.end === presetFilter.dateRange.end
+            );
           }
           return false;
         }
 
         case 'range' in presetFilter: {
-          const activeValue = this.activeFilters()[presetFilter.id as keyof ActiveFilters] as FilterRange | undefined;
-          if (activeValue && typeof activeValue === 'object' && 'start' in activeValue && 'end' in activeValue) {
-            return activeValue.start === presetFilter.range.start &&
-              activeValue.end === presetFilter.range.end;
+          const activeValue = this.activeFilters()[presetFilter.id as keyof ActiveFilters] as
+            | FilterRange
+            | undefined;
+          if (
+            activeValue &&
+            typeof activeValue === 'object' &&
+            'start' in activeValue &&
+            'end' in activeValue
+          ) {
+            return (
+              activeValue.start === presetFilter.range.start &&
+              activeValue.end === presetFilter.range.end
+            );
           }
           return false;
         }
@@ -592,13 +659,16 @@ export class FilterMenuComponent implements OnInit {
     const afterDialogRender = (ref: MatDialogRef<any>, action: () => void) => {
       dialogRef?.close();
       dialogRef = ref;
-      ref.afterOpened()
+      ref
+        .afterOpened()
         .pipe(first())
         .subscribe(() => {
-          afterNextRender({
-            read: () => action()
-          },
-            { injector: this.injector });
+          afterNextRender(
+            {
+              read: () => action(),
+            },
+            { injector: this.injector }
+          );
         });
     };
 
@@ -607,41 +677,46 @@ export class FilterMenuComponent implements OnInit {
         element: '.tour-expand-all-filters',
         popover: {
           title: 'Alle Filter ausklappen',
-          description: 'Klicken Sie hier, um alle Filterabschnitte im Filtermenü gleichzeitig zu erweitern.',
-          onPopoverRender: () => this.accordion().openAll()
+          description:
+            'Klicken Sie hier, um alle Filterabschnitte im Filtermenü gleichzeitig zu erweitern.',
+          onPopoverRender: () => this.accordion().openAll(),
         },
       },
       {
         element: '.tour-collapse-all-filters',
         popover: {
           title: 'Alle Filter einklappen',
-          description: 'Klicken Sie hier, um alle Filterabschnitte im Filtermenü gleichzeitig zu schließen.',
-          onPopoverRender: () => this.accordion().closeAll()
+          description:
+            'Klicken Sie hier, um alle Filterabschnitte im Filtermenü gleichzeitig zu schließen.',
+          onPopoverRender: () => this.accordion().closeAll(),
         },
       },
       {
         element: '.tour-reset-filters',
         popover: {
           title: 'Filter zurücksetzen',
-          description: 'Über diesen Button können Sie alle aktiven Filter zurücksetzen und die Standardansicht wiederherstellen.',
+          description:
+            'Über diesen Button können Sie alle aktiven Filter zurücksetzen und die Standardansicht wiederherstellen.',
         },
       },
       {
         element: '.tour-filter-presets',
         popover: {
           title: 'Filter-Presets',
-          description: 'Hier können Sie vordefinierte Filterkombinationen auswählen und erstellen, um schnell bestimmte Ansichten zu laden.',
+          description:
+            'Hier können Sie vordefinierte Filterkombinationen auswählen und erstellen, um schnell bestimmte Ansichten zu laden.',
         },
       },
       {
         element: '.tour-save-filter-preset',
         popover: {
           title: 'Filter-Preset speichern',
-          description: 'Hier können Sie die aktuellen Filtereinstellungen als neues Preset speichern, um sie später schnell wiederverwenden zu können.',
-          onNextClick: () => afterDialogRender(
-            this.saveCurrentFiltersAsPreset(),
-            () => this.driverJsTourService.getTourDriver().moveNext()
-          )
+          description:
+            'Hier können Sie die aktuellen Filtereinstellungen als neues Preset speichern, um sie später schnell wiederverwenden zu können.',
+          onNextClick: () =>
+            afterDialogRender(this.saveCurrentFiltersAsPreset(), () =>
+              this.driverJsTourService.getTourDriver().moveNext()
+            ),
         },
       },
       {
@@ -649,8 +724,9 @@ export class FilterMenuComponent implements OnInit {
         disableActiveInteraction: true,
         popover: {
           title: 'Neues Filter-Preset',
-          description: 'Geben Sie hier einen Namen für Ihr neues Filter-Preset ein und speichern Sie es, um die aktuellen Filtereinstellungen zu sichern.',
-          onPopoverRender: (popover) => this.driverJsTourService.placePopoverOntopDialog(popover),
+          description:
+            'Geben Sie hier einen Namen für Ihr neues Filter-Preset ein und speichern Sie es, um die aktuellen Filtereinstellungen zu sichern.',
+          onPopoverRender: popover => this.driverJsTourService.placePopoverOntopDialog(popover),
           onPrevClick: () => {
             dialogRef?.close();
             this.driverJsTourService.getTourDriver().movePrevious();
@@ -662,22 +738,23 @@ export class FilterMenuComponent implements OnInit {
           onNextClick: () => {
             dialogRef?.close();
             this.driverJsTourService.getTourDriver().moveNext();
-          }
+          },
         },
       },
       {
         element: '.tour-edit-filter-presets',
         popover: {
           title: 'Filter-Presets bearbeiten',
-          description: 'Hier können Sie Ihre gespeicherten Filter-Presets verwalten, um sie umzubenennen oder zu löschen.',
-          onPrevClick: () => afterDialogRender(
-            this.saveCurrentFiltersAsPreset(),
-            () => this.driverJsTourService.getTourDriver().movePrevious()
-          ),
-          onNextClick: () => afterDialogRender(
-            this.editFilterPresets(),
-            () => this.driverJsTourService.getTourDriver().moveNext()
-          ),
+          description:
+            'Hier können Sie Ihre gespeicherten Filter-Presets verwalten, um sie umzubenennen oder zu löschen.',
+          onPrevClick: () =>
+            afterDialogRender(this.saveCurrentFiltersAsPreset(), () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+          onNextClick: () =>
+            afterDialogRender(this.editFilterPresets(), () =>
+              this.driverJsTourService.getTourDriver().moveNext()
+            ),
         },
       },
       {
@@ -685,8 +762,9 @@ export class FilterMenuComponent implements OnInit {
         disableActiveInteraction: true,
         popover: {
           title: 'Filter-Presets verwalten',
-          description: 'Verwalten Sie hier Ihre gespeicherten Filter-Presets. Sie können Presets umbenennen oder löschen, um Ihre Filteroptionen aktuell zu halten.',
-          onPopoverRender: (popover) => this.driverJsTourService.placePopoverOntopDialog(popover),
+          description:
+            'Verwalten Sie hier Ihre gespeicherten Filter-Presets. Sie können Presets umbenennen oder löschen, um Ihre Filteroptionen aktuell zu halten.',
+          onPopoverRender: popover => this.driverJsTourService.placePopoverOntopDialog(popover),
           onPrevClick: () => {
             dialogRef?.close();
             this.driverJsTourService.getTourDriver().movePrevious();
@@ -698,21 +776,22 @@ export class FilterMenuComponent implements OnInit {
           onNextClick: () => {
             dialogRef?.close();
             this.driverJsTourService.getTourDriver().moveNext();
-          }
+          },
         },
       },
       {
         element: '.tour-filter-column-selection',
         popover: {
           title: 'Spaltenauswahl',
-          description: 'Hier können Sie die sichtbaren Spalten in der Tabelle auswählen oder abwählen.',
-          onPrevClick: () => afterDialogRender(
-            this.editFilterPresets(),
-            () => this.driverJsTourService.getTourDriver().movePrevious()
-          ),
+          description:
+            'Hier können Sie die sichtbaren Spalten in der Tabelle auswählen oder abwählen.',
+          onPrevClick: () =>
+            afterDialogRender(this.editFilterPresets(), () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
           onPopoverRender: () => this.isColumnSelectionExpanded.set(true),
         },
-      }
+      },
     ]);
   }
 }

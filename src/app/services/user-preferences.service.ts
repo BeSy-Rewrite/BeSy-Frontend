@@ -135,6 +135,11 @@ export class UserPreferencesService {
     );
   }
 
+  /**
+   * Saves a new filter preset for the current user.
+   * @param preset The OrdersFilterPreset to save.
+   * @returns An Observable of an array of OrdersFilterPreset including the newly saved preset.
+   */
   savePreset(preset: OrdersFilterPreset) {
     return this.getFullPresetList(
       this.addPreferences({
@@ -153,6 +158,39 @@ export class UserPreferencesService {
     );
   }
 
+  /**
+   * Updates an existing preset identified by its label.
+   * @param oldLabel The label of the preset to update.
+   * @param updatedPreset The updated OrdersFilterPreset.
+   * @returns An Observable of an array of OrdersFilterPreset.
+   */
+  updatePresetByLabel(
+    oldLabel: string,
+    updatedPreset: OrdersFilterPreset,
+    createIfNotExists: boolean = false
+  ) {
+    return this.getCustomPresets().pipe(
+      mergeMap(customPresets => {
+        const presetToUpdate = customPresets.find(preset => preset.label === oldLabel);
+        if (!presetToUpdate) {
+          if (createIfNotExists) {
+            return this.savePreset(updatedPreset);
+          } else {
+            throw new Error(`Preset with label "${oldLabel}" not found.`);
+          }
+        }
+        return this.deletePreset(presetToUpdate).pipe(
+          mergeMap(() => this.savePreset(updatedPreset))
+        );
+      })
+    );
+  }
+
+  /**
+   * Deletes a specific filter preset for the current user.
+   * @param preset The OrdersFilterPreset to delete.
+   * @returns An Observable of an array of OrdersFilterPreset.
+   */
   deletePreset(preset: OrdersFilterPreset) {
     return this.getFullPresetList(
       this.deletePreferences({
