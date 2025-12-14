@@ -3,6 +3,7 @@
   It should not be deleted, it will not be used at runtime.
   Use src/styles.scss for global styles instead.
 */
+@import 'driver.js/dist/driver.css';
 @import 'tailwindcss';
 @tailwind utilities;
 
