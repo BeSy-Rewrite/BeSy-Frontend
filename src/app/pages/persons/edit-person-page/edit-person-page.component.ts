@@ -16,6 +16,7 @@ import {
   MatButtonToggleGroup,
 } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
+import { MatDivider } from '@angular/material/divider';
 import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
@@ -45,6 +46,7 @@ import { PersonsWrapperService } from '../../../services/wrapper-services/person
     MatButtonToggle,
     MatIcon,
     GenericTableComponent,
+    MatDivider,
   ],
   templateUrl: './edit-person-page.component.html',
   styleUrl: './edit-person-page.component.scss',
@@ -110,12 +112,15 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
   fetchedPerson: PersonResponseDTO | undefined = undefined;
   fetchedAddress: AddressResponseDTO | undefined = undefined;
   personHasSavedAddress = signal<boolean>(false);
+  personName = signal<string>('');
 
   ngOnInit(): void {
     const resolvedData: EditPersonResolvedData = this.route.snapshot.data['personData'];
     this.fetchedPerson = resolvedData.person;
     this.fetchedAddress = resolvedData.address;
-    console.log('Fetched Person:', this.fetchedPerson);
+    this.personName.set(
+      `${this.fetchedPerson?.name ?? ''} ${this.fetchedPerson?.surname ?? ''}`.trim()
+    );
 
     this.personsWrapperService.getAllPersonsAddresses().then(addresses => {
       this.addresses = addresses;

@@ -1,55 +1,231 @@
-<div class="add-person-page h-auto overflow-visible">
-  <mat-divider style="background-color: purple"></mat-divider>
-  <div style="justify-content: flex-end overflow-visible">
-    <div class="form-container flex overflow-visible">
-      <!-- Left column: Supplier + CustomerId -->
-      <div class="left-column flex flex-col basis-1/2 p-8">
-        <div class="person-data-container overflow-visible">
+<div class="edit-supplier-container">
+  <mat-divider style="background-color: darkgrey; margin-bottom: 12px"></mat-divider>
+  <div class="grid-div">
+    <div class="left-grid-item">
+      <div class="page-back">
+        <button mat-raised-button color="primary" class="back-button" (click)="onNavigateBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Zurück
+        </button>
+      </div>
+      <div class="revert-button">
+        <button mat-raised-button color="warn" (click)="onRevertChanges()" class="action-button">
+          <mat-icon>close</mat-icon>
+          Verwerfen
+        </button>
+      </div>
+    </div>
+    <!-- Middle Content -->
+    <div class="middle-grid-item">
+      <!-- Edit Header -->
+      <div class="edit-header">
+        <mat-icon>edit</mat-icon>
+        <div class="edit-header-content">
+          <h1>Lieferant "{{ supplierName() }} " bearbeiten</h1>
+          <p class="edit-header-subtitle">Aktualisieren Sie die Daten dieses Lieferanten</p>
+        </div>
+      </div>
+
+      <!-- Step 1: Supplier Data -->
+      <div class="step-section">
+        <div class="step-header">
+          <div class="step-indicator">1</div>
+          <div class="step-title">
+            <h2>Lieferantendaten bearbeiten</h2>
+            <p class="step-subtitle">Ändern Sie die Lieferanteninformationen nach Bedarf</p>
+          </div>
+        </div>
+        <div class="step-content">
           <app-form-component
             [config]="supplierFormConfig"
             [formGroup]="supplierForm"
             [editMode]="true"
           ></app-form-component>
         </div>
-        <div class="customer-data-container overflow-visible mt-8">
-          <app-form-component
-            class=""
-            [config]="customerIdFormConfig"
-            [formGroup]="customerIdForm"
-            [tableDataSource]="customerIdTableDataSource"
-            [tableColumns]="customerIdTableColumns"
-          ></app-form-component>
+      </div>
+
+      <!-- Step 2: Customer IDs -->
+      <div class="step-section">
+        <div class="step-header">
+          <div class="step-indicator">2</div>
+          <div class="step-title">
+            <h2>Kundennummern verwalten</h2>
+            <span class="optional-badge">Optional</span>
+          </div>
+        </div>
+        <div class="step-content">
+          <div class="info-banner info-banner--info">
+            <mat-icon>lightbulb</mat-icon>
+            <span
+              >Verwalten Sie die Kundennummern bei diesem Lieferanten. Sie können neue Kundennummern
+              hinzufügen, bestehende Kundennummern aber nicht löschen.</span
+            >
+          </div>
+
+          <!-- Add Customer ID Form -->
+          <div class="customer-id-form-section">
+            <h3 class="customer-id-form-title">Neue Kundennummer hinzufügen</h3>
+            <app-form-component
+              [config]="customerIdFormConfig"
+              [formGroup]="customerIdForm"
+            ></app-form-component>
+            <button
+              mat-raised-button
+              color="primary"
+              class="customer-id-add-button"
+              (click)="onAddCustomerID()"
+              [disabled]="customerIdForm.invalid"
+            >
+              <mat-icon>add</mat-icon>
+              Kundennummer hinzufügen
+            </button>
+          </div>
+
+          <!-- Existing Customer IDs Table -->
+          @if (customerIDs().length > 0) {
+            <div class="added-customer-id-preview">
+              <div class="customer-id-table-container">
+                <div class="customer-id-table-header">
+                  <mat-icon>list_alt</mat-icon>
+                  <span>Bestehende Kundennummern ({{ customerIDs().length }})</span>
+                </div>
+                <app-generic-table
+                  [dataSource]="customerIDsTableDataSource"
+                  [columns]="customerIDsTableColumns"
+                  [actions]="customerIDsTableActions"
+                  [pageSize]="5"
+                ></app-generic-table>
+              </div>
+            </div>
+          }
         </div>
       </div>
-      <mat-divider
-        [vertical]="true"
-        style="border-right-width: 4px; background-color: purple"
-      ></mat-divider>
 
-      <!-- Right Column: Address -->
-      <div class="right-column flex-1 p-8">
-        <div class="address-data-container overflow-visible flex-1">
-          <app-address-form
-            [config]="addressFormConfig"
-            [formGroup]="addressForm"
-            [editMode]="true"
-          ></app-address-form>
+      <!-- Step 3: Address -->
+      <div class="step-section">
+        <div class="step-header">
+          <div class="step-indicator">3</div>
+          <div class="step-title">
+            <h2>Adresse des Lieferanten bearbeiten</h2>
+            <span class="required-badge">Erforderlich</span>
+          </div>
         </div>
+        <div class="step-content">
+          <!-- Address Mode Selection -->
+          <div class="address-mode-selector">
+            <mat-button-toggle-group
+              [value]="addressMode()"
+              (change)="onAddressModeChange($event)"
+              class="address-toggle-group"
+            >
+              <mat-button-toggle value="existing">
+                <mat-icon>check_circle</mat-icon>
+                <span>Aktuelle Adresse</span>
+              </mat-button-toggle>
+              <mat-button-toggle value="search">
+                <mat-icon>search</mat-icon>
+                <span>Adresse suchen</span>
+              </mat-button-toggle>
+              <mat-button-toggle value="new">
+                <mat-icon>add</mat-icon>
+                <span>Neue Adresse anlegen</span>
+              </mat-button-toggle>
+            </mat-button-toggle-group>
+          </div>
 
+          <!-- Current Address Mode -->
+          @if (addressMode() === 'existing') {
+            <div class="existing-address-panel">
+              <div class="info-banner">
+                <mat-icon>info</mat-icon>
+                <span
+                  >Dies ist die aktuell gespeicherte Adresse des Lieferanten. Wählen Sie einen
+                  anderen Modus, um die Adresse zu ändern.</span
+                >
+              </div>
+              <app-form-component
+                [config]="addressFormConfig"
+                [formGroup]="addressFormGroup"
+              ></app-form-component>
+            </div>
+          }
 
-        <div class="buttons flex justify-end gap-x-2">
-          <button mat-raised-button color="primary" (click)="onSubmit()">
-            Speichern
-          </button>
-          <button
-            mat-raised-button
-            color="warn"
-            (click)="onBack()"
-            aria-label="cancel"
-          >
-            Verwerfen
-          </button>
+          <!-- Search Address Mode -->
+          @if (addressMode() === 'search') {
+            <div class="address-search-panel">
+              <div class="info-banner">
+                <mat-icon>info</mat-icon>
+                <span
+                  >Geben Sie den Firmennamen oder Standort ein, um eine neue Adresse zu suchen.
+                  Wählen Sie dann eine Adresse aus der Tabelle.</span
+                >
+              </div>
+
+              <div class="search-input-container">
+                <app-form-component
+                  [config]="nominatimAddressFormConfig"
+                  [formGroup]="nominatimAddressFormGroup"
+                  (searchEvent)="onSearch($event)"
+                ></app-form-component>
+              </div>
+
+              @if (nominatimTableDataSource().data.length > 0) {
+                <div class="search-results-container">
+                  <app-generic-table
+                    [dataSource]="nominatimTableDataSource()"
+                    [columns]="nominatimResponseTableColumns"
+                    [pageSize]="5"
+                    (rowClicked)="onAddressInTableSelected($event)"
+                  ></app-generic-table>
+                </div>
+              }
+
+              @if (addressIsSelected()) {
+                <div class="selected-address-preview">
+                  <div class="preview-header">
+                    <mat-icon>edit_location</mat-icon>
+                    <span>Ausgewählte Adresse - Bitte überprüfen und ggf. ergänzen</span>
+                  </div>
+                  <div class="preview-warning">
+                    <mat-icon>warning</mat-icon>
+                    <span
+                      >Suchergebnisse können unvollständig sein. Bitte überprüfen und ergänzen Sie
+                      die Adressdaten.</span
+                    >
+                  </div>
+                  <app-form-component
+                    [config]="addressFormConfig"
+                    [formGroup]="addressFormGroup"
+                  ></app-form-component>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- New Address Mode -->
+          @if (addressMode() === 'new') {
+            <div class="new-address-panel">
+              <div class="info-banner info-banner--action">
+                <mat-icon>edit</mat-icon>
+                <span>Geben Sie eine neue Adresse für den Lieferanten ein.</span>
+              </div>
+              <app-form-component
+                [config]="addressFormConfig"
+                [formGroup]="addressFormGroup"
+              ></app-form-component>
+            </div>
+          }
         </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="right-grid-item">
+      <div class="submit-button">
+        <button mat-raised-button color="primary" (click)="onSubmit()" class="action-button">
+          <mat-icon>save</mat-icon>
+          Änderungen speichern
+        </button>
       </div>
     </div>
   </div>

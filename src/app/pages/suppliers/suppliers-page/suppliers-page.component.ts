@@ -1,5 +1,15 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import { FormGroup } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import {
+  MatButtonToggle,
+  MatButtonToggleChange,
+  MatButtonToggleGroup,
+} from '@angular/material/button-toggle';
+import { MatDivider } from '@angular/material/divider';
+import { MatIcon } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTableDataSource } from '@angular/material/table';
 import { MatTab, MatTabGroup } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import {
@@ -7,21 +17,18 @@ import {
   CustomerIdRequestDTO,
   SupplierRequestDTO,
   SupplierResponseDTO,
-  VatResponseDTO,
 } from '../../../api-services-v2';
+import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { ADDRESS_FORM_CONFIG } from '../../../configs/create-address-config';
 import { CUSTOMER_ID_FORM_CONFIG } from '../../../configs/create-customer-id-config';
-import { SUPPLIER_FORM_CONFIG } from '../../../configs/create-supplier-config';
+import {
+  NOMINATIM_SEARCH_CONFIG,
+  SUPPLIER_FORM_CONFIG,
+} from '../../../configs/supplier/supplier-config';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
+import { NominatimMappedAddress, NominatimService } from '../../../services/nominatim.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
-import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
-import { MatDivider } from '@angular/material/divider';
-import { FormComponent } from '../../../components/form-component/form-component.component';
-import { AddressFormComponent } from '../../../components/address-form/address-form.component';
-import { MatButtonModule } from '@angular/material/button';
-import { FormGroup } from '@angular/forms';
-import { MatTableDataSource } from '@angular/material/table';
 
 @Component({
   selector: 'app-suppliers-page',
@@ -31,17 +38,15 @@ import { MatTableDataSource } from '@angular/material/table';
     MatTab,
     GenericTableComponent,
     FormComponent,
-    AddressFormComponent,
     MatButtonModule,
+    MatButtonToggleGroup,
+    MatButtonToggle,
+    MatIcon,
   ],
   templateUrl: './suppliers-page.component.html',
   styleUrl: './suppliers-page.component.scss',
 })
 export class SuppliersPageComponent implements OnInit {
-
-  // ! ID of the selected address in the table. Keep default undefinded!
-  selectedAddressId: number | undefined = undefined;
-
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
 
   // Button actions for the table
@@ -88,26 +93,59 @@ export class SuppliersPageComponent implements OnInit {
   addressFormConfig = ADDRESS_FORM_CONFIG;
   customerIdFormConfig = CUSTOMER_ID_FORM_CONFIG;
 
-  supplierForm = new FormGroup({});
-  addressForm = new FormGroup({});
+  supplierFormGroup = new FormGroup({});
+  addressFormGroup = new FormGroup({});
   customerIdForm = new FormGroup({});
 
-  constructor(private readonly router: Router,
+  addressMode = signal<'new' | 'search'>('search');
+  nominatimAddressFormConfig = NOMINATIM_SEARCH_CONFIG;
+  nominatimAddressFormGroup = new FormGroup({});
+  nominatimResponseTableColumns = [
+    { id: 'name', label: 'Bezeichnung' },
+    { id: 'street', label: 'Straße' },
+    { id: 'building_number', label: 'Hausnummer' },
+    { id: 'postal_code', label: 'Postleitzahl' },
+    { id: 'town', label: 'Ort' },
+    { id: 'country', label: 'Land' },
+  ];
+  nominatimTableDataSource = signal<MatTableDataSource<NominatimMappedAddress>>(
+    new MatTableDataSource<NominatimMappedAddress>([])
+  );
+
+  addressIsSelected: WritableSignal<boolean> = signal(false);
+  customerIDs = signal<CustomerIdRequestDTO[]>([]);
+  customerIDsTableDataSource = new MatTableDataSource<CustomerIdRequestDTO>([]);
+  customerIDsTableColumns = [
+    { id: 'customer_id', label: 'Kundennummer' },
+    { id: 'comment', label: 'Kommentar' },
+  ];
+  customerIDsTableActions: TableActionButton[] = [
+    {
+      id: 'delete',
+      label: 'Löschen',
+      buttonType: 'filled',
+      color: ButtonColor.WARN,
+      action: (row: CustomerIdRequestDTO) => {
+        this.onDeleteCustomerID(row);
+      },
+    },
+  ];
+
+  constructor(
+    private readonly router: Router,
     private readonly _notifications: MatSnackBar,
     private readonly suppliersWrapperService: SuppliersWrapperService,
-    private readonly vatWrapperService: VatWrapperService
-  ) { }
+    private readonly nominatimService: NominatimService
+  ) {}
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit(): void {
+    this.loadInitialData();
+  }
+
+  private async loadInitialData(): Promise<void> {
     // Load initial data for the supplier table
     const suppliers = await this.suppliersWrapperService.getAllSuppliers();
-    this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(
-      suppliers
-    );
-
-    // Load initial data for the VAT options field in the form
-    const vatOptions = await this.vatWrapperService.getAllVats();
-    this.setDropdownOptions(vatOptions);
+    this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(suppliers);
   }
 
   // * Handle edit action
@@ -115,12 +153,12 @@ export class SuppliersPageComponent implements OnInit {
     this.router.navigate(['/suppliers/', row.id, 'edit']);
   }
 
-  // ToDo: Implement delete logic
+  // Placeholder: add delete logic when backend endpoint is ready
   deleteSupplier(row: SupplierResponseDTO) {
     // Implement delete logic here
   }
 
-  // ToDo: Implement view logic
+  // Placeholder: view navigation
   viewSupplier(row: SupplierResponseDTO) {
     this.router.navigate(['/suppliers/', row.id, 'view']);
   }
@@ -128,12 +166,26 @@ export class SuppliersPageComponent implements OnInit {
   // * Handle form submission
   async onSubmit() {
     // Check if both forms are valid
-    if (this.supplierForm.valid && this.addressForm.valid) {
+    if (this.supplierFormGroup.valid && this.addressFormGroup.valid) {
       // Both forms are valid, check the address mode to determine whether to use an existing address or create a new one
-      const supplierFormValue = this.supplierForm.value as SupplierRequestDTO;
-      const addressFormValue =
-        this.addressForm.getRawValue() as AddressRequestDTO;
-      const customerIdValue = this.customerIdForm.value as CustomerIdRequestDTO;
+      const supplierFormValue = this.supplierFormGroup.value as SupplierRequestDTO;
+      const addressFormValue = this.addressFormGroup.getRawValue() as AddressRequestDTO;
+
+      // Check if a supplier with the same name already exists --> the backend will throw an error
+
+      const supplierExists = await this.suppliersWrapperService.checkIfSupplierExists(
+        supplierFormValue.name
+      );
+      if (supplierExists) {
+        this._notifications.open(
+          'Ein Lieferant mit diesem Namen existiert bereits. Bitte bearbeiten sie den entsprechenden Lieferanten oder wählen sie einen anderen Namen aus.',
+          undefined,
+          {
+            duration: 5000,
+          }
+        );
+        return;
+      }
 
       try {
         // create Supplier
@@ -142,17 +194,12 @@ export class SuppliersPageComponent implements OnInit {
           address: addressFormValue,
         });
 
-        // create Customer-Id if customer_id field is not empty and supplier-create response is valid
-        if (customerIdValue.customer_id?.trim() && response.id !== undefined) {
-          try {
-            await this.suppliersWrapperService.createSupplierCustomerId(response.id, {
-              ...customerIdValue,
-            });
-          } catch (error) {
-            this._notifications.open(
-              'Fehler beim Erstellen der Kundennummer',
-              undefined,
-              { duration: 3000 }
+        // If there are customer IDs to create, create them
+        if (this.customerIDs().length > 0 && response.id) {
+          for (const customerIdData of this.customerIDs()) {
+            await this.suppliersWrapperService.createSupplierCustomerId(
+              response.id,
+              customerIdData
             );
           }
         }
@@ -162,46 +209,89 @@ export class SuppliersPageComponent implements OnInit {
           duration: 3000,
         });
       } catch (error) {
-        // Show error notification
-        this._notifications.open(
-          'Fehler beim Erstellen des Lieferanten',
-          undefined,
-          { duration: 3000 }
-        );
+        console.error('Error creating supplier:', error);
+        this._notifications.open('Fehler beim Erstellen des Lieferanten', undefined, {
+          duration: 3000,
+        });
       }
     } else {
       // Handle form errors
-      this.supplierForm.markAllAsTouched();
-      this.addressForm.markAllAsTouched();
-      this._notifications.open(
-        'Bitte überprüfen Sie die Eingaben im Formular',
-        undefined,
-        { duration: 3000 }
-      );
+      this.supplierFormGroup.markAllAsTouched();
+      this.addressFormGroup.markAllAsTouched();
+      this._notifications.open('Bitte überprüfen Sie die Eingaben im Formular', undefined, {
+        duration: 3000,
+      });
     }
   }
 
   // * Handle back navigation
   onBack() {
-    this.supplierForm.reset();
-    this.addressForm.reset();
+    this.supplierFormGroup.reset();
+    this.addressFormGroup.reset();
+    this.customerIdForm.reset();
+    this.nominatimAddressFormGroup.reset();
+    this.addressIsSelected.set(false);
     this.tabGroup.selectedIndex = 0; // Switch to tab index for "Lieferantenübersicht"
   }
 
-  // * Catch emitted event from address-form-component
-  // * Update selectedAddressId with the selected address ID
-  onAddressSelected($event: number) {
-    this.selectedAddressId = $event;
+  onAddCustomerID() {
+    if (this.customerIdForm.invalid) {
+      this._notifications.open('Bitte alle Pflichtfelder ausfüllen', undefined, { duration: 3000 });
+      return;
+    }
+
+    const customerIdFormValue = this.customerIdForm.value as CustomerIdRequestDTO;
+
+    // Check if customer ID already exists in the table
+    if (
+      this.customerIDs()
+        .map(item => item.customer_id)
+        .includes(customerIdFormValue.customer_id)
+    ) {
+      this._notifications.open('Diese Kundennummer wurde bereits hinzugefügt', undefined, {
+        duration: 3000,
+      });
+      return;
+    }
+
+    // Add new customer ID to the signal and update the table data source
+    this.customerIDs.update(current => [...current, customerIdFormValue]);
+    this.customerIDsTableDataSource.data = this.customerIDs();
+    this.customerIdForm.reset();
   }
 
-  // Set dropdown options for the form fields
-  setDropdownOptions(vatOptions: VatResponseDTO[]) {
-    // set options for dropdown fields
-    this.supplierFormConfig.fields.find(
-      (field) => field.name === 'vat_id'
-    )!.options = vatOptions.map((vat) => ({
-      value: vat.value,
-      label: `${vat.description} (${vat.value}%)`,
-    }));
+  onDeleteCustomerID(row: CustomerIdRequestDTO) {
+    this.customerIDs.update(current =>
+      current.filter(item => item.customer_id !== row.customer_id || item.comment !== row.comment)
+    );
+    this.customerIDsTableDataSource.data = this.customerIDs();
+  }
+
+  onSearch(query: string) {
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return;
+
+    this.nominatimService.throttledSearch(trimmedQuery).subscribe(results => {
+      this.nominatimTableDataSource().data = results;
+    });
+  }
+
+  onAddressInTableSelected(event: NominatimMappedAddress | null) {
+    if (!event) {
+      this.addressIsSelected.set(false);
+      this.addressFormGroup.reset();
+      return;
+    }
+    // Set selected state first to render form
+    this.addressIsSelected.set(true);
+    // Defer patch until form controls are created
+    setTimeout(() => {
+      this.addressFormGroup.patchValue(event);
+    });
+  }
+
+  onAddressModeChange(event: MatButtonToggleChange): void {
+    this.addressMode.set(event.value);
+    this.addressFormGroup.reset();
   }
 }

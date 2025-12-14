@@ -1,9 +1,21 @@
-import { Validators } from "@angular/forms";
-import { FormConfig } from "../../components/form-component/form-component.component";
+import { Validators } from '@angular/forms';
+import { FormConfig } from '../../components/form-component/form-component.component';
+
+export const NOMINATIM_SEARCH_CONFIG: FormConfig = {
+  fields: [
+    {
+      name: 'nominatim_search',
+      label: 'Adresse suchen',
+      type: 'search',
+      required: false,
+      nominatim_param: 'address',
+      tooltip: 'Geben Sie eine Adresse ein, um nach passenden Treffern zu suchen.',
+    },
+  ],
+};
 
 // Supplier Configuration (matches SupplierRequestDTO)
-export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
-  title: 'Lieferant {Lieferantenname} bearbeiten',
+export const SUPPLIER_FORM_CONFIG: FormConfig = {
   fields: [
     {
       name: 'name',
@@ -13,7 +25,7 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
       nominatim_param: 'q', // Cannot be paired with any other address param!!!
       nominatim_field: 'name',
       editable: true,
-      tooltip: 'Name des Lieferanten. Wird in der Lieferantenauswahl angezeigt.'
+      tooltip: 'Name des Lieferanten. Wird in der Lieferantenauswahl angezeigt.',
     },
     {
       name: 'flag_preferred',
@@ -22,19 +34,16 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
       required: true,
       options: [
         { value: false, label: 'Nein' },
-        { value: true, label: 'Ja' }
+        { value: true, label: 'Ja' },
       ],
       editable: true,
     },
     {
       name: 'vat_id',
-      label: 'Mehrwertsteuersatz',
-      type: 'select',
+      label: 'USt-IdNr.',
+      type: 'text',
       required: false,
-      options: [
-        {value: 'error_loading_from_api', label: 'Fehler beim Laden der Optionen'}
-      ],
-      tooltip: 'Bitte wählen Sie den Mehrwertsteuersatz aus.',
+      tooltip: 'Umsatzsteuer-Identifikationsnummer des Lieferanten.',
       editable: true,
     },
     {
@@ -51,7 +60,8 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
       type: 'tel',
       required: false,
       editable: true,
-      tooltip: 'Faxnummer des Lieferanten. Bitte im internationalen Format angeben, z.B. +49 123 4567890'
+      tooltip:
+        'Faxnummer des Lieferanten. Bitte im internationalen Format angeben, z.B. +49 123 4567890',
     },
     {
       name: 'phone',
@@ -59,7 +69,8 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
       type: 'tel',
       required: false,
       editable: true,
-      tooltip: 'Telefonnummer des Lieferanten. Bitte im internationalen Format angeben, z.B. +49 123 4567890'
+      tooltip:
+        'Telefonnummer des Lieferanten. Bitte im internationalen Format angeben, z.B. +49 123 4567890',
     },
     {
       name: 'comment',
@@ -68,7 +79,7 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
       required: false,
       validators: [Validators.maxLength(255)],
       editable: true,
-      tooltip: 'Interne Anmerkungen zum Lieferanten.'
+      tooltip: 'Interne Anmerkungen zum Lieferanten.',
     },
     {
       name: 'website',
@@ -76,7 +87,7 @@ export const EDIT_SUPPLIER_FORM_CONFIG: FormConfig = {
       type: 'text',
       required: false,
       editable: true,
-      tooltip: 'Webseite des Lieferanten.'
+      tooltip: 'Webseite des Lieferanten.',
     },
-  ]
+  ],
 };

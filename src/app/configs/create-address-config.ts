@@ -1,17 +1,14 @@
-import { Validators } from "@angular/forms";
-import { AddressConfig } from "../components/address-form/address-form.component";
+import { Validators } from '@angular/forms';
+import { FormConfig } from '../components/form-component/form-component.component';
 
-export const ADDRESS_FORM_CONFIG: AddressConfig = {
-  title: '2. Präferierte Adresse festlegen',
-  editSubtitle: 'Bestehende Adresse auswählen',
-  newAddressSubtitle: 'Neue Adresse anlegen',
+export const ADDRESS_FORM_CONFIG: FormConfig = {
   fields: [
     {
       name: 'building_name',
       label: 'Gebäudename',
       type: 'text',
       required: false,
-      editable: false
+      editable: false,
     },
     {
       name: 'street',
@@ -20,7 +17,7 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       required: true,
       nominatim_param: 'street',
       nominatim_field: 'road',
-      editable: false
+      editable: false,
     },
     {
       name: 'building_number',
@@ -29,7 +26,7 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       required: false,
       nominatim_param: 'street',
       nominatim_field: 'house_number',
-      editable: false
+      editable: false,
     },
     {
       name: 'town',
@@ -38,7 +35,7 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       required: true,
       nominatim_param: 'city',
       nominatim_field: 'town',
-      editable: false
+      editable: false,
     },
     {
       name: 'postal_code',
@@ -47,7 +44,7 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       required: true,
       nominatim_param: 'postalcode',
       nominatim_field: 'postcode',
-      editable: false
+      editable: false,
     },
     {
       name: 'county',
@@ -56,7 +53,7 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       required: false,
       nominatim_param: 'county',
       nominatim_field: 'county',
-      editable: false
+      editable: false,
     },
     {
       name: 'country',
@@ -65,7 +62,7 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       required: true,
       nominatim_param: 'country',
       nominatim_field: 'country',
-      editable: false
+      editable: false,
     },
     {
       name: 'comment',
@@ -73,7 +70,7 @@ export const ADDRESS_FORM_CONFIG: AddressConfig = {
       type: 'textarea',
       required: false,
       editable: false,
-      validators: [Validators.maxLength(255)]
-    }
-  ]
+      validators: [Validators.maxLength(255)],
+    },
+  ],
 };

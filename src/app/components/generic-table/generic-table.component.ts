@@ -9,10 +9,10 @@ import {
   OnInit,
   output,
   signal,
-  viewChild
+  viewChild,
 } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from "@angular/material/divider";
+import { MatDividerModule } from '@angular/material/divider';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
@@ -51,13 +51,12 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
     MatSortModule,
     MatPaginatorModule,
     MatDividerModule,
-    MatTooltipModule
+    MatTooltipModule,
   ],
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.scss',
 })
 export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewInit {
-
   /**
    * The data source for the table, required to be provided.
    */
@@ -73,7 +72,7 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
    * The action buttons to be displayed in the table, optional.
    * If not provided, no action buttons will be displayed.
    */
-  actions = input<TableActionButton[]>([]);
+  actions = input<TableActionButton<T>[]>([]);
 
   /**
    * The number of items to display per page.
@@ -122,9 +121,7 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
 
   paginator = viewChild.required(MatPaginator);
 
-  showFooter = computed(() =>
-    this.internalColumns().some((col) => col.footerContent !== undefined)
-  );
+  showFooter = computed(() => this.internalColumns().some(col => col.footerContent !== undefined));
 
   /**
    * Lifecycle hook that is called after the component has been initialized.
@@ -154,10 +151,10 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
 
   /**
    * Handles the action button click event.
-   * @param {TableActionButton} button - The action button that was clicked.
+   * @param {TableActionButton<T>} button - The action button that was clicked.
    * @param {T} row - The data row associated with the button click.
    */
-  handleAction(button: TableActionButton, row: T) {
+  handleAction(button: TableActionButton<T>, row: T) {
     button.action
       ? button.action(row)
       : console.warn(`No action defined for button: ${button.label}`);
@@ -172,8 +169,8 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
   private _setupInternals() {
     this.displayedColumnIds.set(
       this.columns()
-        .filter((c) => !c.isInvisible)
-        .map((c) => c.id)
+        .filter(c => !c.isInvisible)
+        .map(c => c.id)
     );
     this.internalColumns.set(this.columns());
   }
@@ -185,8 +182,8 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
    */
   private _setupActions() {
     if (this.actions().length > 0) {
-      this.displayedColumnIds.update((ids) => [...ids, 'actions']);
-      this.internalColumns.update((cols) => [
+      this.displayedColumnIds.update(ids => [...ids, 'actions']);
+      this.internalColumns.update(cols => [
         ...cols,
         { id: 'actions', label: 'Actions', isUnsortable: true },
       ]);
@@ -249,10 +246,10 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
   /**
    * Checks if an action button is disabled.
    * Supports both boolean and Signal<boolean> for the disabled property.
-   * @param {TableActionButton} button - The action button to check.
+   * @param {TableActionButton<T>} button - The action button to check.
    * @returns {boolean} Whether the button is disabled.
    */
-  isButtonDisabled(button: TableActionButton): boolean {
+  isButtonDisabled(button: TableActionButton<T>): boolean {
     if (button.disabled === undefined) {
       return false;
     }
