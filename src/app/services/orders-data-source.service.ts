@@ -14,11 +14,10 @@ import { OrderDisplayData } from '../models/order-display-data';
 import { CachedOrdersService } from './cached-orders.service';
 import { OrderSubresourceResolverService } from './order-subresource-resolver.service';
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-export class OrdersDataSourceService<T> extends DataSource<T> {
+export class OrdersDataSourceService extends DataSource<OrderDisplayData> {
   private static readonly DEFAULT_PAGE_SIZE = 25;
 
   private readonly _data: BehaviorSubject<any[]>;
@@ -31,19 +30,20 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
   private readonly _sorting = signal<string[]>([]);
   private readonly sortedByBesyNumber = signal<boolean>(false);
 
-  private _nextPagination: { pageIndex: number; pageSize: number; } | undefined;
+  private _nextPagination: { pageIndex: number; pageSize: number } | undefined;
   private _nextSorting: string[] | undefined;
 
-  constructor(private readonly cacheService: CachedOrdersService, private readonly subresourceResolver: OrderSubresourceResolverService) {
+  constructor(
+    private readonly cacheService: CachedOrdersService,
+    private readonly subresourceResolver: OrderSubresourceResolverService
+  ) {
     super();
     this._data = new BehaviorSubject<OrderResponseDTO[]>([]);
 
     this._requestFetch = new BehaviorSubject<void>(undefined);
-    this._requestFetch.pipe(
-      debounceTime(environment.searchAndFilterDebounceMs))
-      .subscribe(() => {
-        this._fetchData();
-      });
+    this._requestFetch.pipe(debounceTime(environment.searchAndFilterDebounceMs)).subscribe(() => {
+      this._fetchData();
+    });
   }
 
   setNextPagination(pageIndex: number, pageSize: number) {
@@ -59,7 +59,10 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
   sorting = computed<DataSourceSorting[]>(() => {
     const sorting = this._sorting().map(s => {
       const [id, direction] = s.split(',');
-      return { id: this.camelToSnake(id), direction: direction === 'desc' ? 'desc' : 'asc' } as DataSourceSorting;
+      return {
+        id: this.camelToSnake(id),
+        direction: direction === 'desc' ? 'desc' : 'asc',
+      } as DataSourceSorting;
     });
     return sorting;
   });
@@ -138,7 +141,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
         // Special case: Sort by autoIndex, then bookingYear and last primaryCostCenterId to maintain correct order
         const sortings = ['autoIndex', 'bookingYear', 'primaryCostCenterId'].map(id => ({
           active: id,
-          direction: sort.direction
+          direction: sort.direction,
         }));
         for (const s of sortings) {
           this.updateSortingFromMatSort(s);
@@ -219,16 +222,30 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
       bookingYears: this._filter?.booking_year?.map(f => f.id?.toString() ?? ''),
       createdAfter: this._filter?.created_date?.start?.toISOString(),
       createdBefore: this._filter?.created_date?.end?.toISOString(),
-      ownerIds: this._filter?.owner_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
-      statuses: this._filter?.status?.map(f => f.id).filter(f => f !== undefined) as OrderStatus[] | undefined,
+      ownerIds: this._filter?.owner_id?.map(f => f.id).filter(f => f !== undefined) as
+        | number[]
+        | undefined,
+      statuses: this._filter?.status?.map(f => f.id).filter(f => f !== undefined) as
+        | OrderStatus[]
+        | undefined,
       quotePriceMin: this.getUnboundedRange(this._filter?.quote_price)?.start,
       quotePriceMax: this.getUnboundedRange(this._filter?.quote_price)?.end,
-      deliveryPersonIds: this._filter?.delivery_person_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
-      invoicePersonIds: this._filter?.invoice_person_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
-      queriesPersonIds: this._filter?.queries_person_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
+      deliveryPersonIds: this._filter?.delivery_person_id
+        ?.map(f => f.id)
+        .filter(f => f !== undefined) as number[] | undefined,
+      invoicePersonIds: this._filter?.invoice_person_id
+        ?.map(f => f.id)
+        .filter(f => f !== undefined) as number[] | undefined,
+      queriesPersonIds: this._filter?.queries_person_id
+        ?.map(f => f.id)
+        .filter(f => f !== undefined) as number[] | undefined,
       customerIds: undefined,
-      supplierIds: this._filter?.supplier_id?.map(f => f.id).filter(f => f !== undefined) as number[] | undefined,
-      secondaryCostCenters: this._filter?.secondary_cost_center_id?.map(f => f.id?.toString() ?? ''),
+      supplierIds: this._filter?.supplier_id?.map(f => f.id).filter(f => f !== undefined) as
+        | number[]
+        | undefined,
+      secondaryCostCenters: this._filter?.secondary_cost_center_id?.map(
+        f => f.id?.toString() ?? ''
+      ),
       lastUpdatedTimeAfter: this._filter?.last_updated_time?.start?.toISOString(),
       lastUpdatedTimeBefore: this._filter?.last_updated_time?.end?.toISOString(),
       autoIndexMin: this.getUnboundedRange(this._filter?.auto_index)?.start,
@@ -245,7 +262,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
     if (!range) return undefined;
     return {
       start: range.start === range.min ? undefined : range.start,
-      end: range.end === range.max ? undefined : range.end
+      end: range.end === range.max ? undefined : range.end,
     };
   }
 
@@ -282,27 +299,34 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
     }
     if (this._nextSorting) this._sorting.set(this._nextSorting);
 
-    this.cacheService.getAllOrders(
-      this._paginator?.pageIndex ?? 0,
-      this._paginator?.pageSize ?? OrdersDataSourceService.DEFAULT_PAGE_SIZE,
-      this._sorting(),
-      this.getFilterRequestParams(),
-      this._searchTerm ?? ''
-    ).subscribe((page: PagedOrderResponseDTO) => {
-      this.data = page.content ?? [];
+    this.cacheService
+      .getAllOrders(
+        this._paginator?.pageIndex ?? 0,
+        this._paginator?.pageSize ?? OrdersDataSourceService.DEFAULT_PAGE_SIZE,
+        this._sorting(),
+        this.getFilterRequestParams(),
+        this._searchTerm ?? ''
+      )
+      .subscribe((page: PagedOrderResponseDTO) => {
+        this.data = page.content ?? [];
 
-      if (this._paginator) {
-        this._paginator.pageIndex = page.number ?? 0;
-        this._paginator.pageSize = page.size ?? OrdersDataSourceService.DEFAULT_PAGE_SIZE;
-        this._paginator.length = page.total_elements ?? 0;
-      }
-      if (this._sort && this._sorting().length > 0 && this._sort.active) {
-        this._sort.active = this.sortedByBesyNumber() ? 'besy_number' : this.camelToSnake(this._sorting()[0]?.split(',')[0]);
-        this._sort.direction = (this._sorting()[0]?.split(',')[1] ?? 'asc') as 'asc' | 'desc' | '';
-        this._sort.ngOnChanges();
-      }
-      this._nextSorting = undefined;
-    });
+        if (this._paginator) {
+          this._paginator.pageIndex = page.number ?? 0;
+          this._paginator.pageSize = page.size ?? OrdersDataSourceService.DEFAULT_PAGE_SIZE;
+          this._paginator.length = page.total_elements ?? 0;
+        }
+        if (this._sort && this._sorting().length > 0 && this._sort.active) {
+          this._sort.active = this.sortedByBesyNumber()
+            ? 'besy_number'
+            : this.camelToSnake(this._sorting()[0]?.split(',')[0]);
+          this._sort.direction = (this._sorting()[0]?.split(',')[1] ?? 'asc') as
+            | 'asc'
+            | 'desc'
+            | '';
+          this._sort.ngOnChanges();
+        }
+        this._nextSorting = undefined;
+      });
   }
 
   /**
@@ -310,7 +334,7 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
    * @param _collectionViewer The collection viewer to connect to.
    * @returns An observable of the data to display.
    */
-  override connect(_collectionViewer: CollectionViewer): Observable<readonly T[]> {
+  override connect(_collectionViewer: CollectionViewer): Observable<readonly OrderDisplayData[]> {
     this._requestFetch?.next();
     return this._data.asObservable();
   }
@@ -323,5 +347,4 @@ export class OrdersDataSourceService<T> extends DataSource<T> {
   override disconnect(_collectionViewer: CollectionViewer): void {
     // Method required by interface; no action needed.
   }
-
 }

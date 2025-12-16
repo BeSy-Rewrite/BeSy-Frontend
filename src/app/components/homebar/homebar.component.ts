@@ -37,7 +37,7 @@ export class HomebarComponent {
     router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       const currentLinkIndex = this.links.findIndex(
         link =>
-          link.path === `/${router.parseUrl(router.url).root.children['primary'].segments[0].path}`
+          link.path === `/${router.parseUrl(router.url).root.children['primary']?.segments[0].path}`
       );
       this.activeMenuItem.set(currentLinkIndex === -1 ? 0 : currentLinkIndex);
       this.isMobileMenuOpen.set(false);

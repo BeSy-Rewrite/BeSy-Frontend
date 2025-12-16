@@ -1,7 +1,5 @@
-import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { from, lastValueFrom, map, mergeMap, Observable } from 'rxjs';
-import { environment } from '../../../environments/environment';
+import { from, lastValueFrom, map, mergeMap, Observable, Subject, tap } from 'rxjs';
 import {
   ApprovalResponseDTO,
   ItemRequestDTO,
@@ -70,8 +68,9 @@ export interface OrderResponseDTOFormatted {
   providedIn: 'root',
 })
 export class OrdersWrapperService {
+  ordersChanged = new Subject<void>();
+
   constructor(
-    private readonly http: HttpClient,
     private readonly ordersService: OrdersService,
     private readonly costCenterWrapperService: CostCenterWrapperService,
     private readonly personsWrapperService: PersonsWrapperService,
@@ -79,6 +78,13 @@ export class OrdersWrapperService {
     private readonly suppliersWrapperService: SuppliersWrapperService,
     private readonly usersWrapperService: UsersWrapperService
   ) {}
+
+  /**
+   * Should be called whenever orders are created, updated, or deleted to clear the cache.
+   */
+  onOrdersChanged(): void {
+    this.ordersChanged.next();
+  }
 
   /**
    * @param page Seitenzahl für die Paginierung (beginnend bei 0).
@@ -155,7 +161,7 @@ export class OrdersWrapperService {
           if (user.id == undefined) throw new Error('Current user ID is undefined');
           request.owner_id = Number.parseInt(user.id);
           console.log('Creating order with owner_id:', request);
-          return this.ordersService.createOrder(request);
+          return this.ordersService.createOrder(request).pipe(tap(() => this.onOrdersChanged()));
         })
       )
     );
@@ -193,7 +199,9 @@ export class OrdersWrapperService {
   }
 
   async deleteOrder(orderId: number): Promise<void> {
-    return await lastValueFrom(this.ordersService.deleteOrder(orderId));
+    return await lastValueFrom(
+      this.ordersService.deleteOrder(orderId).pipe(tap(() => this.onOrdersChanged()))
+    );
   }
 
   async getOrderItems(orderId: number): Promise<ItemResponseDTO[]>;
@@ -242,7 +250,11 @@ export class OrdersWrapperService {
 
   // JSON.stringify needed as angular http client otherwise sends plain text instead of application/json
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
-    return await lastValueFrom(this.ordersService.updateOrderStatus(orderId, JSON.stringify(newState)));
+    return await lastValueFrom(
+      this.ordersService
+        .updateOrderStatus(orderId, JSON.stringify(newState))
+        .pipe(tap(() => this.onOrdersChanged()))
+    );
   }
 
   async getOrderByIDInFormFormat(orderId: number): Promise<OrderResponseDTOFormatted> {

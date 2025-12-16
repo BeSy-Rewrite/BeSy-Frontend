@@ -11,7 +11,7 @@ type CacheEntry = {
 };
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 /**
  * Service to fetch and cache orders with filtering support.
@@ -20,13 +20,16 @@ type CacheEntry = {
  * The cache duration is configurable (default: 5 minutes).
  */
 export class CachedOrdersService {
-
   private totalElements: number = 0;
   private readonly cacheDurationMs: number = environment.cacheDurationMs ?? 5 * 60 * 1000; // 5 minutes default
 
   private readonly cache: Map<string, CacheEntry> = new Map();
 
-  constructor(private readonly ordersService: OrdersWrapperService) { }
+  constructor(private readonly ordersService: OrdersWrapperService) {
+    ordersService.ordersChanged.subscribe(() => {
+      this.clearCache();
+    });
+  }
 
   /**
    * Fetch orders from the API and cache the result.
@@ -80,24 +83,20 @@ export class CachedOrdersService {
     filters: FilterRequestParams,
     searchTerm: string = ''
   ) {
-    return from(this.ordersService.getAllOrders(
-      page,
-      size,
-      sort,
-      filters,
-      searchTerm
-    )).pipe(
+    return from(this.ordersService.getAllOrders(page, size, sort, filters, searchTerm)).pipe(
       tap((pageResponse: PagedOrderResponseDTO) => {
-
-        if (pageResponse.total_elements !== undefined &&
-          this.totalElements !== pageResponse.total_elements) {
+        if (
+          pageResponse.total_elements !== undefined &&
+          this.totalElements !== pageResponse.total_elements
+        ) {
           this.cache.clear();
           this.totalElements = pageResponse.total_elements;
         }
 
-        this.cache.set(this.getCacheKey(page, size, sort, filters, searchTerm),
-          { response: pageResponse, createdAt: new Date() }
-        );
+        this.cache.set(this.getCacheKey(page, size, sort, filters, searchTerm), {
+          response: pageResponse,
+          createdAt: new Date(),
+        });
       })
     );
   }
@@ -124,7 +123,13 @@ export class CachedOrdersService {
    * @param searchTerm Search term to filter results
    * @returns A unique cache key
    */
-  private getCacheKey(page: number, size: number, sort: Array<string>, filters: FilterRequestParams, searchTerm: string): string {
+  private getCacheKey(
+    page: number,
+    size: number,
+    sort: Array<string>,
+    filters: FilterRequestParams,
+    searchTerm: string
+  ): string {
     let sortKey = '';
     if (Array.isArray(sort)) {
       sortKey = sort.join(',');
@@ -132,5 +137,4 @@ export class CachedOrdersService {
     const filtersKey = JSON.stringify(filters);
     return `${page}-${size}-${sortKey}-${filtersKey}-${searchTerm}`;
   }
-
 }
