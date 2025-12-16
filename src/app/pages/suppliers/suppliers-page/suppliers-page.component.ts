@@ -1,16 +1,12 @@
 import { Component, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import {
-  MatButtonToggle,
-  MatButtonToggleChange,
-  MatButtonToggleGroup,
-} from '@angular/material/button-toggle';
-import { MatDivider } from '@angular/material/divider';
-import { MatIcon } from '@angular/material/icon';
+import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
-import { MatTab, MatTabGroup } from '@angular/material/tabs';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { Router } from '@angular/router';
 import {
   AddressRequestDTO,
@@ -33,15 +29,13 @@ import { SuppliersWrapperService } from '../../../services/wrapper-services/supp
 @Component({
   selector: 'app-suppliers-page',
   imports: [
-    MatTabGroup,
-    MatDivider,
-    MatTab,
+    MatDividerModule,
+    MatTabsModule,
     GenericTableComponent,
     FormComponent,
     MatButtonModule,
-    MatButtonToggleGroup,
-    MatButtonToggle,
-    MatIcon,
+    MatButtonToggleModule,
+    MatIconModule,
   ],
   templateUrl: './suppliers-page.component.html',
   styleUrl: './suppliers-page.component.scss',
@@ -154,7 +148,7 @@ export class SuppliersPageComponent implements OnInit {
   }
 
   // Placeholder: add delete logic when backend endpoint is ready
-  deleteSupplier(row: SupplierResponseDTO) {
+  deleteSupplier(_row: SupplierResponseDTO) {
     // Implement delete logic here
   }
 

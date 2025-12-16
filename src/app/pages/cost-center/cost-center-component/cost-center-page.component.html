@@ -10,8 +10,14 @@
       ></app-generic-table>
     </div>
   </mat-tab>
-  <mat-tab label="Kostenstellen erstellen">
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="mr-2">add_circle</mat-icon>
+      <span>Neue Kostenstelle anlegen</span>
+    </ng-template>
+
     <mat-divider style="background-color: purple"></mat-divider>
+
     <div class="flex justify-center p-8">
       <div class="add-cost-center-page w-1/2 overflow-visible">
         <div class="cost-center-data-container overflow-visible">
@@ -21,9 +27,7 @@
           ></app-form-component>
         </div>
         <div class="buttons flex justify-end overflow-visible mt-4">
-          <button mat-raised-button color="primary" (click)="onSubmit()">
-            Speichern
-          </button>
+          <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
           <button
             mat-raised-button
             color="warn"

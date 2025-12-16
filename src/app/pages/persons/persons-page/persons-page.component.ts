@@ -27,7 +27,6 @@ import { PersonsWrapperService } from '../../../services/wrapper-services/person
   selector: 'app-persons-page',
   imports: [
     GenericTableComponent,
-    MatTabGroup,
     MatTabsModule,
     FormComponent,
     MatDividerModule,

@@ -9,46 +9,70 @@
 
 // Customize the entire app. Change :root to your selector if you want to scope the styles.
 :root {
-  @include mat.form-field-overrides((filled-container-color: rgba(0, 0, 0, 0.113),
-      filled-container-shape: rounded));
+  @include mat.form-field-overrides(
+    (
+      filled-container-color: rgba(0, 0, 0, 0.113),
+      filled-container-shape: rounded,
+    )
+  );
 
-  @include mat.table-overrides((header-headline-color: var(--color-he-darkblue),
-      header-headline-line-height: 40px, // header height
+  @include mat.table-overrides(
+    (
+      header-headline-color: var(--color-he-darkblue),
+      header-headline-line-height: 40px,
+      // header height
       header-headline-tracking: 0.05em,
-      background-color: var(--color-he-darkblue-100), // header background color,
-      row-item-outline-width: 1.5px, // row outline
-      row-item-outline-color: #00000019, // row outline color
-    ));
+      background-color: var(--color-he-darkblue-100),
+      // header background color,
+      row-item-outline-width: 1.5px,
+      // row outline
+      row-item-outline-color: #00000019,
+      // row outline color
+    )
+  );
 
-  @include mat.tabs-overrides((active-focus-indicator-color: orange,
+  @include mat.tabs-overrides(
+    (
+      active-focus-indicator-color: orange,
       active-focus-label-text-color: red,
       active-label-text-color: green,
       foreground-color: orange,
       inactive-label-text-color: blue,
-      background-color: green));
+      background-color: green,
+    )
+  );
 
-  @include mat.button-toggle-overrides((background-color: #F0F0F0,
+  @include mat.button-toggle-overrides(
+    (
+      background-color: #f0f0f0,
       disabled-selected-state-background-color: red,
-      divider-color: #00AADC,
+      divider-color: #00aadc,
       selected-state-background-color: #bbbbbb,
-    ));
+    )
+  );
 
-  @include mat.dialog-overrides((container-color: white,
+  @include mat.dialog-overrides(
+    (
+      container-color: white,
       subhead-color: rgb(204, 0, 255),
-    ));
+    )
+  );
 
-  @include mat.paginator-overrides((container-text-color: var(--color-he-darkblue),
+  @include mat.paginator-overrides(
+    (
+      container-text-color: var(--color-he-darkblue),
       container-background-color: var(--color-he-darkblue-100),
-    ));
+    )
+  );
 
-  .orders-page td.mat-mdc-cell.mat-column-status {
-  font-size: 1.5em;
-  text-align: center;
+  .orders-page-state-icons td.mat-mdc-cell.mat-column-status {
+    font-size: 1.5em;
+    text-align: center;
   }
 
   // HS Esslingen Colorschema
   --color-he-darkblue: #193058;
-  --color-he-red: #B6163D;
-  --color-he-lightblue: #00AADC;
-  --color-he-grey: #F0F0F0;
+  --color-he-red: #b6163d;
+  --color-he-lightblue: #00aadc;
+  --color-he-grey: #f0f0f0;
 }

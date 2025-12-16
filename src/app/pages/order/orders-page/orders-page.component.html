@@ -1,4 +1,4 @@
-<div class="h-fit tour-orders-page">
+<div class="h-fit orders-page-state-icons tour-orders-page">
   <button
     class="!fixed top-22.5 left-2.5 z-10 tour-filter-button"
     [class.open]="showFilterButton"
@@ -6,11 +6,12 @@
     matFab
     extended
     color="primary"
-    (click)="toggleShowFilters()">
+    (click)="toggleShowFilters()"
+  >
     @if (showFilters) {
-    <mat-icon>close</mat-icon>
+      <mat-icon>close</mat-icon>
     } @else {
-    <mat-icon>filter_list</mat-icon>
+      <mat-icon>filter_list</mat-icon>
     }
     Filter
   </button>
@@ -19,8 +20,8 @@
     #tabGroup
     mat-stretch-tabs="true"
     mat-align-tabs="start"
-    (selectedTabChange)="onTabChanged($event)">
-
+    (selectedTabChange)="onTabChanged($event)"
+  >
     <mat-tab label="Bestellungen verwalten">
       <mat-divider class="bg-gray-500"></mat-divider>
 
@@ -32,7 +33,8 @@
             (selectedColumnsChanged)="onSelectedColumnsChanged($event)"
             (resetedFilters)="onFiltersReset()"
             [ordersTableColumns]="ordersTableColumns"
-            [initialPreset]="initialPreset" />
+            [initialPreset]="initialPreset"
+          />
         </div>
 
         <app-generic-table
@@ -42,20 +44,30 @@
           [dataSource]="ordersDataSource"
           [columns]="ordersTableColumns"
           [actions]="actions"
-          [pageSize]="25"></app-generic-table>
+          [pageSize]="25"
+        ></app-generic-table>
       </div>
     </mat-tab>
 
-    <mat-tab label="Neue Bestellung anlegen">
+    <mat-tab>
+      <ng-template mat-tab-label>
+        <mat-icon class="mr-2">add_circle</mat-icon>
+        <span>Neue Bestellung anlegen</span>
+      </ng-template>
       <mat-divider class="bg-gray-500"></mat-divider>
 
       <app-create-order-page class="tour-order-creation"></app-create-order-page>
     </mat-tab>
-
   </mat-tab-group>
 </div>
 
-<button mat-mini-fab class="help-button !fixed bottom-4 right-6 z-10" color="accent" (click)="startTour()"
-  matTooltip="Bestellungsansicht erklären lassen" aria-label="Bestellungsansicht erklären lassen">
+<button
+  mat-mini-fab
+  class="help-button !fixed bottom-4 right-6 z-10"
+  color="accent"
+  (click)="startTour()"
+  matTooltip="Bestellungsansicht erklären lassen"
+  aria-label="Bestellungsansicht erklären lassen"
+>
   <mat-icon>help</mat-icon>
 </button>

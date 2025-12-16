@@ -1,6 +1,6 @@
 <mat-tab-group #tabGroup mat-stretch-tabs="true" mat-align-tabs="start">
   <mat-tab label="Personen verwalten">
-    <mat-divider style="background-color: darkgrey; color: darkgrey"></mat-divider>
+    <mat-divider class="bg-gray-500"></mat-divider>
     <div class="pt-3">
       <app-generic-table
         [dataSource]="personsDataSource"
@@ -11,8 +11,13 @@
     </div>
   </mat-tab>
 
-  <mat-tab label="Neue Person anlegen">
-    <mat-divider style="background-color: darkgrey; color: darkgrey"></mat-divider>
+  <mat-tab>
+    <ng-template mat-tab-label>
+      <mat-icon class="mr-2">add_circle</mat-icon>
+      <span>Neue Person anlegen</span>
+    </ng-template>
+
+    <mat-divider class="bg-gray-500"></mat-divider>
 
     <div class="create-person-container">
       <!-- Step 1: Person Data -->

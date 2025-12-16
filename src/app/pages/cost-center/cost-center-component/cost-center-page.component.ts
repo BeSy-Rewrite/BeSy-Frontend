@@ -1,14 +1,12 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDivider } from '@angular/material/divider';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
-import { MatTab, MatTabGroup } from '@angular/material/tabs';
-import {
-  CostCenterRequestDTO,
-  CostCenterResponseDTO
-} from '../../../api-services-v2';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { CostCenterRequestDTO, CostCenterResponseDTO } from '../../../api-services-v2';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { COST_CENTER_FORM_CONFIG } from '../../../configs/cost-center-config';
@@ -18,9 +16,9 @@ import { CostCenterWrapperService } from '../../../services/wrapper-services/cos
 @Component({
   selector: 'app-cost-center-component',
   imports: [
-    MatTabGroup,
-    MatTab,
-    MatDivider,
+    MatIconModule,
+    MatTabsModule,
+    MatDividerModule,
     GenericTableComponent,
     FormComponent,
     MatButtonModule,
@@ -29,7 +27,10 @@ import { CostCenterWrapperService } from '../../../services/wrapper-services/cos
   styleUrl: './cost-center-page.component.scss',
 })
 export class CostCentersPageComponent implements OnInit {
-  constructor(private readonly _notifications: MatSnackBar, private readonly costCenterWrapperService: CostCenterWrapperService) { }
+  constructor(
+    private readonly _notifications: MatSnackBar,
+    private readonly costCenterWrapperService: CostCenterWrapperService
+  ) {}
 
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
   // Data source to be displayed in the cost-center-table component
@@ -60,7 +61,7 @@ export class CostCentersPageComponent implements OnInit {
     // Initialization logic here
     this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(
       // Format cost center date from ISO format yyyy-MM-dd to dd.MM.yyyy
-      (await this.costCenterWrapperService.getAllCostCenters()).map((cc) => ({
+      (await this.costCenterWrapperService.getAllCostCenters()).map(cc => ({
         ...cc,
         begin_date: cc.begin_date ? this.formatDate(cc.begin_date) : undefined,
         end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
@@ -68,7 +69,7 @@ export class CostCentersPageComponent implements OnInit {
     );
   }
 
-  viewCostCenter(row: CostCenterResponseDTO) {
+  viewCostCenter(_row: CostCenterResponseDTO) {
     // Implement view logic here
   }
 
@@ -77,34 +78,23 @@ export class CostCentersPageComponent implements OnInit {
       const costCenterData = this.costCenterForm.value as CostCenterRequestDTO;
       try {
         await this.costCenterWrapperService.createCostCenter(costCenterData);
-        this._notifications.open(
-          'Kostenstelle erfolgreich erstellt',
-          'Schließen',
-          {
-            duration: 3000,
-          }
-        );
+        this._notifications.open('Kostenstelle erfolgreich erstellt', 'Schließen', {
+          duration: 3000,
+        });
 
         // Refresh the data source to include the newly created cost center
-        this.costCentersDataSource =
-          new MatTableDataSource<CostCenterResponseDTO>(
-            (await this.costCenterWrapperService.getAllCostCenters()).map((cc) => ({
-              ...cc,
-              begin_date: cc.begin_date
-                ? this.formatDate(cc.begin_date)
-                : undefined,
-              end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
-            }))
-          );
+        this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(
+          (await this.costCenterWrapperService.getAllCostCenters()).map(cc => ({
+            ...cc,
+            begin_date: cc.begin_date ? this.formatDate(cc.begin_date) : undefined,
+            end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
+          }))
+        );
         this.tabGroup.selectedIndex = 0; // Switch to the first tab
       } catch (error) {
-        this._notifications.open(
-          'Fehler beim Erstellen der Kostenstelle',
-          'Schließen',
-          {
-            duration: 3000,
-          }
-        );
+        this._notifications.open('Fehler beim Erstellen der Kostenstelle', 'Schließen', {
+          duration: 3000,
+        });
       }
     } else {
       // Handle invalid form case
