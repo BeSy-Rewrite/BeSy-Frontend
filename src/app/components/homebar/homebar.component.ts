@@ -36,7 +36,8 @@ export class HomebarComponent {
     // Only update activeMenuItem on successful navigation end
     router.events.pipe(filter(event => event instanceof NavigationEnd)).subscribe(() => {
       const currentLinkIndex = this.links.findIndex(
-        link => link.path === `/${router.url.split('/')[1]}`
+        link =>
+          link.path === `/${router.parseUrl(router.url).root.children['primary'].segments[0].path}`
       );
       this.activeMenuItem.set(currentLinkIndex === -1 ? 0 : currentLinkIndex);
       this.isMobileMenuOpen.set(false);
