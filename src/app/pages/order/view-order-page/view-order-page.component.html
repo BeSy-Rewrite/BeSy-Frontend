@@ -59,14 +59,8 @@
   </div>
 
   <div class="sticky top-0 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
-    @if (
-      internalOrder().order.status === orderStates.SETTLED ||
-      internalOrder().order.status === orderStates.ARCHIVED
-    ) {
-      <button mat-raised-button color="accent" (click)="sendToInsy()">
-        <mat-icon iconPositionStart>cloud_upload</mat-icon>
-        An InSy senden
-      </button>
+    @if (canPostToInsy()) {
+      <button mat-raised-button color="accent" (click)="sendToInsy()">An Insy senden</button>
     }
 
     <button mat-raised-button color="primary" (click)="export()">

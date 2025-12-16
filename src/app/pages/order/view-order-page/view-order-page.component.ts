@@ -192,6 +192,10 @@ export class ViewOrderPageComponent implements OnInit {
 
   lastStateChangeTimestamp = Date.now();
 
+  canPostToInsy = computed(() =>
+    environment.INSY_POSTABLE_STATES.includes(this.internalOrder().order.status!)
+  );
+
   constructor(
     private readonly usersService: UsersWrapperService,
     private readonly stateService: StateWrapperService,

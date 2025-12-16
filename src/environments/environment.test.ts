@@ -1,3 +1,5 @@
+import { OrderStatus } from '../app/api-services-v2';
+
 export const environment = {
   production: true,
   apiUrl: 'https://test.besy.hs-esslingen.com/api/v1',
@@ -17,4 +19,6 @@ export const environment = {
   saveActiveFiltersDebounceMs: 5000,
 
   orderFieldClassPrefix: 'order-field-',
+
+  INSY_POSTABLE_STATES: [OrderStatus.SETTLED, OrderStatus.ARCHIVED] as OrderStatus[],
 };
