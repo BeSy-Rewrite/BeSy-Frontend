@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { DriverJsTourService } from '../../services/driver.js-tour.service';
+import { UtilsService } from '../../utils.service';
 
 @Component({
   selector: 'app-homepage',
@@ -9,9 +10,15 @@ import { DriverJsTourService } from '../../services/driver.js-tour.service';
   styleUrl: './homepage.component.scss',
 })
 export class HomepageComponent {
-  constructor(private readonly driverJsTourService: DriverJsTourService) {}
+  constructor(
+    private readonly driverJsTourService: DriverJsTourService,
+    private readonly utilsService: UtilsService
+  ) {}
 
   startTour() {
     this.driverJsTourService.startDemoTour();
+  }
+  addConfetti() {
+    this.utilsService.getConfettiInstance().addConfetti();
   }
 }

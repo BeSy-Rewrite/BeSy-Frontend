@@ -18,6 +18,7 @@ import {
   ItemTableModel,
   QuotationTableModel,
 } from '../../pages/order/edit-order-page/edit-order-page.component';
+import { UtilsService } from '../../utils.service';
 import { CostCenterFormatted, CostCenterWrapperService } from './cost-centers-wrapper.service';
 import { CurrenciesWrapperService, FormattedCurrency } from './currencies-wrapper.service';
 import { FormattedPerson, PersonsWrapperService } from './persons-wrapper.service';
@@ -76,7 +77,8 @@ export class OrdersWrapperService {
     private readonly personsWrapperService: PersonsWrapperService,
     private readonly currenciesWrapperService: CurrenciesWrapperService,
     private readonly suppliersWrapperService: SuppliersWrapperService,
-    private readonly usersWrapperService: UsersWrapperService
+    private readonly usersWrapperService: UsersWrapperService,
+    private readonly utilsService: UtilsService
   ) {}
 
   /**
@@ -251,9 +253,13 @@ export class OrdersWrapperService {
   // JSON.stringify needed as angular http client otherwise sends plain text instead of application/json
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
     return await lastValueFrom(
-      this.ordersService
-        .updateOrderStatus(orderId, JSON.stringify(newState))
-        .pipe(tap(() => this.onOrdersChanged()))
+      this.ordersService.updateOrderStatus(orderId, JSON.stringify(newState)).pipe(
+        tap(updatedState => {
+          this.onOrdersChanged();
+          if (updatedState === OrderStatus.SENT)
+            this.utilsService.getConfettiInstance().addConfetti();
+        })
+      )
     );
   }
 

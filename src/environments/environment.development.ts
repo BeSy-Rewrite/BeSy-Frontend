@@ -1,11 +1,13 @@
+import { OrderStatus } from '../app/api-services-v2';
+
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:3000/api/v1',
   paperlessUrl: 'http://localhost:8000',
 
   // Keycloak configuration
-  identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
-  clientId: 'besy-dev',
+  identityProviderUrl: 'https://auth.it.hs-esslingen.de/realms/he-it',
+  clientId: 'test',
   requiredRole: 'orderer',
   approveOrdersRole: 'approver',
 
@@ -17,4 +19,6 @@ export const environment = {
   saveActiveFiltersDebounceMs: 5000,
 
   orderFieldClassPrefix: 'order-field-',
+
+  INSY_POSTABLE_STATES: [OrderStatus.SETTLED, OrderStatus.ARCHIVED] as OrderStatus[],
 };
