@@ -52,7 +52,7 @@ import { CreateOrderPageComponent } from '../create-order-page/create-order-page
     MatTooltipModule,
     GenericTableComponent,
     FilterMenuComponent,
-    CreateOrderPageComponent
+    CreateOrderPageComponent,
   ],
   templateUrl: './orders-page.component.html',
   styleUrl: './orders-page.component.scss',
@@ -401,11 +401,16 @@ export class OrdersPageComponent implements OnInit {
       if (this.tabGroup().selectedIndex === targetIndex) {
         action();
       } else {
-        this.tabGroup().animationDone.pipe(first()).subscribe(() => afterNextRender({
-          read: () => action(),
-        },
-          { injector: this.injector }
-        ));
+        this.tabGroup()
+          .animationDone.pipe(first())
+          .subscribe(() =>
+            afterNextRender(
+              {
+                read: () => action(),
+              },
+              { injector: this.injector }
+            )
+          );
         this.tabGroup().selectedIndex = targetIndex;
       }
     };
@@ -415,55 +420,69 @@ export class OrdersPageComponent implements OnInit {
         element: '.tour-orders-page',
         popover: {
           title: 'Bestellübersicht',
-          description: 'Über diese Seite können Sie alle Bestellungen einsehen, verwalten und neue Bestellungen erstellen.',
-          onNextClick: () => afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().moveNext()),
+          description:
+            'Über diese Seite können Sie alle Bestellungen einsehen, verwalten und neue Bestellungen erstellen.',
+          onNextClick: () =>
+            afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().moveNext()),
+        },
+      },
+      {
+        element: '#mat-tab-group-0-label-0',
+        popover: {
+          title: 'Bestellübersicht Tab',
+          description:
+            'In diesem Tab können Sie alle bestehenden Bestellungen einsehen und verwalten.',
+        },
+      },
+      {
+        element: '#mat-tab-group-0-label-1',
+        popover: {
+          title: 'Bestellung erstellen Tab',
+          description: 'In diesem Tab können Sie eine neue Bestellung erstellen.',
         },
       },
       {
         element: '.tour-orders-table',
         popover: {
           title: 'Bestellungstabelle',
-          description: 'In dieser Tabelle werden alle Bestellungen angezeigt. Sie können auf eine Bestellung klicken, um deren Details anzusehen.',
+          description:
+            'In dieser Tabelle werden alle Bestellungen angezeigt. Sie können auf eine Bestellung klicken, um deren Details anzusehen.',
         },
       },
       {
         element: '.tour-filter-button',
         popover: {
           title: 'Filter-Button',
-          description: 'Über diesen Button können Sie die Filterleiste ein- und ausblenden, um Ihre Bestellungen gezielt zu filtern.',
+          description:
+            'Über diesen Button können Sie die Filterleiste ein- und ausblenden, um Ihre Bestellungen gezielt zu filtern.',
           onPrevClick: () => {
             this.showFilters = false;
             this.driverJsTourService.getTourDriver().movePrevious();
           },
-          onPopoverRender: () => this.showFilters = true,
+          onPopoverRender: () => (this.showFilters = true),
         },
       },
       {
         element: '.tour-filter-menu',
         popover: {
           title: 'Filter Menu',
-          description: 'In diesem Bereich können Sie die Filter für die Bestellungen anpassen.',
+          description:
+            'In diesem Bereich können Sie die Filter für die Bestellungen anpassen. Für weitere Informationen zu den Filtern, schauen Sie sich die Filter-Tour an.',
         },
       },
-      ...this.driverJsTourService.getStepsForComponent(FilterMenuComponent),
       {
         element: '.tour-filter-button',
         popover: {
           title: 'Filter-Button',
-          description: 'Schließen Sie die Filterleiste über diesen Button, um mehr Platz für die Tabelle zu haben.',
+          description:
+            'Schließen Sie die Filterleiste über diesen Button, um mehr Platz für die Tabelle zu haben.',
           onPrevClick: () => {
             this.showFilters = true;
             this.driverJsTourService.getTourDriver().movePrevious();
           },
-          onPopoverRender: () => this.showFilters = false,
-        },
-      },
-      {
-        popover: {
-          title: 'Nächster Tab',
-          description: 'Neue Bestellungen können Sie im nächsten Tab erstellen.',
-          onPrevClick: () => afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().movePrevious()),
-          onPopoverRender: () => this.tabGroup().selectedIndex = 1,
+          onPopoverRender: () => (this.showFilters = false),
+          onNextClick: () =>
+            afterTabSwitch(1, () => this.driverJsTourService.getTourDriver().moveNext()),
         },
       },
       {
@@ -471,6 +490,8 @@ export class OrdersPageComponent implements OnInit {
         popover: {
           title: 'Bestellung erstellen',
           description: 'Wechseln Sie zu diesem Tab, um eine neue Bestellung zu erstellen.',
+          onPrevClick: () =>
+            afterTabSwitch(0, () => this.driverJsTourService.getTourDriver().movePrevious()),
         },
       },
       ...this.driverJsTourService.getStepsForComponent(CreateOrderPageComponent),

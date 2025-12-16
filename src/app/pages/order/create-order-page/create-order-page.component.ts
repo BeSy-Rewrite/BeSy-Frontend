@@ -15,6 +15,7 @@ import {
   ORDER_QUERIES_PERSON_FORM_CONFIG,
   ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
 } from '../../../configs/order/order-config';
+import { DriverJsTourService } from '../../../services/driver.js-tour.service';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   OrderResponseDTOFormatted,
@@ -58,11 +59,12 @@ export class CreateOrderPageComponent implements OnInit {
   queriesPersonFormConfig = ORDER_QUERIES_PERSON_FORM_CONFIG;
 
   constructor(
-    private costCenterWrapperService: CostCenterWrapperService,
-    private personsWrapperService: PersonsWrapperService,
-    private _notifications: MatSnackBar,
-    private orderWrapperService: OrdersWrapperService,
-    private router: Router
+    private readonly costCenterWrapperService: CostCenterWrapperService,
+    private readonly personsWrapperService: PersonsWrapperService,
+    private readonly _notifications: MatSnackBar,
+    private readonly orderWrapperService: OrdersWrapperService,
+    private readonly router: Router,
+    private readonly driverJsTourService: DriverJsTourService
   ) {}
 
   async ngOnInit(): Promise<void> {
@@ -75,6 +77,8 @@ export class CreateOrderPageComponent implements OnInit {
     // Format cost centers and persons for the autocomplete fields
     this.formatCostCenters();
     this.formatPersons();
+
+    this.registerTourSteps();
   }
 
   /**
@@ -170,5 +174,25 @@ export class CreateOrderPageComponent implements OnInit {
         duration: 5000,
       });
     }
+  }
+
+  private registerTourSteps() {
+    this.driverJsTourService.registerStepsForComponent(CreateOrderPageComponent, () => [
+      {
+        element: '.general-info-container',
+        popover: {
+          title: 'Allgemeine Informationen',
+          description: 'Geben Sie hier die allgemeinen Informationen zur Bestellung ein.',
+        },
+      },
+      {
+        element: '.tour-order-create-button',
+        popover: {
+          title: 'Bestellung erstellen',
+          description:
+            'Klicken Sie hier, um die Bestellung zu erstellen, sobald alle erforderlichen Informationen eingegeben wurden.',
+        },
+      },
+    ]);
   }
 }
