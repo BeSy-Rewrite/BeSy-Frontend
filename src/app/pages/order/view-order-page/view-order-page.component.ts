@@ -68,8 +68,6 @@ import { DisplayableOrder } from '../../../models/displayable-order';
 
 import { AuthenticationService } from '../../../services/authentication.service';
 
-import { DriverJsTourService } from '../../../services/driver.js-tour.service';
-
 import { OrderStateValidityService } from '../../../services/order-state-validity.service';
 
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
@@ -82,6 +80,7 @@ import { StateWrapperService } from '../../../services/wrapper-services/state-wr
 
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 
+import { InsyWrapperService } from '../../../services/wrapper-services/insy-wrapper.service';
 import { ORDER_EDIT_TABS } from '../edit-order-page/edit-order-page.component';
 
 type SectionId =
@@ -124,39 +123,22 @@ interface StateChangeButtons {
 
   imports: [
     RouterModule,
-
     MatDividerModule,
-
     MatButtonModule,
-
     MatTabsModule,
-
     MatExpansionModule,
-
     MatTooltipModule,
-
     ClipboardModule,
-
     MatIconModule,
-
     OrderMainInformationComponent,
-
     OrderPersonsComponent,
-
     QuotationsListComponent,
-
     ApprovalsComponent,
-
     StateHistoryComponent,
-
     StateDisplayComponent,
-
     OrderDocumentsComponent,
-
     OrderMainQuoteComponent,
-
     OrderArticleListComponent,
-
     OrderAddressesComponent,
   ],
 
@@ -190,21 +172,13 @@ export class ViewOrderPageComponent implements OnInit {
       isFullWidth: false,
       editTabId: 'General',
     },
-
     { id: 'addresses', title: 'Adressen', isFullWidth: false, editTabId: 'Addresses' },
-
     { id: 'main-quote', title: 'Hauptangebot', isFullWidth: true, editTabId: 'MainOffer' },
-
     { id: 'articles', title: 'Artikelübersicht', isFullWidth: true, editTabId: 'Items' },
-
     { id: 'quotations', title: 'Vergleichsangebote', isFullWidth: true, editTabId: 'Quotations' },
-
     { id: 'documents', title: 'Dokumente', isFullWidth: true },
-
     { id: 'contacts', title: 'Kontaktdaten', isFullWidth: false, editTabId: 'General' },
-
     { id: 'approvals', title: 'Freigaben', isFullWidth: false, editTabId: 'Approvals' },
-
     { id: 'history', title: 'Statusverlauf', isFullWidth: false },
   ];
 
@@ -220,34 +194,21 @@ export class ViewOrderPageComponent implements OnInit {
 
   constructor(
     private readonly usersService: UsersWrapperService,
-
     private readonly stateService: StateWrapperService,
-
     private readonly ordersService: OrdersWrapperService,
-
     private readonly orderDisplayService: OrderSubresourceResolverService,
-
     private readonly authService: AuthenticationService,
-
     private readonly router: Router,
-
     private readonly snackBar: MatSnackBar,
-
     private readonly dialog: MatDialog,
-
     private readonly orderStateValidityService: OrderStateValidityService,
-
     private readonly toastService: ToastService,
-
-    private readonly driverJsService: DriverJsTourService
+    private readonly insyService: InsyWrapperService
   ) {}
 
   /**
-
    * Initializes the component, fetching necessary data and setting up state transitions.
-
    */
-
   ngOnInit(): void {
     this.internalOrder = signal<DisplayableOrder>(this.order());
 
@@ -267,11 +228,8 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /**
-
    * Exports the order as a PDF document.
-
    */
-
   export(): void {
     if (!this.internalOrder().order.id) {
       this.snackBar.open(
@@ -303,11 +261,8 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /**
-
    * Gets the next allowed states for the current order status.
-
    */
-
   getNextAllowedStates(): OrderStatus[] {
     const currentState = this.internalOrder().order.status;
 
@@ -319,11 +274,8 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /**
-
    * Creates the buttons data for changing the order state.
-
    */
-
   createStateChangeButtons(): void {
     this.stateChangeButtons = [];
 
@@ -386,13 +338,9 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /**
-
    * Changes the order state to the specified new state.
-
    * @param newState The new state to change to.
-
    */
-
   changeOrderState(newState: OrderStatus): void {
     if (Date.now() - this.lastStateChangeTimestamp < 1000) {
       this.snackBar.open(
@@ -434,45 +382,10 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /**
-
-
-   * Highlights the first invalid field in the order form based on the ZodError.
-
-
-   * @param error The ZodError containing validation issues.
-
-
-   */
-
-  highlightFirstInvalidField(error: ZodError) {
-    const invalidField = error?.issues?.[0]?.path?.at(-1)?.toString();
-
-    if (
-      invalidField &&
-      document.querySelector(`.${environment.orderFieldClassPrefix}${invalidField}`)
-    ) {
-      this.driverJsService.highlightElement(
-        `.${environment.orderFieldClassPrefix}${invalidField}`,
-        'Fehler beim Statuswechsel',
-        error.issues[0].message
-      );
-    }
-  }
-
-  /**
-
-
    * Creates and displays an error toast for invalid order state transitions.
-
-
    * @param error The ZodError containing validation issues.
-
-
    * @param newState The new state that was attempted to be set.
-
-
    */
-
   createErrorToast(error: ZodError, newState: OrderStatus) {
     const errorToast: ToastRequest = {
       message: ToastInvalidOrderComponent,
@@ -492,13 +405,9 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /**
-
    * Updates the order state and resolves its subresources.
-
    * @param newState The new state to set.
-
    */
-
   updateDisplayedOrderState(newState: OrderStatus) {
     const newOrder = { ...this.internalOrder().order, status: newState };
 
@@ -510,11 +419,8 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /**
-
    * Handle the deletion of the order with a confirmation dialog.
-
    */
-
   private handleDeleteOrder() {
     const data = {
       title: 'Bestellung wirklich löschen?',
@@ -539,7 +445,6 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   /** Determines whether to show the edit button for a given section. */
-
   showEditButton(section: Section): boolean {
     if (!section.editTabId) return false;
 
@@ -549,5 +454,21 @@ export class ViewOrderPageComponent implements OnInit {
       status === OrderStatus.IN_PROGRESS ||
       (status === OrderStatus.COMPLETED && section.editTabId === 'Approvals')
     );
+  }
+
+  /** Sends the order to the InSy system and shows a snackbar notification. */
+  sendToInsy(): void {
+    this.insyService
+      .postOrderToInsy(this.internalOrder().order.id!)
+      .then(() => {
+        this.snackBar.open('Bestellung erfolgreich an InSy übertragen.', 'Schließen', {
+          duration: 5000,
+        });
+      })
+      .catch(() => {
+        this.snackBar.open('Fehler beim Übertragen der Bestellung an InSy.', 'Schließen', {
+          duration: 5000,
+        });
+      });
   }
 }
