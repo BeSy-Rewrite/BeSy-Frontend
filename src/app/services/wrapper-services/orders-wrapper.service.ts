@@ -264,7 +264,6 @@ export class OrdersWrapperService {
   }
 
   async getOrderByIDInFormFormat(orderId: number): Promise<OrderResponseDTOFormatted> {
-    // geändert von OrdersService zu this.getOrderById
     const orderData = await this.getOrderById(orderId);
     return this.formatOrderData(orderData);
   }
@@ -652,6 +651,7 @@ export class OrdersWrapperService {
 
     // Convert undefined values to null for API compatibility
     // Format date fields to ISO date format (YYYY-MM-DD)
+    // Format booking_year to last 2 digits
     return Object.fromEntries(
       Object.entries(changedFields).map(([key, value]) => {
         if (value === undefined || value === null) {
@@ -660,6 +660,9 @@ export class OrdersWrapperService {
         // Format date fields to ISO date string (YYYY-MM-DD) using helper method
         if (dateFields.has(key)) {
           return [key, this.convertToISODateString(value)];
+        }
+        if (key === 'booking_year' && typeof value === 'string') {
+          return [key, value.slice(-2)]; // Get last 2 digits
         }
         return [key, value];
       })

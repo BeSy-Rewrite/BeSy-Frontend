@@ -6,8 +6,8 @@ export const environment = {
   paperlessUrl: 'http://localhost:8000',
 
   // Keycloak configuration
-  identityProviderUrl: 'https://auth.it.hs-esslingen.de/realms/he-it',
-  clientId: 'test',
+  identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
+  clientId: 'besy-dev',
   requiredRole: 'orderer',
   approveOrdersRole: 'approver',
 
