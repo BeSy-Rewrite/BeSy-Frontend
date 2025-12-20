@@ -703,9 +703,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     if (!this.isTabEditable('Quotations')) return;
     if (!this.addQuotationDialogTemplate) return;
 
-    // Ensure we start with a clean form when creating a new quotation
-    this.quotationFormGroup.reset();
-
     this.addQuotationDialogRef?.close();
     this.addQuotationDialogRef = this._dialog.open(this.addQuotationDialogTemplate, {
       minWidth: '60%',
