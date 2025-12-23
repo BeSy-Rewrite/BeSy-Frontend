@@ -349,7 +349,7 @@ export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
       name: 'booking_year',
       label: 'Buchungsjahr',
       type: 'text',
-      required: true,
+      required: false,
       editable: false,
       validators: [Validators.pattern('^[0-9]{4}$')],
       tooltip: 'Das Buchungsjahr gibt an, in welchem Jahr die Bestellung verbucht wird.',

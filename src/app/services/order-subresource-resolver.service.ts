@@ -5,10 +5,10 @@ import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-na
 import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
 import { OrderDisplayData } from '../models/order-display-data';
 import { CostCenterWrapperService } from './wrapper-services/cost-centers-wrapper.service';
+import { CurrenciesWrapperService } from './wrapper-services/currencies-wrapper.service';
 import { PersonsWrapperService } from './wrapper-services/persons-wrapper.service';
 import { SuppliersWrapperService } from './wrapper-services/suppliers-wrapper.service';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
-import { CurrenciesWrapperService } from './wrapper-services/currencies-wrapper.service';
 
 /**
  * Union of identifier types used to look up subresources.
@@ -305,7 +305,7 @@ export class OrderSubresourceResolverService {
    */
   getOrderNumber(order: OrderResponseDTO): string | undefined {
     const orderNumber = [order.primary_cost_center_id, order.booking_year, order.auto_index];
-    if (orderNumber.some(part => part === undefined || part === null)) {
+    if (orderNumber.some(part => part === undefined || part === null || part === '')) {
       return undefined;
     }
     return orderNumber.join('-');

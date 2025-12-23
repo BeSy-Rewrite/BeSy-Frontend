@@ -130,20 +130,33 @@
         </button>
       </div>
       <div class="item-container">
-        <app-form-component
-          [config]="orderItemFormConfig"
-          [formGroup]="orderItemFormGroup"
-          [refreshTrigger]="orderItemFormConfigRefreshTrigger()"
-        ></app-form-component>
         <button
           mat-raised-button
           class="mb-4 w-full"
           color="primary"
-          (click)="onAddItem()"
+          (click)="openAddItemDialog()"
           [disabled]="!isTabEditable('Items')"
         >
           Position hinzufügen
         </button>
+
+        <ng-template #addItemDialog>
+          <h2 mat-dialog-title>Position hinzufügen</h2>
+          <mat-dialog-content>
+            <app-form-component
+              [config]="orderItemFormConfig"
+              [formGroup]="orderItemFormGroup"
+              [refreshTrigger]="orderItemFormConfigRefreshTrigger()"
+            ></app-form-component>
+          </mat-dialog-content>
+          <mat-dialog-actions align="end">
+            <button mat-stroked-button color="warn" (click)="cancelAddItemDialog()">
+              Abbrechen
+            </button>
+            <button mat-flat-button color="primary" (click)="saveAddItemDialog()">Speichern</button>
+          </mat-dialog-actions>
+        </ng-template>
+
         <div class="table-container">
           <app-generic-table
             [dataSource]="itemTableDataSource"
@@ -219,19 +232,34 @@
         </button>
       </div>
       <div class="quotation-container">
-        <app-form-component
-          [config]="quotationFormConfig"
-          [formGroup]="quotationFormGroup"
-        ></app-form-component>
         <button
           mat-raised-button
           class="w-full mb-4"
           color="primary"
-          (click)="onAddQuotation()"
+          (click)="openAddQuotationDialog()"
           [disabled]="!isTabEditable('Quotations')"
         >
           Vergleichsangebot hinzufügen
         </button>
+
+        <ng-template #addQuotationDialog>
+          <h2 mat-dialog-title>Vergleichsangebot hinzufügen</h2>
+          <mat-dialog-content>
+            <app-form-component
+              [config]="quotationFormConfig"
+              [formGroup]="quotationFormGroup"
+            ></app-form-component>
+          </mat-dialog-content>
+          <mat-dialog-actions align="end">
+            <button mat-stroked-button color="warn" (click)="cancelAddQuotationDialog()">
+              Abbrechen
+            </button>
+            <button mat-flat-button color="primary" (click)="saveAddQuotationDialog()">
+              Speichern
+            </button>
+          </mat-dialog-actions>
+        </ng-template>
+
         <div class="table-container w-full">
           <app-generic-table
             [dataSource]="quotationTableDataSource"

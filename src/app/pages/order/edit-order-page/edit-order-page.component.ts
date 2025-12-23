@@ -6,6 +6,8 @@ import {
   OnDestroy,
   OnInit,
   signal,
+  TemplateRef,
+  ViewChild,
   WritableSignal,
 } from '@angular/core';
 import {
@@ -19,7 +21,7 @@ import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButton } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatOptionModule } from '@angular/material/core';
-import { MatDialog } from '@angular/material/dialog';
+import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatDivider } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIcon } from '@angular/material/icon';
@@ -138,6 +140,7 @@ interface AddressOptionConfig {
     MatDivider,
     FormComponent,
     MatButton,
+    MatDialogModule,
     GenericTableComponent,
     MatInputModule,
     MatAutocompleteModule,
@@ -161,6 +164,13 @@ interface AddressOptionConfig {
   styleUrl: './edit-order-page.component.scss',
 })
 export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDestroy {
+  @ViewChild('addItemDialog') private readonly addItemDialogTemplate?: TemplateRef<unknown>;
+  private addItemDialogRef?: MatDialogRef<unknown>;
+
+  @ViewChild('addQuotationDialog')
+  private readonly addQuotationDialogTemplate?: TemplateRef<unknown>;
+  private addQuotationDialogRef?: MatDialogRef<unknown>;
+
   constructor(
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
@@ -527,7 +537,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   /**
    * Adds a new item to the locally stored items list and updates the table data source
    */
-  onAddItem() {
+  onAddItem(): boolean {
     if (this.orderItemFormGroup.valid) {
       const newItem = this.orderItemFormGroup.value as ItemTableModel;
 
@@ -540,8 +550,44 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
       this.orderItemFormGroup.reset();
       this.setDefaultVatValueByLoadedItems();
+      return true;
     } else {
       this.orderItemFormGroup.markAllAsTouched(); // Show validation errors
+      return false;
+    }
+  }
+
+  openAddItemDialog(): void {
+    if (!this.isTabEditable('Items')) return;
+    if (!this.addItemDialogTemplate) return;
+
+    // Ensure we start with a clean form when creating a new item
+    this.orderItemFormGroup.reset();
+    this.setDefaultVatValueByLoadedItems();
+
+    this.addItemDialogRef?.close();
+    this.addItemDialogRef = this._dialog.open(this.addItemDialogTemplate, {
+      minWidth: '60%',
+      maxHeight: '80vh',
+      disableClose: true,
+    });
+
+    this.addItemDialogRef.afterClosed().subscribe(() => {
+      // Avoid leaving partially-filled values around if the user cancels
+      this.orderItemFormGroup.reset();
+      this.setDefaultVatValueByLoadedItems();
+      this.addItemDialogRef = undefined;
+    });
+  }
+
+  cancelAddItemDialog(): void {
+    this.addItemDialogRef?.close();
+  }
+
+  saveAddItemDialog(): void {
+    const added = this.onAddItem();
+    if (added) {
+      this.addItemDialogRef?.close();
     }
   }
 
@@ -637,7 +683,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   /**
    * Add a new quotation to the locally stored quotations list and update the table data source
    */
-  onAddQuotation() {
+  onAddQuotation(): boolean {
     if (this.quotationFormGroup.valid) {
       const newQuotation = this.quotationFormGroup.value as QuotationTableModel;
       newQuotation.price = this.orderWrapperService.formatPriceToGerman(newQuotation.price);
@@ -646,8 +692,39 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       );
       this.quotations.update(curr => [...curr, newQuotation]);
       this.quotationFormGroup.reset(); // Reset the form
+      return true;
     } else {
       this.quotationFormGroup.markAllAsTouched(); // Mark all fields as touched to show validation errors
+      return false;
+    }
+  }
+
+  openAddQuotationDialog(): void {
+    if (!this.isTabEditable('Quotations')) return;
+    if (!this.addQuotationDialogTemplate) return;
+
+    this.addQuotationDialogRef?.close();
+    this.addQuotationDialogRef = this._dialog.open(this.addQuotationDialogTemplate, {
+      minWidth: '60%',
+      maxHeight: '80vh',
+      disableClose: true,
+    });
+
+    this.addQuotationDialogRef.afterClosed().subscribe(() => {
+      // Avoid leaving partially-filled values around if the user cancels
+      this.quotationFormGroup.reset();
+      this.addQuotationDialogRef = undefined;
+    });
+  }
+
+  cancelAddQuotationDialog(): void {
+    this.addQuotationDialogRef?.close();
+  }
+
+  saveAddQuotationDialog(): void {
+    const added = this.onAddQuotation();
+    if (added) {
+      this.addQuotationDialogRef?.close();
     }
   }
 
@@ -2298,7 +2375,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
     // Always disable the content_description field as this field should never be edited
     this.generalFormGroup.get('content_description')?.disable();
-    this.generalFormGroup.get('booking_year')?.disable();
 
     // Special handling for address forms: they have their own enable/disable logic
     // based on address option, but status-based disabling takes precedence
