@@ -93,6 +93,7 @@ import {
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { UtilsService } from '../../../utils.service';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -133,6 +134,7 @@ export interface QuotationTableModel {
   company_city: string;
 }
 type AddressOption = 'preferred' | 'existing' | 'new' | 'selected';
+type PatchResponseIndicator = 'no_changes' | 'success' | 'error';
 
 interface AddressOptionConfig {
   subtitle: string;
@@ -193,7 +195,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     private readonly _dialog: MatDialog,
     private readonly driverJsTourService: DriverJsTourService,
     private readonly injector: Injector,
-    private readonly location: Location
+    private readonly location: Location,
+    private readonly utilsService: UtilsService
   ) {
     effect(() => {
       this.itemTableDataSource.data = this.items();
@@ -202,7 +205,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.quotationTableDataSource.data = this.quotations();
     });
   }
-
+  // Order variables
   orderName = signal<string>('');
   orderBesyId = signal<string>('');
   // Tab variables
@@ -1627,7 +1630,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     }
 
     // Submit the order patch after all forms have been processed
-    await this.submitOrderPatch();
+    const patchWithChanges = await this.submitOrderPatch();
+
+    if (patchWithChanges === 'success') {
+      this.addConfetti();
+    }
 
     // Switch to the next tab if applicable
     if (formType !== 'All' && formType !== 'Documents') {
@@ -1654,7 +1661,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         return this.patchMainOfferOrder(target);
 
       case 'Items':
-        return this.patchItemsOrder();
+        return this.submitOrderItemChanges();
 
       case 'Quotations':
         return this.patchQuotationsOrder();
@@ -1726,7 +1733,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * Patches the items order.
    * @returns A promise that resolves to true if the patch was successful, false otherwise.
    */
-  async patchItemsOrder(): Promise<boolean> {
+  async submitOrderItemChanges(): Promise<boolean> {
     // prepare items that need to be created (no item_id -> new)
     const itemsToCreate = this.items()
       .filter(item => !item.item_id)
@@ -1920,9 +1927,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
   /**
    * Retrieves the changed fields and submits the order patch to the backend.
-   * @returns A promise that resolves to true if the patch was successful, false otherwise.
+   * @returns A promise that indicates if there were changes which were submitted successfully
    */
-  private async submitOrderPatch(): Promise<void> {
+  private async submitOrderPatch(): Promise<PatchResponseIndicator> {
     console.log('Current formattedOrderDTO:', this.formattedOrderDTO);
     console.log('Submitting order patch with DTO:', this.patchOrderDTO);
     // Check which fields have been modified and prepare the patch DTO accordingly
@@ -1935,7 +1942,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     // If no fields have changed, return
     if (Object.keys(changedFields).length === 0) {
       this._notifications.open('Keine Änderungen zum Speichern.', undefined, { duration: 3000 });
-      return;
+      return 'no_changes';
     }
 
     // Submit the patch to the backend and update the local formattedOrderDTO with the response
@@ -1957,6 +1964,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         });
         this.location.replaceState(this.router.serializeUrl(urlTree));
       }
+      return 'success';
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Bestellung:', error);
       this._notifications.open(
@@ -1964,6 +1972,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         undefined,
         { duration: 5000 }
       );
+      return 'error';
     }
   }
 
@@ -2703,5 +2712,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     this.switchToTab('General');
     scrollTo({ top: 0, behavior: 'smooth' });
     this.driverJsTourService.startTour([EditOrderPageComponent]);
+  }
+
+  private addConfetti() {
+    this.utilsService.getConfettiInstance().addConfetti();
   }
 }

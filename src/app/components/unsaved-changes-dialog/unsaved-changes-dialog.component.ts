@@ -25,7 +25,7 @@ export const buildUnsavedChangesDialogTourSteps = (
     popover: {
       title: 'Ungespeicherte Änderungen',
       description:
-        'Beim Verlassen der Seite werden ungespeicherte Änderungen automatisch erfasst und hier, geordnet nach Bereichen, angezeigt. Falls sie die Änderungen behalten möchten, drücken Sie auf "Abbrechen" und speichern Sie die Änderungen auf der Seite. Wenn die Änderungen verworfen werden sollen, drücken Sie auf "Seite verlassen".',
+        'Beim Verlassen der Seite werden ungespeicherte Änderungen automatisch erfasst und hier, geordnet nach Tabs, angezeigt. Falls sie die Änderungen behalten möchten, drücken Sie auf "Abbrechen" und speichern Sie die Änderungen auf der Seite. Wenn die Änderungen verworfen werden sollen, drücken Sie auf "Seite verlassen".',
       onPopoverRender: (popover: PopoverDOM) =>
         driverJsTourService.placePopoverOntopDialog(popover),
       onPrevClick: () => {
