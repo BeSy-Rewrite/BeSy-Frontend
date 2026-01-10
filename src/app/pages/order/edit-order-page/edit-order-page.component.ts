@@ -172,6 +172,7 @@ interface AddressOptionConfig {
 })
 export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDestroy {
   @ViewChild('addItemDialog') private readonly addItemDialogTemplate?: TemplateRef<unknown>;
+  @ViewChild(MatTabGroup) private readonly tabGroup?: MatTabGroup;
   private addItemDialogRef?: MatDialogRef<unknown>;
 
   @ViewChild('addQuotationDialog')
@@ -2442,6 +2443,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       },
     ];
 
+    /**
+     * Helper function to open the unsaved changes dialog for the tour.
+     * @param action Action to perform after the dialog is opened
+     */
     const openUnsavedChangesDialogForTour = (action: () => void) => {
       unsavedChangesDialogRef?.close();
       unsavedChangesDialogRef = this._dialog.open(UnsavedChangesDialogComponent, {
@@ -2463,6 +2468,42 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         );
     };
 
+    /**
+     * Helper function to switch tabs and continue the tour.
+     * @param tabName Name of the tab to switch to
+     */
+    const afterTabSwitch = (tabName: (typeof this.tabOrder)[number], action: () => void) => {
+      const targetIndex = this.tabMap[tabName];
+      const tabGroup = this.tabGroup;
+
+      if (targetIndex === undefined) {
+        return;
+      }
+
+      if (!tabGroup || tabGroup.selectedIndex === targetIndex) {
+        this.switchToTab(tabName, { updateUrl: false });
+        afterNextRender(
+          {
+            read: () => action(),
+          },
+          { injector: this.injector }
+        );
+        return;
+      }
+
+      tabGroup.animationDone
+        .pipe(first(() => this.tabGroup?.selectedIndex === targetIndex))
+        .subscribe(() =>
+          afterNextRender(
+            {
+              read: () => action(),
+            },
+            { injector: this.injector }
+          )
+        );
+      this.switchToTab(tabName, { updateUrl: false });
+    };
+
     this.driverJsTourService.registerStepsForComponent(UnsavedChangesDialogComponent, () =>
       buildUnsavedChangesDialogTourSteps(this.driverJsTourService, () => unsavedChangesDialogRef)
     );
@@ -2480,7 +2521,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         popover: {
           title: 'Navigations-Registerkarten',
           description:
-            'Verwenden Sie diese Registerkarten, um zwischen den verschiedenen Abschnitten der Bestellbearbeitung zu navigieren.',
+            'Verwenden Sie diese Registerkarten, um zwischen den verschiedenen Tabs der Bestellbearbeitung zu navigieren.',
         },
       },
       {
@@ -2488,7 +2529,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         popover: {
           title: 'Alle Änderungen speichern',
           description:
-            'Klicken Sie hier, um alle Ihre Änderungen in allen Abschnitten der Bestellung zu speichern. Änderungen sind direkt nach dem Speichern wirksam und nicht rückgängig zu machen.',
+            'Klicken Sie hier, um alle Ihre Änderungen in allen Tabs der Bestellung zu speichern. Änderungen sind direkt nach dem Speichern wirksam und nicht rückgängig zu machen.',
         },
       },
       {
@@ -2496,34 +2537,139 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         popover: {
           title: 'Alle Änderungen verwerfen',
           description:
-            'Klicken Sie hier, um alle Ihre ungespeicherten Änderungen in allen Abschnitten der Bestellung zu verwerfen. Diese Aktion kann nicht rückgängig gemacht werden.',
+            'Klicken Sie hier, um alle Ihre ungespeicherten Änderungen in allen Tabs der Bestellung zu verwerfen. Diese Aktion kann nicht rückgängig gemacht werden.',
         },
       },
       {
         element: '.buttons',
         popover: {
-          title: 'Abschnittsbezogene Aktionen',
+          title: 'Tab-bezogene Aktionen',
           description:
-            'In jedem Abschnitt finden Sie Buttons zum Speichern oder Verwerfen von Änderungen, die nur für diesen Abschnitt gelten. Änderungen in anderen Abschnitten werden dabei nicht gespeichert oder verworfen.',
+            'In jedem Tab finden Sie Buttons zum Speichern oder Verwerfen von Änderungen, die nur für diesen Tab gelten. Änderungen in anderen Tabs werden dabei nicht gespeichert oder verworfen.',
           onNextClick: () =>
-            openUnsavedChangesDialogForTour(() =>
-              this.driverJsTourService.getTourDriver().moveNext()
+            afterTabSwitch('General', () => this.driverJsTourService.getTourDriver().moveNext()),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Allgemein-Tab',
+          description:
+            'Im Allgemein-Tab können Sie grundlegende Informationen zur Bestellung bearbeiten, wie z.B. das Buchungsjahr und die Person für Rückfragen.',
+          onNextClick: () =>
+            afterTabSwitch('Items', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('General', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
             ),
         },
       },
-      ...this.driverJsTourService.getStepsForComponent(UnsavedChangesDialogComponent),
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Bestellpositions-Tab',
+          description:
+            'Im Bestellpositions-Tab können Sie die einzelnen Positionen der Bestellung einsehen, löschen oder neue Positionen hinzufügen.',
+          onPrevClick: () =>
+            afterTabSwitch('General', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.add-item-button-container',
+        popover: {
+          title: 'Artikel hinzufügen',
+          description: 'Über diese Schaltfläche können Sie neue Artikel zur Bestellung hinzufügen.',
+          onNextClick: () =>
+            afterTabSwitch('MainOffer', () => this.driverJsTourService.getTourDriver().moveNext()),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Hauptangebot-Tab',
+          description:
+            'Im Hauptangebot-Tab können Sie die Informationen zu dem ausgewählten Angebot für die Bestellung einsehen und bearbeiten, wie etwas den Preis der Bestellung, den Lieferanten und den Grund für die Lieferantenwahl.',
+          onNextClick: () =>
+            afterTabSwitch('Quotations', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('Items', () => this.driverJsTourService.getTourDriver().movePrevious()),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Vergleichsangebote-Tab',
+          description:
+            'Im Vergleichsangebote-Tab können Sie die Vergleichsangebote zur Bestellung hinzufügen, einsehen und bearbeiten.',
+          onNextClick: () =>
+            afterTabSwitch('Addresses', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('MainOffer', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Addressen-Tab',
+          description:
+            'Im Addressen-Tab können Sie die Adressen zur Bestellung hinzufügen, einsehen und bearbeiten.',
+          onNextClick: () =>
+            afterTabSwitch('Approvals', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('MainOffer', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Zustimmungs-Tab',
+          description:
+            'Im Zustimmungs-Tab können Sie die Zustimmungen zur Bestellung hinzufügen, einsehen und bearbeiten. Wenn die nötigen Zustimmungen der verwantwortlichen Personen vorliegen, können diese hier eingetragen werden.',
+          onNextClick: () =>
+            afterTabSwitch('Documents', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('Addresses', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Dokumente-Tab',
+          description:
+            'Im Dokumente-Tab können Sie die Dokumente zur Bestellung hochladen oder bestehende Dokumente herunterladen und einsehen.',
+          onNextClick: () =>
+            afterTabSwitch('General', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('Approvals', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
       {
         element: '.mat-mdc-form-field-icon-suffix',
         popover: {
           title: 'Hilfe-Symbole',
           description:
             'Die meisten Formularelemente enthalten ein Hilfe-Symbol. Bewegen Sie den Mauszeiger darüber, um weitere Informationen zu erhalten.',
-          onPrevClick: () =>
+          onNextClick: () =>
             openUnsavedChangesDialogForTour(() =>
+              this.driverJsTourService.getTourDriver().moveNext()
+            ),
+          onPrevClick: () =>
+            afterTabSwitch('Documents', () =>
               this.driverJsTourService.getTourDriver().movePrevious()
             ),
         },
       },
+      ...this.driverJsTourService.getStepsForComponent(UnsavedChangesDialogComponent),
     ]);
   }
 

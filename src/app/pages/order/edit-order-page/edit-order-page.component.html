@@ -143,15 +143,17 @@
         </button>
       </div>
       <div class="item-container">
-        <button
-          mat-raised-button
-          class="mb-4 w-full"
-          color="primary"
-          (click)="openAddItemDialog()"
-          [disabled]="!isTabEditable('Items')"
-        >
-          Position hinzufügen
-        </button>
+        <div class="add-item-button-container">
+          <button
+            mat-raised-button
+            class="mb-4 w-full"
+            color="primary"
+            (click)="openAddItemDialog()"
+            [disabled]="!isTabEditable('Items')"
+          >
+            Position hinzufügen
+          </button>
+        </div>
 
         <ng-template #addItemDialog>
           <h2 mat-dialog-title>Position hinzufügen</h2>
