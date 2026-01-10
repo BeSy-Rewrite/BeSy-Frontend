@@ -43,13 +43,14 @@
         </button>
       </div>
       <button
-        mat-raised-button
-        class="ml-2"
-        matTooltip="Geführte Tour starten"
+        mat-mini-fab
+        class="help-button !fixed bottom-4 right-6 z-10"
+        color="accent"
         (click)="startTour()"
+        matTooltip="Bestellungsansicht erklären lassen"
+        aria-label="Bestellungsansicht erklären lassen"
       >
-        <mat-icon>tour</mat-icon>
-        Tour starten
+        <mat-icon>help</mat-icon>
       </button>
     </div>
   </div>

@@ -20,7 +20,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatButtonModule } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatOptionModule } from '@angular/material/core';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -149,6 +149,7 @@ interface AddressOptionConfig {
     MatDivider,
     FormComponent,
     MatButton,
+    MatButtonModule,
     MatDialogModule,
     GenericTableComponent,
     MatInputModule,
