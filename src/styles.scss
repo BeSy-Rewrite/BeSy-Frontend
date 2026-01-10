@@ -53,8 +53,27 @@
 
   @include mat.dialog-overrides(
     (
-      container-color: white,
-      subhead-color: rgb(204, 0, 255),
+      container-color: #ffffff,
+      container-elevation-shadow: 0 18px 40px rgba(13, 29, 56, 0.22),
+      container-shape: 16px,
+      container-max-width: 720px,
+      container-small-max-width: 92vw,
+      container-min-width: 320px,
+      headline-padding: 20px 28px 8px,
+      content-padding: 0 28px 20px,
+      with-actions-content-padding: 0 28px 8px,
+      actions-alignment: end,
+      actions-padding: 0 24px 20px,
+      subhead-color: var(--color-he-darkblue),
+      supporting-text-color: #485c7d,
+      subhead-size: 1.25rem,
+      subhead-line-height: 1.4,
+      subhead-tracking: 0.01em,
+      subhead-weight: 600,
+      supporting-text-size: 0.95rem,
+      supporting-text-line-height: 1.6,
+      supporting-text-tracking: 0.005em,
+      supporting-text-weight: 400,
     )
   );
 

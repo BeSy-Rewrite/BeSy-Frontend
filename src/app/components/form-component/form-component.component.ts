@@ -23,7 +23,6 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
-import { CustomerIdResponseDTO } from '../../api-services-v2';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
 
 export interface FormField {
@@ -92,11 +91,10 @@ export class FormComponent implements OnInit {
   @Input() formGroup!: FormGroup;
   @Input() editMode?: boolean;
 
-  // Data source for the address table
-  @Input() tableDataSource: MatTableDataSource<CustomerIdResponseDTO> =
-    new MatTableDataSource<CustomerIdResponseDTO>([]);
+  // Data source for the table
+  @Input() tableDataSource: MatTableDataSource<unknown> = new MatTableDataSource<unknown>([]);
 
-  // Columns to be displayed in the address table
+  // Columns to be displayed in the table
   @Input() tableColumns: { id: string; label: string }[] = [];
 
   // Trigger to refresh the form controls (e.g. when options are loaded from API or the config changes)

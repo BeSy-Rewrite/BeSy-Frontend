@@ -7,15 +7,17 @@
 
   <div class="w-full top-0 flex ml-auto justify-between items-center mb-1 mt-2 pb-2">
     <div class="sticky top-0 z-50 flex-1">
-      <button
-        mat-raised-button
-        color="warn"
-        (click)="resetToDefault('All')"
-        [disabled]="!isAnyTabEditable()"
-      >
-        <mat-icon iconPositionStart>restore</mat-icon>
-        Alle Änderungen verwerfen
-      </button>
+      <div class="discard-all-changes-button w-auto">
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="resetToDefault('All')"
+          [disabled]="!isAnyTabEditable()"
+        >
+          <mat-icon iconPositionStart>restore</mat-icon>
+          Alle Änderungen verwerfen
+        </button>
+      </div>
     </div>
 
     <div class="flex-1 flex justify-center">
@@ -29,14 +31,25 @@
     </div>
 
     <div class="sticky top-0 z-50 flex-1 flex justify-end">
+      <div class="save-all-changes-button">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="patchOrderFromForm('All')"
+          [disabled]="!isAnyTabEditable()"
+        >
+          <mat-icon iconPositionStart>save</mat-icon>
+          Alle Änderungen speichern
+        </button>
+      </div>
       <button
         mat-raised-button
-        color="primary"
-        (click)="patchOrderFromForm('All')"
-        [disabled]="!isAnyTabEditable()"
+        class="ml-2"
+        matTooltip="Geführte Tour starten"
+        (click)="startTour()"
       >
-        <mat-icon iconPositionStart>save</mat-icon>
-        Alle Änderungen speichern
+        <mat-icon>tour</mat-icon>
+        Tour starten
       </button>
     </div>
   </div>

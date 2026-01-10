@@ -1,8 +1,10 @@
 import { CommonModule } from '@angular/common';
 import {
+  afterNextRender,
   Component,
   computed,
   effect,
+  Injector,
   OnDestroy,
   OnInit,
   signal,
@@ -31,7 +33,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { first, Subscription } from 'rxjs';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
@@ -52,7 +54,11 @@ import {
 } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { StateDisplayComponent } from '../../../components/state-display/state-display.component';
-import { UnsavedTab } from '../../../components/unsaved-changes-dialog/unsaved-changes-dialog.component';
+import {
+  buildUnsavedChangesDialogTourSteps,
+  UnsavedChangesDialogComponent,
+  UnsavedTab,
+} from '../../../components/unsaved-changes-dialog/unsaved-changes-dialog.component';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
   ORDER_APPROVAL_FORM_CONFIG,
@@ -70,6 +76,7 @@ import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes.guard';
 import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
 import { EditOrderResolvedData } from '../../../resolver/edit-order.resolver';
+import { DriverJsTourService } from '../../../services/driver.js-tour.service';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   CurrenciesWrapperService,
@@ -182,7 +189,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     private readonly costCenterWrapperService: CostCenterWrapperService,
     private readonly route: ActivatedRoute,
     private readonly userWrapperService: UsersWrapperService,
-    private readonly _dialog: MatDialog
+    private readonly _dialog: MatDialog,
+    private readonly driverJsTourService: DriverJsTourService,
+    private readonly injector: Injector
   ) {
     effect(() => {
       this.itemTableDataSource.data = this.items();
@@ -495,6 +504,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         console.log(loginCredentials);
       });
     });
+    this.registerTourSteps();
   }
 
   ngOnDestroy(): void {
@@ -2416,5 +2426,111 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    */
   isTabEditable(tabName: (typeof this.tabOrder)[number]): boolean {
     return this.tabEditability()[tabName] ?? false;
+  }
+
+  private registerTourSteps() {
+    let unsavedChangesDialogRef: MatDialogRef<UnsavedChangesDialogComponent> | undefined;
+
+    const tourUnsavedTabs: UnsavedTab[] = [
+      {
+        tabName: 'Allgemein',
+        fields: ['Buchungsjahr', 'Person für Rückfragen'],
+      },
+      {
+        tabName: 'Hauptangebot',
+        fields: ['Lieferant', 'Währung'],
+      },
+    ];
+
+    const openUnsavedChangesDialogForTour = (action: () => void) => {
+      unsavedChangesDialogRef?.close();
+      unsavedChangesDialogRef = this._dialog.open(UnsavedChangesDialogComponent, {
+        width: '500px',
+        maxHeight: '80vh',
+        data: { unsavedTabs: tourUnsavedTabs },
+        disableClose: true,
+      });
+      unsavedChangesDialogRef
+        .afterOpened()
+        .pipe(first())
+        .subscribe(() =>
+          afterNextRender(
+            {
+              read: () => action(),
+            },
+            { injector: this.injector }
+          )
+        );
+    };
+
+    this.driverJsTourService.registerStepsForComponent(UnsavedChangesDialogComponent, () =>
+      buildUnsavedChangesDialogTourSteps(this.driverJsTourService, () => unsavedChangesDialogRef)
+    );
+
+    this.driverJsTourService.registerStepsForComponent(EditOrderPageComponent, () => [
+      {
+        element: '.create-order-page',
+        popover: {
+          title: 'Bestellung bearbeiten',
+          description: 'Auf dieser Seite können Sie die Details der Bestellung bearbeiten.',
+        },
+      },
+      {
+        element: '.mat-mdc-tab-label-container',
+        popover: {
+          title: 'Navigations-Registerkarten',
+          description:
+            'Verwenden Sie diese Registerkarten, um zwischen den verschiedenen Abschnitten der Bestellbearbeitung zu navigieren.',
+        },
+      },
+      {
+        element: '.save-all-changes-button',
+        popover: {
+          title: 'Alle Änderungen speichern',
+          description:
+            'Klicken Sie hier, um alle Ihre Änderungen in allen Abschnitten der Bestellung zu speichern. Änderungen sind direkt nach dem Speichern wirksam und nicht rückgängig zu machen.',
+        },
+      },
+      {
+        element: '.discard-all-changes-button',
+        popover: {
+          title: 'Alle Änderungen verwerfen',
+          description:
+            'Klicken Sie hier, um alle Ihre ungespeicherten Änderungen in allen Abschnitten der Bestellung zu verwerfen. Diese Aktion kann nicht rückgängig gemacht werden.',
+        },
+      },
+      {
+        element: '.buttons',
+        popover: {
+          title: 'Abschnittsbezogene Aktionen',
+          description:
+            'In jedem Abschnitt finden Sie Buttons zum Speichern oder Verwerfen von Änderungen, die nur für diesen Abschnitt gelten. Änderungen in anderen Abschnitten werden dabei nicht gespeichert oder verworfen.',
+          onNextClick: () =>
+            openUnsavedChangesDialogForTour(() =>
+              this.driverJsTourService.getTourDriver().moveNext()
+            ),
+        },
+      },
+      ...this.driverJsTourService.getStepsForComponent(UnsavedChangesDialogComponent),
+      {
+        element: '.mat-mdc-form-field-icon-suffix',
+        popover: {
+          title: 'Hilfe-Symbole',
+          description:
+            'Die meisten Formularelemente enthalten ein Hilfe-Symbol. Bewegen Sie den Mauszeiger darüber, um weitere Informationen zu erhalten.',
+          onPrevClick: () =>
+            openUnsavedChangesDialogForTour(() =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+    ]);
+  }
+
+  /** Starts the guided tour for the edit order page component. */
+  startTour() {
+    this.switchToTab('General');
+    scrollTo({ top: 0, behavior: 'smooth' });
+    this.driverJsTourService.startTour([EditOrderPageComponent]);
   }
 }
