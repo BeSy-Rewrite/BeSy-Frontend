@@ -2625,7 +2625,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         popover: {
           title: 'Hauptangebot-Tab',
           description:
-            'Im Hauptangebot-Tab können Sie die Informationen zu dem ausgewählten Angebot für die Bestellung einsehen und bearbeiten, wie etwas den Preis der Bestellung, den Lieferanten und den Grund für die Lieferantenwahl.',
+            'Im Hauptangebot-Tab können Sie die Informationen zu dem ausgewählten Angebot für die Bestellung einsehen und bearbeiten, wie etwa den Preis der Bestellung, den Lieferanten und den Grund für die Lieferantenwahl.',
           onNextClick: () =>
             afterTabSwitch('Quotations', () => this.driverJsTourService.getTourDriver().moveNext()),
           onPrevClick: () =>
@@ -2649,9 +2649,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       {
         element: '.mat-mdc-tab-body-wrapper',
         popover: {
-          title: 'Addressen-Tab',
+          title: 'Adressen-Tab',
           description:
-            'Im Addressen-Tab können Sie die Adressen zur Bestellung hinzufügen, einsehen und bearbeiten.',
+            'Im Adressen-Tab können Sie die Adressen zur Bestellung hinzufügen, einsehen und bearbeiten.',
           onNextClick: () =>
             afterTabSwitch('Approvals', () => this.driverJsTourService.getTourDriver().moveNext()),
           onPrevClick: () =>
@@ -2665,7 +2665,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         popover: {
           title: 'Zustimmungs-Tab',
           description:
-            'Im Zustimmungs-Tab können Sie die Zustimmungen zur Bestellung hinzufügen, einsehen und bearbeiten. Wenn die nötigen Zustimmungen der verwantwortlichen Personen vorliegen, können diese hier eingetragen werden.',
+            'Im Zustimmungs-Tab können Sie die Zustimmungen zur Bestellung hinzufügen, einsehen und bearbeiten. Wenn die nötigen Zustimmungen der verantwortlichen Personen vorliegen, können diese hier eingetragen werden.',
           onNextClick: () =>
             afterTabSwitch('Documents', () => this.driverJsTourService.getTourDriver().moveNext()),
           onPrevClick: () =>
