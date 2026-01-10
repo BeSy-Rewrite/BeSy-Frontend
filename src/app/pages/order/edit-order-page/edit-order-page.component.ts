@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import {
   afterNextRender,
   Component,
@@ -192,7 +192,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     private readonly userWrapperService: UsersWrapperService,
     private readonly _dialog: MatDialog,
     private readonly driverJsTourService: DriverJsTourService,
-    private readonly injector: Injector
+    private readonly injector: Injector,
+    private readonly location: Location
   ) {
     effect(() => {
       this.itemTableDataSource.data = this.items();
@@ -1569,12 +1570,16 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   }
 
   private updateTabQueryParam(tabName: (typeof this.tabOrder)[number]) {
-    this.router.navigate([], {
-      relativeTo: this.route,
+    const orderIdForUrl = this.orderBesyId() || this.route.snapshot.paramMap.get('id');
+    if (!orderIdForUrl) {
+      return;
+    }
+
+    const urlTree = this.router.createUrlTree(['/orders', orderIdForUrl, 'edit'], {
       queryParams: { tab: tabName },
       queryParamsHandling: 'merge',
-      replaceUrl: true,
     });
+    this.location.replaceState(this.router.serializeUrl(urlTree));
   }
 
   /**
@@ -1625,7 +1630,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     await this.submitOrderPatch();
 
     // Switch to the next tab if applicable
-    if (formType !== 'All' && formType !== 'Approvals') {
+    if (formType !== 'All' && formType !== 'Documents') {
       const nextTab = this.getNextTab(formType);
       if (nextTab) {
         this.switchToTab(nextTab);
@@ -1917,7 +1922,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * Retrieves the changed fields and submits the order patch to the backend.
    * @returns A promise that resolves to true if the patch was successful, false otherwise.
    */
-  private async submitOrderPatch() {
+  private async submitOrderPatch(): Promise<void> {
     console.log('Current formattedOrderDTO:', this.formattedOrderDTO);
     console.log('Submitting order patch with DTO:', this.patchOrderDTO);
     // Check which fields have been modified and prepare the patch DTO accordingly
@@ -1929,6 +1934,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
     // If no fields have changed, return
     if (Object.keys(changedFields).length === 0) {
+      this._notifications.open('Keine Änderungen zum Speichern.', undefined, { duration: 3000 });
       return;
     }
 
@@ -1940,6 +1946,17 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this._notifications.open('Bestellung wurde erfolgreich aktualisiert.', undefined, {
         duration: 3000,
       });
+      // Update the orderBesyId signal in case primary cost center or booking year changed
+      if (changedFields.primary_cost_center_id || changedFields.booking_year) {
+        const updatedOrderBesyId = `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year!.slice(-2)}-${this.formattedOrderDTO.auto_index}`;
+        this.orderBesyId.set(updatedOrderBesyId);
+
+        // Update the path param without triggering a route change.
+        const urlTree = this.router.createUrlTree(['/orders', updatedOrderBesyId, 'edit'], {
+          queryParamsHandling: 'merge',
+        });
+        this.location.replaceState(this.router.serializeUrl(urlTree));
+      }
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Bestellung:', error);
       this._notifications.open(
@@ -2514,6 +2531,14 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         popover: {
           title: 'Bestellung bearbeiten',
           description: 'Auf dieser Seite können Sie die Details der Bestellung bearbeiten.',
+        },
+      },
+      {
+        element: '.order-info-card',
+        popover: {
+          title: 'Bestellinformationen',
+          description:
+            'Hier wird angezeigt, welche Bestellung Sie gerade bearbeiten, einschließlich der Bestellnummer.',
         },
       },
       {
