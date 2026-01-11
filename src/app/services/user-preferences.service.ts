@@ -1,10 +1,10 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { catchError, forkJoin, map, mergeMap, Observable, of } from 'rxjs';
-import { UserPreferencesResponseDTO } from '../api-services-v2';
+import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap } from 'rxjs';
+import { PreferenceType, UserPreferencesRequestDTO, UserPreferencesResponseDTO } from '../api-services-v2';
 import {
   CURRENT_USER_PLACEHOLDER,
-  ORDERS_FILTER_PRESETS,
+  ORDERS_FILTER_PRESETS
 } from '../configs/orders-table/order-filter-presets-config';
 import { FilterDateRange } from '../models/filter/filter-date-range';
 import { FilterPresetType, OrdersFilterPreset } from '../models/filter/filter-presets';
@@ -17,102 +17,31 @@ export class UserPreferencesService {
   constructor(
     private readonly usersWrapper: UsersWrapperService,
     private readonly _snackBar: MatSnackBar
-  ) {}
+  ) { }
 
   /**
-   * Executes an action for the current user by retrieving their user ID first.
-   * @param action A function that takes a user ID and returns an Observable of type T.
-   * @returns An Observable of type T resulting from the action executed with the current user's ID.
+    * Combines default presets (resolved with the current user) and saved presets.
+    * @param savedPresets An Observable of saved OrdersFilterPreset array.
+    * @returns An Observable of an array of OrdersFilterPreset.
    */
-  private executeForCurrentUser<T>(action: (userId: number) => Observable<T>): Observable<T> {
-    return this.usersWrapper.getCurrentUser().pipe(
-      mergeMap(user => {
-        return action(Number.parseInt(user.id!));
-      })
-    );
-  }
-
-  /**
-   * Retrieves the preferences of the current user.
-   * @returns An Observable of UserPreferencesResponseDTO containing the user's preferences.
-   */
-  getPreferences(): Observable<UserPreferencesResponseDTO> {
-    return this.executeForCurrentUser(userId => this.usersWrapper.getUserPreferences(userId));
-  }
-
-  /**
-   * Adds preferences for the current user.
-   * @param preferences The preferences to add.
-   * @returns An Observable of UserPreferencesResponseDTO containing the updated preferences.
-   */
-  addPreferences(preferences: UserPreferencesResponseDTO): Observable<UserPreferencesResponseDTO> {
-    return this.executeForCurrentUser(userId =>
-      this.usersWrapper.addUserPreferences(userId, preferences)
-    ).pipe(
-      catchError(error => {
-        console.error('Error adding user preferences:', error);
-        this._snackBar.open(
-          'Fehler beim Hinzufügen der Präferenzen: ' + error.message,
-          'Schließen',
-          { duration: 5000 }
-        );
-        return of({
-          order_filter_preferences: [],
-        });
-      })
-    );
-  }
-
-  /**
-   * Deletes preferences for the current user.
-   * @param preferences The preferences to delete.
-   * @returns An Observable of UserPreferencesResponseDTO containing the updated preferences.
-   */
-  deletePreferences(
-    preferences: UserPreferencesResponseDTO
-  ): Observable<UserPreferencesResponseDTO> {
-    return this.executeForCurrentUser(userId =>
-      this.usersWrapper.deleteFromUserPreferences(userId, preferences)
-    ).pipe(
-      catchError(error => {
-        console.error('Error deleting user preferences:', error);
-        this._snackBar.open('Fehler beim Löschen der Präferenzen: ' + error.message, 'Schließen', {
-          duration: 5000,
-        });
-        return of({
-          order_filter_preferences: [],
-        });
-      })
-    );
-  }
-
-  /**
-   * Combines default and saved filter presets for the current user.
-   * @param preferences An Observable of UserPreferencesResponseDTO containing the user's preferences.
-   * @returns An Observable of an array of OrdersFilterPreset.
-   */
-  private getFullPresetList(
-    preferences: Observable<UserPreferencesResponseDTO>
-  ): Observable<OrdersFilterPreset[]> {
+  private getFullPresetList(savedPresets: Observable<OrdersFilterPreset[]>): Observable<OrdersFilterPreset[]> {
     return forkJoin({
-      preferences,
+      savedPresets,
       defaultPresets: this.resolveCurrentUserInPresets(ORDERS_FILTER_PRESETS),
     }).pipe(
-      map(({ preferences, defaultPresets }) => {
-        const savedPresets = preferences.order_filter_preferences.map(preset =>
-          this.parseAndCheckPreset(preset)
-        );
+      map(({ savedPresets, defaultPresets }) => {
         return [...defaultPresets, ...savedPresets];
       })
     );
   }
 
   /**
-   * Retrieves the order filter presets for the current user, combining default and saved presets.
-   * @returns An Observable of an array of OrdersFilterPreset.
+    * Retrieves order filter presets for the current user by combining default and saved presets.
+    * Falls back to valid default presets on error.
+    * @returns An Observable of an array of OrdersFilterPreset.
    */
   getPresets(): Observable<OrdersFilterPreset[]> {
-    return this.getFullPresetList(this.getPreferences()).pipe(
+    return this.getFullPresetList(this.getSavedPresets()).pipe(
       catchError(error => {
         console.error('Error loading filter presets:', error);
         this._snackBar.open('Fehler beim Laden der Filtervorgaben: ' + error.message, 'Schließen', {
@@ -124,13 +53,16 @@ export class UserPreferencesService {
   }
 
   /**
-   * Retrieves custom order filter presets saved by the current user.
-   * @returns An Observable of an array of OrdersFilterPreset.
+    * Retrieves order filter presets saved by the current user.
+    * @returns An Observable of an array of OrdersFilterPreset.
    */
-  getCustomPresets(): Observable<OrdersFilterPreset[]> {
-    return this.getPreferences().pipe(
+  getSavedPresets(): Observable<OrdersFilterPreset[]> {
+    return this.usersWrapper.getCurrentUserPreferences(PreferenceType.ORDER_PRESETS).pipe(
       map(preferences =>
-        preferences.order_filter_preferences.map(preset => this.parseAndCheckPreset(preset))
+        preferences.map(preference => {
+          preference.preferences['id'] = preference.id; // Assign the preference ID to the preset
+          return this.parseAndCheckPreset(preference.preferences)
+        })
       )
     );
   }
@@ -138,14 +70,14 @@ export class UserPreferencesService {
   /**
    * Saves a new filter preset for the current user.
    * @param preset The OrdersFilterPreset to save.
-   * @returns An Observable of an array of OrdersFilterPreset including the newly saved preset.
+    * @returns An Observable of an array of OrdersFilterPreset including the newly saved preset (combined with defaults and existing custom presets).
    */
   savePreset(preset: OrdersFilterPreset) {
-    return this.getFullPresetList(
-      this.addPreferences({
-        order_filter_preferences: [JSON.stringify(preset)],
-      })
-    ).pipe(
+    const preference: UserPreferencesRequestDTO = {
+      preference_type: PreferenceType.ORDER_PRESETS,
+      preferences: preset,
+    };
+    return this.usersWrapper.addCurrentUserPreference(preference).pipe(
       catchError(error => {
         console.error('Error saving filter preset:', error);
         this._snackBar.open(
@@ -154,49 +86,52 @@ export class UserPreferencesService {
           { duration: 5000 }
         );
         return this.getValidDefaultPresets();
-      })
-    );
+      }),
+      switchMap(() => this.getFullPresetList(this.getSavedPresets()))
+    )
   }
 
   /**
-   * Updates an existing preset identified by its label.
+   * Updates an existing filter preset identified by its label.
    * @param oldLabel The label of the preset to update.
    * @param updatedPreset The updated OrdersFilterPreset.
-   * @returns An Observable of an array of OrdersFilterPreset.
+   * @returns An Observable of an array of OrdersFilterPreset including the updated preset (combined with defaults and existing custom presets).
    */
   updatePresetByLabel(
     oldLabel: string,
     updatedPreset: OrdersFilterPreset,
-    createIfNotExists: boolean = false
   ) {
-    return this.getCustomPresets().pipe(
-      mergeMap(customPresets => {
-        const presetToUpdate = customPresets.find(preset => preset.label === oldLabel);
-        if (!presetToUpdate) {
-          if (createIfNotExists) {
-            return this.savePreset(updatedPreset);
-          } else {
-            throw new Error(`Preset with label "${oldLabel}" not found.`);
-          }
+    return this.getSavedPresets().pipe(
+      switchMap(customPresets => {
+
+        const deleteObservables: Observable<UserPreferencesResponseDTO>[] = [];
+        for (const presetToUpdate of customPresets.filter(preset => preset.label === oldLabel)) {
+          deleteObservables.push(this.usersWrapper.deleteCurrentUserPreference(presetToUpdate.id!));
         }
-        return this.deletePreset(presetToUpdate).pipe(
-          mergeMap(() => this.savePreset(updatedPreset))
+
+        if (deleteObservables.length === 0) return of(undefined);
+
+        return forkJoin(deleteObservables).pipe(
+          catchError(error => {
+            console.error('Error updating filter preset:', error);
+            return this.getValidDefaultPresets();
+          })
         );
+      }),
+
+      switchMap(() => {
+        return this.savePreset(updatedPreset);
       })
     );
   }
 
   /**
    * Deletes a specific filter preset for the current user.
-   * @param preset The OrdersFilterPreset to delete.
+    * @param presetId The ID of the user preference/preset to delete.
    * @returns An Observable of an array of OrdersFilterPreset.
    */
-  deletePreset(preset: OrdersFilterPreset) {
-    return this.getFullPresetList(
-      this.deletePreferences({
-        order_filter_preferences: [JSON.stringify(preset)],
-      })
-    ).pipe(
+  deletePreset(presetId: number) {
+    return this.usersWrapper.deleteCurrentUserPreference(presetId).pipe(
       catchError(error => {
         console.error('Error deleting filter preset:', error);
         this._snackBar.open(
@@ -205,13 +140,15 @@ export class UserPreferencesService {
           { duration: 5000 }
         );
         return this.getValidDefaultPresets();
-      })
+      }),
+      switchMap(() => this.getFullPresetList(this.getSavedPresets()))
     );
   }
 
   /**
-   * Retrieves valid default filter presets for the current user.
-   * @returns An Observable of an array of OrdersFilterPreset.
+    * Retrieves valid default filter presets for the current user.
+    * If the current user is unavailable, presets requiring CURRENT_USER_PLACEHOLDER are removed.
+    * @returns An Observable of an array of OrdersFilterPreset.
    */
   getValidDefaultPresets(): Observable<OrdersFilterPreset[]> {
     return this.usersWrapper
@@ -226,16 +163,19 @@ export class UserPreferencesService {
   }
 
   /**
-   * Parses a preset string or object and ensures date ranges are properly formatted.
-   * @param presetString The preset as a JSON string or OrdersFilterPreset object.
-   * @returns The parsed and checked OrdersFilterPreset.
+    * Parses a preset provided as a JSON string or an object with a `label` field,
+    * and ensures any date ranges inside filters are properly formatted.
+    * @param inputPreset The preset as a JSON string, an object with keys, or an OrdersFilterPreset.
+    * @returns The parsed and checked OrdersFilterPreset.
    */
-  parseAndCheckPreset(presetString: string | OrdersFilterPreset): OrdersFilterPreset {
+  parseAndCheckPreset(inputPreset: string | { [key: string]: any } | OrdersFilterPreset): OrdersFilterPreset {
     let preset: OrdersFilterPreset;
-    if (typeof presetString === 'string') {
-      preset = JSON.parse(presetString);
-    } else {
-      preset = presetString;
+    if (typeof inputPreset === 'string') {
+      preset = JSON.parse(inputPreset);
+    } else if (typeof inputPreset === 'object' && ('label' in inputPreset))
+      preset = inputPreset as OrdersFilterPreset;
+    else {
+      throw new Error('Invalid preset format');
     }
     for (const filter of preset.appliedFilters) {
       if ('dateRange' in filter) {
@@ -259,6 +199,7 @@ export class UserPreferencesService {
 
   /**
    * Resolves the current user in the given filter presets.
+   * Throws an error if the current user cannot be determined.
    * @param filterPresets The array of OrdersFilterPreset to resolve the current user in.
    * @returns An observable of the resolved OrdersFilterPreset array.
    */
@@ -295,7 +236,7 @@ export class UserPreferencesService {
   }
 
   /**
-   * Replaces CURRENT_USER_PLACEHOLDER in a single applied filter if it is a ChipFilterPreset.
+    * Replaces CURRENT_USER_PLACEHOLDER in a single applied filter when applicable (filters with `chipIds`).
    * @param filter The filter preset to process.
    * @param userId The ID of the current user.
    * @returns The modified filter preset.
@@ -313,6 +254,12 @@ export class UserPreferencesService {
     };
   }
 
+  /**
+   * Removes presets that contain CURRENT_USER_PLACEHOLDER when no user context is available.
+   * Logs a warning indicating how many presets were removed.
+   * @param presets The original preset list.
+   * @returns The filtered list without presets requiring CURRENT_USER_PLACEHOLDER.
+   */
   removeCurrentUserPresets(presets: OrdersFilterPreset[]): OrdersFilterPreset[] {
     const filteredPresets = presets.filter(
       preset =>

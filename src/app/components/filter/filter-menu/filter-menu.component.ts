@@ -244,7 +244,7 @@ export class FilterMenuComponent implements OnInit {
       .pipe(debounceTime(environment.saveActiveFiltersDebounceMs))
       .subscribe(() =>
         this.preferencesService
-          .updatePresetByLabel(LAST_ACTIVE_FILTERS_KEY, this.activeFiltersSignal(), true)
+          .updatePresetByLabel(LAST_ACTIVE_FILTERS_KEY, this.activeFiltersSignal())
           .subscribe()
       );
 
