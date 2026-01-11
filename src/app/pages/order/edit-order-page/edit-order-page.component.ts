@@ -1,8 +1,10 @@
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import {
+  afterNextRender,
   Component,
   computed,
   effect,
+  Injector,
   OnDestroy,
   OnInit,
   signal,
@@ -18,7 +20,7 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatButton } from '@angular/material/button';
+import { MatButton, MatButtonModule } from '@angular/material/button';
 import { MatButtonToggle, MatButtonToggleGroup } from '@angular/material/button-toggle';
 import { MatOptionModule } from '@angular/material/core';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -31,7 +33,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { Subscription } from 'rxjs';
+import { first, Subscription } from 'rxjs';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
@@ -52,7 +54,11 @@ import {
 } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { StateDisplayComponent } from '../../../components/state-display/state-display.component';
-import { UnsavedTab } from '../../../components/unsaved-changes-dialog/unsaved-changes-dialog.component';
+import {
+  buildUnsavedChangesDialogTourSteps,
+  UnsavedChangesDialogComponent,
+  UnsavedTab,
+} from '../../../components/unsaved-changes-dialog/unsaved-changes-dialog.component';
 import {
   ORDER_ADDRESS_FORM_CONFIG,
   ORDER_APPROVAL_FORM_CONFIG,
@@ -70,6 +76,7 @@ import { ORDER_ITEM_FORM_CONFIG } from '../../../configs/order/order-item-config
 import { HasUnsavedChanges } from '../../../guards/unsaved-changes.guard';
 import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
 import { EditOrderResolvedData } from '../../../resolver/edit-order.resolver';
+import { DriverJsTourService } from '../../../services/driver.js-tour.service';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   CurrenciesWrapperService,
@@ -86,6 +93,7 @@ import {
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
+import { UtilsService } from '../../../utils.service';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -126,6 +134,7 @@ export interface QuotationTableModel {
   company_city: string;
 }
 type AddressOption = 'preferred' | 'existing' | 'new' | 'selected';
+type PatchResponseIndicator = 'no_changes' | 'success' | 'error';
 
 interface AddressOptionConfig {
   subtitle: string;
@@ -140,6 +149,7 @@ interface AddressOptionConfig {
     MatDivider,
     FormComponent,
     MatButton,
+    MatButtonModule,
     MatDialogModule,
     GenericTableComponent,
     MatInputModule,
@@ -165,6 +175,7 @@ interface AddressOptionConfig {
 })
 export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDestroy {
   @ViewChild('addItemDialog') private readonly addItemDialogTemplate?: TemplateRef<unknown>;
+  @ViewChild(MatTabGroup) private readonly tabGroup?: MatTabGroup;
   private addItemDialogRef?: MatDialogRef<unknown>;
 
   @ViewChild('addQuotationDialog')
@@ -182,7 +193,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     private readonly costCenterWrapperService: CostCenterWrapperService,
     private readonly route: ActivatedRoute,
     private readonly userWrapperService: UsersWrapperService,
-    private readonly _dialog: MatDialog
+    private readonly _dialog: MatDialog,
+    private readonly driverJsTourService: DriverJsTourService,
+    private readonly injector: Injector,
+    private readonly location: Location,
+    private readonly utilsService: UtilsService
   ) {
     effect(() => {
       this.itemTableDataSource.data = this.items();
@@ -191,7 +206,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.quotationTableDataSource.data = this.quotations();
     });
   }
-
+  // Order variables
   orderName = signal<string>('');
   orderBesyId = signal<string>('');
   // Tab variables
@@ -495,6 +510,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         console.log(loginCredentials);
       });
     });
+    this.registerTourSteps();
   }
 
   ngOnDestroy(): void {
@@ -1558,12 +1574,16 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   }
 
   private updateTabQueryParam(tabName: (typeof this.tabOrder)[number]) {
-    this.router.navigate([], {
-      relativeTo: this.route,
+    const orderIdForUrl = this.orderBesyId() || this.route.snapshot.paramMap.get('id');
+    if (!orderIdForUrl) {
+      return;
+    }
+
+    const urlTree = this.router.createUrlTree(['/orders', orderIdForUrl, 'edit'], {
       queryParams: { tab: tabName },
       queryParamsHandling: 'merge',
-      replaceUrl: true,
     });
+    this.location.replaceState(this.router.serializeUrl(urlTree));
   }
 
   /**
@@ -1611,10 +1631,14 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     }
 
     // Submit the order patch after all forms have been processed
-    await this.submitOrderPatch();
+    const patchWithChanges = await this.submitOrderPatch();
+
+    if (patchWithChanges === 'success') {
+      this.addConfetti();
+    }
 
     // Switch to the next tab if applicable
-    if (formType !== 'All' && formType !== 'Approvals') {
+    if (formType !== 'All' && formType !== 'Documents') {
       const nextTab = this.getNextTab(formType);
       if (nextTab) {
         this.switchToTab(nextTab);
@@ -1638,7 +1662,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         return this.patchMainOfferOrder(target);
 
       case 'Items':
-        return this.patchItemsOrder();
+        return this.submitOrderItemChanges();
 
       case 'Quotations':
         return this.patchQuotationsOrder();
@@ -1710,7 +1734,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * Patches the items order.
    * @returns A promise that resolves to true if the patch was successful, false otherwise.
    */
-  async patchItemsOrder(): Promise<boolean> {
+  async submitOrderItemChanges(): Promise<boolean> {
     // prepare items that need to be created (no item_id -> new)
     const itemsToCreate = this.items()
       .filter(item => !item.item_id)
@@ -1904,9 +1928,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
   /**
    * Retrieves the changed fields and submits the order patch to the backend.
-   * @returns A promise that resolves to true if the patch was successful, false otherwise.
+   * @returns A promise that indicates if there were changes which were submitted successfully
    */
-  private async submitOrderPatch() {
+  private async submitOrderPatch(): Promise<PatchResponseIndicator> {
     console.log('Current formattedOrderDTO:', this.formattedOrderDTO);
     console.log('Submitting order patch with DTO:', this.patchOrderDTO);
     // Check which fields have been modified and prepare the patch DTO accordingly
@@ -1918,7 +1942,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
     // If no fields have changed, return
     if (Object.keys(changedFields).length === 0) {
-      return;
+      this._notifications.open('Keine Änderungen zum Speichern.', undefined, { duration: 3000 });
+      return 'no_changes';
     }
 
     // Submit the patch to the backend and update the local formattedOrderDTO with the response
@@ -1929,6 +1954,18 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this._notifications.open('Bestellung wurde erfolgreich aktualisiert.', undefined, {
         duration: 3000,
       });
+      // Update the orderBesyId signal in case primary cost center or booking year changed
+      if (changedFields.primary_cost_center_id || changedFields.booking_year) {
+        const updatedOrderBesyId = `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year!.slice(-2)}-${this.formattedOrderDTO.auto_index}`;
+        this.orderBesyId.set(updatedOrderBesyId);
+
+        // Update the path param without triggering a route change.
+        const urlTree = this.router.createUrlTree(['/orders', updatedOrderBesyId, 'edit'], {
+          queryParamsHandling: 'merge',
+        });
+        this.location.replaceState(this.router.serializeUrl(urlTree));
+      }
+      return 'success';
     } catch (error) {
       console.error('Fehler beim Aktualisieren der Bestellung:', error);
       this._notifications.open(
@@ -1936,6 +1973,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         undefined,
         { duration: 5000 }
       );
+      return 'error';
     }
   }
 
@@ -2416,5 +2454,268 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    */
   isTabEditable(tabName: (typeof this.tabOrder)[number]): boolean {
     return this.tabEditability()[tabName] ?? false;
+  }
+
+  private registerTourSteps() {
+    let unsavedChangesDialogRef: MatDialogRef<UnsavedChangesDialogComponent> | undefined;
+
+    const tourUnsavedTabs: UnsavedTab[] = [
+      {
+        tabName: 'Allgemein',
+        fields: ['Buchungsjahr', 'Person für Rückfragen'],
+      },
+      {
+        tabName: 'Hauptangebot',
+        fields: ['Lieferant', 'Währung'],
+      },
+    ];
+
+    /**
+     * Helper function to open the unsaved changes dialog for the tour.
+     * @param action Action to perform after the dialog is opened
+     */
+    const openUnsavedChangesDialogForTour = (action: () => void) => {
+      unsavedChangesDialogRef?.close();
+      unsavedChangesDialogRef = this._dialog.open(UnsavedChangesDialogComponent, {
+        width: '500px',
+        maxHeight: '80vh',
+        data: { unsavedTabs: tourUnsavedTabs },
+        disableClose: true,
+      });
+      unsavedChangesDialogRef
+        .afterOpened()
+        .pipe(first())
+        .subscribe(() =>
+          afterNextRender(
+            {
+              read: () => action(),
+            },
+            { injector: this.injector }
+          )
+        );
+    };
+
+    /**
+     * Helper function to switch tabs and continue the tour.
+     * @param tabName Name of the tab to switch to
+     */
+    const afterTabSwitch = (tabName: (typeof this.tabOrder)[number], action: () => void) => {
+      const targetIndex = this.tabMap[tabName];
+      const tabGroup = this.tabGroup;
+
+      if (targetIndex === undefined) {
+        return;
+      }
+
+      if (!tabGroup || tabGroup.selectedIndex === targetIndex) {
+        this.switchToTab(tabName, { updateUrl: false });
+        afterNextRender(
+          {
+            read: () => action(),
+          },
+          { injector: this.injector }
+        );
+        return;
+      }
+
+      tabGroup.animationDone
+        .pipe(first(() => this.tabGroup?.selectedIndex === targetIndex))
+        .subscribe(() =>
+          afterNextRender(
+            {
+              read: () => action(),
+            },
+            { injector: this.injector }
+          )
+        );
+      this.switchToTab(tabName, { updateUrl: false });
+    };
+
+    this.driverJsTourService.registerStepsForComponent(UnsavedChangesDialogComponent, () =>
+      buildUnsavedChangesDialogTourSteps(this.driverJsTourService, () => unsavedChangesDialogRef)
+    );
+
+    this.driverJsTourService.registerStepsForComponent(EditOrderPageComponent, () => [
+      {
+        element: '.create-order-page',
+        popover: {
+          title: 'Bestellung bearbeiten',
+          description: 'Auf dieser Seite können Sie die Details der Bestellung bearbeiten.',
+        },
+      },
+      {
+        element: '.order-info-card',
+        popover: {
+          title: 'Bestellinformationen',
+          description:
+            'Hier wird angezeigt, welche Bestellung Sie gerade bearbeiten, einschließlich der Bestellnummer.',
+        },
+      },
+      {
+        element: '.mat-mdc-tab-label-container',
+        popover: {
+          title: 'Navigations-Registerkarten',
+          description:
+            'Verwenden Sie diese Registerkarten, um zwischen den verschiedenen Tabs der Bestellbearbeitung zu navigieren.',
+        },
+      },
+      {
+        element: '.save-all-changes-button',
+        popover: {
+          title: 'Alle Änderungen speichern',
+          description:
+            'Klicken Sie hier, um alle Ihre Änderungen in allen Tabs der Bestellung zu speichern. Änderungen sind direkt nach dem Speichern wirksam und nicht rückgängig zu machen.',
+        },
+      },
+      {
+        element: '.discard-all-changes-button',
+        popover: {
+          title: 'Alle Änderungen verwerfen',
+          description:
+            'Klicken Sie hier, um alle Ihre ungespeicherten Änderungen in allen Tabs der Bestellung zu verwerfen. Diese Aktion kann nicht rückgängig gemacht werden.',
+        },
+      },
+      {
+        element: '.buttons',
+        popover: {
+          title: 'Tab-bezogene Aktionen',
+          description:
+            'In jedem Tab finden Sie Buttons zum Speichern oder Verwerfen von Änderungen, die nur für diesen Tab gelten. Änderungen in anderen Tabs werden dabei nicht gespeichert oder verworfen.',
+          onNextClick: () =>
+            afterTabSwitch('General', () => this.driverJsTourService.getTourDriver().moveNext()),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Allgemein-Tab',
+          description:
+            'Im Allgemein-Tab können Sie grundlegende Informationen zur Bestellung bearbeiten, wie z.B. das Buchungsjahr und die Person für Rückfragen.',
+          onNextClick: () =>
+            afterTabSwitch('Items', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('General', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Bestellpositions-Tab',
+          description:
+            'Im Bestellpositions-Tab können Sie die einzelnen Positionen der Bestellung einsehen, löschen oder neue Positionen hinzufügen.',
+          onPrevClick: () =>
+            afterTabSwitch('General', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.add-item-button-container',
+        popover: {
+          title: 'Artikel hinzufügen',
+          description: 'Über diese Schaltfläche können Sie neue Artikel zur Bestellung hinzufügen.',
+          onNextClick: () =>
+            afterTabSwitch('MainOffer', () => this.driverJsTourService.getTourDriver().moveNext()),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Hauptangebot-Tab',
+          description:
+            'Im Hauptangebot-Tab können Sie die Informationen zu dem ausgewählten Angebot für die Bestellung einsehen und bearbeiten, wie etwa den Preis der Bestellung, den Lieferanten und den Grund für die Lieferantenwahl.',
+          onNextClick: () =>
+            afterTabSwitch('Quotations', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('Items', () => this.driverJsTourService.getTourDriver().movePrevious()),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Vergleichsangebote-Tab',
+          description:
+            'Im Vergleichsangebote-Tab können Sie die Vergleichsangebote zur Bestellung hinzufügen, einsehen und bearbeiten.',
+          onNextClick: () =>
+            afterTabSwitch('Addresses', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('MainOffer', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Adressen-Tab',
+          description:
+            'Im Adressen-Tab können Sie die Adressen zur Bestellung hinzufügen, einsehen und bearbeiten.',
+          onNextClick: () =>
+            afterTabSwitch('Approvals', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('MainOffer', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Zustimmungs-Tab',
+          description:
+            'Im Zustimmungs-Tab können Sie die Zustimmungen zur Bestellung hinzufügen, einsehen und bearbeiten. Wenn die nötigen Zustimmungen der verantwortlichen Personen vorliegen, können diese hier eingetragen werden.',
+          onNextClick: () =>
+            afterTabSwitch('Documents', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('Addresses', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.mat-mdc-tab-body-wrapper',
+        popover: {
+          title: 'Dokumente-Tab',
+          description:
+            'Im Dokumente-Tab können Sie die Dokumente zur Bestellung hochladen oder bestehende Dokumente herunterladen und einsehen.',
+          onNextClick: () =>
+            afterTabSwitch('General', () => this.driverJsTourService.getTourDriver().moveNext()),
+          onPrevClick: () =>
+            afterTabSwitch('Approvals', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      {
+        element: '.mat-mdc-form-field-icon-suffix',
+        popover: {
+          title: 'Hilfe-Symbole',
+          description:
+            'Die meisten Formularelemente enthalten ein Hilfe-Symbol. Bewegen Sie den Mauszeiger darüber, um weitere Informationen zu erhalten.',
+          onNextClick: () =>
+            openUnsavedChangesDialogForTour(() =>
+              this.driverJsTourService.getTourDriver().moveNext()
+            ),
+          onPrevClick: () =>
+            afterTabSwitch('Documents', () =>
+              this.driverJsTourService.getTourDriver().movePrevious()
+            ),
+        },
+      },
+      ...this.driverJsTourService.getStepsForComponent(UnsavedChangesDialogComponent),
+    ]);
+  }
+
+  /** Starts the guided tour for the edit order page component. */
+  startTour() {
+    this.switchToTab('General');
+    scrollTo({ top: 0, behavior: 'smooth' });
+    this.driverJsTourService.startTour([EditOrderPageComponent]);
+  }
+
+  private addConfetti() {
+    this.utilsService.getConfettiInstance().addConfetti();
   }
 }

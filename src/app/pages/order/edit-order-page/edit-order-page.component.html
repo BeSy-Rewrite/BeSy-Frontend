@@ -7,20 +7,22 @@
 
   <div class="w-full top-0 flex ml-auto justify-between items-center mb-1 mt-2 pb-2">
     <div class="sticky top-0 z-50 flex-1">
-      <button
-        mat-raised-button
-        color="warn"
-        (click)="resetToDefault('All')"
-        [disabled]="!isAnyTabEditable()"
-      >
-        <mat-icon iconPositionStart>restore</mat-icon>
-        Alle Änderungen verwerfen
-      </button>
+      <div class="discard-all-changes-button w-auto">
+        <button
+          mat-raised-button
+          color="warn"
+          (click)="resetToDefault('All')"
+          [disabled]="!isAnyTabEditable()"
+        >
+          <mat-icon iconPositionStart>restore</mat-icon>
+          Alle Änderungen verwerfen
+        </button>
+      </div>
     </div>
 
     <div class="flex-1 flex justify-center">
       <div
-        class="flex flex-col items-center px-6 py-2 bg-white rounded-lg shadow-md border border-gray-200"
+        class="order-info-card flex flex-col items-center px-6 py-2 bg-white rounded-lg shadow-md border border-gray-200"
       >
         <span class="text-xs text-gray-500 uppercase tracking-wide">Bestellung</span>
         <span class="text-lg font-bold text-gray-900">{{ orderName() }}</span>
@@ -29,14 +31,26 @@
     </div>
 
     <div class="sticky top-0 z-50 flex-1 flex justify-end">
+      <div class="save-all-changes-button">
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="patchOrderFromForm('All')"
+          [disabled]="!isAnyTabEditable()"
+        >
+          <mat-icon iconPositionStart>save</mat-icon>
+          Alle Änderungen speichern
+        </button>
+      </div>
       <button
-        mat-raised-button
-        color="primary"
-        (click)="patchOrderFromForm('All')"
-        [disabled]="!isAnyTabEditable()"
+        mat-mini-fab
+        class="help-button !fixed bottom-4 right-6 z-10"
+        color="accent"
+        (click)="startTour()"
+        matTooltip="Bestellungsansicht erklären lassen"
+        aria-label="Bestellungsansicht erklären lassen"
       >
-        <mat-icon iconPositionStart>save</mat-icon>
-        Alle Änderungen speichern
+        <mat-icon>help</mat-icon>
       </button>
     </div>
   </div>
@@ -130,15 +144,17 @@
         </button>
       </div>
       <div class="item-container">
-        <button
-          mat-raised-button
-          class="mb-4 w-full"
-          color="primary"
-          (click)="openAddItemDialog()"
-          [disabled]="!isTabEditable('Items')"
-        >
-          Position hinzufügen
-        </button>
+        <div class="add-item-button-container">
+          <button
+            mat-raised-button
+            class="mb-4 w-full"
+            color="primary"
+            (click)="openAddItemDialog()"
+            [disabled]="!isTabEditable('Items')"
+          >
+            Position hinzufügen
+          </button>
+        </div>
 
         <ng-template #addItemDialog>
           <h2 mat-dialog-title>Position hinzufügen</h2>
