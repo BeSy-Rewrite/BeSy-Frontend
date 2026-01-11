@@ -5,7 +5,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableDataSource } from '@angular/material/table';
-import { forkJoin } from 'rxjs';
+import { forkJoin, switchMap } from 'rxjs';
 import { LAST_ACTIVE_FILTERS_KEY } from '../../../configs/orders-table/order-filter-presets-config';
 import { OrdersFilterPreset } from '../../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
@@ -106,8 +106,9 @@ export class FilterPresetsEditComponent {
     }
   }
 
-  /** Saves the current presets to local storage and closes the dialog. */
+  /** Saves the current presets and closes the dialog. */
   saveChanges(): void {
+    this.dialogRef.disableClose = true;
     const saveObservables = [];
     for (const preset of this.deletedPresets) {
       saveObservables.push(this.preferencesService.deletePreset(preset.id!));
@@ -116,8 +117,11 @@ export class FilterPresetsEditComponent {
       saveObservables.push(this.preferencesService.savePreset(preset));
     }
 
-    forkJoin(saveObservables).subscribe(() => {
-      this.dialogRef.close(this.preferencesService.getPresets());
+    forkJoin(saveObservables).pipe(
+      switchMap(() => this.preferencesService.getPresets())
+    ).subscribe(tmp => {
+      this.dialogRef.disableClose = false;
+      this.dialogRef.close(tmp);
     });
   }
 
@@ -127,6 +131,6 @@ export class FilterPresetsEditComponent {
 
   /** Closes the dialog without saving changes. */
   close(): void {
-    this.dialogRef.close();
+    if (!this.dialogRef.disableClose) this.dialogRef.close();
   }
 }

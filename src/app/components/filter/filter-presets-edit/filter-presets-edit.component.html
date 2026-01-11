@@ -8,7 +8,8 @@
     </mat-dialog-content>
 
     <mat-dialog-actions align="end">
-        <button mat-stroked-button cdkFocusInitial (click)="close()" color="warn">abbrechen</button>
+        <button mat-stroked-button cdkFocusInitial (click)="close()" color="warn"
+            [disabled]="dialogRef.disableClose">abbrechen</button>
         <button mat-flat-button (click)="saveChanges()" color="primary"
             [disabled]="isUnchanged()">speichern</button>
     </mat-dialog-actions>
