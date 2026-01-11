@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Bestellsystem API
-  version: v1.9.0
+  version: v1.10.1
 servers:
   - url: http://localhost:3000/api/v1
     description: Generierte Server-URL
@@ -1267,26 +1267,27 @@ paths:
         "500":
           description: Interner Serverfehler.
 
-  /users/{id}/preferences:
+  /users/me/preferences:
     get:
       tags:
         - Users
-      operationId: getUserPreferences
+      operationId: getCurrentUserPreferences
       parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID des Benutzers
+        - name: type
+          in: query
+          required: false
+          description: Filtert Benutzerpräferenzen nach Typ
           schema:
-            type: integer
-            format: int32
+            $ref: "#/components/schemas/PreferenceType"
       responses:
         "200":
           description: Erfolgreiche Abfrage der Benutzerpräferenzen
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserPreferencesResponseDTO"
+                type: array
+                items:
+                  $ref: "#/components/schemas/UserPreferencesResponseDTO"
         "404":
           description: Benutzer nicht gefunden
         "500":
@@ -1295,15 +1296,9 @@ paths:
     post:
       tags:
         - Users
-      operationId: addUserPreferences
-      parameters:
-        - name: id
-          in: path
-          required: true
-          description: ID des Benutzers
-          schema:
-            type: integer
-            format: int32
+      operationId: addCurrentUserPreference
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -1319,40 +1314,35 @@ paths:
                 $ref: "#/components/schemas/UserPreferencesResponseDTO"
         "400":
           description: Ungültige Anfrage
-        "404":
-          description: Benutzer nicht gefunden
+        "401":
+          description: Nicht authentifiziert
         "500":
           description: Interner Serverfehler
 
+  /users/me/preferences/{id}:
     delete:
       tags:
         - Users
-      operationId: deleteUserPreferences
+      operationId: deleteCurrentUserPreference
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
           required: true
-          description: ID des Benutzers
+          description: ID der Benutzerpräferenz
           schema:
             type: integer
             format: int32
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserPreferencesRequestDTO"
       responses:
-        "200":
-          description: Benutzerpräferenzen erfolgreich gelöscht
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserPreferencesResponseDTO"
+        "204":
+          description: Benutzerpräferenz erfolgreich gelöscht
         "400":
           description: Ungültige Anfrage
+        "401":
+          description: Nicht authentifiziert
         "404":
-          description: Benutzer nicht gefunden
+          description: Benutzerpräferenz nicht gefunden
         "500":
           description: Interner Serverfehler
 
@@ -2084,19 +2074,32 @@ components:
     UserPreferencesRequestDTO:
       type: object
       properties:
-        order_filter_preferences:
-          type: array
-          items:
-            type: string
+        preference_type:
+          $ref: "#/components/schemas/PreferenceType"
+        preferences:
+          type: object
+          additionalProperties: true
       required:
-        - order_filter_preferences
+        - preference_type
+        - preferences
 
     UserPreferencesResponseDTO:
       type: object
       properties:
-        order_filter_preferences:
-          type: array
-          items:
-            type: string
+        id:
+          type: integer
+          format: int32
+        preference_type:
+          $ref: "#/components/schemas/PreferenceType"
+        preferences:
+          type: object
+          additionalProperties: true
       required:
-        - order_filter_preferences
+        - id
+        - preference_type
+        - preferences
+
+    PreferenceType:
+      type: string
+      enum:
+        - ORDER_PRESETS

@@ -19,6 +19,7 @@ export * from './pagedOrderResponseDTO';
 export * from './pagedOrderResponseDTOPageable';
 export * from './personRequestDTO';
 export * from './personResponseDTO';
+export * from './preferenceType';
 export * from './quotationRequestDTO';
 export * from './quotationResponseDTO';
 export * from './sort';

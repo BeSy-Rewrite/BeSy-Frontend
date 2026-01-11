@@ -37,6 +37,7 @@ model/pagedOrderResponseDTO.ts
 model/pagedOrderResponseDTOPageable.ts
 model/personRequestDTO.ts
 model/personResponseDTO.ts
+model/preferenceType.ts
 model/quotationRequestDTO.ts
 model/quotationResponseDTO.ts
 model/sort.ts

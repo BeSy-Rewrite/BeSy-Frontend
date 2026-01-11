@@ -7,9 +7,14 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
+import { PreferenceType } from './preferenceType';
 
 
 export interface UserPreferencesRequestDTO { 
-    order_filter_preferences: Array<string>;
+    preference_type: PreferenceType;
+    preferences: { [key: string]: any; };
 }
+export namespace UserPreferencesRequestDTO {
+}
+
 
