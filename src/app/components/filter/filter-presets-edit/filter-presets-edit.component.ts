@@ -108,6 +108,8 @@ export class FilterPresetsEditComponent {
 
   /** Saves the current presets and closes the dialog. */
   saveChanges(): void {
+    if (this.isUnchanged() || this.dialogRef.disableClose) return;
+
     this.dialogRef.disableClose = true;
     const saveObservables = [];
     for (const preset of this.deletedPresets) {

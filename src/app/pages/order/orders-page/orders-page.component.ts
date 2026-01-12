@@ -311,10 +311,27 @@ export class OrdersPageComponent implements OnInit {
 
       return {
         id: key as keyof ActiveFilters,
-        range: { start, end },
+        range: {
+          start: Number.isNaN(start) ? ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)?.data?.minValue ?? 0 : start,
+          end: Number.isNaN(end) ? ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)?.data?.maxValue ?? 100 : end,
+        },
       };
     }
     return undefined;
+  }
+
+  /** Encodes range filter parameters for URL. */
+  encodeRangeParam(range: RangeFilterPreset): string {
+    const low = range.range.start === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.minValue ? '' : range.range.start;
+    const high = range.range.end === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.maxValue ? '' : range.range.end;
+    return low + '-' + high;
+  }
+
+  /** Encodes date range filter parameters for URL. */
+  encodeDateRangeParam(dateRange: DateRangeFilterPreset): string {
+    const start = dateRange.dateRange.start ? dateRange.dateRange.start.toISOString().split('T')[0] : '';
+    const end = dateRange.dateRange.end ? dateRange.dateRange.end.toISOString().split('T')[0] : '';
+    return start + '_' + end;
   }
 
   /**
@@ -328,25 +345,12 @@ export class OrdersPageComponent implements OnInit {
       if ('chipIds' in filter) {
         params[filter.id] = filter.chipIds.join(',');
       } else if ('range' in filter) {
-        params[filter.id] = filter.range.start + '-' + filter.range.end;
+        params[filter.id] = this.encodeRangeParam(filter);
       } else if ('dateRange' in filter) {
-        let start = null;
-        let end = null;
-        try {
-          start = filter.dateRange.start?.toISOString().split('T')[0];
-          end = filter.dateRange.end?.toISOString().split('T')[0];
-        } catch (e) {
-          console.error('Error converting date range to string:', e);
-          this._snackBar.open(
-            'Fehler beim Verarbeiten eines Datumsfilters. Bitte überprüfen Sie Ihre Filtereinstellungen.',
-            'Schließen',
-            { duration: 5000 }
-          );
-        }
-
-        params[filter.id] = (start ?? '') + '_' + (end ?? '');
+        params[filter.id] = this.encodeDateRangeParam(filter);
       } else if ('selectedColumnIds' in filter) {
-        params['selectedColumnIds'] = filter.selectedColumnIds.join(',');
+        // TODO: Keep selected columns in URL params?
+        //params['selectedColumnIds'] = filter.selectedColumnIds.join(',');
       }
       // Remove undefined parameters
       if ([undefined, null, '', '-', '_'].includes(params[filter.id])) {

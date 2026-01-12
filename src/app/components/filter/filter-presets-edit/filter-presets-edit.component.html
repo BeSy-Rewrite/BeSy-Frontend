@@ -11,6 +11,6 @@
         <button mat-stroked-button cdkFocusInitial (click)="close()" color="warn"
             [disabled]="dialogRef.disableClose">abbrechen</button>
         <button mat-flat-button (click)="saveChanges()" color="primary"
-            [disabled]="isUnchanged()">speichern</button>
+            [disabled]="isUnchanged() || dialogRef.disableClose">speichern</button>
     </mat-dialog-actions>
 </div>

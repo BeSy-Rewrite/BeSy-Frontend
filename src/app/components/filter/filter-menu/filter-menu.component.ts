@@ -169,7 +169,7 @@ export class FilterMenuComponent implements OnInit {
     };
   });
 
-  selectedColumnIds = signal<string[]>([]);
+  selectedColumnIds = signal<string[]>(ordersTableConfig.filter(col => !col.isInvisible).map(col => col.id));
   isColumnSelectionExpanded = signal<boolean>(false);
 
   /** Configuration for all available filters in the menu. */
@@ -240,7 +240,7 @@ export class FilterMenuComponent implements OnInit {
       this.filtersChanged.emit(this.activeFilters());
     });
 
-    toObservable(this.activeFilters)
+    toObservable(this.activeFiltersSignal)
       .pipe(debounceTime(environment.saveActiveFiltersDebounceMs))
       .subscribe(() =>
         this.preferencesService
@@ -289,14 +289,9 @@ export class FilterMenuComponent implements OnInit {
   private setupPersistentFilters() {
     if (this.initialPreset()) {
       this.applyPreset(this.initialPreset()!);
-    } else {
-      const lastActiveFilters = this.filterPresets().find(
-        preset => preset.label === LAST_ACTIVE_FILTERS_KEY
-      );
-      if (lastActiveFilters) {
-        this.clearAllFilters();
-        this.applyPreset(lastActiveFilters);
-      }
+    } else if (this.lastActiveFilters()) {
+      this.clearAllFilters();
+      this.applyPreset(this.lastActiveFilters()!);
     }
     this.selectedColumnsChanged.emit(this.selectedColumnsControl.value ?? []);
   }
