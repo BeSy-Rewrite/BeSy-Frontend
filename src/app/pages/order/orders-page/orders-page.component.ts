@@ -33,6 +33,11 @@ import { DriverJsTourService } from '../../../services/driver.js-tour.service';
 import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
 import { CreateOrderPageComponent } from '../create-order-page/create-order-page.component';
 
+
+const URL_PARAM_BOUNDARY_MIN = 'min';
+const URL_PARAM_BOUNDARY_MAX = 'max';
+
+
 /**
  * Component for managing the orders page.
  */
@@ -296,8 +301,8 @@ export class OrdersPageComponent implements OnInit {
       return {
         id: key as keyof ActiveFilters,
         dateRange: {
-          start: start ? new Date(start) : null,
-          end: end ? new Date(end) : null,
+          start: start && start !== URL_PARAM_BOUNDARY_MIN ? new Date(start) : null,
+          end: end && end !== URL_PARAM_BOUNDARY_MAX ? new Date(end) : null,
         },
       };
     }
@@ -322,15 +327,15 @@ export class OrdersPageComponent implements OnInit {
 
   /** Encodes range filter parameters for URL. */
   encodeRangeParam(range: RangeFilterPreset): string {
-    const low = range.range.start === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.minValue ? '' : range.range.start;
-    const high = range.range.end === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.maxValue ? '' : range.range.end;
+    const low = range.range.start === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.minValue ? URL_PARAM_BOUNDARY_MIN : range.range.start;
+    const high = range.range.end === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.maxValue ? URL_PARAM_BOUNDARY_MAX : range.range.end;
     return low + '-' + high;
   }
 
   /** Encodes date range filter parameters for URL. */
   encodeDateRangeParam(dateRange: DateRangeFilterPreset): string {
-    const start = dateRange.dateRange.start ? dateRange.dateRange.start.toISOString().split('T')[0] : '';
-    const end = dateRange.dateRange.end ? dateRange.dateRange.end.toISOString().split('T')[0] : '';
+    const start = dateRange.dateRange.start ? dateRange.dateRange.start.toISOString().split('T')[0] : URL_PARAM_BOUNDARY_MIN;
+    const end = dateRange.dateRange.end ? dateRange.dateRange.end.toISOString().split('T')[0] : URL_PARAM_BOUNDARY_MAX;
     return start + '_' + end;
   }
 
@@ -353,7 +358,7 @@ export class OrdersPageComponent implements OnInit {
         //params['selectedColumnIds'] = filter.selectedColumnIds.join(',');
       }
       // Remove undefined parameters
-      if ([undefined, null, '', '-', '_'].includes(params[filter.id])) {
+      if ([undefined, null, '', `${URL_PARAM_BOUNDARY_MIN}-${URL_PARAM_BOUNDARY_MAX}`, `${URL_PARAM_BOUNDARY_MIN}_${URL_PARAM_BOUNDARY_MAX}`].includes(params[filter.id])) {
         delete params[filter.id];
       }
     }
