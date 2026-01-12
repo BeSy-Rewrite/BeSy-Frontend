@@ -74,7 +74,6 @@ jobs:
 
       # Update version in version.ts
       - name: Update version
-        id: update_version
         run: |
           # Get version from git tag or generate from branch and commit
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
@@ -89,7 +88,9 @@ jobs:
           # Update version.ts file
           echo "export const version = '${VERSION}';" > src/environments/version.ts
           echo "Updated version.ts to: ${VERSION}"
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          
+          # Store version for later use
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
       # Commit and push version changes back to repository
       - name: Commit version update
@@ -103,8 +104,11 @@ jobs:
             echo "No version changes to commit"
           else
             git add src/environments/version.ts
-            git commit -m "chore: Update version to ${{ steps.update_version.outputs.version }}" -m "[skip ci]"
-            git push
+            git commit -m "chore: Update version to ${VERSION}" -m "[skip ci]"
+            git push origin HEAD || {
+              echo "Failed to push version update to repository"
+              exit 1
+            }
             echo "Version committed and pushed to repository"
           fi
 
