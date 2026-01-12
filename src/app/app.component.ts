@@ -5,6 +5,7 @@ import { MatIconRegistry } from '@angular/material/icon';
 import { DomSanitizer } from '@angular/platform-browser';
 import { RouterOutlet } from '@angular/router';
 import { environment } from '../environments/environment';
+import { FooterComponent } from './components/footer/footer.component';
 import { HomebarComponent } from './components/homebar/homebar.component';
 import { ToastComponent } from "./components/toast/toast.component";
 import { AuthenticationService } from './services/authentication.service';
@@ -16,7 +17,8 @@ import { AuthenticationService } from './services/authentication.service';
     MatButtonModule,
     ScrollingModule,
     HomebarComponent,
-    ToastComponent
+    ToastComponent,
+    FooterComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
