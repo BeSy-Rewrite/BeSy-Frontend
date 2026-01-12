@@ -119,11 +119,17 @@ export class FilterPresetsEditComponent {
       saveObservables.push(this.preferencesService.savePreset(preset));
     }
 
+    if (saveObservables.length === 0) {
+      this.dialogRef.disableClose = false;
+      this.dialogRef.close(this.initialPresets);
+      return;
+    }
+
     forkJoin(saveObservables).pipe(
       switchMap(() => this.preferencesService.getPresets())
-    ).subscribe(tmp => {
+    ).subscribe(updatedPresets => {
       this.dialogRef.disableClose = false;
-      this.dialogRef.close(tmp);
+      this.dialogRef.close(updatedPresets);
     });
   }
 
