@@ -69,6 +69,23 @@ jobs:
         run: |
           echo "BUILD_PROFILE=test" >> "${GITHUB_ENV}"
 
+      # Update version in version.ts
+      - name: Update version
+        run: |
+          # Get version from git tag or generate from branch and commit
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            VERSION="${{ github.ref_name }}"
+          else
+            BRANCH="${{ github.ref_name }}"
+            COMMIT_SHORT=$(git rev-parse --short HEAD)
+            DATE=$(date +%Y%m%d)
+            VERSION="${BRANCH}-${DATE}-${COMMIT_SHORT}"
+          fi
+          
+          # Update version.ts file
+          echo "export const version = '${VERSION}';" > src/environments/version.ts
+          echo "Updated version.ts to: ${VERSION}"
+
       # Build and push Docker image with Buildx
       # https://github.com/docker/build-push-action
       - name: Build and push Docker image
