@@ -14,6 +14,7 @@ import { PersonsPageComponent } from './pages/persons/persons-page/persons-page.
 import { EditSuppliersPageComponent } from './pages/suppliers/edit-suppliers-page/edit-suppliers-page.component';
 import { SuppliersPageComponent } from './pages/suppliers/suppliers-page/suppliers-page.component';
 import { UnauthorizedComponent } from './pages/unauthorized/unauthorized.component';
+import { WrapPageComponent } from './pages/wrap/wrap-page.component';
 import { EditOrderResolver } from './resolver/edit-order.resolver';
 import { EditPersonResolver } from './resolver/edit-person.resolver';
 import { EditSupplierResolver } from './resolver/edit-supplier.resolver';
@@ -24,6 +25,12 @@ export const routes: Routes = [
     title: 'BeSy',
     path: '',
     component: HomepageComponent,
+  },
+  {
+    title: 'Mein Wrap',
+    path: 'wrap',
+    component: WrapPageComponent,
+    canActivate: [DefaultGuard],
   },
   {
     title: 'Guard Test',
