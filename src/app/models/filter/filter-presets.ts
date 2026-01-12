@@ -56,6 +56,10 @@ export type OrdersFilterPreset = {
     appliedFilters: FilterPresetType[];
 };
 
+export function isOrdersFilterPreset(obj: any): obj is OrdersFilterPreset {
+    return obj && typeof obj.label === 'string' && Array.isArray(obj.appliedFilters);
+}
+
 /**
  * Type representing URL parameters for filter presets.
  * Each key corresponds to a filter in ActiveFilters, and the value is a string or undefined.

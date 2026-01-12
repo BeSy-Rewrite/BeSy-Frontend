@@ -7,7 +7,7 @@ import {
   ORDERS_FILTER_PRESETS
 } from '../configs/orders-table/order-filter-presets-config';
 import { FilterDateRange } from '../models/filter/filter-date-range';
-import { FilterPresetType, OrdersFilterPreset } from '../models/filter/filter-presets';
+import { FilterPresetType, isOrdersFilterPreset, OrdersFilterPreset } from '../models/filter/filter-presets';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
 
 @Injectable({
@@ -60,8 +60,10 @@ export class UserPreferencesService {
     return this.usersWrapper.getCurrentUserPreferences(PreferenceType.ORDER_PRESETS).pipe(
       map(preferences =>
         preferences.map(preference => {
-          preference.preferences['id'] = preference.id; // Assign the preference ID to the preset
-          return this.parseAndCheckPreset(preference.preferences)
+          return this.parseAndCheckPreset({
+            ...preference.preferences,
+            id: preference.id, // Assign the preference ID to the preset ID
+          });
         })
       )
     );
@@ -93,11 +95,12 @@ export class UserPreferencesService {
 
   /**
    * Updates an existing filter preset identified by its label.
+   * If no existing preset with the given label is found, creates a new one.
    * @param oldLabel The label of the preset to update.
    * @param updatedPreset The updated OrdersFilterPreset.
    * @returns An Observable of an array of OrdersFilterPreset including the updated preset (combined with defaults and existing custom presets).
    */
-  updatePresetByLabel(
+  updatePresetByLabelOrCreate(
     oldLabel: string,
     updatedPreset: OrdersFilterPreset,
   ) {
@@ -114,7 +117,7 @@ export class UserPreferencesService {
         return forkJoin(deleteObservables).pipe(
           catchError(error => {
             console.error('Error updating filter preset:', error);
-            return this.getValidDefaultPresets();
+            return of(undefined);
           })
         );
       }),
@@ -172,9 +175,9 @@ export class UserPreferencesService {
     let preset: OrdersFilterPreset;
     if (typeof inputPreset === 'string') {
       preset = JSON.parse(inputPreset);
-    } else if (typeof inputPreset === 'object' && ('label' in inputPreset))
-      preset = inputPreset as OrdersFilterPreset;
-    else {
+    } else if (isOrdersFilterPreset(inputPreset)) {
+      preset = inputPreset;
+    } else {
       throw new Error('Invalid preset format');
     }
     for (const filter of preset.appliedFilters) {
