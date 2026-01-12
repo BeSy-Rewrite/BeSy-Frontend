@@ -52,10 +52,10 @@ export class UsersWrapperService {
 
   /**
    * Retrieves preferences for the current user.
-   * @param type The type of preference to retrieve.
+   * @param type The type of preference to retrieve (optional).
    * @returns An Observable of UserPreferencesResponseDTO array.
    */
-  getCurrentUserPreferences(type: PreferenceType): Observable<UserPreferencesResponseDTO[]> {
+  getCurrentUserPreferences(type?: PreferenceType): Observable<UserPreferencesResponseDTO[]> {
     return this.usersService.getCurrentUserPreferences(type);
   }
 
@@ -73,7 +73,7 @@ export class UsersWrapperService {
    * @param preferenceId The ID of the preference to delete.
    * @returns An Observable of UserPreferencesResponseDTO containing the deleted preference.
    */
-  deleteCurrentUserPreference(preferenceId: number): Observable<UserPreferencesResponseDTO> {
+  deleteCurrentUserPreference(preferenceId: number): Observable<void> {
     return this.usersService.deleteCurrentUserPreference(preferenceId);
   }
 }

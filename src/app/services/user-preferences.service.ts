@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap } from 'rxjs';
-import { PreferenceType, UserPreferencesRequestDTO, UserPreferencesResponseDTO } from '../api-services-v2';
+import { PreferenceType, UserPreferencesRequestDTO } from '../api-services-v2';
 import {
   CURRENT_USER_PLACEHOLDER,
   ORDERS_FILTER_PRESETS
@@ -104,7 +104,7 @@ export class UserPreferencesService {
     return this.getSavedPresets().pipe(
       switchMap(customPresets => {
 
-        const deleteObservables: Observable<UserPreferencesResponseDTO>[] = [];
+        const deleteObservables: Observable<void>[] = [];
         for (const presetToUpdate of customPresets.filter(preset => preset.label === oldLabel)) {
           deleteObservables.push(this.usersWrapper.deleteCurrentUserPreference(presetToUpdate.id!));
         }
