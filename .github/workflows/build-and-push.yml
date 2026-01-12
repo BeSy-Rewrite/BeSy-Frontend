@@ -26,7 +26,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
       # This is used to complete the identity challenge
       # with sigstore/fulcio when running outside of PRs.
@@ -39,6 +39,9 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -85,6 +88,29 @@ jobs:
           # Update version.ts file
           echo "export const version = '${VERSION}';" > src/environments/version.ts
           echo "Updated version.ts to: ${VERSION}"
+          
+          # Store version for later use
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      # Commit and push version changes back to repository
+      - name: Commit version update
+        if: github.event_name != 'pull_request'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          
+          # Check if version.ts has changes
+          if git diff --quiet src/environments/version.ts; then
+            echo "No version changes to commit"
+          else
+            git add src/environments/version.ts
+            git commit -m "chore: Update version to ${VERSION}" -m "[skip ci]"
+            git push origin HEAD || {
+              echo "Failed to push version update to repository"
+              exit 1
+            }
+            echo "Version committed and pushed to repository"
+          fi
 
       # Build and push Docker image with Buildx
       # https://github.com/docker/build-push-action
