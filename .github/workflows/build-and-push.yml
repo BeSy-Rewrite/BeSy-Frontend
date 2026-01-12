@@ -39,6 +39,9 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
 
       # Install the cosign tool except on PR
       # https://github.com/sigstore/cosign-installer
@@ -71,6 +74,7 @@ jobs:
 
       # Update version in version.ts
       - name: Update version
+        id: update_version
         run: |
           # Get version from git tag or generate from branch and commit
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
@@ -85,6 +89,7 @@ jobs:
           # Update version.ts file
           echo "export const version = '${VERSION}';" > src/environments/version.ts
           echo "Updated version.ts to: ${VERSION}"
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
 
       # Commit and push version changes back to repository
       - name: Commit version update
@@ -98,7 +103,7 @@ jobs:
             echo "No version changes to commit"
           else
             git add src/environments/version.ts
-            git commit -m "chore: Update version to $(cat src/environments/version.ts | grep -oP "(?<=version = ').*(?=')")" -m "[skip ci]"
+            git commit -m "chore: Update version to ${{ steps.update_version.outputs.version }}" -m "[skip ci]"
             git push
             echo "Version committed and pushed to repository"
           fi
