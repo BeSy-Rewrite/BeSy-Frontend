@@ -1,285 +1,355 @@
 @if (wrap(); as wrapData) {
-<div class="wrap-page">
+  <div class="wrap-page">
     <section class="wrap-hero">
-        <div class="hero-copy">
-            <div class="chip-row">
-                <div class="ghost-chip">BeSy Wrapped</div>
-                <div class="ghost-chip">{{ wrapData.metrics.periodLabel }}</div>
-                @if (wrapData.comparison) {
-                <div class="ghost-chip accent">Verglichen mit letzter Wrap</div>
-                }
-            </div>
-
-            <h1>Dein persönlicher Wrap</h1>
-            <div class="lede">
-                <p>{{ wrapData.metrics.headline }}</p>
-                <p>
-                    Zeitraum {{ wrapData.metrics.rangeStart | date:'dd.MM.yyyy' }}
-                    – {{ wrapData.metrics.rangeEnd | date:'dd.MM.yyyy' }}
-                </p>
-                <p>Deine BeSy Journey - Alle Bestellungen, Werte und mehr im Überblick.</p>
-            </div>
-
-            <div class="controls">
-                <div class="period-switch">
-                    @for (option of periodOptions; track $index) {
-                    <button
-                        mat-stroked-button
-                        [color]="selectedPeriod() === option.value ? 'accent' : undefined"
-                        [class.active]="selectedPeriod() === option.value"
-                        (click)="loadPeriod(option.value)"
-                        class="!h-16">
-                        <div class="btn-label">{{ option.label }}</div>
-                        <div class="btn-sub">{{ option.sublabel }}</div>
-                    </button>
-                    }
-                </div>
-                <div class="generated">Letzte Generierung: {{ wrapData.generatedAt | date:'medium' }}</div>
-            </div>
+      <div class="hero-copy">
+        <div class="chip-row">
+          <div class="ghost-chip">BeSy Wrapped</div>
+          <div class="ghost-chip">{{ wrapData.metrics.periodLabel }}</div>
+          @if (wrapData.comparison) {
+            <div class="ghost-chip accent">Verglichen mit letzter Wrap</div>
+          }
         </div>
 
-        <div class="hero-grid">
-            <mat-card class="hero-card">
-                <div class="card-label">Bestellungen</div>
-                <div class="card-value">{{ wrapData.metrics.orderCount }}</div>
-                <div class="delta" [class]="deltaTrend(wrapData.comparison?.orderCountDelta)">
-                    <mat-icon>trending_up</mat-icon>
-                    {{ formatDelta(wrapData.comparison?.orderCountDelta) }} seit letzter Wrap
-                </div>
-            </mat-card>
-
-            <mat-card class="hero-card">
-                <div class="card-label">Gesamtwert</div>
-                <div class="card-value">{{ wrapData.metrics.totalValue | currency:'EUR':'symbol-narrow':'1.0-0' }}</div>
-                <div class="delta" [class]="deltaTrend(wrapData.comparison?.totalValueDelta)">
-                    <mat-icon>euro</mat-icon>
-                    {{ formatDelta(wrapData.comparison?.totalValueDelta) }} Spend-Shift
-                </div>
-            </mat-card>
-
-            <mat-card class="hero-card">
-                <div class="card-label">Zeit im Tool</div>
-                <div class="card-value">{{ msToHours(wrapData.metrics.timeOnPageMs) }} h</div>
-                <div class="delta" [class]="deltaTrend(wrapData.comparison?.timeOnPageDelta)">
-                    <mat-icon>schedule</mat-icon>
-                    {{ formatDelta(wrapData.comparison?.timeOnPageDelta) }} vs. letzte Wrap
-                </div>
-            </mat-card>
-
-            <mat-card class="hero-card">
-                <div class="card-label">Durchschnittlicher Prozess</div>
-                <div class="card-value">{{ wrapData.metrics.averageProcessDays | number:'1.0-1' }} Tage</div>
-                <div class="delta" [class]="deltaTrend(wrapData.comparison?.averageProcessDelta)">
-                    <mat-icon>speed</mat-icon>
-                    {{ formatDelta(wrapData.comparison?.averageProcessDelta) }} gegenüber vorher
-                </div>
-            </mat-card>
+        <h1>Dein persönlicher Wrap</h1>
+        <div class="lede">
+          <p>{{ wrapData.metrics.headline }}</p>
+          <p>
+            Zeitraum {{ wrapData.metrics.rangeStart | date: 'dd.MM.yyyy' }} –
+            {{ wrapData.metrics.rangeEnd | date: 'dd.MM.yyyy' }}
+          </p>
+          <p>Deine BeSy Journey - Alle Bestellungen, Werte und mehr im Überblick.</p>
         </div>
+
+        <div class="controls">
+          <div class="period-switch">
+            @for (option of periodOptions; track $index) {
+              <button
+                mat-stroked-button
+                [color]="selectedPeriod() === option.value ? 'accent' : undefined"
+                [class.active]="selectedPeriod() === option.value"
+                (click)="loadPeriod(option.value)"
+                class="!h-16"
+              >
+                <div class="btn-label">{{ option.label }}</div>
+                <div class="btn-sub">{{ option.sublabel }}</div>
+              </button>
+            }
+          </div>
+          <div class="generated">
+            Letzte Generierung: {{ wrapData.generatedAt | date: 'medium' }}
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-grid">
+        <mat-card class="hero-card">
+          <div class="card-label">Bestellungen</div>
+          <div class="card-value">{{ wrapData.metrics.orderCount }}</div>
+          <div class="delta" [class]="deltaTrend(wrapData.comparison?.orderCountDelta)">
+            <mat-icon>trending_up</mat-icon>
+            {{ formatDelta(wrapData.comparison?.orderCountDelta) }} seit letzter Wrap
+          </div>
+        </mat-card>
+
+        <mat-card class="hero-card">
+          <div class="card-label">Gesamtwert</div>
+          <div class="card-value">
+            {{ wrapData.metrics.totalValue | currency: 'EUR' : 'symbol-narrow' : '1.0-0' }}
+          </div>
+          <div class="delta" [class]="deltaTrend(wrapData.comparison?.totalValueDelta)">
+            <mat-icon>euro</mat-icon>
+            {{ formatDelta(wrapData.comparison?.totalValueDelta) }} Spend-Shift
+          </div>
+        </mat-card>
+
+        <mat-card class="hero-card">
+          <div class="card-label">Zeit im Tool</div>
+          <div class="card-value">{{ msToHours(wrapData.metrics.timeOnPageMs) }} h</div>
+          <div class="delta" [class]="deltaTrend(wrapData.comparison?.timeOnPageDelta)">
+            <mat-icon>schedule</mat-icon>
+            {{ formatDelta(wrapData.comparison?.timeOnPageDelta) }} vs. letzte Wrap
+          </div>
+        </mat-card>
+
+        <mat-card class="hero-card">
+          <div class="card-label">Durchschnittlicher Prozess</div>
+          <div class="card-value">
+            {{ wrapData.metrics.averageProcessDays | number: '1.0-1' }} Tage
+          </div>
+          <div class="delta" [class]="deltaTrend(wrapData.comparison?.averageProcessDelta)">
+            <mat-icon>speed</mat-icon>
+            {{ formatDelta(wrapData.comparison?.averageProcessDelta) }} gegenüber vorher
+          </div>
+        </mat-card>
+      </div>
     </section>
 
     <section class="content-grid">
-        <mat-card class="stat-card processing">
-            <div class="section-title">
-                <div>
-                    <p class="eyebrow">Flow</p>
-                    <h2>Bearbeitungszeit</h2>
-                </div>
-                <mat-chip class="soft-chip">{{ wrapData.metrics.orderCount }} Fälle</mat-chip>
-            </div>
-            <div class="stat-rows">
-                <div class="stat-row">
-                    <span>Summe</span>
-                    <span class="value">{{ wrapData.metrics.processTotalDays | number:'1.0-1' }} Tage</span>
-                </div>
-                <div class="stat-row">
-                    <span>Durchschnitt</span>
-                    <span class="value">{{ wrapData.metrics.averageProcessDays | number:'1.0-1' }} Tage</span>
-                </div>
-                <div class="stat-row">
-                    <span>Schnellster Abschluss</span>
-                    <span class="value">{{ wrapData.metrics.shortestProcessDays | number:'1.0-1' }} Tage</span>
-                </div>
-                <div class="stat-row">
-                    <span>Längster Marathon</span>
-                    <span class="value">{{ wrapData.metrics.longestProcessDays | number:'1.0-1' }} Tage</span>
-                </div>
-            </div>
-            <mat-progress-bar mode="determinate" [value]="wrapData.metrics.averageProcessDays * 5"></mat-progress-bar>
-            <p class="hint">Große Schritte bei kurzen Durchlaufzeiten? Weiter so.</p>
-        </mat-card>
+      <mat-card class="stat-card processing">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Flow</p>
+            <h2>Bearbeitungszeit</h2>
+          </div>
+          <mat-chip class="soft-chip">{{ wrapData.metrics.orderCount }} Fälle</mat-chip>
+        </div>
+        <div class="stat-rows">
+          <div class="stat-row">
+            <span>Summe</span>
+            <span class="value"
+              >{{ wrapData.metrics.processTotalDays | number: '1.0-1' }} Tage</span
+            >
+          </div>
+          <div class="stat-row">
+            <span>Durchschnitt</span>
+            <span class="value"
+              >{{ wrapData.metrics.averageProcessDays | number: '1.0-1' }} Tage</span
+            >
+          </div>
+          <div class="stat-row">
+            <span>Schnellster Abschluss</span>
+            <span class="value"
+              >{{ wrapData.metrics.shortestProcessDays | number: '1.0-1' }} Tage</span
+            >
+          </div>
+          <div class="stat-row">
+            <span>Längster Marathon</span>
+            <span class="value"
+              >{{ wrapData.metrics.longestProcessDays | number: '1.0-1' }} Tage</span
+            >
+          </div>
+        </div>
+        <mat-progress-bar
+          mode="determinate"
+          [value]="wrapData.metrics.averageProcessDays * 5"
+        ></mat-progress-bar>
+        <p class="hint">Große Schritte bei kurzen Durchlaufzeiten? Weiter so.</p>
+      </mat-card>
 
-        <mat-card class="stat-card volume">
-            <div class="section-title">
-                <div>
-                    <p class="eyebrow">Volume</p>
-                    <h2>Items & Orders</h2>
-                </div>
-                <mat-chip class="soft-chip">{{ wrapData.metrics.averageItemsPerOrder | number:'1.0-1' }}
-                    Items/Order</mat-chip>
-            </div>
-            <div class="two-col">
-                <div>
-                    <div class="big-number">{{ wrapData.metrics.itemCount }}</div>
-                    <div class="label">Items gesamt</div>
-                </div>
-                <div>
-                    <div class="big-number">{{ wrapData.metrics.orderCount }}</div>
-                    <div class="label">Orders</div>
-                </div>
-            </div>
-            <div class="callouts">
-                <div class="callout">
-                    <p class="label">Meiste Items</p>
-                    <p class="value" *ngIf="wrapData.metrics.mostItemsOrder; else noItems">
-                        {{ wrapData.metrics.mostItemsOrder.label }} ({{ wrapData.metrics.mostItemsOrder.itemCount }}
-                        Stk.)
-                    </p>
-                </div>
-                <div class="callout">
-                    <p class="label">Teuerste Order</p>
-                    <p class="value" *ngIf="wrapData.metrics.priciestOrder; else noItems">
-                        {{ wrapData.metrics.priciestOrder.label }} ({{ wrapData.metrics.priciestOrder.totalPrice |
-                        currency:'EUR':'symbol-narrow':'1.0-0' }})
-                    </p>
-                </div>
-            </div>
-        </mat-card>
+      <mat-card class="stat-card volume">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Volume</p>
+            <h2>Items & Orders</h2>
+          </div>
+          <mat-chip class="soft-chip"
+            >{{ wrapData.metrics.averageItemsPerOrder | number: '1.0-1' }} Items/Order</mat-chip
+          >
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="big-number">{{ wrapData.metrics.itemCount }}</div>
+            <div class="label">Items gesamt</div>
+          </div>
+          <div>
+            <div class="big-number">{{ wrapData.metrics.orderCount }}</div>
+            <div class="label">Orders</div>
+          </div>
+        </div>
+        <div class="callouts">
+          <div class="callout">
+            <p class="label">Meiste Items</p>
+            @if (wrapData.metrics.mostItemsOrder) {
+              <p class="value">
+                {{ wrapData.metrics.mostItemsOrder.label }} ({{
+                  wrapData.metrics.mostItemsOrder.itemCount
+                }}
+                Stk.)
+              </p>
+            } @else {
+              <ng-container *ngTemplateOutlet="noItems"></ng-container>
+            }
+          </div>
+          <div class="callout">
+            <p class="label">Teuerste Order</p>
+            @if (wrapData.metrics.priciestOrder) {
+              <p class="value">
+                {{ wrapData.metrics.priciestOrder.label }} ({{
+                  wrapData.metrics.priciestOrder.totalPrice
+                    | currency: 'EUR' : 'symbol-narrow' : '1.0-0'
+                }})
+              </p>
+            } @else {
+              <ng-container *ngTemplateOutlet="noItems"></ng-container>
+            }
+          </div>
+        </div>
+      </mat-card>
 
-        <mat-card class="stat-card spend">
-            <div class="section-title">
-                <div>
-                    <p class="eyebrow">Spend</p>
-                    <h2>Budget Rhythm</h2>
-                </div>
-                <mat-chip class="soft-chip">Ø {{ wrapData.metrics.averageOrderValue |
-                    currency:'EUR':'symbol-narrow':'1.0-0' }} / Order</mat-chip>
-            </div>
-            <div class="stat-rows">
-                <div class="stat-row">
-                    <span>Gesamtsumme</span>
-                    <span class="value">{{ wrapData.metrics.totalValue | currency:'EUR':'symbol-narrow':'1.0-0'
-                        }}</span>
-                </div>
-                <div class="stat-row">
-                    <span>Ø pro Order</span>
-                    <span class="value">{{ wrapData.metrics.averageOrderValue | currency:'EUR':'symbol-narrow':'1.0-0'
-                        }}</span>
-                </div>
-            </div>
-            <mat-progress-bar color="accent" mode="determinate"
-                [value]="wrapData.metrics.totalValue / 120"></mat-progress-bar>
-            <p class="hint">Preise spiegeln Listenpreise. Zwischenstände werden im Stub gehalten.</p>
-        </mat-card>
+      <mat-card class="stat-card spend">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Spend</p>
+            <h2>Budget Rhythm</h2>
+          </div>
+          <mat-chip class="soft-chip"
+            >Ø
+            {{ wrapData.metrics.averageOrderValue | currency: 'EUR' : 'symbol-narrow' : '1.0-0' }} /
+            Order</mat-chip
+          >
+        </div>
+        <div class="stat-rows">
+          <div class="stat-row">
+            <span>Gesamtsumme</span>
+            <span class="value">{{
+              wrapData.metrics.totalValue | currency: 'EUR' : 'symbol-narrow' : '1.0-0'
+            }}</span>
+          </div>
+          <div class="stat-row">
+            <span>Ø pro Order</span>
+            <span class="value">{{
+              wrapData.metrics.averageOrderValue | currency: 'EUR' : 'symbol-narrow' : '1.0-0'
+            }}</span>
+          </div>
+        </div>
+        <mat-progress-bar
+          color="accent"
+          mode="determinate"
+          [value]="wrapData.metrics.totalValue / 120"
+        ></mat-progress-bar>
+        <p class="hint">Preise spiegeln Listenpreise. Zwischenstände werden im Stub gehalten.</p>
+      </mat-card>
 
-        <mat-card class="stat-card quality">
-            <div class="section-title">
-                <div>
-                    <p class="eyebrow">Quality</p>
-                    <h2>Stabilität & Nutzung</h2>
-                </div>
-                <mat-chip class="soft-chip">{{ wrapData.metrics.requests }} Requests</mat-chip>
+      <mat-card class="stat-card quality">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Quality</p>
+            <h2>Stabilität & Nutzung</h2>
+          </div>
+          <mat-chip class="soft-chip">{{ wrapData.metrics.requests }} Requests</mat-chip>
+        </div>
+        <div class="stat-rows">
+          <div class="stat-row">
+            <span>Errors</span>
+            <span class="value">{{ wrapData.metrics.errors }}</span>
+          </div>
+          <div class="stat-row">
+            <span>Time on page</span>
+            <span class="value">{{ msToHours(wrapData.metrics.timeOnPageMs) }} h</span>
+          </div>
+          <div class="stat-row">
+            <span>Ø pro Request</span>
+            <span class="value"
+              >{{ wrapData.metrics.averageRequestTimeMs | number: '1.0-0' }} ms</span
+            >
+          </div>
+        </div>
+        <div class="delta-row">
+          @if (wrapData.comparison) {
+            <div class="delta-tile">
+              <p class="label">Requests</p>
+              <p class="value" [class]="deltaTrend(wrapData.comparison.orderCountDelta)">
+                {{ formatDelta(wrapData.comparison.orderCountDelta) }}
+              </p>
             </div>
-            <div class="stat-rows">
-                <div class="stat-row">
-                    <span>Errors</span>
-                    <span class="value">{{ wrapData.metrics.errors }}</span>
-                </div>
-                <div class="stat-row">
-                    <span>Time on page</span>
-                    <span class="value">{{ msToHours(wrapData.metrics.timeOnPageMs) }} h</span>
-                </div>
-                <div class="stat-row">
-                    <span>Ø pro Request</span>
-                    <span class="value">{{ wrapData.metrics.averageRequestTimeMs | number:'1.0-0' }} ms</span>
-                </div>
+            <div class="delta-tile">
+              <p class="label">Errors</p>
+              <p class="value" [class]="deltaTrend(wrapData.comparison.errorsDelta)">
+                {{ formatDelta(wrapData.comparison.errorsDelta) }}
+              </p>
             </div>
-            <div class="delta-row">
-                <div class="delta-tile" *ngIf="wrapData.comparison">
-                    <p class="label">Requests</p>
-                    <p class="value" [class]="deltaTrend(wrapData.comparison.orderCountDelta)">
-                        {{ formatDelta(wrapData.comparison.orderCountDelta) }}
-                    </p>
-                </div>
-                <div class="delta-tile" *ngIf="wrapData.comparison">
-                    <p class="label">Errors</p>
-                    <p class="value" [class]="deltaTrend(wrapData.comparison.errorsDelta)">
-                        {{ formatDelta(wrapData.comparison.errorsDelta) }}
-                    </p>
-                </div>
-                <div class="delta-tile" *ngIf="wrapData.comparison">
-                    <p class="label">Zeit</p>
-                    <p class="value" [class]="deltaTrend(wrapData.comparison.timeOnPageDelta)">
-                        {{ formatDelta(wrapData.comparison.timeOnPageDelta) }}
-                    </p>
-                </div>
+            <div class="delta-tile">
+              <p class="label">Zeit</p>
+              <p class="value" [class]="deltaTrend(wrapData.comparison.timeOnPageDelta)">
+                {{ formatDelta(wrapData.comparison.timeOnPageDelta) }}
+              </p>
             </div>
-        </mat-card>
+          }
+        </div>
+      </mat-card>
 
-        <mat-card class="stat-card highlights">
-            <div class="section-title">
-                <div>
-                    <p class="eyebrow">Highlights</p>
-                    <h2>Momente aus dem Zeitraum</h2>
-                </div>
-                <mat-chip class="soft-chip">Top 3</mat-chip>
-            </div>
-            <ul class="highlight-list">
-                <li>
-                    <div class="label">Wrap Headline</div>
-                    <div class="value">{{ wrapData.metrics.headline }}</div>
-                </li>
-                <li>
-                    <div class="label">Bestellung mit meisten Items</div>
-                    <div class="value" *ngIf="wrapData.metrics.mostItemsOrder; else noItems">{{
-                        wrapData.metrics.mostItemsOrder.id }} · {{ wrapData.metrics.mostItemsOrder.itemCount }} Items
-                        · {{ wrapData.metrics.mostItemsOrder.processDurationDays | number:'1.0-0' }} Tage</div>
-                </li>
-                <li>
-                    <div class="label">Teuerste Bestellung</div>
-                    <div class="value" *ngIf="wrapData.metrics.priciestOrder; else noItems">{{
-                        wrapData.metrics.priciestOrder.id }} · {{ wrapData.metrics.priciestOrder.totalPrice |
-                        currency:'EUR':'symbol-narrow':'1.0-0' }}</div>
-                </li>
-            </ul>
-        </mat-card>
+      <mat-card class="stat-card highlights">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">Highlights</p>
+            <h2>Momente aus dem Zeitraum</h2>
+          </div>
+          <mat-chip class="soft-chip">Top 3</mat-chip>
+        </div>
+        <ul class="highlight-list">
+          <li>
+            <div class="label">Wrap Headline</div>
+            <div class="value">{{ wrapData.metrics.headline }}</div>
+          </li>
+          <li>
+            <div class="label">Bestellung mit meisten Items</div>
+            @if (wrapData.metrics.mostItemsOrder) {
+              <div class="value">
+                {{ wrapData.metrics.mostItemsOrder.id }} ·
+                {{ wrapData.metrics.mostItemsOrder.itemCount }} Items ·
+                {{ wrapData.metrics.mostItemsOrder.processDurationDays | number: '1.0-0' }} Tage
+              </div>
+            } @else {
+              <ng-container *ngTemplateOutlet="noItems"></ng-container>
+            }
+          </li>
+          <li>
+            <div class="label">Teuerste Bestellung</div>
+            @if (wrapData.metrics.priciestOrder) {
+              <div class="value">
+                {{ wrapData.metrics.priciestOrder.id }} ·
+                {{
+                  wrapData.metrics.priciestOrder.totalPrice
+                    | currency: 'EUR' : 'symbol-narrow' : '1.0-0'
+                }}
+              </div>
+            } @else {
+              <ng-container *ngTemplateOutlet="noItems"></ng-container>
+            }
+          </li>
+        </ul>
+      </mat-card>
 
-        <mat-card class="stat-card history">
-            <div class="section-title">
-                <div>
-                    <p class="eyebrow">History</p>
-                    <h2>Vorherige Wraps</h2>
-                </div>
-                <mat-chip class="soft-chip" *ngIf="history().length === 0">Erste Ausgabe</mat-chip>
+      <mat-card class="stat-card history">
+        <div class="section-title">
+          <div>
+            <p class="eyebrow">History</p>
+            <h2>Vorherige Wraps</h2>
+          </div>
+          @if (history().length === 0) {
+            <mat-chip class="soft-chip">Erste Ausgabe</mat-chip>
+          }
+        </div>
+        @if (history().length > 1) {
+          <div>
+            <div class="history-row" *ngFor="let past of history().slice(1, 5)">
+              <div>
+                <p class="label">{{ past.metrics.periodLabel }}</p>
+                <p class="value">{{ past.generatedAt | date: 'dd.MM.yyyy' }}</p>
+              </div>
+              <div class="history-metrics">
+                <span>{{ past.metrics.orderCount }} Orders</span>
+                <span>{{
+                  past.metrics.totalValue | currency: 'EUR' : 'symbol-narrow' : '1.0-0'
+                }}</span>
+              </div>
             </div>
-            <div *ngIf="history().length > 1; else firstWrap">
-                <div class="history-row" *ngFor="let past of history().slice(1, 5)">
-                    <div>
-                        <p class="label">{{ past.metrics.periodLabel }}</p>
-                        <p class="value">{{ past.generatedAt | date:'dd.MM.yyyy' }}</p>
-                    </div>
-                    <div class="history-metrics">
-                        <span>{{ past.metrics.orderCount }} Orders</span>
-                        <span>{{ past.metrics.totalValue | currency:'EUR':'symbol-narrow':'1.0-0' }}</span>
-                    </div>
-                </div>
-            </div>
-            <ng-template #firstWrap>
-                <p class="hint">Noch keine Vergleichswerte – diese Ausgabe wird als Referenz gespeichert.</p>
-            </ng-template>
-        </mat-card>
+          </div>
+        } @else {
+          <ng-container *ngTemplateOutlet="firstWrap"></ng-container>
+        }
+        <ng-template #firstWrap>
+          <p class="hint">
+            Noch keine Vergleichswerte – diese Ausgabe wird als Referenz gespeichert.
+          </p>
+        </ng-template>
+      </mat-card>
     </section>
-</div>
+  </div>
 } @else if (loading()) {
-<div class="loading-state">
+  <div class="loading-state">
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     <p>Wrap wird zusammengestellt ...</p>
-</div>
+  </div>
 } @else {
-<div class="loading-state flex justify-center">
-    <p>Noch keine Vergleichswerte – Das nächste Wrap kann im {{ getNextGenerationMonthName() }} generiert werden.</p>
-</div>
+  <div class="loading-state flex justify-center">
+    <p>
+      Noch keine Vergleichswerte – Das nächste Wrap kann im
+      {{ getNextGenerationMonthName() }} generiert werden.
+    </p>
+  </div>
 }
 
 <ng-template #noItems>
-    <span class="hint">Keine Daten im Zeitraum</span>
+  <span class="hint">Keine Daten im Zeitraum</span>
 </ng-template>
