@@ -1,17 +1,16 @@
 <app-homebar />
 <!-- Set top padding to offset the height of the homebar -->
 <main class="pt-20 flex flex-col">
-
   <div class="min-h-[calc(100vh-5rem)] px-4 py-6 sm:px-6 lg:px-8">
-
     <div class="relative">
       <router-outlet />
 
       <app-toast position="bottom-right" />
-    </div>
 
+      <!-- Wrapped banner overlay (shows in generation months) -->
+      <besy-wrapped-banner />
+    </div>
   </div>
 
   <app-footer class="w-full mt-4" />
-
 </main>

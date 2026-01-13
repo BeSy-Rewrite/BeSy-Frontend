@@ -7,7 +7,8 @@ import { RouterOutlet } from '@angular/router';
 import { environment } from '../environments/environment';
 import { FooterComponent } from './components/footer/footer.component';
 import { HomebarComponent } from './components/homebar/homebar.component';
-import { ToastComponent } from "./components/toast/toast.component";
+import { ToastComponent } from './components/toast/toast.component';
+import { WrappedBannerComponent } from './components/wrapped-banner/wrapped-banner.component';
 import { AuthenticationService } from './services/authentication.service';
 
 @Component({
@@ -18,10 +19,11 @@ import { AuthenticationService } from './services/authentication.service';
     ScrollingModule,
     HomebarComponent,
     ToastComponent,
-    FooterComponent
+    FooterComponent,
+    WrappedBannerComponent,
   ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.scss'
+  styleUrl: './app.component.scss',
 })
 export class AppComponent {
   title = 'besy-frontend';
@@ -32,9 +34,8 @@ export class AppComponent {
     private readonly domSanitizer: DomSanitizer
   ) {
     this.iconRegistry.addSvgIcon(
-      "cancel",
+      'cancel',
       this.domSanitizer.bypassSecurityTrustResourceUrl('../assets/cancel.svg')
     );
   }
-
 }

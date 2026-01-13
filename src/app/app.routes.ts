@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { environment } from '../environments/environment';
 import { ApproveOrdersGuard } from './guards/approve-orders.guard';
 import { DefaultGuard } from './guards/default.guard';
 import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
@@ -28,7 +29,7 @@ export const routes: Routes = [
   },
   {
     title: 'Mein Wrap',
-    path: 'wrap',
+    path: environment.wrappedUrl.replace(/^\//, ''),
     component: WrapPageComponent,
     canActivate: [DefaultGuard],
   },

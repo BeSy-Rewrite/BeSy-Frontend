@@ -67,7 +67,7 @@
           <div class="card-value">{{ msToHours(wrapData.metrics.timeOnPageMs) }} h</div>
           <div class="delta" [class]="deltaTrend(wrapData.comparison?.timeOnPageDelta)">
             <mat-icon>schedule</mat-icon>
-            {{ formatDelta(wrapData.comparison?.timeOnPageDelta) }} vs. letzte Wrap
+            {{ formatDelta(wrapData.comparison?.timeOnPageDelta) }} vs. letzter Wrap
           </div>
         </mat-card>
 
@@ -151,9 +151,12 @@
             <p class="label">Meiste Items</p>
             @if (wrapData.metrics.mostItemsOrder) {
               <p class="value">
-                {{ wrapData.metrics.mostItemsOrder.label }} ({{
-                  wrapData.metrics.mostItemsOrder.itemCount
-                }}
+                <a
+                  class="text-he-lightblue-800 underline"
+                  [routerLink]="`/order/${wrapData.metrics.mostItemsOrder.id}`"
+                  >{{ wrapData.metrics.mostItemsOrder.label }}</a
+                >
+                ({{ wrapData.metrics.mostItemsOrder.itemCount }}
                 Stk.)
               </p>
             } @else {
@@ -164,7 +167,12 @@
             <p class="label">Teuerste Order</p>
             @if (wrapData.metrics.priciestOrder) {
               <p class="value">
-                {{ wrapData.metrics.priciestOrder.label }} ({{
+                <a
+                  class="text-he-lightblue-800 underline"
+                  [routerLink]="`/order/${wrapData.metrics.priciestOrder.id}`"
+                  >{{ wrapData.metrics.priciestOrder.label }}</a
+                >
+                ({{
                   wrapData.metrics.priciestOrder.totalPrice
                     | currency: 'EUR' : 'symbol-narrow' : '1.0-0'
                 }})
@@ -207,7 +215,7 @@
           mode="determinate"
           [value]="wrapData.metrics.totalValue / 120"
         ></mat-progress-bar>
-        <p class="hint">Preise spiegeln Listenpreise. Zwischenstände werden im Stub gehalten.</p>
+        <p class="hint">Wer hat das meiste Budget ausgegeben? Finde es heraus.</p>
       </mat-card>
 
       <mat-card class="stat-card quality">
@@ -275,8 +283,12 @@
             <div class="label">Bestellung mit meisten Items</div>
             @if (wrapData.metrics.mostItemsOrder) {
               <div class="value">
-                {{ wrapData.metrics.mostItemsOrder.id }} ·
-                {{ wrapData.metrics.mostItemsOrder.itemCount }} Items ·
+                <a
+                  class="text-he-lightblue-800 underline"
+                  [routerLink]="`/order/${wrapData.metrics.mostItemsOrder.id}`"
+                  >{{ wrapData.metrics.mostItemsOrder.id }}</a
+                >
+                · {{ wrapData.metrics.mostItemsOrder.itemCount }} Items ·
                 {{ wrapData.metrics.mostItemsOrder.processDurationDays | number: '1.0-0' }} Tage
               </div>
             } @else {
@@ -287,7 +299,12 @@
             <div class="label">Teuerste Bestellung</div>
             @if (wrapData.metrics.priciestOrder) {
               <div class="value">
-                {{ wrapData.metrics.priciestOrder.id }} ·
+                <a
+                  class="text-he-lightblue-800 underline"
+                  [routerLink]="`/order/${wrapData.metrics.priciestOrder.id}`"
+                  >{{ wrapData.metrics.priciestOrder.id }}</a
+                >
+                ·
                 {{
                   wrapData.metrics.priciestOrder.totalPrice
                     | currency: 'EUR' : 'symbol-narrow' : '1.0-0'
