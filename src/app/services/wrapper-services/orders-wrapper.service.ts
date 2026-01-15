@@ -18,7 +18,7 @@ import {
   ItemTableModel,
   QuotationTableModel,
 } from '../../pages/order/edit-order-page/edit-order-page.component';
-import { UtilsService } from '../../utils.service';
+import { UtilsService } from '../utils.service';
 import { CostCenterFormatted, CostCenterWrapperService } from './cost-centers-wrapper.service';
 import { CurrenciesWrapperService, FormattedCurrency } from './currencies-wrapper.service';
 import { FormattedPerson, PersonsWrapperService } from './persons-wrapper.service';
