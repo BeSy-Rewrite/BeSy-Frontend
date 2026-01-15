@@ -76,4 +76,15 @@ export class UsersWrapperService {
   deleteCurrentUserPreference(preferenceId: number): Observable<void> {
     return this.usersService.deleteCurrentUserPreference(preferenceId);
   }
+
+  /**
+   * Updates a preference for the current user by its ID.
+   * @param preferenceId The ID of the preference to update.
+   * @param preference The updated preference data.
+   * @returns An Observable of UserPreferencesResponseDTO containing the updated preference.
+   */
+  updateCurrentUserPreferenceById(preferenceId: number, preference: object): Observable<UserPreferencesResponseDTO> {
+    //return this.usersService.updateCurrentUserPreferenceById(preferenceId, preference);
+    return of({} as UserPreferencesResponseDTO); // Placeholder until api supports update
+  }
 }
