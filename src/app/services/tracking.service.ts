@@ -1,71 +1,140 @@
 import { HttpClient, HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
-import { inject, Injectable, OnDestroy } from '@angular/core';
-import { interval, startWith, Subscription, tap } from 'rxjs';
+import { Injectable, OnDestroy } from '@angular/core';
+import { EMPTY, interval, map, of, startWith, Subscription, switchMap, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { UserPreferencesResponseDTO } from '../api-services-v2';
+import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
 
 
 export const trackingInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, next: HttpHandlerFn) => {
-  const trackingService = inject(TrackingService);
   return next(req).pipe(
     tap({
-      next: () => trackingService.trackRequest(),
-      error: () => trackingService.trackError(),
+      next: () => TrackingService.requests++,
+      error: () => TrackingService.errors++,
     })
   );
 };
+
+
+type TrackingData = {
+  year: number;
+  requests: number;
+  errors: number;
+  totalTime: number;
+};
+
+type TrackingSettings = {
+  disableTracking: boolean;
+};
+
+const TRACKING_DATA_PREFERENCE_KEY = 'TRACKING_DATA';
+const TRACKING_SETTINGS_PREFERENCE_TYPE = 'TRACKING_SETTINGS';
 
 
 @Injectable({
   providedIn: 'root',
 })
 export class TrackingService implements OnDestroy {
-  private requests: number = 0;
-  private errors: number = 0;
-  private trackingInterval!: Subscription;
+  public static requests: number = 0;
+  public static errors: number = 0;
+  private readonly trackingInterval: Subscription;
+  private userTrackingPreferences: UserPreferencesResponseDTO | undefined;
 
-  constructor(private readonly http: HttpClient) {
-    this.startTracking();
-    console.log("Tracking service initialized");
+  constructor(private readonly http: HttpClient, private readonly userService: UsersWrapperService) {
+    this.trackingInterval = this.initializeTracking().subscribe();
   }
 
-  private startTracking() {
-    this.trackingInterval = interval(environment.trackingInterval).pipe(
-      startWith(0)
-    ).subscribe(() => {
-      this.storeTrackingData();
-    });
+  setTrackingSettings(settings: TrackingSettings) {
+    return this.getTrackingSettings().pipe(
+      switchMap(() => {
+        if (this.userTrackingPreferences) {
+          return this.userService.updateCurrentUserPreferenceById(
+            this.userTrackingPreferences.id,
+            { preference_type: TRACKING_SETTINGS_PREFERENCE_TYPE, preferences: settings }
+          );
+        }
+        //return this.userService.addCurrentUserPreference({ preference_type: TRACKING_SETTINGS_PREFERENCE_TYPE, preferences: settings });
+        return of({} as UserPreferencesResponseDTO); // Placeholder until multiple preference types are supported
+      })
+    );
   }
 
-  public trackRequest() {
-    this.requests++;
-  }
-
-  public trackError() {
-    this.errors++;
-  }
-
-  private storeTrackingData() {
-    const data = {
-      preference_type: 'TRACKING',
-      preferences: {
-        requests: this.requests,
-        errors: this.errors,
-      }
-    };
-
-    // Replace with your actual API endpoint
-    //this.http.post(`${environment.apiUrl}/users/me/preferences`, data).subscribe();
-    console.log('Tracking data sent:', data);
-
-    this.resetTrackingData();
-  }
-
+  // Reset tracking data counters
   resetTrackingData() {
-    this.requests = 0;
-    this.errors = 0;
+    TrackingService.requests = 0;
+    TrackingService.errors = 0;
   }
 
+  // Clean up the interval subscription on service destruction
   ngOnDestroy() {
     this.trackingInterval.unsubscribe();
+  }
+
+  // Retrieve tracking settings from user preferences
+  getTrackingSettings() {
+    if (this.userTrackingPreferences) {
+      return of(this.userTrackingPreferences.preferences as TrackingSettings);
+    }
+    return this.userService.getCurrentUserPreferences().pipe( // Add TRACKING_SETTINGS_PREFERENCE_TYPE when api supports multiple preference types
+      map(preferences => {
+        //return preferences?.find(entry => entry?.preference_type === TRACKING_SETTINGS_PREFERENCE_TYPE);
+        return preferences?.[0]; // Placeholder until multiple preference types are supported
+      }),
+      switchMap(preference => {
+        if (preference == undefined) {
+          //return this.userService.addCurrentUserPreference({ preference_type: TRACKING_SETTINGS_PREFERENCE_TYPE, preferences: { disableTracking: false } });
+          console.warn('Tracking settings preference not found. Using default settings.'); // Placeholder until multiple preference types are supported
+          return of({} as UserPreferencesResponseDTO);
+        }
+        return of(preference);
+      }),
+      tap(preference => {
+        this.userTrackingPreferences = preference;
+      }),
+      map(preference => preference.preferences as TrackingSettings)
+    );
+  }
+
+  // Check user preferences and start tracking if not disabled
+  private initializeTracking() {
+    return this.getTrackingSettings().pipe(
+      switchMap(settings => {
+        if (!settings.disableTracking) {
+          return interval(environment.trackingInterval);
+        }
+        return EMPTY;
+      }),
+      startWith(0),
+      switchMap(() => this.storeTrackingData())
+    )
+  }
+
+  // Store tracking data to user preferences
+  private storeTrackingData() {
+    // Add TRACKING_PREFERENCE_TYPE when api supports multiple preference types
+    return this.userService.getCurrentUserPreferences().pipe(
+      switchMap(preferences => {
+        const currentYear = new Date().getFullYear();
+        const existingDataEntry = (preferences ?? []).find(entry => entry?.preferences['year'] === currentYear)
+
+        const updatedTrackingData: TrackingData = {
+          year: currentYear,
+          requests: TrackingService.requests,
+          errors: TrackingService.errors,
+          totalTime: environment.trackingInterval
+        };
+
+        if (existingDataEntry?.preferences['year'] === currentYear) {
+          updatedTrackingData.requests += existingDataEntry.preferences['requests'] ?? 0;
+          updatedTrackingData.errors += existingDataEntry.preferences['errors'] ?? 0;
+          updatedTrackingData.totalTime += existingDataEntry.preferences['totalTime'] ?? 0;
+
+          return this.userService.updateCurrentUserPreferenceById(existingDataEntry.id, { preference_type: TRACKING_DATA_PREFERENCE_KEY, preferences: updatedTrackingData });
+        }
+
+        //return this.userService.addCurrentUserPreference({ preference_type: TRACKING_PREFERENCE_TYPE, preferences: updatedTrackingData });
+        return of({} as UserPreferencesResponseDTO); // Placeholder until multiple preference types are supported
+      }),
+    );
   }
 }
