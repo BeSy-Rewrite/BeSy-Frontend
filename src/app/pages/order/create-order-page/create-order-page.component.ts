@@ -65,7 +65,7 @@ export class CreateOrderPageComponent implements OnInit {
     private readonly orderWrapperService: OrdersWrapperService,
     private readonly router: Router,
     private readonly driverJsTourService: DriverJsTourService
-  ) {}
+  ) { }
 
   async ngOnInit(): Promise<void> {
     // Load cost centers and persons
@@ -92,7 +92,7 @@ export class CreateOrderPageComponent implements OnInit {
     if (!primaryCostCenterField) return;
 
     primaryCostCenterField.options = this.costCenters.map(cc => ({
-      label: cc.name ?? '', // If name undefined -> empty string
+      label: `${cc.name ?? ''} (${cc.id ?? ''})`,
       value: cc.id ?? 0, // If id undefined -> 0
     }));
 
@@ -102,7 +102,7 @@ export class CreateOrderPageComponent implements OnInit {
     if (!secondaryCostCenterField) return;
 
     secondaryCostCenterField.options = this.costCenters.map(cc => ({
-      label: cc.name ?? '', // If name undefined -> empty string
+      label: `${cc.name ?? ''} (${cc.id ?? ''})`,
       value: cc.id ?? 0, // If id undefined -> 0
     }));
   }
