@@ -31,6 +31,6 @@ export const environment = {
   wrappedBannerEnabled: true,
   // 0-indexed months: 11 = December, 0 = January (half-year wrap)
   // Length must be 2, first is half-year wrapped month second is full-year wrapped month
-  wrappedBannerMonths: [0, 11],
+  wrappedBannerMonths: [5, 11],
   wrappedUrl: '/wrap',
 };
