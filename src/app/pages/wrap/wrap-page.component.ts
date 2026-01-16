@@ -102,10 +102,11 @@ export class WrapPageComponent implements OnInit {
     return `${prefix}${delta.toFixed(1)}%`;
   }
 
+  // Determine trend direction based on delta value (in percentage)
   protected deltaTrend(delta?: number): 'up' | 'down' | 'flat' {
     if (delta == undefined) return 'flat';
-    if (delta > 0.15) return 'up';
-    if (delta < -0.15) return 'down';
+    if (delta > 0.4) return 'up';
+    if (delta < -0.4) return 'down';
     return 'flat';
   }
 

@@ -94,7 +94,7 @@ export class UserWrapService {
   private engagementSamples: TrackingData[] | undefined = [ // Sample data for testing
     { year: 2024, requests: 150, errors: 5, totalTime: 120000 },
     { year: 2025, requests: 200, errors: 10, totalTime: 180000 },
-    { year: 2026, requests: 250, errors: 8, totalTime: 240000 },
+    { year: 2026, requests: 250, errors: 8, totalTime: 70 * 60 * 1000 },
   ];
 
   constructor(
