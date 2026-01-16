@@ -8,8 +8,7 @@
   <div class="mb-4 float-left flex flex-col items-start min-w-fit">
     <h1
       class="font-semibold text-2xl mb-2"
-      [class]="environment.orderFieldClassPrefix + 'content_description'"
-    >
+      [class]="environment.orderFieldClassPrefix + 'content_description'">
       {{ internalOrder().orderDisplay.content_description }}
     </h1>
 
@@ -21,8 +20,7 @@
         color="primary"
         class="w-fit"
         [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
-        [cdkCopyToClipboard]="owner?.email ?? ''"
-      >
+        [cdkCopyToClipboard]="owner?.email ?? ''">
         {{ owner?.name }} {{ owner?.surname }}
       </button>
     </span>
@@ -35,8 +33,7 @@
         color="primary"
         class="w-fit"
         [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number"
-        matTooltip="Bestellnummer kopieren"
-      >
+        matTooltip="Bestellnummer kopieren">
         {{ internalOrder().orderDisplay.besy_number }}
       </button>
     </span>
@@ -49,8 +46,7 @@
         color="primary"
         class="w-fit"
         [cdkCopyToClipboard]="currentUrl()"
-        matTooltip="Link kopieren"
-      >
+        matTooltip="Link kopieren">
         #&nbsp;{{ internalOrder().order.id }}
 
         <mat-icon iconPositionEnd>link</mat-icon>
@@ -58,9 +54,9 @@
     </span>
   </div>
 
-  <div class="sticky top-0 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
+  <div class="sticky top-24 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
     @if (canPostToInsy()) {
-      <button mat-raised-button color="accent" (click)="sendToInsy()">An Insy senden</button>
+    <button mat-raised-button color="accent" (click)="sendToInsy()">An Insy senden</button>
     }
 
     <button mat-raised-button color="primary" (click)="export()">
@@ -69,85 +65,85 @@
     </button>
 
     @if (internalOrder().order.status === orderStates.IN_PROGRESS) {
-      <a
-        mat-raised-button
-        color="primary"
-        [routerLink]="['edit']"
-        [disabled]="internalOrder().order.status !== orderStates.IN_PROGRESS"
-      >
-        Bearbeiten
-      </a>
+    <a
+      mat-raised-button
+      color="primary"
+      [routerLink]="['edit']"
+      [disabled]="internalOrder().order.status !== orderStates.IN_PROGRESS">
+      Bearbeiten
+    </a>
     }
 
     @for (state of stateChangeButtons; track $index) {
-      <button
-        [matButton]="state.style ?? 'elevated'"
-        [color]="state.color"
-        (click)="changeOrderState(state.state)"
-        [matTooltip]="state.tooltip"
-      >
-        {{ state.label }} {{ state.icon }}
-      </button>
+    <button
+      [matButton]="state.style ?? 'elevated'"
+      [color]="state.color"
+      (click)="changeOrderState(state.state)"
+      [matTooltip]="state.tooltip">
+      {{ state.label }} {{ state.icon }}
+    </button>
     }
+
+    <button mat-raised-button (click)="mailSent()" matTooltip="Klicke um den Zähler der gesendeten E-Mails zu erhöhen">
+      {{ numberOfMailsSent() }} E-Mails gesendet
+    </button>
   </div>
 
   <div class="flex flex-wrap gap-12 mt-8 w-full h-fit">
     @for (section of sections; track section.id) {
-      <div [class]="section.isFullWidth ? 'w-full' : 'grow'">
-        <div class="flex flex-row justify-between">
-          <h3 [id]="section.title" class="text-2xl mb-2">{{ section.title }}</h3>
+    <div [class]="section.isFullWidth ? 'w-full' : 'grow'">
+      <div class="flex flex-row justify-between">
+        <h3 [id]="section.title" class="text-2xl mb-2">{{ section.title }}</h3>
 
-          @if (showEditButton(section)) {
-            <a
-              matButton
-              color="primary"
-              [routerLink]="['edit']"
-              [queryParams]="{ tab: section.editTabId }"
-              >Bearbeiten</a
-            >
-          }
-        </div>
-
-        <mat-divider class="bg-he-red-200 !mb-2" />
-
-        @switch (section.id) {
-          @case ('main-information') {
-            <app-order-main-information [orderData]="internalOrder()" />
-          }
-
-          @case ('addresses') {
-            <app-order-addresses [orderData]="internalOrder()" />
-          }
-
-          @case ('main-quote') {
-            <app-order-main-quote [orderData]="internalOrder()" />
-          }
-
-          @case ('articles') {
-            <app-order-article-list [order]="internalOrder().order" />
-          }
-
-          @case ('quotations') {
-            <app-quotations-list [orderId]="internalOrder().order.id!" />
-          }
-
-          @case ('documents') {
-            <app-order-documents [order]="internalOrder().order" />
-          }
-
-          @case ('contacts') {
-            <app-order-persons [order]="internalOrder().order" />
-          }
-
-          @case ('approvals') {
-            <app-approvals [orderId]="internalOrder().order.id!" />
-          }
-
-          @case ('history') {
-            <app-state-history [order]="internalOrder().order" />
-          }
+        @if (showEditButton(section)) {
+        <a
+          matButton
+          color="primary"
+          [routerLink]="['edit']"
+          [queryParams]="{ tab: section.editTabId }">Bearbeiten</a>
         }
       </div>
+
+      <mat-divider class="bg-he-red-200 !mb-2" />
+
+      @switch (section.id) {
+      @case ('main-information') {
+      <app-order-main-information [orderData]="internalOrder()" />
+      }
+
+      @case ('addresses') {
+      <app-order-addresses [orderData]="internalOrder()" />
+      }
+
+      @case ('main-quote') {
+      <app-order-main-quote [orderData]="internalOrder()" />
+      }
+
+      @case ('articles') {
+      <app-order-article-list [order]="internalOrder().order" />
+      }
+
+      @case ('quotations') {
+      <app-quotations-list [orderId]="internalOrder().order.id!" />
+      }
+
+      @case ('documents') {
+      <app-order-documents [order]="internalOrder().order" />
+      }
+
+      @case ('contacts') {
+      <app-order-persons [order]="internalOrder().order" />
+      }
+
+      @case ('approvals') {
+      <app-approvals [orderId]="internalOrder().order.id!" />
+      }
+
+      @case ('history') {
+      <app-state-history [order]="internalOrder().order" />
+      }
+      }
+    </div>
     }
   </div>
 </div>
