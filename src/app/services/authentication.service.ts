@@ -1,22 +1,35 @@
-import { Injectable } from '@angular/core';
+import { EventEmitter, Injectable } from '@angular/core';
 import { Router } from '@angular/router';
 import { OAuthService } from 'angular-oauth2-oidc';
 import { environment } from '../../environments/environment';
 import { authCodeFlowConfig } from '../app.config';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class AuthenticationService {
+  authStateChanged = new EventEmitter<void>();
 
-  constructor(private readonly oAuthService: OAuthService,
-    private readonly router: Router) {
+  constructor(
+    private readonly oAuthService: OAuthService,
+    private readonly router: Router
+  ) {
     this.oAuthService.configure(authCodeFlowConfig);
     this.oAuthService.setStorage(localStorage);
 
     this.initializeAuthentication();
 
     this.oAuthService.setupAutomaticSilentRefresh();
+
+    this.oAuthService.events.subscribe(event => {
+      if (
+        event.type === 'token_received' ||
+        event.type === 'session_terminated' ||
+        event.type === 'session_error'
+      ) {
+        this.authStateChanged.emit();
+      }
+    });
   }
 
   /**
@@ -79,7 +92,11 @@ export class AuthenticationService {
    * @returns {string[]} An array of roles assigned to the user.
    */
   getRoles(): string[] {
-    return this.oAuthService.getIdentityClaims()?.['resource_access']?.[environment.clientId]?.['roles'] ?? [];
+    return (
+      this.oAuthService.getIdentityClaims()?.['resource_access']?.[environment.clientId]?.[
+        'roles'
+      ] ?? []
+    );
   }
 
   /**

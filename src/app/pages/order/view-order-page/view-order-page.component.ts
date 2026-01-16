@@ -80,6 +80,8 @@ import { StateWrapperService } from '../../../services/wrapper-services/state-wr
 
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 
+import { MailTrackingService } from '../../../services/mail-tracking.service';
+import { UtilsService } from '../../../services/utils.service';
 import { InsyWrapperService } from '../../../services/wrapper-services/insy-wrapper.service';
 import { ORDER_EDIT_TABS } from '../edit-order-page/edit-order-page.component';
 
@@ -196,6 +198,8 @@ export class ViewOrderPageComponent implements OnInit {
     environment.INSY_POSTABLE_STATES.includes(this.internalOrder().order.status!)
   );
 
+  numberOfMailsSent = signal(0);
+
   constructor(
     private readonly usersService: UsersWrapperService,
     private readonly stateService: StateWrapperService,
@@ -207,13 +211,19 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly dialog: MatDialog,
     private readonly orderStateValidityService: OrderStateValidityService,
     private readonly toastService: ToastService,
-    private readonly insyService: InsyWrapperService
-  ) {}
+    private readonly insyService: InsyWrapperService,
+    private readonly mailTrackingService: MailTrackingService,
+    private readonly utilsService: UtilsService
+  ) { }
 
   /**
    * Initializes the component, fetching necessary data and setting up state transitions.
    */
   ngOnInit(): void {
+    this.mailTrackingService.getMailsSentForOrder(this.order().order.id!).subscribe(count => {
+      this.numberOfMailsSent.set(count);
+    });
+
     this.internalOrder = signal<DisplayableOrder>(this.order());
 
     const ownerId = this.internalOrder().order.owner_id;
@@ -474,5 +484,12 @@ export class ViewOrderPageComponent implements OnInit {
           duration: 5000,
         });
       });
+  }
+
+  mailSent(): void {
+    this.mailTrackingService.setMailsSentForOrder(this.order().order.id!, this.numberOfMailsSent() + 1).subscribe(count => {
+      this.numberOfMailsSent.set(count);
+      this.utilsService.getConfettiInstance().addConfetti({ emojis: ['📧', '✉️', '📨'], emojiSize: 50, confettiNumber: Math.min(this.numberOfMailsSent() ** 2 + 10, 512) });
+    });
   }
 }

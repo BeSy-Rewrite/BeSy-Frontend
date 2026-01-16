@@ -20,8 +20,17 @@ export const environment = {
   cacheDurationMs: 5 * 60 * 1000, // 5 minutes
   searchAndFilterDebounceMs: 100,
   saveActiveFiltersDebounceMs: 5000,
+  trackingInterval: 30 * 1000,
 
   orderFieldClassPrefix: 'order-field-',
 
   INSY_POSTABLE_STATES: [OrderStatus.SETTLED, OrderStatus.ARCHIVED] as OrderStatus[],
+
+  // Wrapped banner configuration
+  wrappedEnabled: true,
+  wrappedBannerEnabled: true,
+  // 0-indexed months: 11 = December, 0 = January (half-year wrap)
+  // Length must be 2, first is half-year wrapped month second is full-year wrapped month
+  wrappedBannerMonths: [5, 11],
+  wrappedUrl: '/wrap',
 };

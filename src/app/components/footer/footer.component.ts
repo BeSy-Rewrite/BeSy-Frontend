@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { environment } from '../../../environments/environment';
 import { version } from '../../../environments/version';
-import { UtilsService } from '../../utils.service';
+import { UtilsService } from '../../services/utils.service';
 
 @Component({
   selector: 'app-footer',

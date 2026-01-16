@@ -3,7 +3,7 @@ import { of } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { version } from '../../../environments/version';
-import { UtilsService } from '../../utils.service';
+import { UtilsService } from '../../services/utils.service';
 import { FooterComponent } from './footer.component';
 
 describe('FooterComponent', () => {
