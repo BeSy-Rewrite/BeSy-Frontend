@@ -114,6 +114,7 @@ export class OrdersWrapperService {
    */
 
   /**
+   * Orders with the state 'DELETED' are excluded as no additional information can be retrieved for them from the API. If needed, restore them in the database directly.
    * @param page Seitenzahl für die Paginierung (beginnend bei 0).
    * @param size Anzahl der Elemente pro Seite.
    * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.  `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend), dann nach `id` (aufsteigend).
