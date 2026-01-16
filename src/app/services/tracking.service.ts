@@ -100,7 +100,7 @@ export class TrackingService implements OnDestroy {
       tap(preference => {
         this.userTrackingPreferences = preference;
       }),
-      map(preference => preference.preferences as TrackingSettings)
+      map(preference => (preference.preferences as TrackingSettings) ?? { disableTracking: false })
     );
   }
 
@@ -109,11 +109,10 @@ export class TrackingService implements OnDestroy {
     return this.getTrackingSettings().pipe(
       switchMap(settings => {
         if (!settings.disableTracking) {
-          return interval(environment.trackingInterval);
+          return interval(environment.trackingInterval).pipe(startWith(0));
         }
         return EMPTY;
       }),
-      startWith(0),
       switchMap(() => this.storeTrackingData())
     )
   }
