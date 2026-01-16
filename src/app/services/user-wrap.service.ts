@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { DestroyRef, inject, Injectable } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   BehaviorSubject,
   catchError,
@@ -87,6 +88,7 @@ export interface UserWrap {
 export class UserWrapService {
   private readonly storageKey = 'besy-user-wraps';
   private readonly historySubject = new BehaviorSubject<UserWrap[]>([]);
+  private readonly destroyRef = inject(DestroyRef);
 
   private sampleOrders: OrderSnapshot[] | undefined;
   private engagementSamples: TrackingData[] | undefined = [ // Sample data for testing
@@ -150,6 +152,7 @@ export class UserWrapService {
             }) as OrderSnapshot
         )
       ),
+      takeUntilDestroyed(this.destroyRef),
       tap(orders => {
         this.sampleOrders = orders;
       })
@@ -368,7 +371,7 @@ export class UserWrapService {
     this.userService.getCurrentUserPreferences( // Add WRAP_STORAGE_KEY when api supports multiple preference types
     ).pipe(
       switchMap(preferences => {
-        const preference = preferences.find(p => p.preferences['id'] === `${wrap.period}-${targetYear}`);
+        const preference = preferences.find(p => p.preferences['id'] === `wrap-${wrap.period}-${targetYear}`);
         if (preference) {
           return this.userService.updateCurrentUserPreferenceById(
             preference.id,
@@ -383,6 +386,7 @@ export class UserWrapService {
           preferences: wrap,
         });
       }),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe();
   }
 
@@ -391,10 +395,11 @@ export class UserWrapService {
     ).pipe(
       map(preferences => {
         return preferences
-          .map(p => p.preferences as UserWrap)
+          .map(p => (p.preferences as UserWrap) ?? undefined)
           .filter(wrap => wrap?.id && wrap.period && wrap.generatedAt);
       }),
-      catchError(() => of([] as UserWrap[]))
+      catchError(() => of([] as UserWrap[])),
+      takeUntilDestroyed(this.destroyRef)
     )
   }
 
