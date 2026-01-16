@@ -47,27 +47,11 @@ export class SuppliersPageComponent implements OnInit {
   actions: TableActionButton[] = [
     {
       id: 'edit',
-      label: 'Edit',
-      buttonType: 'elevated',
+      label: 'Bearbeiten',
+      buttonType: 'filled',
       color: ButtonColor.PRIMARY,
       action: (row: SupplierResponseDTO) => this.editSupplier(row),
-    },
-    {
-      id: 'delete',
-      label: 'Delete',
-      buttonType: 'filled',
-      color: ButtonColor.WARN,
-      action: (row: SupplierResponseDTO) => {
-        this.deleteSupplier(row);
-      },
-    },
-    {
-      id: 'view',
-      label: 'View',
-      buttonType: 'text',
-      color: ButtonColor.ACCENT,
-      action: (row: SupplierResponseDTO) => this.viewSupplier(row),
-    },
+    }
   ];
 
   // Data source to be displayed in the supplier-table component
@@ -130,7 +114,7 @@ export class SuppliersPageComponent implements OnInit {
     private readonly _notifications: MatSnackBar,
     private readonly suppliersWrapperService: SuppliersWrapperService,
     private readonly nominatimService: NominatimService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadInitialData();
@@ -145,11 +129,6 @@ export class SuppliersPageComponent implements OnInit {
   // * Handle edit action
   editSupplier(row: SupplierResponseDTO) {
     this.router.navigate(['/suppliers/', row.id, 'edit']);
-  }
-
-  // Placeholder: add delete logic when backend endpoint is ready
-  deleteSupplier(_row: SupplierResponseDTO) {
-    // Implement delete logic here
   }
 
   // Placeholder: view navigation

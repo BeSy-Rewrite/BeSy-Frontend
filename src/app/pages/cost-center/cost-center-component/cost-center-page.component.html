@@ -5,9 +5,7 @@
       <app-generic-table
         [dataSource]="costCentersDataSource"
         [columns]="costCentersTableColumns"
-        [actions]="actions"
-        [pageSize]="50"
-      ></app-generic-table>
+        [pageSize]="50"></app-generic-table>
     </div>
   </mat-tab>
   <mat-tab>
@@ -23,8 +21,7 @@
         <div class="cost-center-data-container overflow-visible">
           <app-form-component
             [config]="costCenterFormConfig"
-            [formGroup]="costCenterForm"
-          ></app-form-component>
+            [formGroup]="costCenterForm"></app-form-component>
         </div>
         <div class="buttons flex justify-end overflow-visible mt-4">
           <button mat-raised-button color="primary" (click)="onSubmit()">Speichern</button>
@@ -33,8 +30,7 @@
             color="warn"
             (click)="onBack()"
             aria-label="cancel"
-            class="ml-4"
-          >
+            class="ml-4">
             Verwerfen
           </button>
         </div>

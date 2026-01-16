@@ -1,5 +1,6 @@
 import { Component } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
+import { AuthenticationService } from '../../services/authentication.service';
 import { DriverJsTourService } from '../../services/driver.js-tour.service';
 import { UtilsService } from '../../services/utils.service';
 
@@ -12,7 +13,7 @@ import { UtilsService } from '../../services/utils.service';
   styleUrl: './homepage.component.scss',
 })
 export class HomepageComponent {
-  constructor(
+  constructor(public readonly authService: AuthenticationService,
     private readonly driverJsTourService: DriverJsTourService,
     private readonly utilsService: UtilsService
   ) { }

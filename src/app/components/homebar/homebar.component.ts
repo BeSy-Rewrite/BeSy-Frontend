@@ -25,7 +25,6 @@ export class HomebarComponent {
   activeMenuItem = signal(0);
 
   links = [
-    { name: 'Startseite', path: '/' },
     { name: 'Bestellungen', path: '/orders' },
     { name: 'Lieferanten', path: '/suppliers' },
     { name: 'Personen', path: '/persons' },

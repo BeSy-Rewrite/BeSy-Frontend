@@ -10,7 +10,6 @@ import { CostCenterRequestDTO, CostCenterResponseDTO } from '../../../api-servic
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
 import { COST_CENTER_FORM_CONFIG } from '../../../configs/cost-center-config';
-import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 
 @Component({
@@ -30,7 +29,7 @@ export class CostCentersPageComponent implements OnInit {
   constructor(
     private readonly _notifications: MatSnackBar,
     private readonly costCenterWrapperService: CostCenterWrapperService
-  ) {}
+  ) { }
 
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
   // Data source to be displayed in the cost-center-table component
@@ -47,16 +46,6 @@ export class CostCentersPageComponent implements OnInit {
   costCenterForm = new FormGroup({});
   costCenterFormConfig = COST_CENTER_FORM_CONFIG;
 
-  actions: TableActionButton[] = [
-    {
-      id: 'view',
-      label: 'View',
-      buttonType: 'text',
-      color: ButtonColor.ACCENT,
-      action: (row: CostCenterResponseDTO) => this.viewCostCenter(row),
-    },
-  ];
-
   async ngOnInit() {
     // Initialization logic here
     this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(
@@ -67,10 +56,6 @@ export class CostCentersPageComponent implements OnInit {
         end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
       }))
     );
-  }
-
-  viewCostCenter(_row: CostCenterResponseDTO) {
-    // Implement view logic here
   }
 
   async onSubmit() {

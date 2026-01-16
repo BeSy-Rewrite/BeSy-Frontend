@@ -6,8 +6,7 @@
         [dataSource]="personsDataSource"
         [columns]="personsTableColumns"
         [actions]="actions"
-        [pageSize]="50"
-      ></app-generic-table>
+        [pageSize]="50"></app-generic-table>
     </div>
   </mat-tab>
 
@@ -33,8 +32,7 @@
         <div class="step-content">
           <app-form-component
             [config]="personsFormConfig"
-            [formGroup]="personFormGroup"
-          ></app-form-component>
+            [formGroup]="personFormGroup"></app-form-component>
         </div>
       </div>
 
@@ -53,8 +51,7 @@
             <mat-button-toggle-group
               [value]="addressSelectionMode()"
               (change)="onAddressModeChange($event)"
-              class="address-toggle-group"
-            >
+              class="address-toggle-group">
               <mat-button-toggle value="existing">
                 <mat-icon>search</mat-icon>
                 <span>Vorhandene Adresse auswählen</span>
@@ -68,48 +65,43 @@
 
           <!-- Existing Address Selection -->
           @if (addressSelectionMode() === 'existing') {
-            <div class="address-selection-panel">
-              <div class="info-banner">
-                <mat-icon>info</mat-icon>
-                <span
-                  >Klicken Sie auf eine Zeile, um die Adresse auszuwählen. Die Details werden unten
-                  angezeigt.</span
-                >
-              </div>
-              <app-generic-table
-                [dataSource]="addressTableDataSource"
-                [columns]="addressTableColumns"
-                [pageSize]="5"
-                (rowClicked)="onAddressInTableSelected($event)"
-              ></app-generic-table>
-
-              @if (selectedAddressId) {
-                <div class="selected-address-preview">
-                  <div class="preview-header">
-                    <mat-icon>check_circle</mat-icon>
-                    <span>Ausgewählte Adresse (ID: {{ selectedAddressId }})</span>
-                  </div>
-                  <app-form-component
-                    [config]="addressFormConfig"
-                    [formGroup]="addressFormGroup"
-                  ></app-form-component>
-                </div>
-              }
+          <div class="address-selection-panel">
+            <div class="info-banner">
+              <mat-icon>info</mat-icon>
+              <span>Klicken Sie auf eine Zeile, um die Adresse auszuwählen. Die Details werden unten
+                angezeigt.</span>
             </div>
+            <app-generic-table
+              [dataSource]="addressTableDataSource"
+              [columns]="addressTableColumns"
+              [pageSize]="5"
+              (rowClicked)="onAddressInTableSelected($event)"></app-generic-table>
+
+            @if (selectedAddressId) {
+            <div class="selected-address-preview">
+              <div class="preview-header">
+                <mat-icon>check_circle</mat-icon>
+                <span>Ausgewählte Adresse (ID: {{ selectedAddressId }})</span>
+              </div>
+              <app-form-component
+                [config]="addressFormConfig"
+                [formGroup]="addressFormGroup"></app-form-component>
+            </div>
+            }
+          </div>
           }
 
           <!-- New Address Form -->
           @if (addressSelectionMode() === 'new') {
-            <div class="new-address-panel">
-              <div class="info-banner info-banner--action">
-                <mat-icon>edit</mat-icon>
-                <span>Geben Sie die Daten für die neue Adresse ein.</span>
-              </div>
-              <app-form-component
-                [config]="addressFormConfig"
-                [formGroup]="addressFormGroup"
-              ></app-form-component>
+          <div class="new-address-panel">
+            <div class="info-banner info-banner--action">
+              <mat-icon>edit</mat-icon>
+              <span>Geben Sie die Daten für die neue Adresse ein.</span>
             </div>
+            <app-form-component
+              [config]="addressFormConfig"
+              [formGroup]="addressFormGroup"></app-form-component>
+          </div>
           }
         </div>
       </div>
@@ -124,8 +116,7 @@
           mat-raised-button
           color="primary"
           (click)="onSubmit()"
-          class="action-button action-button--primary"
-        >
+          class="action-button action-button--primary">
           <mat-icon>save</mat-icon>
           Person speichern
         </button>
