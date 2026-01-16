@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {
   BehaviorSubject,
+  catchError,
   forkJoin,
   from,
   map,
@@ -14,15 +15,19 @@ import { environment } from '../../environments/environment';
 import { OrderStatusHistoryResponseDTO } from '../api-services-v2';
 import { FilterRequestParams } from '../models/filter/filter-request-params';
 import { CachedOrdersService } from './cached-orders.service';
+import { MailTrackingService } from './mail-tracking.service';
 import { OrderSubresourceResolverService } from './order-subresource-resolver.service';
+import { TrackingData, TrackingService } from './tracking.service';
 import { OrdersWrapperService } from './wrapper-services/orders-wrapper.service';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
 
 export type WrapPeriod = 'year' | 'half-year';
 
 // Configuration: Generation months (0-indexed: 0 = January, 11 = December)
-export const YEAR_WRAP_GENERATION_MONTH = environment.wrappedBannerMonths[1]; // December
-export const HALF_YEAR_WRAP_GENERATION_MONTH = environment.wrappedBannerMonths[0]; // June
+export const YEAR_WRAP_GENERATION_MONTH = environment.wrappedBannerMonths[1];
+export const HALF_YEAR_WRAP_GENERATION_MONTH = environment.wrappedBannerMonths[0];
+
+export const WRAP_STORAGE_KEY = 'BESY_USER_WRAPS';
 
 export interface OrderSnapshot {
   id: string;
@@ -31,13 +36,8 @@ export interface OrderSnapshot {
   totalPrice: number;
   processDurationDays: number;
   placedAt: string;
-}
-
-export interface EngagementSample {
-  date: string;
-  requests: number;
-  errors: number;
-  timeOnPageMs: number;
+  mailsSent: number;
+  orderIdNumeric: number;
 }
 
 export interface UserWrapMetrics {
@@ -55,6 +55,8 @@ export interface UserWrapMetrics {
   shortestProcessDays: number;
   priciestOrder?: OrderSnapshot;
   mostItemsOrder?: OrderSnapshot;
+  mostMailsOrder?: OrderSnapshot;
+  totalMailsSent: number;
   requests: number;
   errors: number;
   timeOnPageMs: number;
@@ -68,6 +70,7 @@ export interface WrapComparison {
   averageOrderValueDelta?: number;
   averageProcessDelta?: number;
   errorsDelta?: number;
+  mailsSentDelta?: number;
   timeOnPageDelta?: number;
 }
 
@@ -83,17 +86,27 @@ export interface UserWrap {
 @Injectable({ providedIn: 'root' })
 export class UserWrapService {
   private readonly storageKey = 'besy-user-wraps';
-  private readonly historySubject = new BehaviorSubject<UserWrap[]>(this.loadHistory());
+  private readonly historySubject = new BehaviorSubject<UserWrap[]>([]);
 
   private sampleOrders: OrderSnapshot[] | undefined;
-  private readonly engagementSamples: EngagementSample[] = this.buildEngagementSamples();
+  private engagementSamples: TrackingData[] | undefined = [ // Sample data for testing
+    { year: 2024, requests: 150, errors: 5, totalTime: 120000 },
+    { year: 2025, requests: 200, errors: 10, totalTime: 180000 },
+    { year: 2026, requests: 250, errors: 8, totalTime: 240000 },
+  ];
 
   constructor(
     private readonly ordersService: OrdersWrapperService,
     private readonly cachedOrdersService: CachedOrdersService,
     private readonly subResourceResolver: OrderSubresourceResolverService,
-    private readonly userService: UsersWrapperService
-  ) {}
+    private readonly userService: UsersWrapperService,
+    private readonly trackingService: TrackingService,
+    private readonly mailTrackingService: MailTrackingService
+  ) {
+    this.loadHistory().subscribe(wraps => {
+      this.historySubject.next(wraps);
+    });
+  }
 
   private getOrderSnapshots(): Observable<OrderSnapshot[]> {
     if (this.sampleOrders) return of(this.sampleOrders);
@@ -115,6 +128,7 @@ export class UserWrapService {
               resolvedOrder: from(this.subResourceResolver.resolveOrderSubresources(order)),
               items: from(this.ordersService.getOrderItems(order.id!)),
               history: from(this.ordersService.getOrderStatusHistory(order.id!)),
+              mailsSent: this.mailTrackingService.getMailsSentForOrder(order.id!),
             })
           ) ?? []
       ),
@@ -131,6 +145,8 @@ export class UserWrapService {
               processDurationDays: this.calculateProcessDurationDays(orderData.history),
               placedAt: orderData.order.last_updated_time,
               label: orderData.order.content_description ?? 'Keine Bezeichnung',
+              mailsSent: orderData.mailsSent,
+              orderIdNumeric: orderData.order.id!,
             }) as OrderSnapshot
         )
       ),
@@ -149,7 +165,7 @@ export class UserWrapService {
     return Math.round(
       (new Date(history.at(-1)!.timestamp!).getTime() -
         new Date(history.at(0)!.timestamp!).getTime()) /
-        (1000 * 60 * 60 * 24)
+      (1000 * 60 * 60 * 24)
     ); // days
   }
 
@@ -193,7 +209,7 @@ export class UserWrapService {
       previous: of(this.getPreviousPeriodWrap(period, currentYear)),
     }).pipe(
       map(({ metrics, previous }) => ({
-        id: `wrap-${period}-${currentYear}-${now.getTime()}`,
+        id: `wrap-${period}-${currentYear}`,
         generatedAt: now.toISOString(),
         period,
         metrics,
@@ -257,14 +273,14 @@ export class UserWrapService {
 
     return forkJoin({
       orders: this.getOrderSnapshots(),
-      engagement: of(this.engagementSamples),
+      engagement: this.buildEngagementSamples(),
     }).pipe(
       map(({ orders, engagement }) => {
         const filteredOrders = orders.filter(order =>
           this.isInRange(order.placedAt, range.start, range.end)
         );
         const filteredEngagement = engagement.filter(sample =>
-          this.isInRange(sample.date, range.start, range.end)
+          sample.year >= new Date().getFullYear()
         );
         return { orders: filteredOrders, engagement: filteredEngagement };
       }),
@@ -275,10 +291,12 @@ export class UserWrapService {
         const totalProcessDays = orders.reduce((sum, order) => sum + order.processDurationDays, 0);
         const requests = engagement.reduce((sum, sample) => sum + sample.requests, 0);
         const errors = engagement.reduce((sum, sample) => sum + sample.errors, 0);
-        const timeOnPageMs = engagement.reduce((sum, sample) => sum + sample.timeOnPageMs, 0);
+        const timeOnPageMs = engagement.reduce((sum, sample) => sum + sample.totalTime, 0);
+        const totalMailsSent = orders.reduce((sum, order) => sum + order.mailsSent, 0);
 
         const priciestOrder = this.pickBy(orders, order => order.totalPrice);
         const mostItemsOrder = this.pickBy(orders, order => order.itemCount);
+        const mostMailsOrder = this.pickBy(orders, order => order.mailsSent);
 
         return {
           periodLabel: range.label,
@@ -299,6 +317,8 @@ export class UserWrapService {
             : 0,
           priciestOrder: priciestOrder ?? undefined,
           mostItemsOrder: mostItemsOrder ?? undefined,
+          mostMailsOrder: mostMailsOrder ?? undefined,
+          totalMailsSent,
           requests,
           errors,
           timeOnPageMs,
@@ -322,6 +342,7 @@ export class UserWrapService {
         previous.averageProcessDays
       ),
       errorsDelta: this.percentageChange(current.errors, previous.errors),
+      mailsSentDelta: this.percentageChange(current.totalMailsSent, previous.totalMailsSent),
       timeOnPageDelta: this.percentageChange(current.timeOnPageMs, previous.timeOnPageMs),
     };
   }
@@ -344,27 +365,37 @@ export class UserWrapService {
 
     this.historySubject.next(updated);
 
-    if (typeof localStorage === 'undefined') return;
-    try {
-      localStorage.setItem(this.storageKey, JSON.stringify(updated));
-    } catch (error) {
-      console.warn('Unable to persist wrap history', error);
-    }
+    this.userService.getCurrentUserPreferences( // Add WRAP_STORAGE_KEY when api supports multiple preference types
+    ).pipe(
+      switchMap(preferences => {
+        const preference = preferences.find(p => p.preferences['id'] === `${wrap.period}-${targetYear}`);
+        if (preference) {
+          return this.userService.updateCurrentUserPreferenceById(
+            preference.id,
+            {
+              preference_type: WRAP_STORAGE_KEY,
+              preferences: wrap,
+            }
+          );
+        }
+        return this.userService.addCurrentUserPreference({
+          preference_type: 'ORDER_PRESETS', // WRAP_STORAGE_KEY, placeholder until multiple preference types are supported
+          preferences: wrap,
+        });
+      }),
+    ).subscribe();
   }
 
-  private loadHistory(): UserWrap[] {
-    if (typeof localStorage === 'undefined') {
-      return [];
-    }
-    try {
-      const raw = localStorage.getItem(this.storageKey);
-      if (!raw) return [];
-      const parsed = JSON.parse(raw) as UserWrap[];
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (error) {
-      console.warn('Failed to parse wrap history, starting fresh.', error);
-      return [];
-    }
+  private loadHistory(): Observable<UserWrap[]> {
+    return this.userService.getCurrentUserPreferences( // Add WRAP_STORAGE_KEY when api supports multiple preference types
+    ).pipe(
+      map(preferences => {
+        return preferences
+          .map(p => p.preferences as UserWrap)
+          .filter(wrap => wrap?.id && wrap.period && wrap.generatedAt);
+      }),
+      catchError(() => of([] as UserWrap[]))
+    )
   }
 
   private getRange(period: WrapPeriod) {
@@ -432,28 +463,14 @@ export class UserWrapService {
     return 'Quiet but precise';
   }
 
-  private buildEngagementSamples(): EngagementSample[] {
-    return [
-      { date: this.toIsoDaysAgo(14), requests: 62, errors: 1, timeOnPageMs: 390_000 },
-      { date: this.toIsoDaysAgo(41), requests: 58, errors: 2, timeOnPageMs: 360_000 },
-      { date: this.toIsoDaysAgo(69), requests: 71, errors: 1, timeOnPageMs: 420_000 },
-      { date: this.toIsoDaysAgo(96), requests: 49, errors: 0, timeOnPageMs: 310_000 },
-      { date: this.toIsoDaysAgo(128), requests: 65, errors: 3, timeOnPageMs: 445_000 },
-      { date: this.toIsoDaysAgo(152), requests: 54, errors: 2, timeOnPageMs: 330_000 },
-      { date: this.toIsoDaysAgo(189), requests: 69, errors: 1, timeOnPageMs: 380_000 },
-      { date: this.toIsoDaysAgo(215), requests: 51, errors: 2, timeOnPageMs: 295_000 },
-      { date: this.toIsoDaysAgo(248), requests: 57, errors: 1, timeOnPageMs: 318_000 },
-      { date: this.toIsoDaysAgo(276), requests: 60, errors: 2, timeOnPageMs: 352_000 },
-      { date: this.toIsoDaysAgo(309), requests: 48, errors: 0, timeOnPageMs: 280_000 },
-      { date: this.toIsoDaysAgo(341), requests: 52, errors: 1, timeOnPageMs: 300_000 },
-      { date: this.toIsoDaysAgo(390), requests: 46, errors: 0, timeOnPageMs: 265_000 },
-      { date: this.toIsoDaysAgo(430), requests: 50, errors: 1, timeOnPageMs: 275_000 },
-    ];
-  }
-
-  private toIsoDaysAgo(daysAgo: number): string {
-    const date = new Date();
-    date.setDate(date.getDate() - daysAgo);
-    return date.toISOString();
+  private buildEngagementSamples(): Observable<TrackingData[]> {
+    if (this.engagementSamples) {
+      return of(this.engagementSamples);
+    }
+    return this.trackingService.getTrackingData().pipe(
+      tap(samples => {
+        this.engagementSamples = samples;
+      })
+    );
   }
 }

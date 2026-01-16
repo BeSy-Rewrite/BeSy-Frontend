@@ -16,14 +16,14 @@ export const trackingInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>
 };
 
 
-type TrackingData = {
+export type TrackingData = {
   year: number;
   requests: number;
   errors: number;
   totalTime: number;
 };
 
-type TrackingSettings = {
+export type TrackingSettings = {
   disableTracking: boolean;
 };
 
@@ -42,6 +42,15 @@ export class TrackingService implements OnDestroy {
 
   constructor(private readonly http: HttpClient, private readonly userService: UsersWrapperService) {
     this.trackingInterval = this.initializeTracking().subscribe();
+  }
+
+  // Retrieve tracking data from user preferences
+  getTrackingData() {
+    return this.userService.getCurrentUserPreferences().pipe( // Add TRACKING_PREFERENCE_TYPE when api supports multiple preference types
+      map(preferences => {
+        return preferences?.map(entry => entry?.preferences as TrackingData).filter(data => data?.year !== undefined) ?? [];
+      })
+    );
   }
 
   setTrackingSettings(settings: TrackingSettings) {

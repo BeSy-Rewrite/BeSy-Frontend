@@ -6,7 +6,9 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
+import { MatTooltipModule } from "@angular/material/tooltip";
 import { RouterLink } from '@angular/router';
+import { TrackingService, TrackingSettings } from '../../services/tracking.service';
 import {
   HALF_YEAR_WRAP_GENERATION_MONTH,
   UserWrap,
@@ -26,6 +28,7 @@ import {
     MatIconModule,
     MatProgressBarModule,
     RouterLink,
+    MatTooltipModule
   ],
   templateUrl: './wrap-page.component.html',
   styleUrl: './wrap-page.component.scss',
@@ -34,7 +37,7 @@ import {
 export class WrapPageComponent implements OnInit {
   private readonly currentPeriod: WrapPeriod =
     HALF_YEAR_WRAP_GENERATION_MONTH <= new Date().getMonth() &&
-    new Date().getMonth() < YEAR_WRAP_GENERATION_MONTH
+      new Date().getMonth() < YEAR_WRAP_GENERATION_MONTH
       ? 'half-year'
       : 'year';
 
@@ -46,8 +49,13 @@ export class WrapPageComponent implements OnInit {
   protected readonly wrap = signal<UserWrap | null>(null);
   protected readonly history = signal<UserWrap[]>([]);
   protected readonly loading = signal<boolean>(false);
+  protected readonly trackingEnabled = signal<boolean>(true);
+  protected readonly togglingTracking = signal<boolean>(false);
 
-  constructor(private readonly wrapService: UserWrapService) {
+  constructor(
+    private readonly wrapService: UserWrapService,
+    private readonly trackingService: TrackingService
+  ) {
     if (this.currentPeriod === 'year')
       this.periodOptions.unshift({
         value: 'year',
@@ -58,6 +66,15 @@ export class WrapPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.wrapService.getHistory().subscribe(history => this.history.set(history));
+
+    this.trackingService.getTrackingSettings().subscribe({
+      next: settings => {
+        this.trackingEnabled.set(!settings.disableTracking);
+      },
+      error: () => {
+        console.error('Failed to load tracking settings');
+      },
+    });
 
     this.loadPeriod(this.selectedPeriod());
   }
@@ -121,5 +138,23 @@ export class WrapPageComponent implements OnInit {
       'Dezember',
     ];
     return monthNames[generationMonth];
+  }
+
+  protected toggleTracking(): void {
+    this.togglingTracking.set(true);
+    const newSettings: TrackingSettings = {
+      disableTracking: this.trackingEnabled(),
+    };
+
+    this.trackingService.setTrackingSettings(newSettings).subscribe({
+      next: () => {
+        this.trackingEnabled.set(!this.trackingEnabled());
+        this.togglingTracking.set(false);
+      },
+      error: () => {
+        console.error('Failed to toggle tracking');
+        this.togglingTracking.set(false);
+      },
+    });
   }
 }
