@@ -1,31 +1,25 @@
 <div class="bg-he-red text-white w-full min-h-20 px-4 py-6 sm:px-6 lg:px-8 grid grid-cols-3">
   <div class="flex justify-center">
     <div class="flex flex-col items-start">
-      <a matButton class="!text-white !font-bold" [href]="build.commitUrl" target="_blank"
-        >Version: {{ build.version }}</a
-      >
+      <a matButton [href]="bugReportUrl" target="_blank" rel="noopener noreferrer">Bug-Tracker</a>
+      <a matButton [href]="build.commitUrl" target="_blank">Version: {{ build.version }}</a>
     </div>
   </div>
 
   <div class="flex justify-center">
     <div class="flex flex-col items-start">
-      <a
-        matButton
-        class="!text-white !font-bold"
-        [href]="bugReportUrl"
-        target="_blank"
-        rel="noopener noreferrer"
-        >Bug-Tracker</a
-      >
+      @for (link of links; track $index) {
+        <a matButton [href]="link['link']" target="_blank" rel="noopener noreferrer">{{
+          link['name']
+        }}</a>
+      }
     </div>
   </div>
 
   <div class="flex justify-center">
     <div class="flex flex-col items-start">
-      <button mat-button class="!text-white !font-bold" (click)="addConfetti()">Konfetti</button>
       <button
         mat-button
-        class="!text-white !font-bold"
         [matTooltip]="
           trackingEnabled()
             ? 'Aktiviert: Deine absolute Zeit im Tool (keine Zeitstempel) wird erfasst'
@@ -37,6 +31,7 @@
         <mat-icon>{{ trackingEnabled() ? 'visibility' : 'visibility_off' }}</mat-icon>
         Tracking {{ trackingEnabled() ? 'aktiv' : 'deaktiviert' }}
       </button>
+      <button mat-button (click)="addConfetti()">Konfetti</button>
     </div>
   </div>
 </div>

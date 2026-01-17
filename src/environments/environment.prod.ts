@@ -1,18 +1,17 @@
 import { OrderStatus } from '../app/api-services-v2';
 
 export const environment = {
-  production: false,
-  apiUrl: 'http://localhost:3000/api/v1',
-  apiVersionEndpoint: 'http://localhost:3000/v3/api-docs',
-  paperlessUrl: 'http://localhost:8000',
+  production: true, // Disable authentication in non-production environments
+  apiUrl: 'https://besy.it.hs-esslingen.de/api/v1',
+  paperlessUrl: 'https://paperless.it.hs-esslingen.de',
 
-  footerLinks: [{ name: 'InSy', link: 'https://insy.hs-esslingen.com' }],
+  footerLinks: [{ name: 'InSy', link: 'https://insy.it.hs-esslingen.de' }],
 
   bugReportUrl: 'https://github.com/BeSy-Rewrite/BeSy-Frontend/issues/new/choose',
 
   // Keycloak configuration
-  identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
-  clientId: 'besy-dev',
+  identityProviderUrl: 'https://auth.it.hs-esslingen.de/realms/he-it',
+  clientId: 'besy',
   requiredRole: 'orderer',
   approveOrdersRole: 'approver',
 
@@ -22,7 +21,7 @@ export const environment = {
   cacheDurationMs: 5 * 60 * 1000, // 5 minutes
   searchAndFilterDebounceMs: 100,
   saveActiveFiltersDebounceMs: 5000,
-  trackingInterval: 30 * 1000,
+  trackingInterval: 30 * 1000, // 30 seconds
 
   orderFieldClassPrefix: 'order-field-',
 
@@ -33,6 +32,6 @@ export const environment = {
   wrappedBannerEnabled: true,
   // 0-indexed months: 11 = December, 0 = January (half-year wrap)
   // Length must be 2, first is half-year wrapped month second is full-year wrapped month
-  wrappedBannerMonths: [5, 11],
+  wrappedBannerMonths: [5, 11] as number[],
   wrappedUrl: '/wrap',
 };

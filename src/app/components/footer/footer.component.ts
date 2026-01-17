@@ -17,6 +17,7 @@ export class FooterComponent {
   build = build;
   apiVersion: string | undefined = undefined;
   bugReportUrl = environment.bugReportUrl;
+  links = environment.footerLinks;
 
   protected readonly trackingEnabled = signal<boolean>(true);
   protected readonly togglingTracking = signal<boolean>(false);
