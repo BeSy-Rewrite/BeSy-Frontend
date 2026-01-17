@@ -2,7 +2,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
-import { version } from '../../../environments/version';
+import { build } from '../../../environments/version';
 import { UtilsService } from '../../services/utils.service';
 import { FooterComponent } from './footer.component';
 
@@ -14,23 +14,20 @@ describe('FooterComponent', () => {
   beforeEach(async () => {
     mockUtilsService = jasmine.createSpyObj('UtilsService', [
       'getApiVersion',
-      'getConfettiInstance'
+      'getConfettiInstance',
     ]);
     mockUtilsService.getApiVersion.and.returnValue(of('1.0.0'));
     mockUtilsService.getConfettiInstance.and.returnValue({
       addConfetti: jasmine.createSpy('addConfetti'),
       addConfettiAtPosition: jasmine.createSpy('addConfettiAtPosition'),
       clearCanvas: jasmine.createSpy('clearCanvas'),
-      destroyCanvas: jasmine.createSpy('destroyCanvas')
+      destroyCanvas: jasmine.createSpy('destroyCanvas'),
     });
 
     await TestBed.configureTestingModule({
       imports: [FooterComponent],
-      providers: [
-        { provide: UtilsService, useValue: mockUtilsService }
-      ]
-    })
-      .compileComponents();
+      providers: [{ provide: UtilsService, useValue: mockUtilsService }],
+    }).compileComponents();
 
     fixture = TestBed.createComponent(FooterComponent);
     component = fixture.componentInstance;
@@ -42,14 +39,14 @@ describe('FooterComponent', () => {
   });
 
   it('should set version from environment', () => {
-    expect(component.version).toEqual(version);
+    expect(component.build).toEqual(build);
   });
 
   it('should set bugReportUrl from environment', () => {
     expect(component.bugReportUrl).toEqual(environment.bugReportUrl);
   });
 
-  it('should fetch api version on initialization', (done) => {
+  it('should fetch api version on initialization', done => {
     setTimeout(() => {
       expect(mockUtilsService.getApiVersion).toHaveBeenCalled();
       expect(component.apiVersion).toBe('1.0.0');

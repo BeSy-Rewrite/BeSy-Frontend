@@ -6,11 +6,11 @@ name: Build, docker & push to github packages
 
 on:
   push:
-    branches: [ "main", "test" ]
+    branches: ["main", "test"]
     # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
+    tags: ["v*.*.*"]
   pull_request:
-    branches: [ "main", "test" ]
+    branches: ["main", "test"]
   workflow_dispatch:
 
 env:
@@ -20,9 +20,7 @@ env:
   IMAGE_NAME: ${{ github.repository }}
   BUILD_PROFILE: production
 
-
 jobs:
-
   build:
     runs-on: ubuntu-latest
     permissions:
@@ -49,7 +47,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@59acb6260d9c0ba8f4a2f9d9b48431a222b68e20 #v3.5.0
         with:
-          cosign-release: 'v2.2.4'
+          cosign-release: "v2.2.4"
 
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
@@ -84,11 +82,13 @@ jobs:
             DATE=$(date +%Y%m%d)
             VERSION="${BRANCH}-${DATE}-${COMMIT_SHORT}"
           fi
-          
+
+          COMMIT_URL="${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}"
+
           # Update version.ts file
-          echo "export const version = '${VERSION}';" > src/environments/version.ts
+          echo "export const build = { version: '${VERSION}', commitUrl: '${COMMIT_URL}' };" > src/environments/version.ts
           echo "Updated version.ts to: ${VERSION}"
-          
+
           # Store version for later use
           echo "VERSION=${VERSION}" >> $GITHUB_ENV
 
@@ -98,7 +98,7 @@ jobs:
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          
+
           # Check if version.ts has changes
           if git diff --quiet src/environments/version.ts; then
             echo "No version changes to commit"

@@ -1,22 +1,42 @@
 <div class="bg-he-red text-white w-full min-h-20 px-4 py-6 sm:px-6 lg:px-8 grid grid-cols-3">
-
-    <div class="flex justify-center">
-        <div>
-            <p>Version: {{ version }}</p>
-            <p>API Version: {{ apiVersion ?? 'Unbekannt' }}</p>
-        </div>
+  <div class="flex justify-center">
+    <div class="flex flex-col items-start">
+      <a matButton class="!text-white !font-bold" [href]="build.commitUrl" target="_blank"
+        >Version: {{ build.version }}</a
+      >
     </div>
+  </div>
 
-    <div class="flex justify-center">
-        <div>
-            <a matButton class="!text-white !font-bold" [href]="bugReportUrl" target="_blank"
-                rel="noopener noreferrer">Bug-Tracker</a>
-        </div>
+  <div class="flex justify-center">
+    <div class="flex flex-col items-start">
+      <a
+        matButton
+        class="!text-white !font-bold"
+        [href]="bugReportUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        >Bug-Tracker</a
+      >
     </div>
+  </div>
 
-    <div class="flex justify-center">
-        <div>
-            <button mat-button class="!text-white !font-bold" (click)="addConfetti()">Konfetti</button>
-        </div>
+  <div class="flex justify-center">
+    <div class="flex flex-col items-start">
+      <button mat-button class="!text-white !font-bold" (click)="addConfetti()">Konfetti</button>
+      <button
+        mat-button
+        class="!text-white !font-bold"
+        [matTooltip]="
+          trackingEnabled()
+            ? 'Aktiviert: Deine absolute Zeit im Tool (keine Zeitstempel) wird erfasst'
+            : 'Deaktiviert: Deine Zeit im Tool wird nicht erfasst'
+        "
+        (click)="toggleTracking()"
+        [disabled]="togglingTracking()"
+      >
+        <mat-icon>{{ trackingEnabled() ? 'visibility' : 'visibility_off' }}</mat-icon>
+        Tracking {{ trackingEnabled() ? 'aktiv' : 'deaktiviert' }}
+      </button>
     </div>
+  </div>
 </div>
