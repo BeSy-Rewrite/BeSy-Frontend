@@ -26,10 +26,6 @@ export class FooterComponent {
     private readonly utilsService: UtilsService,
     private readonly trackingService: TrackingService
   ) {
-    this.utilsService.getApiVersion().subscribe(version => {
-      this.apiVersion = version;
-    });
-
     this.trackingService.getTrackingSettings().subscribe((settings: TrackingSettings) => {
       this.trackingEnabled.set(!settings.disableTracking);
     });
