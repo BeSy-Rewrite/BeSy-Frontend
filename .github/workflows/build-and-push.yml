@@ -125,3 +125,17 @@ jobs:
           tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.BUILD_PROFILE }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Build and push deployment image only on main branch pushes
+      - name: Build and push deployment image
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        id: build-and-push-deployment
+        uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
+        with:
+          context: .
+          build-args: |
+            PROFILE=deployment
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-deployment:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
