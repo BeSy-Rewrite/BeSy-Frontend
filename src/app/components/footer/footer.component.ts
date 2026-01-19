@@ -15,7 +15,6 @@ import { UtilsService } from '../../services/utils.service';
 })
 export class FooterComponent {
   build = build;
-  apiVersion: string | undefined = undefined;
   bugReportUrl = environment.bugReportUrl;
   links = environment.footerLinks;
 
