@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Bestellsystem API
-  version: v1.10.1
+  version: v1.10.2
 servers:
   - url: http://localhost:3000/api/v1
     description: Generierte Server-URL
@@ -355,7 +355,7 @@ paths:
         - name: sort
           in: query
           description: >
-            Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.
+            Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B. 
             `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend),
             dann nach `id` (aufsteigend).
           required: false
@@ -1255,8 +1255,6 @@ paths:
       tags:
         - Users
       operationId: getCurrentUser
-      security:
-        - bearerAuth: []
       responses:
         "200":
           description: Erfolgreiche Abfrage des Benutzers
@@ -1278,7 +1276,7 @@ paths:
           required: false
           description: Filtert Benutzerpräferenzen nach Typ
           schema:
-            $ref: "#/components/schemas/PreferenceType"
+            type: string
       responses:
         "200":
           description: Erfolgreiche Abfrage der Benutzerpräferenzen
@@ -1296,9 +1294,7 @@ paths:
     post:
       tags:
         - Users
-      operationId: addCurrentUserPreference
-      security:
-        - bearerAuth: []
+      operationId: addCurrentUserPreferences
       requestBody:
         required: true
         content:
@@ -1323,9 +1319,7 @@ paths:
     delete:
       tags:
         - Users
-      operationId: deleteCurrentUserPreference
-      security:
-        - bearerAuth: []
+      operationId: deleteCurrentUserPreferences
       parameters:
         - name: id
           in: path
@@ -1337,6 +1331,40 @@ paths:
       responses:
         "204":
           description: Benutzerpräferenz erfolgreich gelöscht
+        "400":
+          description: Ungültige Anfrage
+        "401":
+          description: Nicht authentifiziert
+        "404":
+          description: Benutzerpräferenz nicht gefunden
+        "500":
+          description: Interner Serverfehler
+
+    patch:
+      tags:
+        - Users
+      operationId: updateCurrentUserPreferences
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID der Benutzerpräferenz
+          schema:
+            type: integer
+            format: int32
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPreferencesRequestDTO"
+      responses:
+        "200":
+          description: Benutzerpräferenzen erfolgreich aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPreferencesResponseDTO"
         "400":
           description: Ungültige Anfrage
         "401":
@@ -2075,7 +2103,7 @@ components:
       type: object
       properties:
         preference_type:
-          $ref: "#/components/schemas/PreferenceType"
+          type: string
         preferences:
           type: object
           additionalProperties: true
@@ -2090,7 +2118,7 @@ components:
           type: integer
           format: int32
         preference_type:
-          $ref: "#/components/schemas/PreferenceType"
+          type: string
         preferences:
           type: object
           additionalProperties: true
@@ -2098,8 +2126,3 @@ components:
         - id
         - preference_type
         - preferences
-
-    PreferenceType:
-      type: string
-      enum:
-        - ORDER_PRESETS

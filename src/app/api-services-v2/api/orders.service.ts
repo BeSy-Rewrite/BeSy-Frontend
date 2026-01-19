@@ -558,7 +558,7 @@ export class OrdersService extends BaseService {
      * @endpoint get /orders
      * @param page Seitenzahl für die Paginierung (beginnend bei 0).
      * @param size Anzahl der Elemente pro Seite.
-     * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B. &#x60;sort&#x3D;bookingYear,desc&amp;sort&#x3D;id,asc&#x60; sortiert zuerst nach &#x60;bookingYear&#x60; (absteigend), dann nach &#x60;id&#x60; (aufsteigend). 
+     * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.  &#x60;sort&#x3D;bookingYear,desc&amp;sort&#x3D;id,asc&#x60; sortiert zuerst nach &#x60;bookingYear&#x60; (absteigend), dann nach &#x60;id&#x60; (aufsteigend). 
      * @param primaryCostCenters Filtert nach IDs der primären Kostenstellen.
      * @param bookingYears Filtert nach den letzten zwei Ziffern der Jahreszahl der Buchung. Achtung, diese muss ein String sein, z.B. \&quot;25\&quot;.
      * @param createdAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt erstellt wurden.
