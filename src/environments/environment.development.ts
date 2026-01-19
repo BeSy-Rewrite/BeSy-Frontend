@@ -3,7 +3,6 @@ import { OrderStatus } from '../app/api-services-v2';
 export const environment = {
   production: false,
   apiUrl: 'http://localhost:3000/api/v1',
-  apiVersionEndpoint: 'http://localhost:3000/v3/api-docs',
   paperlessUrl: 'http://localhost:8000',
 
   footerLinks: [{ name: 'InSy', link: 'https://insy.hs-esslingen.com' }],

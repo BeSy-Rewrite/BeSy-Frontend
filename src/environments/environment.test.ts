@@ -3,7 +3,6 @@ import { OrderStatus } from '../app/api-services-v2';
 export const environment = {
   production: true,
   apiUrl: 'https://test.besy.hs-esslingen.com/api/v1',
-  apiVersionEndpoint: 'https://test.besy.hs-esslingen.com/v3/api-docs',
   paperlessUrl: 'https://paperless.test.besy.hs-esslingen.com',
 
   footerLinks: [{ name: 'InSy', link: 'https://insy.hs-esslingen.com' }],

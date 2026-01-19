@@ -1,4 +1,4 @@
 export const build = {
-  version: '2026-01-17',
+  version: `development${new Date().toISOString()}`,
   commitUrl: 'https://github.com/BeSy-Rewrite/BeSy-Frontend',
 };
