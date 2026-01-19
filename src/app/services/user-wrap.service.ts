@@ -86,12 +86,12 @@ export interface UserWrap {
 
 @Injectable({ providedIn: 'root' })
 export class UserWrapService {
-  private readonly storageKey = 'besy-user-wraps';
   private readonly historySubject = new BehaviorSubject<UserWrap[]>([]);
   private readonly destroyRef = inject(DestroyRef);
 
   private sampleOrders: OrderSnapshot[] | undefined;
-  private engagementSamples: TrackingData[] | undefined = [ // Sample data for testing
+  private engagementSamples: TrackingData[] | undefined = [
+    // Sample data for testing
     { year: 2024, requests: 150, errors: 5, totalTime: 120000 },
     { year: 2025, requests: 200, errors: 10, totalTime: 180000 },
     { year: 2026, requests: 250, errors: 8, totalTime: 70 * 60 * 1000 },
@@ -168,7 +168,7 @@ export class UserWrapService {
     return Math.round(
       (new Date(history.at(-1)!.timestamp!).getTime() -
         new Date(history.at(0)!.timestamp!).getTime()) /
-      (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24)
     ); // days
   }
 
@@ -282,8 +282,8 @@ export class UserWrapService {
         const filteredOrders = orders.filter(order =>
           this.isInRange(order.placedAt, range.start, range.end)
         );
-        const filteredEngagement = engagement.filter(sample =>
-          sample.year >= new Date().getFullYear()
+        const filteredEngagement = engagement.filter(
+          sample => sample.year >= new Date().getFullYear()
         );
         return { orders: filteredOrders, engagement: filteredEngagement };
       }),
@@ -368,31 +368,31 @@ export class UserWrapService {
 
     this.historySubject.next(updated);
 
-    this.userService.getCurrentUserPreferences( // Add WRAP_STORAGE_KEY when api supports multiple preference types
-    ).pipe(
-      switchMap(preferences => {
-        const preference = preferences.find(p => p.preferences['id'] === `wrap-${wrap.period}-${targetYear}`);
-        if (preference) {
-          return this.userService.updateCurrentUserPreferenceById(
-            preference.id,
-            {
+    this.userService
+      .getCurrentUserPreferences(WRAP_STORAGE_KEY)
+      .pipe(
+        switchMap(preferences => {
+          const preference = preferences.find(
+            p => p.preferences['id'] === `wrap-${wrap.period}-${targetYear}`
+          );
+          if (preference) {
+            return this.userService.updateCurrentUserPreferenceById(preference.id, {
               preference_type: WRAP_STORAGE_KEY,
               preferences: wrap,
-            }
-          );
-        }
-        return this.userService.addCurrentUserPreference({
-          preference_type: 'ORDER_PRESETS', // WRAP_STORAGE_KEY, placeholder until multiple preference types are supported
-          preferences: wrap,
-        });
-      }),
-      takeUntilDestroyed(this.destroyRef)
-    ).subscribe();
+            });
+          }
+          return this.userService.addCurrentUserPreference({
+            preference_type: WRAP_STORAGE_KEY,
+            preferences: wrap,
+          });
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe();
   }
 
   private loadHistory(): Observable<UserWrap[]> {
-    return this.userService.getCurrentUserPreferences( // Add WRAP_STORAGE_KEY when api supports multiple preference types
-    ).pipe(
+    return this.userService.getCurrentUserPreferences(WRAP_STORAGE_KEY).pipe(
       map(preferences => {
         return preferences
           .map(p => (p.preferences as UserWrap) ?? undefined)
@@ -400,7 +400,7 @@ export class UserWrapService {
       }),
       catchError(() => of([] as UserWrap[])),
       takeUntilDestroyed(this.destroyRef)
-    )
+    );
   }
 
   private getRange(period: WrapPeriod) {

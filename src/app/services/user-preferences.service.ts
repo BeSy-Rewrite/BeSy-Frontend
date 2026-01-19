@@ -1,30 +1,40 @@
 import { Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap } from 'rxjs';
-import { PreferenceType, UserPreferencesRequestDTO } from '../api-services-v2';
+import { UserPreferencesRequestDTO } from '../api-services-v2';
 import {
   CURRENT_USER_PLACEHOLDER,
-  ORDERS_FILTER_PRESETS
+  ORDERS_FILTER_PRESETS,
 } from '../configs/orders-table/order-filter-presets-config';
 import { FilterDateRange } from '../models/filter/filter-date-range';
-import { FilterPresetType, isOrdersFilterPreset, OrdersFilterPreset } from '../models/filter/filter-presets';
+import {
+  FilterPresetType,
+  isOrdersFilterPreset,
+  OrdersFilterPreset,
+} from '../models/filter/filter-presets';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
+
+export const ORDER_PRESETS = 'ORDER_PRESETS';
 
 @Injectable({
   providedIn: 'root',
 })
 export class UserPreferencesService {
+  private readonly labelPreferenceIdMap: Map<string, number> = new Map<string, number>();
+
   constructor(
     private readonly usersWrapper: UsersWrapperService,
     private readonly _snackBar: MatSnackBar
-  ) { }
+  ) {}
 
   /**
-    * Combines default presets (resolved with the current user) and saved presets.
-    * @param savedPresets An Observable of saved OrdersFilterPreset array.
-    * @returns An Observable of an array of OrdersFilterPreset.
+   * Combines default presets (resolved with the current user) and saved presets.
+   * @param savedPresets An Observable of saved OrdersFilterPreset array.
+   * @returns An Observable of an array of OrdersFilterPreset.
    */
-  private getFullPresetList(savedPresets: Observable<OrdersFilterPreset[]>): Observable<OrdersFilterPreset[]> {
+  private getFullPresetList(
+    savedPresets: Observable<OrdersFilterPreset[]>
+  ): Observable<OrdersFilterPreset[]> {
     return forkJoin({
       savedPresets,
       defaultPresets: this.resolveCurrentUserInPresets(ORDERS_FILTER_PRESETS),
@@ -36,9 +46,9 @@ export class UserPreferencesService {
   }
 
   /**
-    * Retrieves order filter presets for the current user by combining default and saved presets.
-    * Falls back to valid default presets on error.
-    * @returns An Observable of an array of OrdersFilterPreset.
+   * Retrieves order filter presets for the current user by combining default and saved presets.
+   * Falls back to valid default presets on error.
+   * @returns An Observable of an array of OrdersFilterPreset.
    */
   getPresets(): Observable<OrdersFilterPreset[]> {
     return this.getFullPresetList(this.getSavedPresets()).pipe(
@@ -53,13 +63,16 @@ export class UserPreferencesService {
   }
 
   /**
-    * Retrieves order filter presets saved by the current user.
-    * @returns An Observable of an array of OrdersFilterPreset.
+   * Retrieves order filter presets saved by the current user.
+   * @returns An Observable of an array of OrdersFilterPreset.
    */
   getSavedPresets(): Observable<OrdersFilterPreset[]> {
-    return this.usersWrapper.getCurrentUserPreferences(PreferenceType.ORDER_PRESETS).pipe(
+    return this.usersWrapper.getCurrentUserPreferences(ORDER_PRESETS).pipe(
       map(preferences =>
         preferences.map(preference => {
+          if (preference.preferences['label']) {
+            this.labelPreferenceIdMap.set(preference.preferences['label'], preference.id);
+          }
           return this.parseAndCheckPreset({
             ...preference.preferences,
             id: preference.id, // Assign the preference ID to the preset ID
@@ -72,11 +85,11 @@ export class UserPreferencesService {
   /**
    * Saves a new filter preset for the current user.
    * @param preset The OrdersFilterPreset to save.
-    * @returns An Observable of an array of OrdersFilterPreset including the newly saved preset (combined with defaults and existing custom presets).
+   * @returns An Observable of an array of OrdersFilterPreset including the newly saved preset (combined with defaults and existing custom presets).
    */
   savePreset(preset: OrdersFilterPreset) {
     const preference: UserPreferencesRequestDTO = {
-      preference_type: PreferenceType.ORDER_PRESETS,
+      preference_type: ORDER_PRESETS,
       preferences: preset,
     };
     return this.usersWrapper.addCurrentUserPreference(preference).pipe(
@@ -90,7 +103,7 @@ export class UserPreferencesService {
         return this.getValidDefaultPresets();
       }),
       switchMap(() => this.getFullPresetList(this.getSavedPresets()))
-    )
+    );
   }
 
   /**
@@ -100,13 +113,18 @@ export class UserPreferencesService {
    * @param updatedPreset The updated OrdersFilterPreset.
    * @returns An Observable of an array of OrdersFilterPreset including the updated preset (combined with defaults and existing custom presets).
    */
-  updatePresetByLabelOrCreate(
-    oldLabel: string,
-    updatedPreset: OrdersFilterPreset,
-  ) {
+  updatePresetByLabelOrCreate(oldLabel: string, updatedPreset: OrdersFilterPreset) {
+    if (this.labelPreferenceIdMap.has(oldLabel)) {
+      const preferenceId = this.labelPreferenceIdMap.get(oldLabel)!;
+      return this.usersWrapper
+        .updateCurrentUserPreferenceById(preferenceId, {
+          preference_type: ORDER_PRESETS,
+          preferences: updatedPreset,
+        })
+        .pipe(switchMap(() => this.getFullPresetList(this.getSavedPresets())));
+    }
     return this.getSavedPresets().pipe(
       switchMap(customPresets => {
-
         const deleteObservables: Observable<void>[] = [];
         for (const presetToUpdate of customPresets.filter(preset => preset.label === oldLabel)) {
           deleteObservables.push(this.usersWrapper.deleteCurrentUserPreference(presetToUpdate.id!));
@@ -130,7 +148,7 @@ export class UserPreferencesService {
 
   /**
    * Deletes a specific filter preset for the current user.
-    * @param presetId The ID of the user preference/preset to delete.
+   * @param presetId The ID of the user preference/preset to delete.
    * @returns An Observable of an array of OrdersFilterPreset.
    */
   deletePreset(presetId: number) {
@@ -149,9 +167,9 @@ export class UserPreferencesService {
   }
 
   /**
-    * Retrieves valid default filter presets for the current user.
-    * If the current user is unavailable, presets requiring CURRENT_USER_PLACEHOLDER are removed.
-    * @returns An Observable of an array of OrdersFilterPreset.
+   * Retrieves valid default filter presets for the current user.
+   * If the current user is unavailable, presets requiring CURRENT_USER_PLACEHOLDER are removed.
+   * @returns An Observable of an array of OrdersFilterPreset.
    */
   getValidDefaultPresets(): Observable<OrdersFilterPreset[]> {
     return this.usersWrapper
@@ -166,12 +184,14 @@ export class UserPreferencesService {
   }
 
   /**
-    * Parses a preset provided as a JSON string or an object with a `label` field,
-    * and ensures any date ranges inside filters are properly formatted.
-    * @param inputPreset The preset as a JSON string, an object with keys, or an OrdersFilterPreset.
-    * @returns The parsed and checked OrdersFilterPreset.
+   * Parses a preset provided as a JSON string or an object with a `label` field,
+   * and ensures any date ranges inside filters are properly formatted.
+   * @param inputPreset The preset as a JSON string, an object with keys, or an OrdersFilterPreset.
+   * @returns The parsed and checked OrdersFilterPreset.
    */
-  parseAndCheckPreset(inputPreset: string | { [key: string]: any } | OrdersFilterPreset): OrdersFilterPreset {
+  parseAndCheckPreset(
+    inputPreset: string | { [key: string]: any } | OrdersFilterPreset
+  ): OrdersFilterPreset {
     let preset: OrdersFilterPreset;
     if (typeof inputPreset === 'string') {
       preset = JSON.parse(inputPreset);
@@ -239,7 +259,7 @@ export class UserPreferencesService {
   }
 
   /**
-    * Replaces CURRENT_USER_PLACEHOLDER in a single applied filter when applicable (filters with `chipIds`).
+   * Replaces CURRENT_USER_PLACEHOLDER in a single applied filter when applicable (filters with `chipIds`).
    * @param filter The filter preset to process.
    * @param userId The ID of the current user.
    * @returns The modified filter preset.
