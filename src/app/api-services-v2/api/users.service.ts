@@ -367,7 +367,7 @@ export class UsersService extends BaseService {
     }
 
     /**
-     * @endpoint patch /users/me/preferences/{id}
+     * @endpoint put /users/me/preferences/{id}
      * @param id ID der Benutzerpräferenz
      * @param userPreferencesRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -420,7 +420,7 @@ export class UsersService extends BaseService {
 
         let localVarPath = `/users/me/preferences/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<UserPreferencesResponseDTO>('patch', `${basePath}${localVarPath}`,
+        return this.httpClient.request<UserPreferencesResponseDTO>('put', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 body: userPreferencesRequestDTO,

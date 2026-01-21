@@ -355,7 +355,7 @@ paths:
         - name: sort
           in: query
           description: >
-            Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B. 
+            Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.
             `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend),
             dann nach `id` (aufsteigend).
           required: false
@@ -1340,7 +1340,7 @@ paths:
         "500":
           description: Interner Serverfehler
 
-    patch:
+    put:
       tags:
         - Users
       operationId: updateCurrentUserPreferences
