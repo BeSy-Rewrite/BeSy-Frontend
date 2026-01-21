@@ -209,6 +209,11 @@ export class TrackingService implements OnDestroy {
           preference_type: TRACKING_DATA_PREFERENCE_KEY,
           preferences: updatedTrackingData,
         });
+      }),
+      tap(savedEntry => {
+        this.currentYearTrackingDataEntryId = savedEntry.id;
+        this.currentYearTrackingData = savedEntry.preferences as TrackingData;
+        this.resetTrackingData();
       })
     );
   }
