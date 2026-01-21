@@ -112,6 +112,7 @@ export class TrackingService implements OnDestroy {
       return of(this.userTrackingPreferences.preferences as TrackingSettings);
     }
     return this.authService.authStateChanged.pipe(
+      startWith(0),
       skipWhile(() => !this.authService.hasValidToken()),
       switchMap(() => this.fetchTrackingSettings())
     );
