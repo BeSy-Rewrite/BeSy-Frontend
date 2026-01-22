@@ -1,12 +1,15 @@
 import { Component } from '@angular/core';
+import { MatButtonModule } from '@angular/material/button';
 import { AuthenticationService } from '../../services/authentication.service';
 
 @Component({
   selector: 'app-unauthorized',
-  imports: [],
+  imports: [
+    MatButtonModule
+  ],
   templateUrl: './unauthorized.component.html',
   styleUrl: './unauthorized.component.scss',
 })
 export class UnauthorizedComponent {
-  constructor(protected authService: AuthenticationService) {}
+  constructor(protected authService: AuthenticationService) { }
 }
