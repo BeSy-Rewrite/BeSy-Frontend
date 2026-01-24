@@ -1,6 +1,6 @@
 import { HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { Injectable, OnDestroy } from '@angular/core';
-import { EMPTY, interval, map, of, skipWhile, startWith, Subscription, switchMap, tap } from 'rxjs';
+import { debounceTime, EMPTY, interval, map, Observable, of, skipWhile, startWith, Subject, Subscription, switchMap, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { UserPreferencesResponseDTO } from '../api-services-v2';
 import { AuthenticationService } from './authentication.service';
@@ -44,6 +44,8 @@ export class TrackingService implements OnDestroy {
   private currentYearTrackingDataEntryId: number | undefined;
   private currentYearTrackingData: TrackingData | undefined;
 
+  private readonly trackingSettingsDebouncer = new Subject<TrackingSettings>();
+
   constructor(
     private readonly authService: AuthenticationService,
     private readonly userService: UsersWrapperService
@@ -64,8 +66,10 @@ export class TrackingService implements OnDestroy {
     );
   }
 
-  setTrackingSettings(settings: TrackingSettings) {
-    return this.getTrackingSettings().pipe(
+  setTrackingSettings(settings: TrackingSettings): Observable<UserPreferencesResponseDTO> {
+    this.trackingSettingsDebouncer.next(settings);
+    return this.trackingSettingsDebouncer.pipe(
+      debounceTime(300),
       switchMap(() => {
         if (this.userTrackingPreferences) {
           return this.userService.updateCurrentUserPreferenceById(this.userTrackingPreferences.id, {
@@ -131,10 +135,7 @@ export class TrackingService implements OnDestroy {
       }),
       switchMap(preference => {
         if (preference == undefined) {
-          return this.userService.addCurrentUserPreference({
-            preference_type: TRACKING_SETTINGS_PREFERENCE_TYPE,
-            preferences: { disableTracking: false },
-          });
+          return this.setTrackingSettings({ disableTracking: false });
         }
         return of(preference);
       }),
