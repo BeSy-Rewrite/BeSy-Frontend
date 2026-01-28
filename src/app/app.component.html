@@ -1,13 +1,11 @@
 <app-homebar />
 <!-- Set top padding to offset the height of the homebar -->
 <main class="pt-20 flex flex-col">
-
   <div class="h-full px-4 py-6 sm:px-6 lg:px-8">
-
-    <div class="relative flex flex-col min-h-[calc(100dvh-5rem-(theme(spacing.6)*2))]">
+    <div class="relative flex flex-col min-h-[calc(100dvh-5rem-(--spacing(6)*2))]">
       <router-outlet />
 
-      <app-toast position="bottom-right" />
+      <app-toast class="fixed bottom-4 right-4 z-100" position="bottom-right" />
 
       <!-- Wrapped banner overlay (shows in generation months) -->
       <besy-wrapped-banner />
