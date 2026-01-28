@@ -80,6 +80,8 @@ import { StateWrapperService } from '../../../services/wrapper-services/state-wr
 
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 
+import { finalize } from 'rxjs';
+import { ToastProcessingIndicatorComponent } from '../../../components/toast-processing-indicator/toast-processing-indicator.component';
 import { MailTrackingService } from '../../../services/mail-tracking.service';
 import { UtilsService } from '../../../services/utils.service';
 import { InsyWrapperService } from '../../../services/wrapper-services/insy-wrapper.service';
@@ -214,7 +216,7 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly insyService: InsyWrapperService,
     private readonly mailTrackingService: MailTrackingService,
     private readonly utilsService: UtilsService
-  ) { }
+  ) {}
 
   /**
    * Initializes the component, fetching necessary data and setting up state transitions.
@@ -255,8 +257,20 @@ export class ViewOrderPageComponent implements OnInit {
       return;
     }
 
+    let toastRef = this.toastService.addToast({
+      message: ToastProcessingIndicatorComponent,
+      isPersistent: true,
+      type: 'info',
+      inputs: { documentName: "'Bestellformular'", orderId: this.internalOrder().order.id },
+    });
+
     this.ordersService
       .exportOrderToDocument(this.internalOrder().order.id?.toString()!)
+      .pipe(
+        finalize(() => {
+          toastRef?.cancel(true);
+        })
+      )
       .subscribe(blob => {
         const link = document.createElement('a');
 
@@ -487,9 +501,17 @@ export class ViewOrderPageComponent implements OnInit {
   }
 
   mailSent(): void {
-    this.mailTrackingService.setMailsSentForOrder(this.order().order.id!, this.numberOfMailsSent() + 1).subscribe(count => {
-      this.numberOfMailsSent.set(count);
-      this.utilsService.getConfettiInstance().addConfetti({ emojis: ['📧', '✉️', '📨'], emojiSize: 50, confettiNumber: Math.min(this.numberOfMailsSent() ** 2 + 10, 512) });
-    });
+    this.mailTrackingService
+      .setMailsSentForOrder(this.order().order.id!, this.numberOfMailsSent() + 1)
+      .subscribe(count => {
+        this.numberOfMailsSent.set(count);
+        this.utilsService
+          .getConfettiInstance()
+          .addConfetti({
+            emojis: ['📧', '✉️', '📨'],
+            emojiSize: 50,
+            confettiNumber: Math.min(this.numberOfMailsSent() ** 2 + 10, 512),
+          });
+      });
   }
 }
