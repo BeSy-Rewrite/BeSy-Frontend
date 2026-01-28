@@ -1,12 +1,23 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from "@angular/material/checkbox";
-import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import {
+  MAT_DIALOG_DATA,
+  MatDialog,
+  MatDialogModule,
+  MatDialogRef,
+} from '@angular/material/dialog';
 import { MatInputModule } from '@angular/material/input';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { finalize, merge, mergeMap, of, startWith, tap } from 'rxjs';
+import { debounceTime, finalize, merge, mergeMap, of, startWith, tap } from 'rxjs';
 import { OrderResponseDTO } from '../../../api-services-v2';
 import { DOCUMENT_UPLOAD_FORM_CONFIG } from '../../../configs/document-upload-config';
 import { DocumentDTO } from '../../../models/document-invoice';
@@ -14,9 +25,15 @@ import { ToastService } from '../../../services/toast.service';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
 import { FileInputComponent } from '../../file-input/file-input.component';
-import { FormComponent, FormConfig } from "../../form-component/form-component.component";
-import { LinkableToastMessageComponent, LinkObject } from '../../linkable-toast-message/linkable-toast-message.component';
-import { ProcessingIndicatorComponent, ProcessingIndicatorData } from '../../processing-indicator/processing-indicator.component';
+import { FormComponent, FormConfig } from '../../form-component/form-component.component';
+import {
+  LinkableToastMessageComponent,
+  LinkObject,
+} from '../../linkable-toast-message/linkable-toast-message.component';
+import {
+  ProcessingIndicatorComponent,
+  ProcessingIndicatorData,
+} from '../../processing-indicator/processing-indicator.component';
 import { ToastProcessingIndicatorComponent } from '../../toast-processing-indicator/toast-processing-indicator.component';
 import { ToastResponse } from '../../toast/toast.component';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
@@ -38,13 +55,12 @@ export interface DocumentUploadData {
     MatInputModule,
     MatRadioModule,
     FormComponent,
-    FileInputComponent
+    FileInputComponent,
   ],
   templateUrl: './document-upload.component.html',
-  styleUrl: './document-upload.component.scss'
+  styleUrl: './document-upload.component.scss',
 })
 export class DocumentUploadComponent implements OnInit {
-
   readonly dialogRef = inject(MatDialogRef<DocumentPreviewComponent>);
   readonly data = inject<DocumentUploadData>(MAT_DIALOG_DATA);
 
@@ -77,9 +93,11 @@ export class DocumentUploadComponent implements OnInit {
       this.existingDocumentId.valueChanges,
     ];
 
-    merge(...subscriptions).pipe(startWith([])).subscribe(() => {
-      this.updateValidity();
-    });
+    merge(...subscriptions)
+      .pipe(startWith([]))
+      .subscribe(() => {
+        this.updateValidity();
+      });
   }
 
   /**
@@ -87,11 +105,13 @@ export class DocumentUploadComponent implements OnInit {
    */
   ngOnInit(): void {
     this.costCentersService.getAllCostCenters().then(costCenters => {
-      const costCenterField = this.documentFormConfig.fields.find(field => field.name === 'costCenterId');
+      const costCenterField = this.documentFormConfig.fields.find(
+        field => field.name === 'costCenterId'
+      );
       if (costCenterField) {
         costCenterField.options = costCenters.map(center => ({
           label: center.name ?? `Kostenstelle ${center.id}`,
-          value: center.id ?? ''
+          value: center.id ?? '',
         }));
       }
     });
@@ -103,7 +123,9 @@ export class DocumentUploadComponent implements OnInit {
   updateValidity(): void {
     const formValid = this.documentFormGroup.valid;
     const linkExisting = this.linkExistingDocument.value;
-    const existingIdValid = this.existingDocumentId.value ? this.existingDocumentId.value > 0 : false;
+    const existingIdValid = this.existingDocumentId.value
+      ? this.existingDocumentId.value > 0
+      : false;
     const fileSelected = this.selectedFile() !== undefined;
 
     if (this.data.invoiceId) {
@@ -133,7 +155,7 @@ export class DocumentUploadComponent implements OnInit {
       this.handleUpload();
     } else {
       this.snackBar.open('Bitte fülle alle erforderlichen Felder aus.', 'Schließen', {
-        duration: 3000
+        duration: 3000,
       });
     }
   }
@@ -150,7 +172,8 @@ export class DocumentUploadComponent implements OnInit {
       const raw = this.existingDocumentId.value;
       if (raw) {
         const parsed = typeof raw === 'number' ? raw : Number.parseInt(String(raw), 10);
-        paperlessId = Number.isNaN(parsed) || !Number.isInteger(parsed) || parsed < 1 ? undefined : parsed;
+        paperlessId =
+          Number.isNaN(parsed) || !Number.isInteger(parsed) || parsed < 1 ? undefined : parsed;
       } else {
         paperlessId = undefined;
       }
@@ -159,7 +182,7 @@ export class DocumentUploadComponent implements OnInit {
     return {
       date: new Date(),
       comment: formValues.comment,
-      paperless_id: paperlessId
+      paperless_id: paperlessId,
     };
   }
 
@@ -171,42 +194,52 @@ export class DocumentUploadComponent implements OnInit {
 
     if (this.data.invoiceId) {
       this.setupUploadCompletionHandler(true);
-      uploadObservable = this.invoicesService.uploadInvoiceFile(this.data.invoiceId, this.selectedFile()!);
+      uploadObservable = this.invoicesService.uploadInvoiceFile(
+        this.data.invoiceId,
+        this.selectedFile()!
+      );
     } else {
       uploadObservable = this.createDocument(this.getDocumentDTO());
     }
 
-    uploadObservable.pipe(
-      finalize(() => {
-        if (this.toastRef) this.toastRef.cancel(true);
-        this.processingIndicator?.close();
-      })
-    ).subscribe({
-      next: () => {
-        this.toastService.addToast({
-          message: LinkableToastMessageComponent,
-          inputs: {
-            message: `Das Dokument ${this.getDocumentInfo()} für Bestellung {LINK} wurde erfolgreich verarbeitet und hochgeladen.`,
-            links: [this.getLinkObjectToOrder()]
-          },
-          type: 'success',
-          duration: 5000,
-        });
-        this.data.onComplete?.(true);
-        this.dialogRef.close(true);
-      },
-      error: () => {
-        this.toastService.addToast({
-          message: LinkableToastMessageComponent,
-          inputs: {
-            message: `Fehler beim Verarbeiten des Dokuments ${this.getDocumentInfo()} für Bestellung {LINK}\nSiehe Paperless für weitere Details.`,
-            links: [this.getLinkObjectToOrder()]
-          },
-          type: 'error',
-        });
-        this.data.onComplete?.(false);
-      },
-    });
+    uploadObservable
+      .pipe(
+        finalize(() => {
+          this.processingIndicator?.close();
+          this.processingIndicator
+            ?.afterClosed()
+            .pipe(
+              debounceTime(50) // Loading indicator toast is created after closing the dialog, ensures it exists
+            )
+            .subscribe(() => this.toastRef?.cancel(true));
+        })
+      )
+      .subscribe({
+        next: () => {
+          this.toastService.addToast({
+            message: LinkableToastMessageComponent,
+            inputs: {
+              message: `Das Dokument ${this.getDocumentInfo()} für Bestellung {LINK} wurde erfolgreich verarbeitet und hochgeladen.`,
+              links: [this.getLinkObjectToOrder()],
+            },
+            type: 'success',
+            duration: 5000,
+          });
+          this.data.onComplete?.(true);
+          this.dialogRef.close(true);
+        },
+        error: () => {
+          this.toastService.addToast({
+            message: LinkableToastMessageComponent,
+            inputs: {
+              message: `Fehler beim Verarbeiten des Dokuments ${this.getDocumentInfo()} für Bestellung {LINK}\nSiehe Paperless für weitere Details.`,
+              links: [this.getLinkObjectToOrder()],
+            },
+            type: 'error',
+          });
+          this.data.onComplete?.(false);
+        },
+      });
   }
 
   /**
@@ -217,19 +250,20 @@ export class DocumentUploadComponent implements OnInit {
   createDocument(document: DocumentDTO) {
     return this.invoicesService.createDocumentForOrder(this.data.order.id!, document).pipe(
       tap({
-        next: createdDocument => this.setupUploadCompletionHandler(createdDocument.paperless_id == undefined),
+        next: createdDocument =>
+          this.setupUploadCompletionHandler(createdDocument.paperless_id == undefined),
         error: () => {
           this.toastService.addToast({
             message: LinkableToastMessageComponent,
             inputs: {
               message: `Fehler beim Erstellen des Dokuments für Bestellung {LINK}\nBitte versuchen Sie es erneut.`,
-              links: [this.getLinkObjectToOrder()]
+              links: [this.getLinkObjectToOrder()],
             },
             type: 'error',
           });
           this.data.onComplete?.(false);
           this.processingIndicator?.close();
-        }
+        },
       }),
       mergeMap(createdInvoice => {
         if (createdInvoice.paperless_id) {
@@ -251,7 +285,7 @@ export class DocumentUploadComponent implements OnInit {
           message: ToastProcessingIndicatorComponent,
           isPersistent: true,
           type: 'info',
-          inputs: { documentName: this.selectedFile()?.name, orderId: this.data.order.id }
+          inputs: { documentName: this.selectedFile()?.name, orderId: this.data.order.id },
         });
       }
       this.dialogRef.close(true);
@@ -263,7 +297,9 @@ export class DocumentUploadComponent implements OnInit {
    * @returns A string describing the document.
    */
   getDocumentInfo(): string {
-    return this.linkExistingDocument.value ? `Paperless-ID ${this.existingDocumentId.value}` : this.selectedFile()?.name ?? 'Unbekannte Datei';
+    return this.linkExistingDocument.value
+      ? `Paperless-ID ${this.existingDocumentId.value}`
+      : (this.selectedFile()?.name ?? 'Unbekannte Datei');
   }
 
   /**
@@ -273,7 +309,7 @@ export class DocumentUploadComponent implements OnInit {
   getLinkObjectToOrder(): LinkObject {
     return {
       text: String(this.data.order.id),
-      url: `/orders/${this.data.order.id}`
+      url: `/orders/${this.data.order.id}`,
     };
   }
 }

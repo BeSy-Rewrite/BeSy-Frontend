@@ -74,7 +74,6 @@ export class TrackingService implements OnDestroy {
       .pipe(
         debounceTime(300),
         switchMap(settings => {
-          console.log('Applying tracking settings:', settings);
           if (this.userTrackingPreferences.value?.id) {
             return this.userService.updateCurrentUserPreferenceById(
               this.userTrackingPreferences.value.id,
@@ -117,7 +116,6 @@ export class TrackingService implements OnDestroy {
 
   setTrackingSettings(settings: TrackingSettings): Observable<UserPreferencesResponseDTO> {
     this.trackingSettingsDebouncer.next(settings);
-    console.log('Updating tracking settings:', settings);
 
     return this.userTrackingPreferences.asObservable().pipe(
       skipWhile(preference => preference === undefined),
