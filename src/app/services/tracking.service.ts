@@ -1,6 +1,21 @@
 import { HttpHandlerFn, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { Injectable, OnDestroy } from '@angular/core';
-import { debounceTime, EMPTY, interval, map, Observable, of, skipWhile, startWith, Subject, Subscription, switchMap, tap } from 'rxjs';
+import {
+  BehaviorSubject,
+  debounceTime,
+  EMPTY,
+  interval,
+  map,
+  Observable,
+  of,
+  skipWhile,
+  startWith,
+  Subject,
+  Subscription,
+  switchMap,
+  take,
+  tap,
+} from 'rxjs';
 import { environment } from '../../environments/environment';
 import { UserPreferencesResponseDTO } from '../api-services-v2';
 import { AuthenticationService } from './authentication.service';
@@ -39,7 +54,9 @@ export class TrackingService implements OnDestroy {
   public static requests: number = 0;
   public static errors: number = 0;
   private trackingInterval: Subscription;
-  private userTrackingPreferences: UserPreferencesResponseDTO | undefined;
+  private userTrackingPreferences = new BehaviorSubject<UserPreferencesResponseDTO | undefined>(
+    undefined
+  );
 
   private currentYearTrackingDataEntryId: number | undefined;
   private currentYearTrackingData: TrackingData | undefined;
@@ -51,6 +68,38 @@ export class TrackingService implements OnDestroy {
     private readonly userService: UsersWrapperService
   ) {
     this.trackingInterval = this.initializeTracking().subscribe();
+
+    this.trackingSettingsDebouncer
+      .asObservable()
+      .pipe(
+        debounceTime(300),
+        switchMap(settings => {
+          console.log('Applying tracking settings:', settings);
+          if (this.userTrackingPreferences.value?.id) {
+            return this.userService.updateCurrentUserPreferenceById(
+              this.userTrackingPreferences.value.id,
+              {
+                preference_type: TRACKING_SETTINGS_PREFERENCE_TYPE,
+                preferences: settings,
+              }
+            );
+          }
+          return this.userService.addCurrentUserPreference({
+            preference_type: TRACKING_SETTINGS_PREFERENCE_TYPE,
+            preferences: settings,
+          });
+        })
+      )
+      .subscribe(preference => {
+        this.userTrackingPreferences.next(preference);
+
+        if (preference.preferences['disableTracking']) {
+          this.trackingInterval.unsubscribe();
+          this.resetTrackingData();
+        } else if (this.trackingInterval.closed) {
+          this.trackingInterval = this.initializeTracking().subscribe();
+        }
+      });
   }
 
   // Retrieve tracking data from user preferences
@@ -68,30 +117,12 @@ export class TrackingService implements OnDestroy {
 
   setTrackingSettings(settings: TrackingSettings): Observable<UserPreferencesResponseDTO> {
     this.trackingSettingsDebouncer.next(settings);
-    return this.trackingSettingsDebouncer.pipe(
-      debounceTime(300),
-      switchMap(() => {
-        if (this.userTrackingPreferences) {
-          return this.userService.updateCurrentUserPreferenceById(this.userTrackingPreferences.id, {
-            preference_type: TRACKING_SETTINGS_PREFERENCE_TYPE,
-            preferences: settings,
-          });
-        }
-        return this.userService.addCurrentUserPreference({
-          preference_type: TRACKING_SETTINGS_PREFERENCE_TYPE,
-          preferences: settings,
-        });
-      }),
-      tap(preference => {
-        this.userTrackingPreferences = preference;
+    console.log('Updating tracking settings:', settings);
 
-        if (settings.disableTracking) {
-          this.trackingInterval.unsubscribe();
-          this.resetTrackingData();
-        } else if (this.trackingInterval.closed) {
-          this.trackingInterval = this.initializeTracking().subscribe();
-        }
-      })
+    return this.userTrackingPreferences.asObservable().pipe(
+      skipWhile(preference => preference === undefined),
+      map(preference => preference as UserPreferencesResponseDTO),
+      take(1)
     );
   }
 
@@ -112,8 +143,8 @@ export class TrackingService implements OnDestroy {
    * @returns An observable emitting the user's tracking settings
    */
   getTrackingSettings() {
-    if (this.userTrackingPreferences) {
-      return of(this.userTrackingPreferences.preferences as TrackingSettings);
+    if (this.userTrackingPreferences.value?.id) {
+      return of(this.userTrackingPreferences.value.preferences as TrackingSettings);
     }
     return this.authService.authStateChanged.pipe(
       startWith(0),
@@ -140,7 +171,7 @@ export class TrackingService implements OnDestroy {
         return of(preference);
       }),
       tap(preference => {
-        this.userTrackingPreferences = preference;
+        this.userTrackingPreferences.next(preference);
       }),
       map(preference => (preference.preferences as TrackingSettings) ?? { disableTracking: false })
     );
