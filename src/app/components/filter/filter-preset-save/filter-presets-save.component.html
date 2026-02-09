@@ -1,19 +1,19 @@
 <div class="tour-save-preset-dialog">
-    <h2 mat-dialog-title>Gib einen Namen für das Preset ein</h2>
+  <h2 mat-dialog-title>Gib einen Namen für das Preset ein</h2>
 
-    <mat-dialog-content>
-        <p class="mb-2">Wie möchtest du das Preset nennen?</p>
+  <mat-dialog-content>
+    <p class="mb-2">Wie möchtest du das Preset nennen?</p>
 
-        <mat-form-field class="w-full">
-            <mat-label>Name des Presets</mat-label>
-            <input matInput [(ngModel)]="presetName" />
-        </mat-form-field>
-    </mat-dialog-content>
+    <mat-form-field class="w-full">
+      <mat-label>Name des Presets</mat-label>
+      <input matInput [(ngModel)]="presetName" />
+    </mat-form-field>
+  </mat-dialog-content>
 
-    <mat-dialog-actions align="end">
-        <button mat-stroked-button (click)="close()" color="warn">abbrechen</button>
-        <button mat-flat-button [mat-dialog-close]="presetName()" cdkFocusInitial color="primary">
-            {{ data.acceptButtonText ?? 'speichern' }}
-        </button>
-    </mat-dialog-actions>
+  <mat-dialog-actions align="end">
+    <button mat-stroked-button (click)="close()" color="warn">Abbrechen</button>
+    <button mat-flat-button [mat-dialog-close]="presetName()" cdkFocusInitial color="primary">
+      {{ data.acceptButtonText ?? 'speichern' }}
+    </button>
+  </mat-dialog-actions>
 </div>
