@@ -1,3 +1,28 @@
-<p>homepage works!</p>
-<button mat-flat-button color="primary" (click)="startTour()">Start Tour</button>
-<button mat-flat-button color="accent" (click)="addConfetti()">Add Confetti</button>
+<div class="bg-white text-gray-800 grow flex flex-col">
+  <!-- Hero section that fills remaining space -->
+  <div class="flex-grow relative flex items-center justify-center overflow-hidden">
+    <!-- Blurry background -->
+    <div
+      class="absolute left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-blue-400 to-blue-600 opacity-20 blur-3xl sm:left-[calc(50%-30rem)] sm:w-[72.1875rem] z-0"
+    ></div>
+
+    <!-- Hero content with limited width -->
+    <div class="text-center px-4 z-10 max-w-3xl mx-auto flex flex-col items-center">
+      <h1 class="text-5xl md:text-6xl font-bold mb-4 text-he-red">
+        @if (authService.isAuthorized() && authService.getUsername()) {
+          Willkommen zurück, {{ authService.getUsername()!.replace(' ', '&nbsp;') }}!
+        } @else {
+          Willkommen zu BESY!
+        }
+      </h1>
+      <img
+        class="object-contain max-w-3/5 mt-2 mb-4 rounded-2xl"
+        src="assets/pics/BeSy_pixel-bild.png"
+        alt="Pixelart eines Mitarbeiters, der am Bestellprozess verzweifelt"
+      />
+      @if (!authService.hasValidToken()) {
+        <a mat-raised-button color="primary" (click)="authService.login()"> Login </a>
+      }
+    </div>
+  </div>
+</div>

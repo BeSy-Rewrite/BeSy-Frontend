@@ -1,0 +1,41 @@
+@if (visible && !onWrappedPage()) {
+  <div class="fixed inset-x-0 bottom-0 z-[1000]">
+    <div
+      class="mx-4 mb-4 rounded-xl shadow-xl bg-gradient-to-r from-purple-600 via-fuchsia-600 to-rose-600 text-white"
+    >
+      <div class="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-start gap-3">
+          <span class="inline-block mt-0.5 h-3 w-3 rounded-full bg-white/80 shadow"></span>
+          <div>
+            <div class="text-lg font-semibold tracking-wide">BeSy Wrapped ist da!</div>
+            <div class="text-sm opacity-90">Sieh dir deine Highlights der letzten Monate an.</div>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <a
+            [href]="ctaUrl"
+            class="px-4 py-2 rounded-md bg-white text-fuchsia-700 font-semibold shadow hover:bg-white/90 focus:outline-none focus:ring-2 focus:ring-white/60"
+          >
+            Jetzt ansehen
+          </a>
+          <button
+            type="button"
+            (click)="dismiss()"
+            class="px-3 py-2 rounded-md bg-transparent text-white/90 hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/40"
+          >
+            Schließen
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else if (isGenerationMonth() && !onWrappedPage() && isWrappedEnabled()) {
+  <a class="fixed bottom-8 z-[1000] left-12 flex" [href]="ctaUrl">
+    <div
+      class="px-4 py-2 rounded-full bg-gradient-to-r from-purple-600 via-fuchsia-600 to-rose-600 text-white font-semibold shadow-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-400"
+    >
+      BeSy Wrapped ist da! Jetzt ansehen
+    </div>
+  </a>
+}

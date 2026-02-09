@@ -61,8 +61,8 @@ export class PersonsPageComponent implements OnInit {
   actions: TableActionButton[] = [
     {
       id: 'edit',
-      label: 'Edit',
-      buttonType: 'elevated',
+      label: 'Bearbeiten',
+      buttonType: 'filled',
       color: ButtonColor.PRIMARY,
       action: (row: PersonResponseDTO) => this.editPerson(row),
     },

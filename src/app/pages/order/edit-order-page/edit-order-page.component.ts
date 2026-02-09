@@ -77,6 +77,7 @@ import { HasUnsavedChanges } from '../../../guards/unsaved-changes.guard';
 import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
 import { EditOrderResolvedData } from '../../../resolver/edit-order.resolver';
 import { DriverJsTourService } from '../../../services/driver.js-tour.service';
+import { UtilsService } from '../../../services/utils.service';
 import { CostCenterWrapperService } from '../../../services/wrapper-services/cost-centers-wrapper.service';
 import {
   CurrenciesWrapperService,
@@ -93,7 +94,6 @@ import {
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapper.service';
-import { UtilsService } from '../../../utils.service';
 
 /**
  * Model for the items table used in the order edit/create page.
@@ -1544,7 +1544,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       (this.formattedOrderDTO.invoice_person_id &&
         this.formattedOrderDTO.delivery_person_id &&
         this.formattedOrderDTO.invoice_person_id.value !==
-          this.formattedOrderDTO.delivery_person_id.value) ||
+        this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
         this.formattedOrderDTO.invoice_address_id !== this.formattedOrderDTO.delivery_address_id)
     ) {
@@ -2007,28 +2007,28 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     string,
     { tabName: string; configs: FormConfig[] }
   > = {
-    General: {
-      tabName: 'Allgemeine Angaben',
-      configs: [
-        this.generalFormConfig,
-        this.queriesPersonFormConfig,
-        this.primaryCostCenterFormConfig,
-        this.secondaryCostCenterFormConfig,
-      ],
-    },
-    MainOffer: {
-      tabName: 'Hauptangebot',
-      configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
-    },
-    Addresses: {
-      tabName: 'Adressdaten',
-      configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
-    },
-    Approvals: {
-      tabName: 'Genehmigungen',
-      configs: [this.approvalFormConfig],
-    },
-  };
+      General: {
+        tabName: 'Allgemeine Angaben',
+        configs: [
+          this.generalFormConfig,
+          this.queriesPersonFormConfig,
+          this.primaryCostCenterFormConfig,
+          this.secondaryCostCenterFormConfig,
+        ],
+      },
+      MainOffer: {
+        tabName: 'Hauptangebot',
+        configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
+      },
+      Addresses: {
+        tabName: 'Adressdaten',
+        configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
+      },
+      Approvals: {
+        tabName: 'Genehmigungen',
+        configs: [this.approvalFormConfig],
+      },
+    };
 
   /**
    * Checks if there are unsaved changes in the form.

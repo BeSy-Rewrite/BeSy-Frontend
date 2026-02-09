@@ -18,7 +18,7 @@ import {
   ItemTableModel,
   QuotationTableModel,
 } from '../../pages/order/edit-order-page/edit-order-page.component';
-import { UtilsService } from '../../utils.service';
+import { UtilsService } from '../utils.service';
 import { CostCenterFormatted, CostCenterWrapperService } from './cost-centers-wrapper.service';
 import { CurrenciesWrapperService, FormattedCurrency } from './currencies-wrapper.service';
 import { FormattedPerson, PersonsWrapperService } from './persons-wrapper.service';
@@ -79,7 +79,7 @@ export class OrdersWrapperService {
     private readonly suppliersWrapperService: SuppliersWrapperService,
     private readonly usersWrapperService: UsersWrapperService,
     private readonly utilsService: UtilsService
-  ) {}
+  ) { }
 
   /**
    * Should be called whenever orders are created, updated, or deleted to clear the cache.
@@ -114,6 +114,7 @@ export class OrdersWrapperService {
    */
 
   /**
+   * Orders with the state 'DELETED' are excluded as no additional information can be retrieved for them from the API. If needed, restore them in the database directly.
    * @param page Seitenzahl für die Paginierung (beginnend bei 0).
    * @param size Anzahl der Elemente pro Seite.
    * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.  `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend), dann nach `id` (aufsteigend).
@@ -138,7 +139,7 @@ export class OrdersWrapperService {
         filters?.createdAfter,
         filters?.createdBefore,
         filters?.ownerIds,
-        filters?.statuses,
+        filters?.statuses?.length ? filters.statuses : Object.values(OrderStatus).filter(s => s !== OrderStatus.DELETED),
         filters?.quotePriceMin,
         filters?.quotePriceMax,
         filters?.deliveryPersonIds,
@@ -310,14 +311,14 @@ export class OrdersWrapperService {
     ] = await Promise.all([
       order.primary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-            order.primary_cost_center_id
-          )
+          order.primary_cost_center_id
+        )
         : Promise.resolve(undefined),
 
       order.secondary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-            order.secondary_cost_center_id
-          )
+          order.secondary_cost_center_id
+        )
         : Promise.resolve(undefined),
 
       order.delivery_person_id

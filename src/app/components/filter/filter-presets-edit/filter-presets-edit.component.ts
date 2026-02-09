@@ -5,7 +5,8 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogModule, MatDialogRef } from '@angu
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableDataSource } from '@angular/material/table';
-import { mergeMap } from 'rxjs';
+import { forkJoin, switchMap } from 'rxjs';
+import { LAST_ACTIVE_FILTERS_KEY } from '../../../configs/orders-table/order-filter-presets-config';
 import { OrdersFilterPreset } from '../../../models/filter/filter-presets';
 import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { UserPreferencesService } from '../../../services/user-preferences.service';
@@ -36,7 +37,9 @@ export class FilterPresetsEditComponent {
   readonly data = inject<CreatePresetDialogData>(MAT_DIALOG_DATA);
 
   initialPresets!: OrdersFilterPreset[];
-  savedPresets!: OrdersFilterPreset[];
+  newPresets: OrdersFilterPreset[] = [];
+  deletedPresets: OrdersFilterPreset[] = [];
+
 
   datasource = new MatTableDataSource(<OrdersFilterPreset[]>([]));
   columns = [
@@ -63,11 +66,13 @@ export class FilterPresetsEditComponent {
   constructor(private readonly dialog: MatDialog,
     private readonly preferencesService: UserPreferencesService
   ) {
-    preferencesService.getCustomPresets().subscribe(presets => {
+    preferencesService.getSavedPresets().subscribe(presets => {
+      presets = presets.filter(preset =>
+        preset.label !== LAST_ACTIVE_FILTERS_KEY
+      );
       // take a deep copy to avoid mutating the original when editing
       this.initialPresets = structuredClone(presets);
-      this.savedPresets = structuredClone(presets);
-      this.datasource.data = this.savedPresets;
+      this.datasource.data = structuredClone(presets);
     });
   }
 
@@ -83,35 +88,57 @@ export class FilterPresetsEditComponent {
     dialogRef.afterClosed().subscribe(result => {
       if (result) {
         preset.label = result;
-        this.datasource.data = this.savedPresets;
+
+        if (preset.id != null) {
+          this.deletedPresets.push(preset);
+          this.newPresets.push({ ...preset, id: undefined });
+        }
       }
     });
   }
 
   /** Deletes the selected preset from the list. */
   deletePreset(preset: OrdersFilterPreset): void {
-    this.savedPresets = this.savedPresets.filter(p => p.label !== preset.label);
-    this.datasource.data = this.savedPresets;
+    this.datasource.data = this.datasource.data.filter(p => p.label !== preset.label);
+
+    if (preset.id != null) {
+      this.deletedPresets.push(preset);
+    }
   }
 
-  /** Saves the current presets to local storage and closes the dialog. */
+  /** Saves the current presets and closes the dialog. */
   saveChanges(): void {
-    this.preferencesService.deletePreferences({
-      order_filter_preferences: this.initialPresets.map(preset => JSON.stringify(preset))
-    }).pipe(
-      mergeMap(() => this.preferencesService.addPreferences({
-        order_filter_preferences: this.savedPresets.map(preset => JSON.stringify(preset))
-      }))
-    ).subscribe(savedPrefs => {
-      this.dialogRef.close(savedPrefs.order_filter_preferences.map(preset => this.preferencesService.parseAndCheckPreset(preset)));
+    if (this.isUnchanged() || this.dialogRef.disableClose) return;
+
+    this.dialogRef.disableClose = true;
+    const saveObservables = [];
+    for (const preset of this.deletedPresets) {
+      saveObservables.push(this.preferencesService.deletePreset(preset.id!));
+    }
+    for (const preset of this.newPresets) {
+      saveObservables.push(this.preferencesService.savePreset(preset));
+    }
+
+    if (saveObservables.length === 0) {
+      this.dialogRef.disableClose = false;
+      this.dialogRef.close(this.initialPresets);
+      return;
+    }
+
+    forkJoin(saveObservables).pipe(
+      switchMap(() => this.preferencesService.getPresets())
+    ).subscribe(updatedPresets => {
+      this.dialogRef.disableClose = false;
+      this.dialogRef.close(updatedPresets);
     });
   }
+
   isUnchanged(): boolean {
-    return JSON.stringify(this.initialPresets) === JSON.stringify(this.savedPresets);
+    return this.newPresets.length === 0 && this.deletedPresets.length === 0;
   }
 
   /** Closes the dialog without saving changes. */
   close(): void {
-    this.dialogRef.close();
+    if (!this.dialogRef.disableClose) this.dialogRef.close();
   }
 }

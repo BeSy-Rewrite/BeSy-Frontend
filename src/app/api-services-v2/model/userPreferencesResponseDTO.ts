@@ -10,6 +10,8 @@
 
 
 export interface UserPreferencesResponseDTO { 
-    order_filter_preferences: Array<string>;
+    id: number;
+    preference_type: string;
+    preferences: { [key: string]: any; };
 }
 

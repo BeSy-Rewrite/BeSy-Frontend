@@ -43,6 +43,7 @@ export const SUPPLIER_FORM_CONFIG: FormConfig = {
       label: 'USt-IdNr.',
       type: 'text',
       required: false,
+      validators: [Validators.maxLength(20)],
       tooltip: 'Umsatzsteuer-Identifikationsnummer des Lieferanten.',
       editable: true,
     },

@@ -7,6 +7,8 @@ import JSConfetti from 'js-confetti';
 export class UtilsService {
   private readonly jsConfetti = new JSConfetti();
 
+  constructor() {}
+
   getConfettiInstance(): JSConfetti {
     return this.jsConfetti;
   }

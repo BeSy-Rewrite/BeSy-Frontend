@@ -7,7 +7,7 @@ FROM node:22 AS build
 ARG PROFILE=production
 ENV PROFILE=${PROFILE}
 WORKDIR /app
-COPY package.json ./
+COPY package*.json ./
 RUN npm install
 COPY . .
 RUN npm run build -- --configuration ${PROFILE}

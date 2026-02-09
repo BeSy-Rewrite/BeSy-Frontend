@@ -1,18 +1,23 @@
 import { Injectable } from '@angular/core';
 import { lastValueFrom, Observable, of, tap } from 'rxjs';
-import { UserPreferencesResponseDTO, UserResponseDTO, UsersService } from '../../api-services-v2';
+import {
+  UserPreferencesRequestDTO,
+  UserPreferencesResponseDTO,
+  UserResponseDTO,
+  UsersService,
+} from '../../api-services-v2';
 import { AuthenticationService } from '../authentication.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class UsersWrapperService {
-
   private currentUserCache?: UserResponseDTO;
 
-  constructor(private readonly usersService: UsersService,
+  constructor(
+    private readonly usersService: UsersService,
     private readonly authService: AuthenticationService
-  ) { }
+  ) {}
 
   /**
    * @returns Promise<UserResponseDTO[]>
@@ -51,31 +56,44 @@ export class UsersWrapperService {
   }
 
   /**
-   * Retrieves the preferences of a user by their ID.
-   * @param userId The ID of the user.
-   * @returns An Observable of UserPreferencesResponseDTO containing the user's preferences.
+   * Retrieves preferences for the current user.
+   * @param type The type of preference to retrieve (optional).
+   * @returns An Observable of UserPreferencesResponseDTO array.
    */
-  getUserPreferences(userId: number): Observable<UserPreferencesResponseDTO> {
-    return this.usersService.getUserPreferences(userId);
+  getCurrentUserPreferences(type?: string): Observable<UserPreferencesResponseDTO[]> {
+    return this.usersService.getCurrentUserPreferences(type);
   }
 
   /**
-   * Adds preferences for a user by their ID.
-   * @param userId The ID of the user.
-   * @param preferences The preferences to add.
-   * @returns An Observable of UserPreferencesResponseDTO containing the updated preferences.
+   * Adds a new preference for the current user.
+   * @param preference The preference data to add.
+   * @returns An Observable of UserPreferencesResponseDTO containing the added preference.
    */
-  addUserPreferences(userId: number, preferences: UserPreferencesResponseDTO): Observable<UserPreferencesResponseDTO> {
-    return this.usersService.addUserPreferences(userId, preferences);
+  addCurrentUserPreference(
+    preference: UserPreferencesRequestDTO
+  ): Observable<UserPreferencesResponseDTO> {
+    return this.usersService.addCurrentUserPreferences(preference);
   }
 
   /**
-   * Deletes preferences for a user by their ID.
-   * @param userId The ID of the user.
-   * @param preferences The preferences to delete.
-   * @returns An Observable of UserPreferencesResponseDTO containing the updated preferences.
+   * Deletes a preference for the current user by its ID.
+   * @param preferenceId The ID of the preference to delete.
+   * @returns An Observable of UserPreferencesResponseDTO containing the deleted preference.
    */
-  deleteFromUserPreferences(userId: number, preferences: UserPreferencesResponseDTO): Observable<UserPreferencesResponseDTO> {
-    return this.usersService.deleteUserPreferences(userId, preferences);
+  deleteCurrentUserPreference(preferenceId: number): Observable<void> {
+    return this.usersService.deleteCurrentUserPreferences(preferenceId);
+  }
+
+  /**
+   * Updates a preference for the current user by its ID.
+   * @param preferenceId The ID of the preference to update.
+   * @param preference The updated preference data.
+   * @returns An Observable of UserPreferencesResponseDTO containing the updated preference.
+   */
+  updateCurrentUserPreferenceById(
+    preferenceId: number,
+    preference: UserPreferencesRequestDTO
+  ): Observable<UserPreferencesResponseDTO> {
+    return this.usersService.updateCurrentUserPreferences(preferenceId, preference);
   }
 }

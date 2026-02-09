@@ -1,7 +1,7 @@
 import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withViewTransitions } from '@angular/router';
 
-import { provideHttpClient, withFetch, withInterceptorsFromDi } from '@angular/common/http';
+import { provideHttpClient, withFetch, withInterceptors, withInterceptorsFromDi } from '@angular/common/http';
 import { provideLuxonDateAdapter } from '@angular/material-luxon-adapter';
 import { MAT_DATE_LOCALE } from '@angular/material/core';
 import { AuthConfig, provideOAuthClient } from 'angular-oauth2-oidc';
@@ -11,6 +11,7 @@ import { environment } from '../environments/environment';
 import { provideApi } from './api-services-v2';
 import { routes } from './app.routes';
 import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
+import { trackingInterceptor } from './services/tracking.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -18,7 +19,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes, withComponentInputBinding(), withViewTransitions()),
     provideLuxonDateAdapter(),
     { provide: MAT_DATE_LOCALE, useValue: 'de-DE' },
-    provideHttpClient(withFetch(), withInterceptorsFromDi()),
+    provideHttpClient(withFetch(), withInterceptorsFromDi(), withInterceptors([trackingInterceptor])),
     provideOAuthClient({
       resourceServer: {
         allowedUrls: [environment.apiUrl],

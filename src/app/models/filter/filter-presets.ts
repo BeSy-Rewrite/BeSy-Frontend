@@ -50,9 +50,15 @@ export type FilterPresetType = ChipFilterPreset | DateRangeFilterPreset | RangeF
 export type OrdersFilterPreset = {
     /** The label for the orders filter preset. */
     label: string;
+    /** A unique identifier for the orders filter preset. */
+    id?: number;
     /** An array of filter presets (chip, date range, range, or selected columns) associated with this orders filter preset. */
     appliedFilters: FilterPresetType[];
 };
+
+export function isOrdersFilterPreset(obj: any): obj is OrdersFilterPreset {
+    return obj && typeof obj.label === 'string' && Array.isArray(obj.appliedFilters);
+}
 
 /**
  * Type representing URL parameters for filter presets.
