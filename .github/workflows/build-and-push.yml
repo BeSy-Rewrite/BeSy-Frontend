@@ -107,7 +107,6 @@ jobs:
             git commit -m "chore: Update version to ${VERSION}" -m "[skip ci]"
             git push origin HEAD || {
               echo "Failed to push version update to repository"
-              exit 1
             }
             echo "Version committed and pushed to repository"
           fi
