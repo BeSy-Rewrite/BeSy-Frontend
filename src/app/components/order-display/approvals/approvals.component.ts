@@ -5,6 +5,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { environment } from '../../../../environments/environment';
 import {
   APPROVALS_FIELD_DESCRIPTIONS,
+  APPROVALS_FIELD_GROUPS,
   APPROVALS_FIELD_NAMES,
 } from '../../../display-name-mappings/approvals-names';
 import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
@@ -24,6 +25,7 @@ export class ApprovalsComponent implements OnInit, OnChanges {
 
   approvalNames = APPROVALS_FIELD_NAMES;
   approvalDescriptions = APPROVALS_FIELD_DESCRIPTIONS;
+  approvalGroups = APPROVALS_FIELD_GROUPS;
 
   constructor(private readonly ordersService: OrdersWrapperService) {}
 

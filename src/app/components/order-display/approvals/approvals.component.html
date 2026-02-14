@@ -1,11 +1,16 @@
-<div class="flex flex-col gap-2">
-  @for (key of approvals().keys(); track $index) {
-    <div class="flex flex-row gap-2 items-center" #container>
-      <mat-checkbox [checked]="approvals().get(key)" disabled aria-labelledby="container" />
-      {{ approvalNames[key] }}
-      <mat-icon [matTooltip]="approvalDescriptions[key]" class="!text-he-lightblue-800"
-        >help</mat-icon
-      >
+<div class="flex flex-col gap-4">
+  @for (group of approvalGroups; track $index) {
+    <div>
+      <h3 class="text-lg font-semibold">{{ group.title }}</h3>
+      @if (group.hint) {
+        <p class="text-sm text-gray-600">{{ group.hint }}</p>
+      }
+      @for (field of group.fields; track $index) {
+        <div class="flex flex-row gap-2 items-center" #container>
+          <mat-checkbox [checked]="approvals().get(field)" disabled aria-labelledby="container" />
+          {{ approvalDescriptions[field] }}
+        </div>
+      }
     </div>
   }
 </div>
