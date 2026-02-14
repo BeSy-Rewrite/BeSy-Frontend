@@ -1,6 +1,6 @@
 <div class="h-fit orders-page-state-icons tour-orders-page">
   <button
-    class="!fixed top-22.5 left-2.5 z-10 tour-filter-button"
+    class="!fixed top-22.5 left-4 z-10 tour-filter-button"
     [class.open]="showFilterButton"
     [class.closed]="!showFilterButton"
     matFab
@@ -20,13 +20,18 @@
     #tabGroup
     mat-stretch-tabs="true"
     mat-align-tabs="start"
+    preserveContent
     (selectedTabChange)="onTabChanged($event)"
   >
     <mat-tab label="Bestellungen verwalten">
       <mat-divider class="bg-gray-500"></mat-divider>
 
       <div class="pt-3 flex flex-row">
-        <div [class.open]="showFilters" [class.closed]="!showFilters" class="w-96 pb-2">
+        <div
+          [class.open]="showFilters"
+          [class.closed]="!showFilters"
+          class="w-96 pb-2 overflow-y-auto overflow-x-clip p-2 filter-menu-container"
+        >
           <app-filter-menu
             class="tour-filter-menu"
             (filtersChanged)="onFiltersChanged($event)"
@@ -40,7 +45,7 @@
         <app-generic-table
           [class.expanded]="!showFilters"
           [class.collapsed]="showFilters"
-          class="w-full overflow-y-auto tour-orders-table"
+          class="w-full tour-orders-table"
           [dataSource]="ordersDataSource"
           [columns]="ordersTableColumns"
           [actions]="actions"
