@@ -212,18 +212,24 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
   fields: [
     {
       name: 'price',
-      label: 'Preis',
+      label: 'Preis (brutto)',
       type: 'number',
       required: true,
       editable: true,
-      //validators: [Validators.pattern('^\\d+,\\d{2}$')]
+      validators: [Validators.min(0.01)], // Price must be a positive number bigger than 0
+      tooltip:
+        'Der Preis des Vergleichsangebots ist der Gesamtpreis (brutto) des Angebots in Euro, welches mit dem Hauptangebot verglichen wird.',
     },
     {
       name: 'company_name',
       label: 'Unternehmensname',
-      type: 'text',
+      type: 'autocomplete',
       required: true,
       editable: true,
+      options: [], // Will be loaded from suppliers api
+      filterable: true,
+      tooltip: 'Der Name des Unternehmens, welches das Vergleichsangebot abgegeben hat.',
+      emitAsSignal: true,
     },
     {
       name: 'company_city',
@@ -231,6 +237,8 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
       type: 'text',
       required: true,
       editable: true,
+      defaultValue: '',
+      tooltip: 'Die Stadt, in welcher sich der Firmensitz des Unternehmens befindet.',
     },
     {
       name: 'quote_date',

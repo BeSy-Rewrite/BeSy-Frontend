@@ -20,7 +20,7 @@ import { CostCenterWrapperService } from '../../../services/wrapper-services/cos
 import {
   OrderResponseDTOFormatted,
   OrdersWrapperService,
-} from '../../../services/wrapper-services/orders-wrapper.service';
+} from '../../../services/wrapper-services/orders/orders-wrapper.service';
 import {
   PersonsWrapperService,
   PersonWithFullName,
@@ -65,7 +65,7 @@ export class CreateOrderPageComponent implements OnInit {
     private readonly orderWrapperService: OrdersWrapperService,
     private readonly router: Router,
     private readonly driverJsTourService: DriverJsTourService
-  ) { }
+  ) {}
 
   async ngOnInit(): Promise<void> {
     // Load cost centers and persons

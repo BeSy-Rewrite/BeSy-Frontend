@@ -3,7 +3,7 @@ import { from, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { PagedOrderResponseDTO } from '../api-services-v2';
 import { FilterRequestParams } from '../models/filter/filter-request-params';
-import { OrdersWrapperService } from './wrapper-services/orders-wrapper.service';
+import { OrdersWrapperService } from './wrapper-services/orders/orders-wrapper.service';
 
 type CacheEntry = {
   response: PagedOrderResponseDTO;

@@ -12,18 +12,18 @@ import {
   PagedOrderResponseDTO,
   QuotationRequestDTO,
   QuotationResponseDTO,
-} from '../../api-services-v2';
-import { FilterRequestParams } from '../../models/filter/filter-request-params';
+} from '../../../api-services-v2';
+import { FilterRequestParams } from '../../../models/filter/filter-request-params';
 import {
   ItemTableModel,
   QuotationTableModel,
-} from '../../pages/order/edit-order-page/edit-order-page.component';
-import { UtilsService } from '../utils.service';
-import { CostCenterFormatted, CostCenterWrapperService } from './cost-centers-wrapper.service';
-import { CurrenciesWrapperService, FormattedCurrency } from './currencies-wrapper.service';
-import { FormattedPerson, PersonsWrapperService } from './persons-wrapper.service';
-import { SupplierFormatted, SuppliersWrapperService } from './suppliers-wrapper.service';
-import { UsersWrapperService } from './users-wrapper.service';
+} from '../../../pages/order/edit-order-page/edit-order-page.component';
+import { UtilsService } from '../../utils.service';
+import { CostCenterFormatted, CostCenterWrapperService } from '../cost-centers-wrapper.service';
+import { CurrenciesWrapperService, FormattedCurrency } from '../currencies-wrapper.service';
+import { FormattedPerson, PersonsWrapperService } from '../persons-wrapper.service';
+import { SupplierFormatted, SuppliersWrapperService } from '../suppliers-wrapper.service';
+import { UsersWrapperService } from '../users-wrapper.service';
 
 export interface OrderResponseDTOFormatted {
   id?: number;
@@ -79,7 +79,7 @@ export class OrdersWrapperService {
     private readonly suppliersWrapperService: SuppliersWrapperService,
     private readonly usersWrapperService: UsersWrapperService,
     private readonly utilsService: UtilsService
-  ) { }
+  ) {}
 
   /**
    * Should be called whenever orders are created, updated, or deleted to clear the cache.
@@ -139,7 +139,9 @@ export class OrdersWrapperService {
         filters?.createdAfter,
         filters?.createdBefore,
         filters?.ownerIds,
-        filters?.statuses?.length ? filters.statuses : Object.values(OrderStatus).filter(s => s !== OrderStatus.DELETED),
+        filters?.statuses?.length
+          ? filters.statuses
+          : Object.values(OrderStatus).filter(s => s !== OrderStatus.DELETED),
         filters?.quotePriceMin,
         filters?.quotePriceMax,
         filters?.deliveryPersonIds,
@@ -311,14 +313,14 @@ export class OrdersWrapperService {
     ] = await Promise.all([
       order.primary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-          order.primary_cost_center_id
-        )
+            order.primary_cost_center_id
+          )
         : Promise.resolve(undefined),
 
       order.secondary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-          order.secondary_cost_center_id
-        )
+            order.secondary_cost_center_id
+          )
         : Promise.resolve(undefined),
 
       order.delivery_person_id

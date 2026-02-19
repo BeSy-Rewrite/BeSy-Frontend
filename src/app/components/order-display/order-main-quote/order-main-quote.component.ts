@@ -10,7 +10,7 @@ import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 import { DisplayableOrder } from '../../../models/displayable-order';
 import { OrderDisplayData } from '../../../models/order-display-data';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
-import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import { OrdersWrapperService } from '../../../services/wrapper-services/orders/orders-wrapper.service';
 
 @Component({
   selector: 'app-order-main-quote',
