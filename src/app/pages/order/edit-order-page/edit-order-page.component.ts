@@ -744,7 +744,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    */
   async handleQuotationDialogCompanySelection(field: { field: string; value: any }): Promise<void> {
     if (field.field !== 'company_name') return;
-    const selectedCompanyId = field.value.value;
+    const selectedCompanyId = field.value?.value;
     if (selectedCompanyId) {
       const selectedSupplier = this.suppliers.find(supplier => supplier.id === selectedCompanyId);
       if (selectedSupplier) {
