@@ -1908,8 +1908,13 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @returns {Promise<boolean>} Returns true if the patch was successful, false otherwise.
    */
   private async submitApprovalPatch(): Promise<boolean> {
-    // If order is not in status completed, the approvals can't be changed
-    if (this.formattedOrderDTO.status !== OrderStatus.COMPLETED) return true;
+    // If order is not in status completed or in_progress, the approvals can't be changed
+    if (
+      this.formattedOrderDTO.status !== OrderStatus.COMPLETED &&
+      this.formattedOrderDTO.status !== OrderStatus.IN_PROGRESS
+    ) {
+      return true;
+    }
 
     // Save the approval form inputs locally in the postApprovalDTO object
     this.locallySaveApprovalFormInput(this.approvalsFromForm);
@@ -2412,16 +2417,13 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
     switch (status) {
       case OrderStatus.IN_PROGRESS:
-        // All tabs editable except Approvals
+        // All tabs editable
         newEditability['General'] = true;
         newEditability['Items'] = true;
         newEditability['MainOffer'] = true;
         newEditability['Quotations'] = true;
         newEditability['Addresses'] = true;
-        newEditability['Approvals'] = false;
-        this.readOnlyBannerMessageApprovalTab.set(
-          'Die Bestellung befindet sich noch in Bearbeitung. Zustimmungen können erst nach Abschluss der Bestellung bearbeitet werden.'
-        );
+        newEditability['Approvals'] = true; // Allow editing approvals in progress for cases where approvals are given before completion
         break;
 
       case OrderStatus.COMPLETED:
