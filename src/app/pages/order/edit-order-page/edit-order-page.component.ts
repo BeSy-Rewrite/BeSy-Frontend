@@ -675,7 +675,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       label: `${cc.id ?? ''} (${cc.name ?? ''})`, // If name or id undefined -> empty string
       value: cc.id ?? 0, // If id undefined -> 0
     }));
-    console.log('Formatted cost center options:', costCenterFieldsOptions);
 
     const primaryCostCenterField = this.primaryCostCenterFormConfig.fields.find(
       f => f.name === 'primary_cost_center_id'
@@ -752,7 +751,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         const supplierAddress = await this.suppliersWrapperService.getSupplierAddress(
           selectedSupplier.id!
         );
-        console.log('Selected supplier address:', supplierAddress);
         this.quotationFormGroup.patchValue({
           company_city: supplierAddress?.town ?? '',
         });
