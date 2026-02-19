@@ -671,25 +671,25 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @returns {Promise<void>}
    */
   private formatCostCenters() {
+    const costCenterFieldsOptions = this.costCenters.map(cc => ({
+      label: `${cc.id ?? ''} (${cc.name ?? ''})`, // If name or id undefined -> empty string
+      value: cc.id ?? 0, // If id undefined -> 0
+    }));
+    console.log('Formatted cost center options:', costCenterFieldsOptions);
+
     const primaryCostCenterField = this.primaryCostCenterFormConfig.fields.find(
       f => f.name === 'primary_cost_center_id'
     );
     if (!primaryCostCenterField) return;
 
-    primaryCostCenterField.options = this.costCenters.map(cc => ({
-      label: `${cc.id ?? ''} (${cc.name ?? ''})`,
-      value: cc.id ?? 0, // If id undefined -> 0
-    }));
+    primaryCostCenterField.options = costCenterFieldsOptions;
 
     const secondaryCostCenterField = this.secondaryCostCenterFormConfig.fields.find(
       f => f.name === 'secondary_cost_center_id'
     );
     if (!secondaryCostCenterField) return;
 
-    secondaryCostCenterField.options = this.costCenters.map(cc => ({
-      label: `${cc.name ?? ''} (${cc.id ?? ''})`, // If name undefined -> empty string
-      value: cc.id ?? 0, // If id undefined -> 0
-    }));
+    secondaryCostCenterField.options = costCenterFieldsOptions;
 
     this.primaryCostCenterFormConfig = { ...this.primaryCostCenterFormConfig };
     this.secondaryCostCenterFormConfig = {
