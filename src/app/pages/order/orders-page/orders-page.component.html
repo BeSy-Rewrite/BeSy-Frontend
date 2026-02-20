@@ -27,19 +27,21 @@
       <mat-divider class="bg-gray-500"></mat-divider>
 
       <div class="pt-3 flex flex-row">
-        <div
-          [class.open]="showFilters"
-          [class.closed]="!showFilters"
-          class="w-96 pb-2 overflow-y-auto overflow-x-clip p-2 filter-menu-container"
-        >
-          <app-filter-menu
-            class="tour-filter-menu"
-            (filtersChanged)="onFiltersChanged($event)"
-            (selectedColumnsChanged)="onSelectedColumnsChanged($event)"
-            (resetedFilters)="onFiltersReset()"
-            [ordersTableColumns]="ordersTableColumns"
-            [initialPreset]="initialPreset"
-          />
+        <div [class.open]="showFilters" [class.closed]="!showFilters" class="relative">
+          <div class="w-96 pb-2 overflow-y-auto overflow-x-clip p-2 filter-menu-container">
+            <app-filter-menu
+              class="tour-filter-menu"
+              (filtersChanged)="onFiltersChanged($event)"
+              (selectedColumnsChanged)="onSelectedColumnsChanged($event)"
+              (resetedFilters)="onFiltersReset()"
+              [ordersTableColumns]="ordersTableColumns"
+              [initialPreset]="initialPreset"
+            />
+          </div>
+          <!-- Shadow to indicate scrollability of the filter menu -->
+          <div
+            class="absolute left-0 right-0 top-0 bottom-0 scroll-shadow pointer-events-none"
+          ></div>
         </div>
 
         <app-generic-table
@@ -68,7 +70,7 @@
 
 <button
   mat-mini-fab
-  class="help-button !fixed bottom-4 right-6 z-10"
+  class="help-button fixed! bottom-4 right-6 z-10"
   color="accent"
   (click)="startTour()"
   matTooltip="Bestellungsansicht erklären lassen"
