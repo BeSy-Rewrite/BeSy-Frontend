@@ -34,4 +34,6 @@ export const environment = {
   // Length must be 2, first is half-year wrapped month second is full-year wrapped month
   wrappedBannerMonths: [5, 11] as number[],
   wrappedUrl: '/wrap',
+
+  showFooter: false,
 };

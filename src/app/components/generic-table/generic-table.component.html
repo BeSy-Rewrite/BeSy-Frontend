@@ -1,5 +1,5 @@
-<div class="overflow-clip">
-  <div class="overflow-x-auto w-full">
+<div class="w-full h-full flex flex-col">
+  <div class="w-full grow overflow-auto">
     <table mat-table [dataSource]="dataSource()" matSort>
       @for (column of internalColumns(); track $index) {
         <ng-container matColumnDef="{{ column.id }}">
