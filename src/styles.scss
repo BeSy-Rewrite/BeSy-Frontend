@@ -101,10 +101,7 @@ app-homepage {
   height: 100%;
 }
 
-app-orders-page app-generic-table,
-app-suppliers-page app-generic-table,
-app-persons-page app-generic-table,
-app-cost-center-component app-generic-table {
+.sticky-headers {
   height: calc(100vh - var(--homebar-height) - 8rem) !important;
   width: 100%;
   display: inline-block;

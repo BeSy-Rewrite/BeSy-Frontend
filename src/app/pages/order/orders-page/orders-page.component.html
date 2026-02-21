@@ -47,7 +47,7 @@
         <app-generic-table
           [class.expanded]="!showFilters"
           [class.collapsed]="showFilters"
-          class="w-full tour-orders-table"
+          class="w-full tour-orders-table sticky-headers"
           [dataSource]="ordersDataSource"
           [columns]="ordersTableColumns"
           [actions]="actions"
