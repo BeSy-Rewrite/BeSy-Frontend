@@ -101,23 +101,20 @@ app-homepage {
   height: 100%;
 }
 
-app-orders-page .mat-mdc-tab-body-wrapper,
-app-orders-page .mat-mdc-tab-body,
-app-orders-page .mat-mdc-tab-body-content,
-app-orders-page .mat-mdc-tab-body.mat-mdc-tab-body-active {
-  overflow: initial;
-  width: 100%;
-}
-
-app-orders-page thead {
-  position: sticky;
-  align-self: flex-start;
-  top: 0;
-  z-index: 10;
-}
-
-app-orders-page app-generic-table {
+app-orders-page app-generic-table,
+app-suppliers-page app-generic-table,
+app-persons-page app-generic-table,
+app-cost-center-component app-generic-table {
   height: calc(100vh - var(--homebar-height) - 8rem) !important;
+  width: 100%;
+  display: inline-block;
+
+  thead {
+    position: sticky;
+    align-self: flex-start;
+    top: 0;
+    z-index: 10;
+  }
 }
 
 app-orders-page .filter-menu-container {
