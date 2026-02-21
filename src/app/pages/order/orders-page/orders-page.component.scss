@@ -4,12 +4,12 @@
 }
 
 .closed {
-  translate: -26rem 0;
+  translate: -28rem 0;
   transition: all 0.3s ease;
 }
 
 .expanded {
-  margin-left: -24rem;
+  margin-left: -26rem;
   width: 100%;
   transition:
     margin-left 0.3s ease,
@@ -18,7 +18,7 @@
 
 .collapsed {
   margin-left: 1rem;
-  width: calc(100% - 24rem);
+  width: calc(100% - 27rem);
   transition:
     margin-left 0.3s ease,
     width 0.3s ease;
