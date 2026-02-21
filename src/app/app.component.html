@@ -12,5 +12,7 @@
     </div>
   </div>
 
-  <app-footer class="w-full mt-4" />
+  @if (environment.showFooter) {
+    <app-footer class="w-full mt-4" />
+  }
 </main>
