@@ -7,7 +7,7 @@
     }
   </button>
   @if (authService.hasValidToken()) {
-    <a matIconButton routerLink="/settings" class="self-baseline">
+    <a matIconButton routerLink="/settings" class="self-baseline" matTooltip="Einstellungen öffnen">
       <div class="flex flex-col h-full w-full">
         <mat-icon class="text-white! self-center!">settings</mat-icon>
       </div>

@@ -101,8 +101,10 @@ app-homepage {
   height: 100%;
 }
 
+$content-height: calc(100vh - var(--homebar-height) - 8rem);
+
 .sticky-headers {
-  height: calc(100vh - var(--homebar-height) - 8rem) !important;
+  height: $content-height !important;
   width: 100%;
   display: inline-block;
 
@@ -115,5 +117,5 @@ app-homepage {
 }
 
 app-orders-page .filter-menu-container {
-  height: calc(100vh - var(--homebar-height) - 8rem) !important;
+  height: $content-height !important;
 }
