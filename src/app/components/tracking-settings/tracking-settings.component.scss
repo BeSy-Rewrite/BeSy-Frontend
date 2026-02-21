@@ -1,0 +1,179 @@
+.tracking-settings-container {
+  width: 100%;
+  max-width: 700px;
+  margin: 20px auto;
+  padding: 0 16px;
+}
+
+.tracking-card {
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
+  mat-card-content {
+    padding: 16px 0;
+  }
+}
+
+.toggle-section {
+  margin-bottom: 32px;
+  padding: 20px;
+  background-color: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+
+  .toggle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+
+    h3 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+    }
+  }
+
+  .saving-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-top: 12px;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 12px;
+
+    .spinner-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+      animation: spin 1s linear infinite;
+    }
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.info-card {
+  margin-bottom: 20px;
+  background-color: rgba(33, 150, 243, 0.02);
+  border-left: 4px solid #2196f3;
+  padding: 1rem;
+
+  mat-card-header {
+    padding: 0;
+    margin-bottom: 12px;
+    border: none;
+
+    .info-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      margin: 0;
+
+      .info-icon {
+        font-size: 20px;
+        width: 20px;
+        height: 20px;
+        color: #2196f3;
+      }
+    }
+  }
+
+  mat-card-content {
+    padding: 0;
+
+    .info-text {
+      margin: 0 0 12px 0;
+      color: rgba(0, 0, 0, 0.87);
+      line-height: 1.5;
+    }
+
+    .data-list {
+      margin: 12px 0;
+      padding-left: 20px;
+      list-style-type: disc;
+
+      li {
+        margin-bottom: 8px;
+        color: rgba(0, 0, 0, 0.87);
+        line-height: 1.5;
+
+        strong {
+          color: rgba(0, 0, 0, 0.87);
+        }
+      }
+    }
+  }
+}
+
+.privacy-notice {
+  display: flex;
+  gap: 12px;
+  padding: 12px;
+  margin-top: 16px;
+  background-color: rgba(76, 175, 80, 0.08);
+  border-radius: 4px;
+  border-left: 4px solid #4caf50;
+  align-items: flex-start;
+
+  .privacy-icon {
+    flex-shrink: 0;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    color: #4caf50;
+    margin-top: 2px;
+  }
+
+  div {
+    flex: 1;
+    font-size: 14px;
+    line-height: 1.6;
+    color: rgba(0, 0, 0, 0.87);
+
+    strong {
+      color: rgba(0, 0, 0, 0.87);
+    }
+  }
+}
+
+mat-card-actions {
+  padding: 16px 0 0 0;
+  margin-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+
+  button {
+    margin-right: 8px;
+  }
+}
+
+// Responsive design
+@media (max-width: 600px) {
+  .tracking-settings-container {
+    padding: 0 8px;
+  }
+
+  .toggle-section {
+    .toggle-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+  }
+
+  .privacy-notice {
+    flex-direction: column;
+
+    .privacy-icon {
+      margin-top: 0;
+    }
+  }
+}
