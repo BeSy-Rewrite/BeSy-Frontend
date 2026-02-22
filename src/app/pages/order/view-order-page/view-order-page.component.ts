@@ -401,6 +401,15 @@ export class ViewOrderPageComponent implements OnInit {
                 );
 
                 this.updateDisplayedOrderState(newState);
+              })
+              .catch(err => {
+                console.error('Failed to change order state', err);
+
+                this.snackBar.open(
+                  `Fehler beim Ändern des Bestellungsstatus: ${err.message || err}`,
+                  'Schließen',
+                  { duration: 5000 }
+                );
               });
           }
         },
@@ -505,13 +514,11 @@ export class ViewOrderPageComponent implements OnInit {
       .setMailsSentForOrder(this.order().order.id!, this.numberOfMailsSent() + 1)
       .subscribe(count => {
         this.numberOfMailsSent.set(count);
-        this.utilsService
-          .getConfettiInstance()
-          .addConfetti({
-            emojis: ['📧', '✉️', '📨'],
-            emojiSize: 50,
-            confettiNumber: Math.min(this.numberOfMailsSent() ** 2 + 10, 512),
-          });
+        this.utilsService.getConfettiInstance().addConfetti({
+          emojis: ['📧', '✉️', '📨'],
+          emojiSize: 50,
+          confettiNumber: Math.min(this.numberOfMailsSent() ** 2 + 10, 512),
+        });
       });
   }
 }
