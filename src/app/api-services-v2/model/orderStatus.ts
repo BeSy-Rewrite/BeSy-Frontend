@@ -18,7 +18,8 @@ export const OrderStatus = {
     SENT: 'SENT',
     SETTLED: 'SETTLED',
     ARCHIVED: 'ARCHIVED',
-    DELETED: 'DELETED'
+    DELETED: 'DELETED',
+    APPROVAL_REQUESTED: 'APPROVAL_REQUESTED'
 } as const;
 export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
 
