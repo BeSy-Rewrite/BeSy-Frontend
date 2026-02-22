@@ -28,6 +28,7 @@ import { AuthenticationService } from './services/authentication.service';
 export class AppComponent {
   title = 'besy-frontend';
   environment = environment;
+
   constructor(
     public readonly authService: AuthenticationService,
     private readonly iconRegistry: MatIconRegistry,

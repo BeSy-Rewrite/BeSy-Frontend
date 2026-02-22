@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { environment } from '../environments/environment';
+import { TrackingSettingsComponent } from './components/tracking-settings/tracking-settings.component';
 import { ApproveOrdersGuard } from './guards/approve-orders.guard';
 import { DefaultGuard } from './guards/default.guard';
 import { UnsavedChangesGuard } from './guards/unsaved-changes.guard';
@@ -26,6 +27,12 @@ export const routes: Routes = [
     title: 'BeSy',
     path: '',
     component: HomepageComponent,
+  },
+  {
+    title: 'Einstellungen',
+    path: 'settings',
+    component: TrackingSettingsComponent,
+    canActivate: [DefaultGuard],
   },
   {
     title: 'Mein Wrap',

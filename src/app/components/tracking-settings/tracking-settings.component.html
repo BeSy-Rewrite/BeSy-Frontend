@@ -1,0 +1,101 @@
+<div class="tracking-settings-container">
+  <mat-card class="tracking-card p-4">
+    <mat-card-header class="mb-4!">
+      <mat-card-title class="flex! items-center! gap-2!">
+        <mat-icon class="text-he-darkblue-400!">settings</mat-icon>
+        Einstellungen
+      </mat-card-title>
+    </mat-card-header>
+
+    <mat-divider class="bg-gray-300" />
+
+    <mat-card-content>
+      <!-- Loading State -->
+      @if (isLoading()) {
+        <div class="flex flex-col items-center gap-4 py-8">
+          <mat-spinner [diameter]="40"></mat-spinner>
+          <p>Lade Einstellungen...</p>
+        </div>
+      } @else {
+        <!-- Toggle Section -->
+        <div class="toggle-section">
+          <div class="toggle-header">
+            <h3>Tracking von Nutzungsdaten aktivieren</h3>
+            <mat-slide-toggle
+              [checked]="trackingEnabled()"
+              [disabled]="isSaving()"
+              (change)="toggleTracking()"
+              [matTooltip]="
+                trackingEnabled() ? 'Tracking ist aktiviert' : 'Tracking ist deaktiviert'
+              "
+            >
+            </mat-slide-toggle>
+          </div>
+          @if (isSaving()) {
+            <div class="saving-indicator">
+              <mat-icon class="spinner-icon">hourglass_empty</mat-icon>
+              <span>Einstellungen werden gespeichert...</span>
+            </div>
+          }
+        </div>
+
+        <!-- Data Collection Description -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title class="info-title">
+              <mat-icon class="info-icon">info</mat-icon>
+              Welche Daten werden gesammelt?
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="info-text">
+              Wenn Tracking aktiviert ist, werden folgende Nutzungsdaten gesammelt (pro Jahr):
+            </p>
+
+            <ul class="data-list">
+              <li><strong>Request-Anzahl:</strong> Gesamtzahl der gestellten API-Anfragen</li>
+              <li>
+                <strong>Fehleranzahl:</strong> Anzahl der Fehler, die während der Nutzung der
+                Anwendung aufgetreten sind
+              </li>
+              <li>
+                <strong>Nutzungsdauer:</strong> Gesamte Zeit, die in der Anwendung verbracht wurde
+              </li>
+            </ul>
+
+            <div class="privacy-notice">
+              <mat-icon class="privacy-icon">lock</mat-icon>
+              <div>
+                <strong>Privatsphäre:</strong> Es wird ausschließlich die akkumulierte Anzahl von
+                Anfragen, Fehlern und die Gesamtnutzungsdauer erfasst. Es werden keine Zeitstempel
+                erfasst.
+                <br />
+                <br />
+                Die Genauigkeit der Daten ist auf Jahresbasis begrenzt, um die Privatsphäre der
+                Nutzer:innen zu schützen. Es werden keine personenbezogenen Daten oder spezifischen
+                Nutzungsdetails gesammelt.
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Why We Track -->
+        <mat-card class="info-card">
+          <mat-card-header>
+            <mat-card-title class="info-title">
+              <mat-icon class="info-icon">help</mat-icon>
+              Warum tracken wir das?
+            </mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="info-text">
+              Die Erfassung dieser Daten dient ausschließlich der Generierung von persönlichen
+              Nutzungsstatistiken im Verlauf eines Jahres. Diese sind nur für die Nutzer:innen
+              selbst sichtbar.
+            </p>
+          </mat-card-content>
+        </mat-card>
+      }
+    </mat-card-content>
+  </mat-card>
+</div>

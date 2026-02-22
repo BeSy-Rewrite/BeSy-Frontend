@@ -158,9 +158,24 @@ export class TrackingService implements OnDestroy {
   private fetchTrackingSettings() {
     return this.userService.getCurrentUserPreferences(TRACKING_SETTINGS_PREFERENCE_TYPE).pipe(
       map(preferences => {
-        return preferences?.find(
+        const filteredPreferences = preferences?.filter(
           entry => entry?.preference_type === TRACKING_SETTINGS_PREFERENCE_TYPE
         );
+        if (filteredPreferences?.length > 1) {
+          console.warn('Multiple tracking settings found. Cleaning up duplicates.');
+          for (const preference of filteredPreferences.slice(1)) {
+            this.userService.deleteCurrentUserPreference(preference.id).subscribe({
+              error: err => {
+                console.error(
+                  'Failed to delete duplicate tracking preference',
+                  preference.id,
+                  err
+                );
+              },
+            });
+          }
+        }
+        return filteredPreferences?.[0];
       }),
       switchMap(preference => {
         if (preference == undefined) {
