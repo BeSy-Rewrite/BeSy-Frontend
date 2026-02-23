@@ -92,7 +92,7 @@ export class CreateOrderPageComponent implements OnInit {
     if (!primaryCostCenterField) return;
 
     primaryCostCenterField.options = this.costCenters.map(cc => ({
-      label: `${cc.name ?? ''} (${cc.id ?? ''})`,
+      label: `${cc.id ?? ''} (${cc.name ?? ''})`,
       value: cc.id ?? 0, // If id undefined -> 0
     }));
 
