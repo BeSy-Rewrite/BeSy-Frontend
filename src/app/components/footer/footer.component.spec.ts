@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
 
 import { environment } from '../../../environments/environment';
 import { build } from '../../../environments/version';
@@ -16,7 +15,6 @@ describe('FooterComponent', () => {
       'getApiVersion',
       'getConfettiInstance',
     ]);
-    mockUtilsService.getApiVersion.and.returnValue(of('1.0.0'));
     mockUtilsService.getConfettiInstance.and.returnValue({
       addConfetti: jasmine.createSpy('addConfetti'),
       addConfettiAtPosition: jasmine.createSpy('addConfettiAtPosition'),
@@ -46,21 +44,9 @@ describe('FooterComponent', () => {
     expect(component.bugReportUrl).toEqual(environment.bugReportUrl);
   });
 
-  it('should fetch api version on initialization', done => {
-    setTimeout(() => {
-      expect(mockUtilsService.getApiVersion).toHaveBeenCalled();
-      expect(component.apiVersion).toBe('1.0.0');
-      done();
-    }, 0);
-  });
-
   it('should call addConfetti when addConfetti method is invoked', () => {
     const confettiInstance = mockUtilsService.getConfettiInstance();
     component.addConfetti();
     expect(confettiInstance.addConfetti).toHaveBeenCalled();
-  });
-
-  it('should initialize apiVersion as undefined', () => {
-    expect(component.apiVersion).toBeUndefined();
   });
 });

@@ -86,7 +86,7 @@ import {
 import {
   OrderResponseDTOFormatted,
   OrdersWrapperService,
-} from '../../../services/wrapper-services/orders-wrapper.service';
+} from '../../../services/wrapper-services/orders/orders-wrapper.service';
 import {
   PersonsWrapperService,
   PersonWithFullName,
@@ -284,7 +284,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     { id: 'comment', label: 'Kommentar' },
     {
       id: 'price_per_unit',
-      label: 'Stückpreis',
+      label: 'Stückpreis (brutto)',
       footerContent: this.footerContent,
     },
   ];
@@ -361,11 +361,12 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   // Quotation variables
   quotationFormConfig = ORDER_QUOTATION_FORM_CONFIG;
   quotationFormGroup = new FormGroup({});
+  quotationFormConfigRefreshTrigger = signal(0);
   quotations = signal<QuotationTableModel[]>([]);
   quotationsToDelete = new Set<QuotationTableModel>();
   quotationTableDataSource = new MatTableDataSource<QuotationTableModel>([]);
   orderQuotationColumns: TableColumn<QuotationTableModel>[] = [
-    { id: 'price', label: 'Preis' },
+    { id: 'price', label: 'Preis (brutto) in €' },
     { id: 'company_name', label: 'Anbieter' },
     { id: 'company_city', label: 'Ort' },
     { id: 'quote_date', label: 'Angebotsdatum' },
@@ -670,25 +671,24 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @returns {Promise<void>}
    */
   private formatCostCenters() {
+    const costCenterFieldsOptions = this.costCenters.map(cc => ({
+      label: `${cc.id ?? ''} (${cc.name ?? ''})`, // If name or id undefined -> empty string
+      value: cc.id ?? 0, // If id undefined -> 0
+    }));
+
     const primaryCostCenterField = this.primaryCostCenterFormConfig.fields.find(
       f => f.name === 'primary_cost_center_id'
     );
     if (!primaryCostCenterField) return;
 
-    primaryCostCenterField.options = this.costCenters.map(cc => ({
-      label: `${cc.name ?? ''} (${cc.id ?? ''})`,
-      value: cc.id ?? 0, // If id undefined -> 0
-    }));
+    primaryCostCenterField.options = costCenterFieldsOptions;
 
     const secondaryCostCenterField = this.secondaryCostCenterFormConfig.fields.find(
       f => f.name === 'secondary_cost_center_id'
     );
     if (!secondaryCostCenterField) return;
 
-    secondaryCostCenterField.options = this.costCenters.map(cc => ({
-      label: `${cc.name ?? ''} (${cc.id ?? ''})`, // If name undefined -> empty string
-      value: cc.id ?? 0, // If id undefined -> 0
-    }));
+    secondaryCostCenterField.options = costCenterFieldsOptions;
 
     this.primaryCostCenterFormConfig = { ...this.primaryCostCenterFormConfig };
     this.secondaryCostCenterFormConfig = {
@@ -701,7 +701,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    */
   onAddQuotation(): boolean {
     if (this.quotationFormGroup.valid) {
+      const value = this.quotationFormGroup.get('company_name')?.value as unknown;
+      const companyNameObject = value as { value: string; label: string } | null;
+
       const newQuotation = this.quotationFormGroup.value as QuotationTableModel;
+      newQuotation.company_name = companyNameObject?.label ?? '';
       newQuotation.price = this.orderWrapperService.formatPriceToGerman(newQuotation.price);
       newQuotation.quote_date = this.orderWrapperService.formatISODateTimeToDateString(
         newQuotation.quote_date
@@ -731,6 +735,33 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.quotationFormGroup.reset();
       this.addQuotationDialogRef = undefined;
     });
+  }
+
+  /**
+   * Handle selection of a company in the add quotation dialog. When a company is selected, the city field is automatically filled with the city of the company's address.
+   * @param field The form field containing the selected company
+   * @returns {Promise<void>}
+   */
+  async handleQuotationDialogCompanySelection(field: { field: string; value: any }): Promise<void> {
+    if (field.field !== 'company_name') return;
+    const selectedCompanyId = field.value?.value;
+    if (selectedCompanyId) {
+      const selectedSupplier = this.suppliers.find(supplier => supplier.id === selectedCompanyId);
+      if (selectedSupplier) {
+        const supplierAddress = await this.suppliersWrapperService.getSupplierAddress(
+          selectedSupplier.id!
+        );
+        this.quotationFormGroup.patchValue({
+          company_city: supplierAddress?.town ?? '',
+        });
+      }
+    }
+    // If the selected company got cleared or no address found for the selected company, clear the city field
+    else {
+      this.quotationFormGroup.patchValue({
+        company_city: '',
+      });
+    }
   }
 
   cancelAddQuotationDialog(): void {
@@ -1100,13 +1131,23 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @returns A promise that resolves when the suppliers have been loaded and the dropdown options set
    */
   private formatSuppliers() {
-    const field = this.mainOfferFormConfig.fields.find(f => f.name === 'supplier_id');
-    if (!field) return;
-
-    field.options = this.suppliers.map(s => ({
+    const mainOfferConfigSupplierField = this.mainOfferFormConfig.fields.find(
+      f => f.name === 'supplier_id'
+    );
+    const supplierFieldOptionData = this.suppliers.map(s => ({
       label: s.name ?? '', // If name undefined -> empty string
       value: s.id ?? 0, // If id undefined -> 0
     }));
+    if (mainOfferConfigSupplierField) {
+      mainOfferConfigSupplierField.options = supplierFieldOptionData;
+    }
+
+    const quotationConfigCompanyField = this.quotationFormConfig.fields.find(
+      f => f.name === 'company_name'
+    );
+    if (quotationConfigCompanyField) {
+      quotationConfigCompanyField.options = supplierFieldOptionData;
+    }
   }
 
   /**
@@ -1544,7 +1585,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       (this.formattedOrderDTO.invoice_person_id &&
         this.formattedOrderDTO.delivery_person_id &&
         this.formattedOrderDTO.invoice_person_id.value !==
-        this.formattedOrderDTO.delivery_person_id.value) ||
+          this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
         this.formattedOrderDTO.invoice_address_id !== this.formattedOrderDTO.delivery_address_id)
     ) {
@@ -1865,8 +1906,13 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @returns {Promise<boolean>} Returns true if the patch was successful, false otherwise.
    */
   private async submitApprovalPatch(): Promise<boolean> {
-    // If order is not in status completed, the approvals can't be changed
-    if (this.formattedOrderDTO.status !== OrderStatus.COMPLETED) return true;
+    // If order is not in status completed or in_progress, the approvals can't be changed
+    if (
+      this.formattedOrderDTO.status !== OrderStatus.COMPLETED &&
+      this.formattedOrderDTO.status !== OrderStatus.IN_PROGRESS
+    ) {
+      return true;
+    }
 
     // Save the approval form inputs locally in the postApprovalDTO object
     this.locallySaveApprovalFormInput(this.approvalsFromForm);
@@ -2007,28 +2053,28 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     string,
     { tabName: string; configs: FormConfig[] }
   > = {
-      General: {
-        tabName: 'Allgemeine Angaben',
-        configs: [
-          this.generalFormConfig,
-          this.queriesPersonFormConfig,
-          this.primaryCostCenterFormConfig,
-          this.secondaryCostCenterFormConfig,
-        ],
-      },
-      MainOffer: {
-        tabName: 'Hauptangebot',
-        configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
-      },
-      Addresses: {
-        tabName: 'Adressdaten',
-        configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
-      },
-      Approvals: {
-        tabName: 'Genehmigungen',
-        configs: [this.approvalFormConfig],
-      },
-    };
+    General: {
+      tabName: 'Allgemeine Angaben',
+      configs: [
+        this.generalFormConfig,
+        this.queriesPersonFormConfig,
+        this.primaryCostCenterFormConfig,
+        this.secondaryCostCenterFormConfig,
+      ],
+    },
+    MainOffer: {
+      tabName: 'Hauptangebot',
+      configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
+    },
+    Addresses: {
+      tabName: 'Adressdaten',
+      configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
+    },
+    Approvals: {
+      tabName: 'Genehmigungen',
+      configs: [this.approvalFormConfig],
+    },
+  };
 
   /**
    * Checks if there are unsaved changes in the form.
@@ -2369,16 +2415,13 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
     switch (status) {
       case OrderStatus.IN_PROGRESS:
-        // All tabs editable except Approvals
+        // All tabs editable
         newEditability['General'] = true;
         newEditability['Items'] = true;
         newEditability['MainOffer'] = true;
         newEditability['Quotations'] = true;
         newEditability['Addresses'] = true;
-        newEditability['Approvals'] = false;
-        this.readOnlyBannerMessageApprovalTab.set(
-          'Die Bestellung befindet sich noch in Bearbeitung. Zustimmungen können erst nach Abschluss der Bestellung bearbeitet werden.'
-        );
+        newEditability['Approvals'] = true; // Allow editing approvals in progress for cases where approvals are given before completion
         break;
 
       case OrderStatus.COMPLETED:

@@ -74,7 +74,7 @@ import { OrderSubresourceResolverService } from '../../../services/order-subreso
 
 import { ToastService } from '../../../services/toast.service';
 
-import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import { OrdersWrapperService } from '../../../services/wrapper-services/orders/orders-wrapper.service';
 
 import { StateWrapperService } from '../../../services/wrapper-services/state-wrapper.service';
 
@@ -505,13 +505,11 @@ export class ViewOrderPageComponent implements OnInit {
       .setMailsSentForOrder(this.order().order.id!, this.numberOfMailsSent() + 1)
       .subscribe(count => {
         this.numberOfMailsSent.set(count);
-        this.utilsService
-          .getConfettiInstance()
-          .addConfetti({
-            emojis: ['📧', '✉️', '📨'],
-            emojiSize: 50,
-            confettiNumber: Math.min(this.numberOfMailsSent() ** 2 + 10, 512),
-          });
+        this.utilsService.getConfettiInstance().addConfetti({
+          emojis: ['📧', '✉️', '📨'],
+          emojiSize: 50,
+          confettiNumber: Math.min(this.numberOfMailsSent() ** 2 + 10, 512),
+        });
       });
   }
 }
