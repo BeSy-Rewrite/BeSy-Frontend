@@ -2,12 +2,13 @@
   <div class="progress-bar-container bg-gray-200 sticky py-2 top-0 z-10">
     <app-progress-bar
       [steps]="[
-        { label: 'Bestellung erstellen', tooltip: 'Beschreibung für Step 1' },
-        { label: 'Bestellung erstellt', tooltip: 'Beschreibung für Step 2' },
-        { label: 'Zustimmungen erteilt', tooltip: 'Beschreibung für Step 3' },
+        { id: 0, label: 'Bestellung erstellen', tooltip: 'Die Bestellung wird erstellt.' },
+        { id: 1, label: 'Bestellung erstellt', tooltip: 'Die Bestellung wurde erstellt.' },
+        { id: 2, label: 'Zustimmungen erteilt', tooltip: 'Die Zustimmungen wurden erteilt.' },
         {
+          id: 3,
           label: 'Dekan Zustimmung erteilt',
-          tooltip: 'Beschreibung für Step 4',
+          tooltip: 'Die Zustimmung des Dekans wurde erteilt.',
         },
       ]"
       [currentStepIndex]="progressBarStepIndex"
