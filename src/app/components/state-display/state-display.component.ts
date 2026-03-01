@@ -1,24 +1,29 @@
 import { Component, input, OnChanges, OnInit } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { forkJoin } from 'rxjs';
-import { OrderResponseDTO, OrderStatus, OrderStatusHistoryResponseDTO } from '../../api-services-v2';
-import { STATE_DESCRIPTIONS, STATE_DISPLAY_NAMES, STATE_FONT_ICONS, STATE_ICONS } from '../../display-name-mappings/status-names';
+import {
+  OrderResponseDTO,
+  OrderStatus,
+  OrderStatusHistoryResponseDTO,
+} from '../../api-services-v2';
+import {
+  STATE_DESCRIPTIONS,
+  STATE_DISPLAY_NAMES,
+  STATE_FONT_ICONS,
+  STATE_ICONS,
+} from '../../display-name-mappings/status-names';
 import { AllowedStateTransitions } from '../../models/allowed-states-transitions';
-import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
+import { OrdersWrapperService } from '../../services/wrapper-services/orders/orders-wrapper.service';
 import { StateWrapperService } from '../../services/wrapper-services/state-wrapper.service';
-import { ProgressBarComponent, Step } from "../progress-bar/progress-bar.component";
+import { ProgressBarComponent, Step } from '../progress-bar/progress-bar.component';
 
 @Component({
   selector: 'app-state-display',
-  imports: [
-    ProgressBarComponent,
-    MatButtonModule
-  ],
+  imports: [ProgressBarComponent, MatButtonModule],
   templateUrl: './state-display.component.html',
-  styleUrl: './state-display.component.scss'
+  styleUrl: './state-display.component.scss',
 })
 export class StateDisplayComponent implements OnInit, OnChanges {
-
   /**
    * The order for which the state display is shown.
    */
@@ -47,13 +52,12 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   ngOnInit() {
     forkJoin({
       transitions: this.stateService.getAllowedStateTransitions(),
-      history: this.ordersService.getOrderStatusHistory(this.order().id!)
-    })
-      .subscribe(({ transitions, history }) => {
-        this.allowedStateTransitions = transitions;
-        this.setupProgressData(history);
-        this.isInitialized = true;
-      });
+      history: this.ordersService.getOrderStatusHistory(this.order().id!),
+    }).subscribe(({ transitions, history }) => {
+      this.allowedStateTransitions = transitions;
+      this.setupProgressData(history);
+      this.isInitialized = true;
+    });
   }
 
   /**
@@ -72,7 +76,9 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    * @param history The order status history.
    */
   setupProgressData(history: OrderStatusHistoryResponseDTO[]) {
-    this.orderStatusHistory = [...history].sort((a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? ''));
+    this.orderStatusHistory = [...history].sort(
+      (a, b) => Date.parse(a.timestamp ?? '') - Date.parse(b.timestamp ?? '')
+    );
 
     this.stateService.getLongestSequenceOfStates().subscribe(sequence => {
       this.skippableStates = this.stateService.getSkippableStates();
@@ -105,11 +111,12 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    */
   generateStepFromState(state: OrderStatus, timestamp?: string): Step {
     return {
+      id: state,
       label: STATE_ICONS.get(state) + '\u00A0' + STATE_DISPLAY_NAMES.get(state),
       subLabel: timestamp ? new Date(timestamp).toLocaleDateString() : undefined,
       tooltip: STATE_DESCRIPTIONS.get(state) || '',
       icon: STATE_FONT_ICONS.get(state) || '',
-      isSkippable: this.skippableStates.includes(state)
+      nextIds: this.allowedStateTransitions[state] || [],
     };
   }
 
@@ -127,14 +134,21 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    * Check the order status history for missing states and repair it if necessary.
    */
   checkHistory() {
-    const requiredPastStates = this.skippableStates.slice(0, this.skippableStates.indexOf(this.order().status!) + 1);
+    const requiredPastStates = this.skippableStates.slice(
+      0,
+      this.skippableStates.indexOf(this.order().status!) + 1
+    );
     const repairedHistory = [...this.orderStatusHistory];
     for (const state of requiredPastStates) {
       if (!this.orderStatusHistory.some(entry => entry.status === state)) {
-        const newHistoryEntry: OrderStatusHistoryResponseDTO = { status: state, timestamp: "Unknown" };
-        const insertIndex = repairedHistory.slice().reverse().findIndex(entry =>
-          this.allowedStateTransitions[entry.status!]?.includes(state)
-        );
+        const newHistoryEntry: OrderStatusHistoryResponseDTO = {
+          status: state,
+          timestamp: 'Unknown',
+        };
+        const insertIndex = repairedHistory
+          .slice()
+          .reverse()
+          .findIndex(entry => this.allowedStateTransitions[entry.status!]?.includes(state));
 
         if (insertIndex === -1) {
           repairedHistory.push(newHistoryEntry);
@@ -143,6 +157,5 @@ export class StateDisplayComponent implements OnInit, OnChanges {
         }
       }
     }
-
   }
 }

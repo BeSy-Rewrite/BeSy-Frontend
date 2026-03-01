@@ -19,7 +19,7 @@ import { CachedOrdersService } from './cached-orders.service';
 import { MailTrackingService } from './mail-tracking.service';
 import { OrderSubresourceResolverService } from './order-subresource-resolver.service';
 import { TrackingData, TrackingService } from './tracking.service';
-import { OrdersWrapperService } from './wrapper-services/orders-wrapper.service';
+import { OrdersWrapperService } from './wrapper-services/orders/orders-wrapper.service';
 import { UsersWrapperService } from './wrapper-services/users-wrapper.service';
 
 export type WrapPeriod = 'year' | 'half-year';

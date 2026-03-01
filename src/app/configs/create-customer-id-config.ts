@@ -9,8 +9,7 @@ export const CUSTOMER_ID_FORM_CONFIG: FormConfig = {
       type: 'text',
       required: true,
       editable: true,
-      tooltip:
-        'Interne oder vom Lieferanten vergebene Kundennummer. Diese wird später zum Erstellen einer Bestellungen benötigt. Falls möglich bitte angeben.',
+      tooltip: 'Interne oder vom Lieferanten vergebene Kundennummer.',
     },
     {
       name: 'comment',

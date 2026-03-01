@@ -74,7 +74,7 @@ import { OrderSubresourceResolverService } from '../../../services/order-subreso
 
 import { ToastService } from '../../../services/toast.service';
 
-import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import { OrdersWrapperService } from '../../../services/wrapper-services/orders/orders-wrapper.service';
 
 import { StateWrapperService } from '../../../services/wrapper-services/state-wrapper.service';
 
