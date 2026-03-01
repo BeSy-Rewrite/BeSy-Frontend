@@ -5,7 +5,7 @@ import { OrderResponseDTO } from '../api-services-v2';
 import {
   OrderResponseDTOFormatted,
   OrdersWrapperService,
-} from '../services/wrapper-services/orders-wrapper.service';
+} from '../services/wrapper-services/orders/orders-wrapper.service';
 
 export interface EditOrderResolvedData {
   order: OrderResponseDTO;

@@ -42,17 +42,35 @@ export interface FormField {
     | 'textarea'
     | 'autocomplete';
 
+  /** Whether the field is required to be filled */
   required: boolean;
+
+  /** Default value when rendering the field */
   defaultValue?: any;
+
+  /** Dropdown options for select or autocomplete fields from which the user can choose from */
   options?: { label: string; value: any }[];
+
+  /** Optional validators for the form control, e.g. Validators.required or custom validators */
   validators?: any[];
+
+  /** Whether changes to this field should be emitted as signals for real-time reactions in the UI */
   emitAsSignal?: boolean;
+
   loadFromApi?: boolean;
   nominatim_param?: string;
   nominatim_field?: string;
+
+  /**  Defines if the field should be disabled in edit mode (if editable is false) or remain enabled (if editable is true or undefined)*/
   editable?: boolean;
+
+  /** Used to add additional information about the expected field input */
   tooltip?: string;
-  filterable?: boolean; // For autocomplete fields: whether the options should be filterable based on user input
+
+  /** For autocomplete fields: whether the options should be filterable based on user input */
+  filterable?: boolean;
+
+  /** For autocomplete fields: whether the field requires a selection from the options list (true) or the user can provide any input (false) */
   requireSelection?: boolean;
 }
 

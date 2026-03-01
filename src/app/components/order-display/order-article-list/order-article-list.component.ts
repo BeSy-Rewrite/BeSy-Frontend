@@ -9,7 +9,7 @@ import { ITEM_FIELD_NAMES } from '../../../display-name-mappings/item-names';
 import { DisplayItem } from '../../../models/display-item';
 import { TableColumn } from '../../../models/generic-table';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
-import { OrdersWrapperService } from '../../../services/wrapper-services/orders-wrapper.service';
+import { OrdersWrapperService } from '../../../services/wrapper-services/orders/orders-wrapper.service';
 import { GenericTableComponent } from '../../generic-table/generic-table.component';
 
 @Component({

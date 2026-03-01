@@ -1,5 +1,5 @@
-import { Validators } from "@angular/forms";
-import { FormConfig } from "../../components/form-component/form-component.component";
+import { Validators } from '@angular/forms';
+import { FormConfig } from '../../components/form-component/form-component.component';
 
 export const EDIT_CUSTOMER_ID_FORM_CONFIG: FormConfig = {
   title: 'Neue Kundennummer hinzufügen',
@@ -9,7 +9,7 @@ export const EDIT_CUSTOMER_ID_FORM_CONFIG: FormConfig = {
       label: 'Kundentabelle',
       type: 'table',
       required: false,
-      editable: true
+      editable: true,
     },
     {
       name: 'customer_id',
@@ -17,7 +17,7 @@ export const EDIT_CUSTOMER_ID_FORM_CONFIG: FormConfig = {
       type: 'text',
       required: true,
       editable: true,
-      tooltip: 'Interne oder vom Lieferanten vergebene Kundennummer. Diese wird später zum Erstellen einer Bestellungen benötigt.'
+      tooltip: 'Interne oder vom Lieferanten vergebene Kundennummer.',
     },
     {
       name: 'comment',
@@ -25,8 +25,9 @@ export const EDIT_CUSTOMER_ID_FORM_CONFIG: FormConfig = {
       type: 'textarea',
       required: false,
       editable: true,
-      tooltip: 'Geben Sie hier etwas nützliches ein, das andere Besteller bei der Auswahl der Kundennummer unterstützen könnte.',
-      validators: [Validators.maxLength(255)]
-    }
-  ]
+      tooltip:
+        'Geben Sie hier etwas nützliches ein, das andere Besteller bei der Auswahl der Kundennummer unterstützen könnte.',
+      validators: [Validators.maxLength(255)],
+    },
+  ],
 };

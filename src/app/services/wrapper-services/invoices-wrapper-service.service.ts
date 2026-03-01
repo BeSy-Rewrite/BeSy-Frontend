@@ -1,16 +1,22 @@
 import { Injectable } from '@angular/core';
 import { from, mergeMap, Observable } from 'rxjs';
-import { InvoiceRequestDTO, InvoiceResponseDTO, OrderResponseDTO, OrdersService } from '../../api-services-v2';
+import {
+  InvoiceRequestDTO,
+  InvoiceResponseDTO,
+  OrderResponseDTO,
+  OrdersService,
+} from '../../api-services-v2';
 import { DocumentDTO } from '../../models/document-invoice';
-import { OrdersWrapperService } from './orders-wrapper.service';
+import { OrdersWrapperService } from './orders/orders-wrapper.service';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class InvoicesWrapperServiceService {
-  constructor(private readonly ordersService: OrdersService,
+  constructor(
+    private readonly ordersService: OrdersService,
     private readonly ordersWrapperService: OrdersWrapperService
-  ) { }
+  ) {}
 
   getDocumentsByOrderId(orderId: number) {
     return this.ordersService.getInvoicesOfOrder(orderId);
@@ -24,14 +30,18 @@ export class InvoicesWrapperServiceService {
     return this.ordersService.getInvoiceDocumentPreview(documentId);
   }
 
-  createInvoiceForOrder(orderId: number, invoice: InvoiceRequestDTO): Observable<InvoiceResponseDTO> {
+  createInvoiceForOrder(
+    orderId: number,
+    invoice: InvoiceRequestDTO
+  ): Observable<InvoiceResponseDTO> {
     return this.ordersService.createInvoice(orderId, invoice);
   }
 
   createDocumentForOrder(orderId: number, document: DocumentDTO): Observable<InvoiceResponseDTO> {
     return from(this.ordersWrapperService.getOrderById(orderId)).pipe(
-      mergeMap(order => this.createInvoiceForOrder(orderId,
-        this.createInvoiceDTOFromDocumentDTO(order, document)))
+      mergeMap(order =>
+        this.createInvoiceForOrder(orderId, this.createInvoiceDTOFromDocumentDTO(order, document))
+      )
     );
   }
 
@@ -39,7 +49,10 @@ export class InvoicesWrapperServiceService {
     return this.ordersService.uploadInvoiceDocument(invoiceId, file);
   }
 
-  createInvoiceDTOFromDocumentDTO(order: OrderResponseDTO, document: DocumentDTO): InvoiceRequestDTO {
+  createInvoiceDTOFromDocumentDTO(
+    order: OrderResponseDTO,
+    document: DocumentDTO
+  ): InvoiceRequestDTO {
     return {
       id: new Date().toISOString(),
       cost_center_id: order.primary_cost_center_id!,
@@ -47,7 +60,7 @@ export class InvoicesWrapperServiceService {
       price: 0,
       date: document.date.toISOString().split('T')[0],
       comment: document.comment,
-      paperless_id: document.paperless_id
+      paperless_id: document.paperless_id,
     };
   }
 }

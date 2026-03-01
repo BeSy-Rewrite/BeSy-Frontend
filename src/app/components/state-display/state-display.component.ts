@@ -13,7 +13,7 @@ import {
   STATE_ICONS,
 } from '../../display-name-mappings/status-names';
 import { AllowedStateTransitions } from '../../models/allowed-states-transitions';
-import { OrdersWrapperService } from '../../services/wrapper-services/orders-wrapper.service';
+import { OrdersWrapperService } from '../../services/wrapper-services/orders/orders-wrapper.service';
 import { StateWrapperService } from '../../services/wrapper-services/state-wrapper.service';
 import { ProgressBarComponent, Step } from '../progress-bar/progress-bar.component';
 
@@ -43,7 +43,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   constructor(
     private readonly stateService: StateWrapperService,
     private readonly ordersService: OrdersWrapperService
-  ) {}
+  ) { }
 
   /**
    * Initialize the component by fetching allowed state transitions
