@@ -352,8 +352,10 @@ export class ViewOrderPageComponent implements OnInit {
         color = 'accent';
       }
 
+      const label = STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
+
       this.stateChangeButtons.push({
-        label: this.isSkipApprovalStateChange(state) ? STATE_CHANGE_TO_NAMES.get(state) + ' (überspringen)' : STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`,
+        label: this.isSkipApprovalStateChange(state) ? label + ' (überspringen)' : label,
         icon: STATE_ICONS.get(state) ?? '',
         tooltip: this.isSkipApprovalStateChange(state) ? 'Genehmigung durch das Dekanat überspringen.' : STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '',
         state,
