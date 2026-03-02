@@ -187,11 +187,7 @@ export class OrdersPageComponent implements OnInit {
    * @param order - The order to view.
    */
   onViewOrder(order: OrderDisplayData) {
-    let id = order.id;
-    if (order.besy_number?.split('-').length === 3) {
-      id = order.besy_number;
-    }
-    this.router.navigate(['/orders', id]);
+    this.router.navigate(['/orders', order.id]);
   }
 
   onFiltersReset() {
