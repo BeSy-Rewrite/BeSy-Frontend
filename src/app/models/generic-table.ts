@@ -39,6 +39,9 @@ export interface TableActionButton<T = any> {
   disabled?: boolean | Signal<boolean>;
   /** Optional condition to determine if the button should be shown for a given row. */
   showCondition?: (row: T) => boolean;
+
+  type?: "button" | "link";
+  link?: string | ((row: T) => string);
 }
 
 /**

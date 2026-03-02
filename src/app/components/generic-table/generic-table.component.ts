@@ -17,6 +17,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
 import { TableActionButton, TableColumn } from '../../models/generic-table';
 
 /**
@@ -52,6 +53,7 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
     MatPaginatorModule,
     MatDividerModule,
     MatTooltipModule,
+    RouterModule
   ],
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.scss',

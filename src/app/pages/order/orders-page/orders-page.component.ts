@@ -76,7 +76,8 @@ export class OrdersPageComponent implements OnInit {
       label: 'Ansehen',
       buttonType: 'filled',
       color: ButtonColor.PRIMARY,
-      action: row => this.onViewOrder(row),
+      type: "link",
+      link: (row: OrderDisplayData) => `/orders/${row.id}`,
     },
   ];
 
