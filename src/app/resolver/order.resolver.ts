@@ -21,12 +21,7 @@ export class OrderResolver implements Resolve<DisplayableOrder> {
     let observable: Observable<OrderResponseDTO>;
 
     if (id.includes('-')) {
-      observable = from(this.ordersService.getOrderByOrderNumber(id)).pipe(
-        catchError(() => {
-          console.warn(`Order with order number ${id} not found, falling back to ID lookup.`);
-          return from(this.ordersService.getOrderById(Number.parseInt(id)));
-        })
-      );
+      observable = from(this.ordersService.getOrderByOrderNumber(id));
     } else {
       observable = from(this.ordersService.getOrderById(Number.parseInt(id)));
     }
