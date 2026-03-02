@@ -13,13 +13,13 @@ export const OrderStatus = {
     IN_PROGRESS: 'IN_PROGRESS',
     COMPLETED: 'COMPLETED',
     APPROVALS_RECEIVED: 'APPROVALS_RECEIVED',
+    DEKAN_PENDING: 'DEKAN_PENDING',
     APPROVED: 'APPROVED',
     REJECTED: 'REJECTED',
     SENT: 'SENT',
     SETTLED: 'SETTLED',
     ARCHIVED: 'ARCHIVED',
-    DELETED: 'DELETED',
-    APPROVAL_REQUESTED: 'APPROVAL_REQUESTED'
+    DELETED: 'DELETED'
 } as const;
 export type OrderStatus = typeof OrderStatus[keyof typeof OrderStatus];
 

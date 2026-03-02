@@ -1033,15 +1033,14 @@ paths:
                   items:
                     $ref: "#/components/schemas/OrderStatus"
               example:
-                APPROVALS_RECEIVED:
+                DEKAN_PENDING:
                   - APPROVED
-                  - DELETED
+                  - COMPLETED
                 REJECTED: []
                 SENT:
                   - SETTLED
                 APPROVED:
                   - SENT
-                  - DELETED
                 SETTLED:
                   - ARCHIVED
                 IN_PROGRESS:
@@ -1051,9 +1050,10 @@ paths:
                 DELETED:
                   - IN_PROGRESS
                 COMPLETED:
-                  - APPROVALS_RECEIVED
+                  - DEKAN_PENDING
                   - IN_PROGRESS
                   - DELETED
+                  - APPROVED
 
   /orders/{order-id}/status:
     put:
@@ -1939,6 +1939,7 @@ components:
         - IN_PROGRESS
         - COMPLETED
         - APPROVALS_RECEIVED
+        - DEKAN_PENDING
         - APPROVED
         - REJECTED
         - SENT
