@@ -227,6 +227,24 @@ export class ViewOrderPageComponent implements OnInit {
    * Initializes the component, fetching necessary data and setting up state transitions.
    */
   ngOnInit(): void {
+    this.setup();
+
+    this.stateService.getAllowedStateTransitions().subscribe(transitions => {
+      this.stateTransitionMap = transitions;
+
+      this.createStateChangeButtons();
+    });
+    this.isInitialized = true;
+  }
+
+  ngOnChanges(): void {
+    if (this.isInitialized) {
+      this.setup();
+      this.createStateChangeButtons();
+    }
+  }
+
+  setup(): void {
     this.mailTrackingService.getMailsSentForOrder(this.order().order.id!).subscribe(count => {
       this.numberOfMailsSent.set(count);
     });
@@ -241,20 +259,7 @@ export class ViewOrderPageComponent implements OnInit {
       });
     }
 
-    this.stateService.getAllowedStateTransitions().subscribe(transitions => {
-      this.stateTransitionMap = transitions;
-
-      this.createStateChangeButtons();
-    });
-
     this.titleService.setTitle(`Bestellung ${this.internalOrder().orderDisplay.besy_number} ansehen`);
-    this.isInitialized = true;
-  }
-
-  ngOnChanges(): void {
-    if (this.isInitialized) {
-      this.createStateChangeButtons();
-    }
   }
 
   /**
