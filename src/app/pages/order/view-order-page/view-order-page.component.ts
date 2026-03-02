@@ -411,6 +411,15 @@ export class ViewOrderPageComponent implements OnInit {
                 );
 
                 this.updateDisplayedOrderState(newState);
+              })
+              .catch(err => {
+                console.error('Failed to change order state', err);
+
+                this.snackBar.open(
+                  `Fehler beim Ändern des Bestellungsstatus: ${err.message || err}`,
+                  'Schließen',
+                  { duration: 5000 }
+                );
               });
           }
         },
