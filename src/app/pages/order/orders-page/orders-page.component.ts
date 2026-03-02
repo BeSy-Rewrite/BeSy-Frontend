@@ -192,7 +192,7 @@ export class OrdersPageComponent implements OnInit {
   }
 
   onFiltersReset() {
-    this.dataSourceService.setNextSorting([{ id: 'last_updated_time', direction: 'asc' }]);
+    this.dataSourceService.setNextSorting([]);
     this.updateUrlParams();
   }
 
