@@ -24,7 +24,7 @@ import { ZodError } from 'zod';
 
 import { environment } from '../../../../environments/environment';
 
-import { OrderStatus, UserResponseDTO } from '../../../api-services-v2';
+import { OrderResponseDTO, OrderStatus, UserResponseDTO } from '../../../api-services-v2';
 
 import { setupDialog } from '../../../components/dialog/dialog.component';
 
@@ -57,6 +57,7 @@ import { ToastRequest } from '../../../components/toast/toast.component';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 
 import {
+  STATE_CHANGE_TO_DESCRIPTIONS,
   STATE_CHANGE_TO_NAMES,
   STATE_DISPLAY_NAMES,
   STATE_ICONS,
@@ -80,7 +81,8 @@ import { StateWrapperService } from '../../../services/wrapper-services/state-wr
 
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 
-import { finalize } from 'rxjs';
+import { Title } from '@angular/platform-browser';
+import { finalize, from } from 'rxjs';
 import { ToastProcessingIndicatorComponent } from '../../../components/toast-processing-indicator/toast-processing-indicator.component';
 import { MailTrackingService } from '../../../services/mail-tracking.service';
 import { UtilsService } from '../../../services/utils.service';
@@ -202,6 +204,8 @@ export class ViewOrderPageComponent implements OnInit {
 
   numberOfMailsSent = signal(0);
 
+  private isInitialized = false;
+
   constructor(
     private readonly usersService: UsersWrapperService,
     private readonly stateService: StateWrapperService,
@@ -215,8 +219,9 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly toastService: ToastService,
     private readonly insyService: InsyWrapperService,
     private readonly mailTrackingService: MailTrackingService,
-    private readonly utilsService: UtilsService
-  ) {}
+    private readonly utilsService: UtilsService,
+    private readonly titleService: Title
+  ) { }
 
   /**
    * Initializes the component, fetching necessary data and setting up state transitions.
@@ -241,6 +246,15 @@ export class ViewOrderPageComponent implements OnInit {
 
       this.createStateChangeButtons();
     });
+
+    this.titleService.setTitle(`Bestellung ${this.internalOrder().orderDisplay.besy_number} ansehen`);
+    this.isInitialized = true;
+  }
+
+  ngOnChanges(): void {
+    if (this.isInitialized) {
+      this.createStateChangeButtons();
+    }
   }
 
   /**
@@ -271,20 +285,25 @@ export class ViewOrderPageComponent implements OnInit {
           toastRef?.cancel(true);
         })
       )
-      .subscribe(blob => {
-        const link = document.createElement('a');
+      .subscribe({
+        next: blob => {
+          const link = document.createElement('a');
 
-        const objectUrl = URL.createObjectURL(blob);
+          const objectUrl = URL.createObjectURL(blob);
 
-        link.href = objectUrl;
+          link.href = objectUrl;
 
-        link.download = `Bestellung-${this.internalOrder().orderDisplay.besy_number}.pdf`;
+          link.download = `Bestellung-${this.internalOrder().orderDisplay.besy_number}.pdf`;
 
-        link.click();
+          link.click();
 
-        URL.revokeObjectURL(objectUrl);
+          URL.revokeObjectURL(objectUrl);
 
-        this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
+          this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
+        },
+        error: err => {
+          this.snackBar.open('Bestellung konnte nicht exportiert werden.', 'Schließen', { duration: 5000 });
+        }
       });
   }
 
@@ -309,47 +328,31 @@ export class ViewOrderPageComponent implements OnInit {
 
     for (const state of this.getNextAllowedStates()) {
       if (
-        state === OrderStatus.APPROVED &&
+        this.internalOrder().order.status === OrderStatus.DEKAN_PENDING &&
         !this.authService.isAuthorizedFor(environment.approveOrdersRole)
       ) {
         continue;
       }
 
-      let color;
+      let color = 'default';
 
       let style: MatButtonAppearance = 'elevated';
 
-      switch (state) {
-        case OrderStatus.DELETED:
-          color = 'warn';
+      if (state === OrderStatus.DELETED) {
+        color = 'warn';
+        style = 'outlined';
+      }
 
-          style = 'outlined';
-
-          break;
-
-        case OrderStatus.APPROVED:
-          color = 'accent';
-
-          break;
-
-        default:
-          color = 'default';
+      if (state === OrderStatus.APPROVED && this.internalOrder().order.status === OrderStatus.DEKAN_PENDING) {
+        color = 'accent';
       }
 
       this.stateChangeButtons.push({
-        label: STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`,
-
+        label: this.isSkipApprovalStateChange(state) ? STATE_CHANGE_TO_NAMES.get(state) + ' (überspringen)' : STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`,
         icon: STATE_ICONS.get(state) ?? '',
-
-        tooltip:
-          state === OrderStatus.DELETED
-            ? 'Bestellung wirklich löschen?'
-            : `Zu '${STATE_DISPLAY_NAMES.get(state) ?? state}' wechseln`,
-
+        tooltip: this.isSkipApprovalStateChange(state) ? 'Genehmigung durch das Dekanat überspringen.' : STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '',
         state,
-
         color,
-
         style,
       });
     }
@@ -363,6 +366,13 @@ export class ViewOrderPageComponent implements OnInit {
 
       this.stateChangeButtons.push(deletedButton);
     }
+  }
+
+  private isSkipApprovalStateChange(state: OrderStatus): boolean {
+    return (
+      this.internalOrder().order.status === OrderStatus.COMPLETED &&
+      state === OrderStatus.APPROVED
+    );
   }
 
   /**
@@ -439,11 +449,22 @@ export class ViewOrderPageComponent implements OnInit {
   updateDisplayedOrderState(newState: OrderStatus) {
     const newOrder = { ...this.internalOrder().order, status: newState };
 
-    this.orderDisplayService.resolveOrderSubresources(newOrder).subscribe(orderDisplay => {
-      this.internalOrder.set({ order: newOrder, orderDisplay });
-    });
+    const updateUI = (newOrder: OrderResponseDTO) => {
+      this.orderDisplayService.resolveOrderSubresources(newOrder).subscribe(orderDisplay => {
+        this.internalOrder.set({ order: newOrder, orderDisplay });
+      });
 
-    this.createStateChangeButtons();
+      this.createStateChangeButtons();
+    };
+
+    // If the order is marked as completed, we fetch the updated order data from the backend as the auto-index can change
+    if (newState === OrderStatus.COMPLETED) {
+      from(this.ordersService.getOrderById(newOrder.id!)).subscribe(order => {
+        updateUI(order);
+      });
+    } else {
+      updateUI(newOrder);
+    }
   }
 
   /**
@@ -454,7 +475,7 @@ export class ViewOrderPageComponent implements OnInit {
       title: 'Bestellung wirklich löschen?',
 
       description:
-        'Die Bestellung wird dauerhaft gelöscht und kann nur von Admins wiederhergestellt werden.',
+        'Die Bestellung wird gelöscht, kann aber wiederhergestellt werden.',
 
       cancelButtonText: 'Abbrechen',
 
