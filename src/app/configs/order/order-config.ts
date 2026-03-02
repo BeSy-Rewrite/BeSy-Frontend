@@ -212,13 +212,13 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
   fields: [
     {
       name: 'price',
-      label: 'Preis (brutto)',
+      label: 'Preis (netto)',
       type: 'number',
       required: true,
       editable: true,
       validators: [Validators.min(0.01)], // Price must be a positive number bigger than 0
       tooltip:
-        'Der Preis des Vergleichsangebots ist der Gesamtpreis (brutto) des Angebots in Euro, welches mit dem Hauptangebot verglichen wird.',
+        'Der Preis des Vergleichsangebots ist der Gesamtpreis (netto) des Angebots in Euro, welches mit dem Hauptangebot verglichen wird.',
     },
     {
       name: 'company_name',

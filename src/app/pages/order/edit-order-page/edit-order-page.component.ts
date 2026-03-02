@@ -284,7 +284,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     { id: 'comment', label: 'Kommentar' },
     {
       id: 'price_per_unit',
-      label: 'Stückpreis (brutto)',
+      label: 'Stückpreis',
       footerContent: this.footerContent,
     },
   ];
@@ -300,7 +300,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   orderItemTableActions: TableActionButton[] = [
     {
       id: 'delete',
-      label: 'Delete',
+      label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
       action: (row: ItemTableModel) => this.deleteItem(row),
@@ -366,7 +366,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   quotationsToDelete = new Set<QuotationTableModel>();
   quotationTableDataSource = new MatTableDataSource<QuotationTableModel>([]);
   orderQuotationColumns: TableColumn<QuotationTableModel>[] = [
-    { id: 'price', label: 'Preis (brutto) in €' },
+    { id: 'price', label: 'Preis (netto) in €' },
     { id: 'company_name', label: 'Anbieter' },
     { id: 'company_city', label: 'Ort' },
     { id: 'quote_date', label: 'Angebotsdatum' },
@@ -380,7 +380,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   orderQuotationTableActions: TableActionButton[] = [
     {
       id: 'delete',
-      label: 'Delete',
+      label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
       action: (row: QuotationTableModel) => this.deleteQuotation(row),
@@ -1585,7 +1585,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       (this.formattedOrderDTO.invoice_person_id &&
         this.formattedOrderDTO.delivery_person_id &&
         this.formattedOrderDTO.invoice_person_id.value !==
-          this.formattedOrderDTO.delivery_person_id.value) ||
+        this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
         this.formattedOrderDTO.invoice_address_id !== this.formattedOrderDTO.delivery_address_id)
     ) {
@@ -2053,28 +2053,28 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     string,
     { tabName: string; configs: FormConfig[] }
   > = {
-    General: {
-      tabName: 'Allgemeine Angaben',
-      configs: [
-        this.generalFormConfig,
-        this.queriesPersonFormConfig,
-        this.primaryCostCenterFormConfig,
-        this.secondaryCostCenterFormConfig,
-      ],
-    },
-    MainOffer: {
-      tabName: 'Hauptangebot',
-      configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
-    },
-    Addresses: {
-      tabName: 'Adressdaten',
-      configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
-    },
-    Approvals: {
-      tabName: 'Genehmigungen',
-      configs: [this.approvalFormConfig],
-    },
-  };
+      General: {
+        tabName: 'Allgemeine Angaben',
+        configs: [
+          this.generalFormConfig,
+          this.queriesPersonFormConfig,
+          this.primaryCostCenterFormConfig,
+          this.secondaryCostCenterFormConfig,
+        ],
+      },
+      MainOffer: {
+        tabName: 'Hauptangebot',
+        configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
+      },
+      Addresses: {
+        tabName: 'Adressdaten',
+        configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
+      },
+      Approvals: {
+        tabName: 'Genehmigungen',
+        configs: [this.approvalFormConfig],
+      },
+    };
 
   /**
    * Checks if there are unsaved changes in the form.
