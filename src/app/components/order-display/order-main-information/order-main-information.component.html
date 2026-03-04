@@ -1,8 +1,21 @@
-<div class="flex flex-col gap-4">
-  @for (field of generalDetailsFields; track $index) {
+<div class="flex flex-col gap-8 2xl:flex-row 2xl:gap-16">
+
+  <div class="flex flex-col gap-4">
+    @for (field of generalDetailsFields; track $index) {
     <div class="flex gap-16 w-fit" [class]="environment.orderFieldClassPrefix + field">
       <h3 class="w-44 font-semibold">{{ orderFieldLabels[field] }}:</h3>
       <p class="w-fit min-w-16">{{ orderData().orderDisplay[field] }}</p>
     </div>
+    }
+  </div>
+
+  @if (orderData().order.comment) {
+  <div class="flex flex-col">
+    <h4 class="font-semibold mb-2">Legacy-Kommentar:</h4>
+    <p class="whitespace-pre-line w-fit min-w-16 max-w-2xl bg-gray-200 border-l-4 border-gray-400 p-4 rounded">
+      {{ orderData().order.comment}}
+    </p>
+  </div>
   }
+
 </div>
