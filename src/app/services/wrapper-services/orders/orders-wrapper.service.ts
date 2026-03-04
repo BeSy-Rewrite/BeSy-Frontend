@@ -575,6 +575,13 @@ export class OrdersWrapperService {
   ): Partial<OrderResponseDTOFormatted> {
     const changedFields: Partial<OrderResponseDTOFormatted> = {};
 
+    // Helper functions to treat null and undefined as equal
+    const isNullish = (value: any): boolean => value === null || value === undefined;
+    const areValuesEqual = (val1: any, val2: any): boolean => {
+      if (isNullish(val1) && isNullish(val2)) return true;
+      return val1 === val2;
+    };
+
     // Fields that should be formatted as ISO date (YYYY-MM-DD) only
     const dateFields = new Set(['quote_date', 'order_date', 'delivery_date']);
 
@@ -595,7 +602,7 @@ export class OrdersWrapperService {
       extractValue(original.currency) ?? extractValue((original as any).currency_short);
     const modifiedCurrencyShortValue = extractValue((modified as any).currency_short);
 
-    if (originalCurrencyValue !== modifiedCurrencyShortValue) {
+    if (!areValuesEqual(originalCurrencyValue, modifiedCurrencyShortValue)) {
       (changedFields as any).currency_short = modifiedCurrencyShortValue;
     }
 
@@ -611,7 +618,7 @@ export class OrdersWrapperService {
       if (priceFields.has(key)) {
         const origParsed = this.parseGermanPriceToNumber(originalValue);
         const modParsed = this.parseGermanPriceToNumber(modifiedValue);
-        if (origParsed !== modParsed) {
+        if (!areValuesEqual(origParsed, modParsed)) {
           (changedFields as any)[key] = modParsed;
         }
         continue;
@@ -627,7 +634,7 @@ export class OrdersWrapperService {
         if ('value' in originalValue || 'value' in modifiedValue) {
           const orig = originalValue.value;
           const mod = modifiedValue.value;
-          if (orig !== mod) {
+          if (!areValuesEqual(orig, mod)) {
             (changedFields as any)[key] = mod;
           }
         } else if (JSON.stringify(originalValue) !== JSON.stringify(modifiedValue)) {
@@ -641,10 +648,10 @@ export class OrdersWrapperService {
       ) {
         const mod = modifiedValue.value;
         const orig = originalValue;
-        if (orig !== mod) {
+        if (!areValuesEqual(orig, mod)) {
           (changedFields as any)[key] = mod;
         }
-      } else if (originalValue !== modifiedValue) {
+      } else if (!areValuesEqual(originalValue, modifiedValue)) {
         (changedFields as any)[key] = modifiedValue;
       }
     }
