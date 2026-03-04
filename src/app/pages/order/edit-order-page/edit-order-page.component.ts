@@ -479,6 +479,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   readOnlyBannerMessage = signal<string>('');
   readOnlyBannerMessageApprovalTab = signal<string>('');
 
+  additionalChangesMade = false; // Flag to track if changes were made in addition to form changes (e.g. approvals/quotation add/delete)
+
   ngOnInit(): void {
     window.addEventListener('beforeunload', this.onBeforeUnload);
     // Get resolved data from route
@@ -508,7 +510,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
           `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year!.slice(-2)}-${this.formattedOrderDTO.auto_index}`
         );
         const loginCredentials = this.userWrapperService.getCurrentUser();
-        console.log(loginCredentials);
       });
     });
     this.registerTourSteps();
@@ -1781,6 +1782,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       .filter(item => !item.item_id)
       .map(item => this.orderWrapperService.mapItemTableModelToItemRequestDTO(item));
 
+    this.additionalChangesMade = this.additionalChangesMade || itemsToCreate.length > 0 || this.itemsToDelete.size > 0;
+
     // create all new items if any got added
     if (itemsToCreate.length > 0) {
       try {
@@ -1842,6 +1845,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       .map(quotation =>
         this.orderWrapperService.mapQuotationTableModelToQuotationRequestDTO(quotation)
       );
+    this.additionalChangesMade = this.additionalChangesMade || quotationsToCreate.length > 0 || this.quotationsToDelete.size > 0;
     // create all new quotations if any got added
     if (quotationsToCreate.length > 0) {
       try {
@@ -1875,23 +1879,23 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
           return false;
         }
       }
+    }
 
-      // delete quotations marked for deletion, bail out on first failure
-      for (const deletedQuotation of this.quotationsToDelete) {
-        try {
-          await this.orderWrapperService.deleteQuotationOfOrder(
-            this.editOrderId,
-            deletedQuotation.index!
-          );
-        } catch (error) {
-          console.error('Fehler beim Löschen eines Angebots:', error);
-          this._notifications.open(
-            'Fehler beim Löschen eines Angebots. Bitte versuchen Sie es später erneut.',
-            undefined,
-            { duration: 5000 }
-          );
-          return false;
-        }
+    // delete quotations marked for deletion, bail out on first failure
+    for (const deletedQuotation of this.quotationsToDelete) {
+      try {
+        await this.orderWrapperService.deleteQuotationOfOrder(
+          this.editOrderId,
+          deletedQuotation.index!
+        );
+      } catch (error) {
+        console.error('Fehler beim Löschen eines Angebots:', error);
+        this._notifications.open(
+          'Fehler beim Löschen eines Angebots. Bitte versuchen Sie es später erneut.',
+          undefined,
+          { duration: 5000 }
+        );
+        return false;
       }
     }
 
@@ -1923,12 +1927,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.approvalsFromForm
     );
 
-    console.log('Changed approval fields to be patched:', changedApprovalFields);
-
     // If no approval fields have changed, return
     if (Object.keys(changedApprovalFields).length === 0) {
       return true;
     }
+    this.additionalChangesMade = this.additionalChangesMade || true;
     // Send the approval patch to the backend
     try {
       await this.orderWrapperService.patchOrderApprovals(this.editOrderId, changedApprovalFields);
@@ -1977,14 +1980,20 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @returns A promise that indicates if there were changes which were submitted successfully
    */
   private async submitOrderPatch(): Promise<PatchResponseIndicator> {
-    console.log('Current formattedOrderDTO:', this.formattedOrderDTO);
-    console.log('Submitting order patch with DTO:', this.patchOrderDTO);
     // Check which fields have been modified and prepare the patch DTO accordingly
     const changedFields = this.orderWrapperService.compareOrdersAndReturnChangedFields(
       this.formattedOrderDTO,
       this.patchOrderDTO
     );
-    console.log('Changed fields to be patched:', changedFields);
+
+    if (Object.keys(changedFields).length === 0 && this.additionalChangesMade) {
+      this.additionalChangesMade = false;
+      this._notifications.open('Bestellung wurde erfolgreich aktualisiert.', undefined, {
+        duration: 3000,
+      });
+      return 'success';
+    }
+    this.additionalChangesMade = false;
 
     // If no fields have changed, return
     if (Object.keys(changedFields).length === 0) {
@@ -2194,8 +2203,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.formattedOrderDTO,
       currentOrderState
     );
-
-    console.log('Changed fields for unsaved changes detection:', changedFields);
 
     // Map changed fields to tabs using form configs
     const tabChanges = this.mapChangedFieldsToTabs(Object.keys(changedFields));
