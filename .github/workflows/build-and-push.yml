@@ -19,6 +19,9 @@ env:
   # github.repository as <account>/<repo>
   IMAGE_NAME: ${{ github.repository }}
   BUILD_PROFILE: production
+  # Self-hosted registry
+  SELFHOSTED_REGISTRY: ${{ secrets.SELFHOSTED_REGISTRY }}
+  SELFHOSTED_IMAGE_NAME: ${{ secrets.SELFHOSTED_IMAGE_NAME }}
 
 jobs:
   build:
@@ -64,11 +67,52 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # Login to self-hosted registry
+      - name: Log into self-hosted registry
+        if: ${{ env.SELFHOSTED_REGISTRY != '' }}
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
+        with:
+          registry: ${{ env.SELFHOSTED_REGISTRY }}
+          username: ${{ secrets.SELFHOSTED_REGISTRY_USERNAME }}
+          password: ${{ secrets.SELFHOSTED_REGISTRY_PASSWORD }}
+
       # Set build profile to 'test' for 'test' branch and PRs
       - name: Check build profile
         if: ${{ github.ref == 'refs/heads/test' || github.event_name == 'pull_request' }}
         run: |
           echo "BUILD_PROFILE=test" >> "${GITHUB_ENV}"
+
+      # Prepare Docker tags
+      - name: Prepare Docker tags
+        run: |
+          # Initialize tags for regular builds
+          TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.BUILD_PROFILE }}:latest"
+          DEPLOYMENT_TAGS="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-deployment:latest"
+
+          # Add self-hosted registry tags if configured
+          if [[ -n "${{ env.SELFHOSTED_REGISTRY }}" && -n "${{ env.SELFHOSTED_IMAGE_NAME }}" ]]; then
+            DEPLOYMENT_TAGS="${DEPLOYMENT_TAGS}"$'\n'"${{ env.SELFHOSTED_REGISTRY }}/${{ env.SELFHOSTED_IMAGE_NAME }}-frontend:latest"
+          fi
+
+          # Check if this is a semver tag
+          if [[ "${{ github.ref }}" =~ ^refs/tags/v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+            VERSION="${{ github.ref_name }}"
+            TAGS="${TAGS}"$'\n'"${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.BUILD_PROFILE }}:${VERSION}"
+            DEPLOYMENT_TAGS="${DEPLOYMENT_TAGS}"$'\n'"${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-deployment:${VERSION}"
+
+            # Add self-hosted registry version tag if configured
+            if [[ -n "${{ env.SELFHOSTED_REGISTRY }}" && -n "${{ env.SELFHOSTED_IMAGE_NAME }}" ]]; then
+              DEPLOYMENT_TAGS="${DEPLOYMENT_TAGS}"$'\n'"${{ env.SELFHOSTED_REGISTRY }}/${{ env.SELFHOSTED_IMAGE_NAME }}-frontend:${VERSION}"
+            fi
+          fi
+
+          echo "BUILD_TAGS<<EOF" >> $GITHUB_ENV
+          echo "${TAGS}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+          echo "DEPLOYMENT_TAGS<<EOF" >> $GITHUB_ENV
+          echo "${DEPLOYMENT_TAGS}" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
 
       # Update version in version.ts
       - name: Update version
@@ -121,13 +165,13 @@ jobs:
           build-args: |
             PROFILE=${{ env.BUILD_PROFILE }}
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ env.BUILD_PROFILE }}:latest
+          tags: ${{ env.BUILD_TAGS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Build and push deployment image only on main branch pushes
+      # Build and push deployment image on main branch pushes and semver tags
       - name: Build and push deployment image
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: (github.event_name != 'pull_request' && github.ref == 'refs/heads/main') || startsWith(github.ref, 'refs/tags/v')
         id: build-and-push-deployment
         uses: docker/build-push-action@0565240e2d4ab88bba5387d719585280857ece09 # v5.0.0
         with:
@@ -135,6 +179,6 @@ jobs:
           build-args: |
             PROFILE=deployment
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-deployment:latest
+          tags: ${{ env.DEPLOYMENT_TAGS }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
