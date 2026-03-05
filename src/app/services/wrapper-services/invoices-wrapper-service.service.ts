@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
-import { from, mergeMap, Observable } from 'rxjs';
+import { from, map, mergeMap, Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import {
   InvoiceRequestDTO,
   InvoiceResponseDTO,
@@ -19,6 +20,36 @@ export class InvoicesWrapperServiceService {
   ) {}
 
   getDocumentsByOrderId(orderId: number) {
+    return this.ordersService
+      .getInvoicesOfOrder(orderId)
+      .pipe(
+        map(invoices =>
+          invoices.filter(
+            invoice =>
+              invoice.paperless_id != null ||
+              Date.parse(invoice.created_date ?? '') >=
+                environment.invoicesLegacyCutoffDate.getTime()
+          )
+        )
+      );
+  }
+
+  getLegacyInvoicesByOrderId(orderId: number) {
+    return this.ordersService
+      .getInvoicesOfOrder(orderId)
+      .pipe(
+        map(invoices =>
+          invoices.filter(
+            invoice =>
+              invoice.paperless_id == null &&
+              Date.parse(invoice.created_date ?? '') <
+                environment.invoicesLegacyCutoffDate.getTime()
+          )
+        )
+      );
+  }
+
+  getAllDocumentsByOrderId(orderId: number) {
     return this.ordersService.getInvoicesOfOrder(orderId);
   }
 

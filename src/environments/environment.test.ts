@@ -36,4 +36,6 @@ export const environment = {
   wrappedUrl: '/wrap',
 
   showFooter: true,
+
+  invoicesLegacyCutoffDate: new Date('2026-01-01T00:00:00Z'),
 };

@@ -152,7 +152,10 @@
           }
 
           @case ('documents') {
-            <app-order-documents [order]="internalOrder().order" />
+            <div class="flex flex-col gap-8">
+              <app-order-documents [order]="internalOrder().order" />
+              <app-legacy-invoice-display [order]="internalOrder().order" />
+            </div>
           }
 
           @case ('contacts') {

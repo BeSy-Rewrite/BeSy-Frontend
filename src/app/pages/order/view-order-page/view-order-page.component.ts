@@ -83,6 +83,7 @@ import { UsersWrapperService } from '../../../services/wrapper-services/users-wr
 
 import { Title } from '@angular/platform-browser';
 import { finalize, from } from 'rxjs';
+import { LegacyInvoiceDisplayComponent } from '../../../components/order-display/legacy-invoice-display/legacy-invoice-display.component';
 import { ToastProcessingIndicatorComponent } from '../../../components/toast-processing-indicator/toast-processing-indicator.component';
 import { MailTrackingService } from '../../../services/mail-tracking.service';
 import { UtilsService } from '../../../services/utils.service';
@@ -146,6 +147,7 @@ interface StateChangeButtons {
     OrderMainQuoteComponent,
     OrderArticleListComponent,
     OrderAddressesComponent,
+    LegacyInvoiceDisplayComponent,
   ],
 
   templateUrl: './view-order-page.component.html',
@@ -221,7 +223,7 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly mailTrackingService: MailTrackingService,
     private readonly utilsService: UtilsService,
     private readonly titleService: Title
-  ) { }
+  ) {}
 
   /**
    * Initializes the component, fetching necessary data and setting up state transitions.
@@ -259,7 +261,9 @@ export class ViewOrderPageComponent implements OnInit {
       });
     }
 
-    this.titleService.setTitle(`Bestellung ${this.internalOrder().orderDisplay.besy_number} ansehen`);
+    this.titleService.setTitle(
+      `Bestellung ${this.internalOrder().orderDisplay.besy_number} ansehen`
+    );
   }
 
   /**
@@ -306,9 +310,11 @@ export class ViewOrderPageComponent implements OnInit {
 
           this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
         },
-        error: err => {
-          this.snackBar.open('Bestellung konnte nicht exportiert werden.', 'Schließen', { duration: 5000 });
-        }
+        error: () => {
+          this.snackBar.open('Bestellung konnte nicht exportiert werden.', 'Schließen', {
+            duration: 5000,
+          });
+        },
       });
   }
 
@@ -348,7 +354,10 @@ export class ViewOrderPageComponent implements OnInit {
         style = 'outlined';
       }
 
-      if (state === OrderStatus.APPROVED && this.internalOrder().order.status === OrderStatus.DEKAN_PENDING) {
+      if (
+        state === OrderStatus.APPROVED &&
+        this.internalOrder().order.status === OrderStatus.DEKAN_PENDING
+      ) {
         color = 'accent';
       }
 
@@ -357,7 +366,9 @@ export class ViewOrderPageComponent implements OnInit {
       this.stateChangeButtons.push({
         label: this.isSkipApprovalStateChange(state) ? label + ' (überspringen)' : label,
         icon: STATE_ICONS.get(state) ?? '',
-        tooltip: this.isSkipApprovalStateChange(state) ? 'Genehmigung durch das Dekanat überspringen.' : STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '',
+        tooltip: this.isSkipApprovalStateChange(state)
+          ? 'Genehmigung durch das Dekanat überspringen.'
+          : (STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? ''),
         state,
         color,
         style,
@@ -377,8 +388,7 @@ export class ViewOrderPageComponent implements OnInit {
 
   private isSkipApprovalStateChange(state: OrderStatus): boolean {
     return (
-      this.internalOrder().order.status === OrderStatus.COMPLETED &&
-      state === OrderStatus.APPROVED
+      this.internalOrder().order.status === OrderStatus.COMPLETED && state === OrderStatus.APPROVED
     );
   }
 
@@ -490,8 +500,7 @@ export class ViewOrderPageComponent implements OnInit {
     const data = {
       title: 'Bestellung wirklich löschen?',
 
-      description:
-        'Die Bestellung wird gelöscht, kann aber wiederhergestellt werden.',
+      description: 'Die Bestellung wird gelöscht, kann aber wiederhergestellt werden.',
 
       cancelButtonText: 'Abbrechen',
 
