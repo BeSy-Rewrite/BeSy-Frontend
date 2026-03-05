@@ -13,7 +13,7 @@
       @switch (field.type) {
         <!-- Textfeld -->
         @case ('text') {
-          <mat-form-field class="w-full">
+          <mat-form-field class="w-full {{ environment.orderFieldClassPrefix + field.name }}">
             <mat-label>{{ field.label }}</mat-label>
             <input matInput [formControlName]="field.name" [required]="field.required" />
             @if (formGroup.get(field.name)?.invalid && formGroup.get(field.name)?.touched) {
@@ -38,7 +38,7 @@
 
         <!-- Select -->
         @case ('select') {
-          <mat-form-field class="w-full">
+          <mat-form-field class="w-full {{ environment.orderFieldClassPrefix + field.name }}">
             <mat-label>{{ field.label }}</mat-label>
             <mat-select [formControlName]="field.name" [required]="field.required">
               @for (opt of field.options ?? []; track opt.value) {
@@ -67,7 +67,7 @@
 
         <!-- Radio -->
         @case ('radio') {
-          <div class="w-full flex flex-col">
+          <div class="w-full flex flex-col {{ environment.orderFieldClassPrefix + field.name }}">
             <!-- Label + Help Icon -->
             <div class="flex items-center mb-2">
               <label class="text-gray-700 text-lg font-medium">
@@ -107,7 +107,11 @@
 
         <!-- Checkbox -->
         @case ('checkbox') {
-          <div class="w-full flex items-center gap-2">
+          <div
+            class="w-full flex items-center gap-2 {{
+              environment.orderFieldClassPrefix + field.name
+            }}"
+          >
             <!-- Checkbox -->
             <mat-checkbox [formControlName]="field.name">
               {{ field.label }}
@@ -136,7 +140,7 @@
 
         <!-- Number -->
         @case ('number') {
-          <mat-form-field class="w-full">
+          <mat-form-field class="w-full {{ environment.orderFieldClassPrefix + field.name }}">
             <mat-label>{{ field.label }}</mat-label>
             <input
               matInput
@@ -166,7 +170,7 @@
 
         <!-- Date -->
         @case ('date') {
-          <mat-form-field class="w-full">
+          <mat-form-field class="w-full {{ environment.orderFieldClassPrefix + field.name }}">
             <mat-label>{{ field.label }}</mat-label>
             <input
               matInput
@@ -199,7 +203,7 @@
 
         <!-- Email -->
         @case ('email') {
-          <mat-form-field class="w-full">
+          <mat-form-field class="w-full {{ environment.orderFieldClassPrefix + field.name }}">
             <mat-label>{{ field.label }}</mat-label>
             <input
               matInput
@@ -227,7 +231,7 @@
           </mat-form-field>
         }
         @case ('tel') {
-          <mat-form-field class="w-full">
+          <mat-form-field class="w-full {{ environment.orderFieldClassPrefix + field.name }}">
             <mat-label>{{ field.label }}</mat-label>
             <input matInput [formControlName]="field.name" [required]="field.required" type="tel" />
             @if (formGroup.get(field.name)?.invalid && formGroup.get(field.name)?.touched) {
@@ -250,7 +254,7 @@
           </mat-form-field>
         }
         @case ('search') {
-          <div class="search-field-container">
+          <div class="search-field-container {{ environment.orderFieldClassPrefix + field.name }}">
             <input
               class="search-input"
               [formControlName]="field.name"
@@ -291,11 +295,12 @@
             [dataSource]="tableDataSource"
             [columns]="tableColumns"
             [pageSize]="5"
+            class="{{ environment.orderFieldClassPrefix + field.name }}"
           ></app-generic-table>
           <mat-divider class="bg-he-lightblue" style="border-top-width: 2px"></mat-divider>
         }
         @case ('textarea') {
-          <mat-form-field class="w-full">
+          <mat-form-field class="w-full {{ environment.orderFieldClassPrefix + field.name }}">
             <mat-label>{{ field.label }}</mat-label>
             <textarea
               matInput
@@ -322,7 +327,7 @@
           </mat-form-field>
         }
         @case ('autocomplete') {
-          <mat-form-field class="w-full">
+          <mat-form-field class="w-full {{ environment.orderFieldClassPrefix + field.name }}">
             <mat-label>{{ field.label }}</mat-label>
 
             <input

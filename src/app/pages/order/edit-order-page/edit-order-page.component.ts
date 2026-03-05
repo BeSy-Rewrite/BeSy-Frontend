@@ -34,6 +34,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { first, Subscription } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
@@ -123,6 +124,28 @@ export const ORDER_EDIT_TABS = [
   'Approvals',
 ] as const;
 
+export const ORDER_EDIT_TABS_TO_CONIG_MAPPING: Record<
+  (typeof ORDER_EDIT_TABS)[number],
+  FormConfig[]
+> = {
+  General: [
+    ORDER_GENERAL_FORM_CONFIG,
+    ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
+    ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
+    ORDER_QUERIES_PERSON_FORM_CONFIG,
+  ],
+  MainOffer: [ORDER_MAIN_OFFER_FORM_CONFIG, ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG],
+  Items: [ORDER_ITEM_FORM_CONFIG],
+  Quotations: [ORDER_QUOTATION_FORM_CONFIG],
+  Addresses: [
+    ORDER_ADDRESS_FORM_CONFIG,
+    ORDER_DELIVERY_PERSON_FORM_CONFIG,
+    ORDER_INVOICE_PERSON_FORM_CONFIG,
+    { fields: [{ name: 'delivery_address_id' }, { name: 'invoice_address_id' }] } as FormConfig,
+  ],
+  Approvals: [ORDER_APPROVAL_FORM_CONFIG],
+};
+
 /**
  * Model for the quotations table used in the order edit/create page
  */
@@ -181,6 +204,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   @ViewChild('addQuotationDialog')
   private readonly addQuotationDialogTemplate?: TemplateRef<unknown>;
   private addQuotationDialogRef?: MatDialogRef<unknown>;
+
+  protected readonly environment = environment;
 
   constructor(
     private readonly router: Router,
@@ -509,7 +534,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         this.orderBesyId.set(
           `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year!.slice(-2)}-${this.formattedOrderDTO.auto_index}`
         );
-        const loginCredentials = this.userWrapperService.getCurrentUser();
       });
     });
     this.registerTourSteps();
@@ -1586,7 +1610,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       (this.formattedOrderDTO.invoice_person_id &&
         this.formattedOrderDTO.delivery_person_id &&
         this.formattedOrderDTO.invoice_person_id.value !==
-        this.formattedOrderDTO.delivery_person_id.value) ||
+          this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
         this.formattedOrderDTO.invoice_address_id !== this.formattedOrderDTO.delivery_address_id)
     ) {
@@ -1782,7 +1806,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       .filter(item => !item.item_id)
       .map(item => this.orderWrapperService.mapItemTableModelToItemRequestDTO(item));
 
-    this.additionalChangesMade = this.additionalChangesMade || itemsToCreate.length > 0 || this.itemsToDelete.size > 0;
+    this.additionalChangesMade =
+      this.additionalChangesMade || itemsToCreate.length > 0 || this.itemsToDelete.size > 0;
 
     // create all new items if any got added
     if (itemsToCreate.length > 0) {
@@ -1845,7 +1870,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       .map(quotation =>
         this.orderWrapperService.mapQuotationTableModelToQuotationRequestDTO(quotation)
       );
-    this.additionalChangesMade = this.additionalChangesMade || quotationsToCreate.length > 0 || this.quotationsToDelete.size > 0;
+    this.additionalChangesMade =
+      this.additionalChangesMade ||
+      quotationsToCreate.length > 0 ||
+      this.quotationsToDelete.size > 0;
     // create all new quotations if any got added
     if (quotationsToCreate.length > 0) {
       try {
@@ -2062,28 +2090,28 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     string,
     { tabName: string; configs: FormConfig[] }
   > = {
-      General: {
-        tabName: 'Allgemeine Angaben',
-        configs: [
-          this.generalFormConfig,
-          this.queriesPersonFormConfig,
-          this.primaryCostCenterFormConfig,
-          this.secondaryCostCenterFormConfig,
-        ],
-      },
-      MainOffer: {
-        tabName: 'Hauptangebot',
-        configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
-      },
-      Addresses: {
-        tabName: 'Adressdaten',
-        configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
-      },
-      Approvals: {
-        tabName: 'Genehmigungen',
-        configs: [this.approvalFormConfig],
-      },
-    };
+    General: {
+      tabName: 'Allgemeine Angaben',
+      configs: [
+        this.generalFormConfig,
+        this.queriesPersonFormConfig,
+        this.primaryCostCenterFormConfig,
+        this.secondaryCostCenterFormConfig,
+      ],
+    },
+    MainOffer: {
+      tabName: 'Hauptangebot',
+      configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
+    },
+    Addresses: {
+      tabName: 'Adressdaten',
+      configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
+    },
+    Approvals: {
+      tabName: 'Genehmigungen',
+      configs: [this.approvalFormConfig],
+    },
+  };
 
   /**
    * Checks if there are unsaved changes in the form.

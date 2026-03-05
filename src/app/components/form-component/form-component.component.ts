@@ -23,6 +23,7 @@ import { MatRadioModule } from '@angular/material/radio';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
+import { environment } from '../../../environments/environment';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
 
 export interface FormField {
@@ -104,6 +105,8 @@ export interface FormConfig {
 })
 export class FormComponent implements OnInit {
   constructor(private readonly fb: FormBuilder) {}
+
+  protected readonly environment = environment;
 
   @Input() config!: FormConfig;
   @Input() formGroup!: FormGroup;

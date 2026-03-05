@@ -265,8 +265,6 @@
             <app-form-component
               [config]="quotationFormConfig"
               [formGroup]="quotationFormGroup"
-              [refreshTrigger]="quotationFormConfigRefreshTrigger()"
-              (valueChanged)="handleQuotationDialogCompanySelection($event)"
             ></app-form-component>
           </mat-dialog-content>
           <mat-dialog-actions align="end">
@@ -317,7 +315,10 @@
             [refreshTrigger]="deliveryPersonConfigRefreshTrigger()"
           ></app-form-component>
         </div>
-        <div class="delivery-address-container mt-4">
+        <div
+          class="delivery-address-container mt-4"
+          [class]="`${environment.orderFieldClassPrefix}delivery_address_id`"
+        >
           @if (isTabEditable('Addresses')) {
             <mat-button-toggle-group
               name="deliveryAddressOptions"
@@ -399,7 +400,10 @@
           }
           <!-- Rechnungsadresse -->
           @if (!sameAsRecipient && selectedDeliveryPerson) {
-            <div class="invoice-address-container mt-4">
+            <div
+              class="invoice-address-container mt-4"
+              [class]="`${environment.orderFieldClassPrefix}invoice_address_id`"
+            >
               <app-form-component
                 [config]="invoicePersonFormConfig"
                 [formGroup]="invoicePersonFormGroup"
