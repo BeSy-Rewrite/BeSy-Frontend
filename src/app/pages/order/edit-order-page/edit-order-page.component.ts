@@ -123,6 +123,15 @@ export const ORDER_EDIT_TABS = [
   'Approvals',
 ] as const;
 
+export const ORDER_EDIT_TABS_TO_CONIG_MAPPING: Record<(typeof ORDER_EDIT_TABS)[number], FormConfig> = {
+  General: ORDER_GENERAL_FORM_CONFIG,
+  MainOffer: ORDER_MAIN_OFFER_FORM_CONFIG,
+  Items: ORDER_ITEM_FORM_CONFIG,
+  Quotations: ORDER_QUOTATION_FORM_CONFIG,
+  Addresses: ORDER_ADDRESS_FORM_CONFIG,
+  Approvals: ORDER_APPROVAL_FORM_CONFIG,
+};
+
 /**
  * Model for the quotations table used in the order edit/create page
  */
