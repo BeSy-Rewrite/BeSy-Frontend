@@ -1,0 +1,6 @@
+@if (!isEmpty()) {
+  <div class="flex flex-col gap-4">
+    <h4 class="font-semibold">Rechnungen (legacy)</h4>
+    <app-generic-table [columns]="columns" [dataSource]="dataSource"></app-generic-table>
+  </div>
+}
