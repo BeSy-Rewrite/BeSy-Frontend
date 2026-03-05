@@ -4,6 +4,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { Router, RouterModule } from '@angular/router';
+import { delay, from, of } from 'rxjs';
 import { ZodError } from 'zod';
 import { environment } from '../../../environments/environment';
 import { OrderStatus } from '../../api-services-v2';
@@ -56,41 +57,53 @@ export class ToastInvalidOrderComponent {
     },
   });
 
-  constructor(private readonly driverJsService: DriverJsTourService, private readonly router: Router) { }
+  constructor(
+    private readonly driverJsService: DriverJsTourService,
+    private readonly router: Router
+  ) {}
 
   /**
    *  Highlights a specific field in the order form based on the provided ToastError.
    * @param error The ToastError containing field information.
    */
-  async highlightField(error: ToastError) {
+  highlightField(error: ToastError) {
     if (!error.fieldName) return;
 
-    if (this.router.url === `/orders/${this.orderId}/edit`) {
-      await this.switchToTabForField(error.fieldName);
+    let navigationObservable = of(false);
+
+    if (this.router.url.includes('/orders/') && this.router.url.includes('/edit')) {
+      navigationObservable = this.switchToTabForField(error.fieldName);
     }
 
-    try {
-      const selector = `.${environment.orderFieldClassPrefix}${error.fieldName}`;
-      if (document.querySelector(selector)) {
-        this.driverJsService.highlightElement(selector, 'Fehler beim Statuswechsel', error.message);
+    // Add a small delay to ensure the DOM has updated after navigation before trying to highlight the element
+    navigationObservable.pipe(delay(300)).subscribe(() => {
+      try {
+        const selector = `.${environment.orderFieldClassPrefix}${error.fieldName}`;
+        if (document.querySelector(selector)) {
+          this.driverJsService.highlightElement(
+            selector,
+            'Fehler beim Statuswechsel',
+            error.message
+          );
+        }
+      } catch (e) {
+        console.error('Fehler beim Hervorheben des Feldes:', e);
       }
-    } catch (e) {
-      console.error('Fehler beim Hervorheben des Feldes:', e);
-    }
+    });
   }
 
   switchToTabForField(fieldName: string) {
-    const targetTab = Object.entries(ORDER_EDIT_TABS_TO_CONIG_MAPPING).find(
-      ([_, config]) => config.fields.some(
-        field => field.name === fieldName
-      )
+    const targetTab = Object.entries(ORDER_EDIT_TABS_TO_CONIG_MAPPING).find(([_, configs]) =>
+      configs.some(config => config.fields.some(field => field.name === fieldName))
     )?.[0];
     if (targetTab) {
-      return this.router.navigate([], {
-        queryParams: { tab: targetTab },
-        queryParamsHandling: 'merge',
-      });
+      return from(
+        this.router.navigate([], {
+          queryParams: { tab: targetTab },
+          queryParamsHandling: 'merge',
+        })
+      );
     }
-    return Promise.resolve(false);
+    return of(false);
   }
 }
