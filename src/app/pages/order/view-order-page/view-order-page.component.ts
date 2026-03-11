@@ -57,6 +57,7 @@ import { ToastRequest } from '../../../components/toast/toast.component';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 
 import {
+  STATE_CHANGE_BUTTON_DISPLAY_ORDER,
   STATE_CHANGE_TO_DESCRIPTIONS,
   STATE_CHANGE_TO_NAMES,
   STATE_DISPLAY_NAMES,
@@ -223,7 +224,7 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly mailTrackingService: MailTrackingService,
     private readonly utilsService: UtilsService,
     private readonly titleService: Title
-  ) {}
+  ) { }
 
   /**
    * Initializes the component, fetching necessary data and setting up state transitions.
@@ -310,8 +311,9 @@ export class ViewOrderPageComponent implements OnInit {
 
           this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
         },
-        error: () => {
-          this.snackBar.open('Bestellung konnte nicht exportiert werden.', 'Schließen', {
+        error: err => {
+          console.error('Failed to export order', err.message ?? err);
+          this.snackBar.open('Bestellung konnte nicht exportiert werden. ' + (err.message ?? err), 'Schließen', {
             duration: 5000,
           });
         },
@@ -342,11 +344,13 @@ export class ViewOrderPageComponent implements OnInit {
         this.internalOrder().order.status === OrderStatus.DEKAN_PENDING &&
         !this.authService.isAuthorizedFor(environment.approveOrdersRole)
       ) {
-        continue;
+        break;
       }
 
+      let label = STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
+      let icon = STATE_ICONS.get(state) ?? '';
+      let tooltip = STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '';
       let color = 'default';
-
       let style: MatButtonAppearance = 'elevated';
 
       if (state === OrderStatus.DELETED) {
@@ -361,29 +365,30 @@ export class ViewOrderPageComponent implements OnInit {
         color = 'accent';
       }
 
-      const label = STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
+      if (state === OrderStatus.COMPLETED &&
+        this.internalOrder().order.status === OrderStatus.DEKAN_PENDING) {
+        label = STATE_CHANGE_TO_NAMES.get(OrderStatus.REJECTED) ?? `change to ${OrderStatus.REJECTED}`;
+        icon = STATE_ICONS.get(OrderStatus.REJECTED) ?? '';
+        tooltip = STATE_CHANGE_TO_DESCRIPTIONS.get(OrderStatus.REJECTED) ?? '';
+        color = 'warn';
+      }
+
+      if (this.isSkipApprovalStateChange(state)) {
+        label = STATE_CHANGE_TO_NAMES.get(OrderStatus.APPROVED) + ' (überspringen)';
+        tooltip = 'Genehmigung durch das Dekanat überspringen.';
+      }
 
       this.stateChangeButtons.push({
-        label: this.isSkipApprovalStateChange(state) ? label + ' (überspringen)' : label,
-        icon: STATE_ICONS.get(state) ?? '',
-        tooltip: this.isSkipApprovalStateChange(state)
-          ? 'Genehmigung durch das Dekanat überspringen.'
-          : (STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? ''),
+        label,
+        icon,
+        tooltip,
         state,
         color,
         style,
       });
     }
 
-    const deletedButtonIndex = this.stateChangeButtons.findIndex(
-      btn => btn.state === OrderStatus.DELETED
-    );
-
-    if (deletedButtonIndex !== -1) {
-      const [deletedButton] = this.stateChangeButtons.splice(deletedButtonIndex, 1);
-
-      this.stateChangeButtons.push(deletedButton);
-    }
+    this.stateChangeButtons.sort((a, b) => STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(a.state) - STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(b.state));
   }
 
   private isSkipApprovalStateChange(state: OrderStatus): boolean {

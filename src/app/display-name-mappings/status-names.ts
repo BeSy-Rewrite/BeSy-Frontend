@@ -5,7 +5,6 @@ const NBSP = '\u00A0';
 export const USED_STATES: state[] = [
   state.IN_PROGRESS,
   state.COMPLETED,
-  //state.APPROVALS_RECEIVED,
   state.DEKAN_PENDING,
   state.APPROVED,
   state.SENT,
@@ -79,7 +78,7 @@ export const STATE_CHANGE_TO_NAMES = new Map<state | string, string>([
   [state.DELETED, 'Löschen'],
 ]);
 
-export const STATE_CHANGE_TO_DESCRIPTIONS = new Map<state | string, string>([
+export const STATE_CHANGE_TO_DESCRIPTIONS = new Map<state, string>([
   [state.IN_PROGRESS, 'Die Bestellung auf "In Bearbeitung" setzen, damit sie bearbeitet werden kann.'],
   [state.COMPLETED, 'Die Bearbeitung der Bestellung abschließen.'],
   [state.APPROVALS_RECEIVED, 'Die erforderlichen Genehmigungen als erhalten markieren.'],
@@ -91,3 +90,16 @@ export const STATE_CHANGE_TO_DESCRIPTIONS = new Map<state | string, string>([
   [state.ARCHIVED, 'Die Bestellung archivieren.'],
   [state.DELETED, 'Die Bestellung löschen.'],
 ]);
+
+// Order of states for the buttons in the order details view.
+export const STATE_CHANGE_BUTTON_DISPLAY_ORDER: state[] = [
+  state.ARCHIVED,
+  state.SETTLED,
+  state.SENT,
+  state.DEKAN_PENDING,
+  state.APPROVED,
+  state.REJECTED,
+  state.COMPLETED,
+  state.IN_PROGRESS,
+  state.DELETED,
+];
