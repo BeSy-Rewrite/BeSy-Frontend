@@ -230,7 +230,7 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
       filterable: true,
       tooltip: 'Der Name des Unternehmens, welches das Vergleichsangebot abgegeben hat.',
       emitAsSignal: true,
-      requireSelection: true,
+      requireSelection: false,
     },
     {
       name: 'company_city',
