@@ -163,7 +163,9 @@
           }
 
           @case ('approvals') {
-            <app-approvals [orderId]="internalOrder().order.id!" />
+            <div class="min-[108rem]:max-w-2xl">
+              <app-approvals [orderId]="internalOrder().order.id!" />
+            </div>
           }
 
           @case ('history') {
