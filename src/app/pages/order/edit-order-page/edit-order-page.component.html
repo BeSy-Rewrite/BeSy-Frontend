@@ -12,8 +12,7 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('All')"
-          [disabled]="!isAnyTabEditable()"
-        >
+          [disabled]="!isAnyTabEditable()">
           <mat-icon iconPositionStart>restore</mat-icon>
           Alle Änderungen verwerfen
         </button>
@@ -23,8 +22,7 @@
     <div class="flex-1 flex justify-center">
       <a
         routerLink="../"
-        class="order-info-card flex flex-col items-center px-6 py-2 bg-white rounded-lg shadow-md border border-gray-200"
-      >
+        class="order-info-card flex flex-col items-center px-6 py-2 bg-white rounded-lg shadow-md border border-gray-200">
         <span class="text-xs text-gray-500 uppercase tracking-wide">Bestellung</span>
         <span class="text-lg font-bold text-gray-900">{{ orderName() }}</span>
         <span class="text-xs text-gray-400">{{ orderBesyId() }}</span>
@@ -37,8 +35,7 @@
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('All')"
-          [disabled]="!isAnyTabEditable()"
-        >
+          [disabled]="!isAnyTabEditable()">
           <mat-icon iconPositionStart>save</mat-icon>
           Alle Änderungen speichern
         </button>
@@ -49,8 +46,7 @@
         color="accent"
         (click)="startTour()"
         matTooltip="Bestellungsansicht erklären lassen"
-        aria-label="Bestellungsansicht erklären lassen"
-      >
+        aria-label="Bestellungsansicht erklären lassen">
         <mat-icon>help</mat-icon>
       </button>
     </div>
@@ -58,12 +54,11 @@
 
   <!-- Read-only status banner -->
   @if (readOnlyBannerMessage()) {
-    <div
-      class="w-full flex justify-center items-center py-3 px-4 mb-4 rounded-md bg-amber-100 border border-amber-400 text-amber-800"
-    >
-      <mat-icon class="mr-2 text-amber-600">info</mat-icon>
-      <span class="text-sm font-medium">{{ readOnlyBannerMessage() }}</span>
-    </div>
+  <div
+    class="w-full flex justify-center items-center py-3 px-4 mb-4 rounded-md bg-amber-100 border border-amber-400 text-amber-800">
+    <mat-icon class="mr-2 text-amber-600">info</mat-icon>
+    <span class="text-sm font-medium">{{ readOnlyBannerMessage() }}</span>
+  </div>
   }
 
   <mat-tab-group
@@ -71,8 +66,7 @@
     mat-align-tabs="start"
     class="mb-4"
     [selectedIndex]="selectedTabIndex()"
-    (selectedTabChange)="onTabIndexChange($event.index)"
-  >
+    (selectedTabChange)="onTabIndexChange($event.index)">
     <!-- General Information -->
     <mat-tab label="Allgemeine Angaben">
       <mat-divider class="tab-divider"></mat-divider>
@@ -81,16 +75,14 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('General')"
-          [disabled]="!isTabEditable('General')"
-        >
+          [disabled]="!isTabEditable('General')">
           Änderungen auf dieser Seite verwerfen
         </button>
         <button
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('General')"
-          [disabled]="!isTabEditable('General')"
-        >
+          [disabled]="!isTabEditable('General')">
           Speichern und weiter
         </button>
       </div>
@@ -98,27 +90,23 @@
         <app-form-component
           [config]="generalFormConfig"
           [formGroup]="generalFormGroup"
-          [editMode]="true"
-        ></app-form-component>
+          [editMode]="true"></app-form-component>
         <div class="cost-center-container">
           <app-form-component
             [config]="primaryCostCenterFormConfig"
             [formGroup]="primaryCostCenterFormGroup"
-            [refreshTrigger]="primaryCostCenterConfigRefreshTrigger()"
-          ></app-form-component>
+            [refreshTrigger]="primaryCostCenterConfigRefreshTrigger()"></app-form-component>
 
           <app-form-component
             [config]="secondaryCostCenterFormConfig"
             [formGroup]="secondaryCostCenterFormGroup"
-            [refreshTrigger]="secondaryCostCenterConfigRefreshTrigger()"
-          ></app-form-component>
+            [refreshTrigger]="secondaryCostCenterConfigRefreshTrigger()"></app-form-component>
         </div>
         <div class="queries-person-container">
           <app-form-component
             [config]="queriesPersonFormConfig"
             [formGroup]="queriesPersonFormGroup"
-            [refreshTrigger]="queriesPersonConfigRefreshTrigger()"
-          ></app-form-component>
+            [refreshTrigger]="queriesPersonConfigRefreshTrigger()"></app-form-component>
         </div>
       </div>
     </mat-tab>
@@ -131,16 +119,14 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('Items')"
-          [disabled]="!isTabEditable('Items')"
-        >
+          [disabled]="!isTabEditable('Items')">
           Änderungen auf dieser Seite verwerfen
         </button>
         <button
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('Items')"
-          [disabled]="!isTabEditable('Items')"
-        >
+          [disabled]="!isTabEditable('Items')">
           Speichern und weiter
         </button>
       </div>
@@ -151,8 +137,7 @@
             class="mb-4 w-full"
             color="primary"
             (click)="openAddItemDialog()"
-            [disabled]="!isTabEditable('Items')"
-          >
+            [disabled]="!isTabEditable('Items')">
             Position hinzufügen
           </button>
         </div>
@@ -163,8 +148,7 @@
             <app-form-component
               [config]="orderItemFormConfig"
               [formGroup]="orderItemFormGroup"
-              [refreshTrigger]="orderItemFormConfigRefreshTrigger()"
-            ></app-form-component>
+              [refreshTrigger]="orderItemFormConfigRefreshTrigger()"></app-form-component>
           </mat-dialog-content>
           <mat-dialog-actions align="end">
             <button mat-stroked-button color="warn" (click)="cancelAddItemDialog()">
@@ -178,8 +162,7 @@
           <app-generic-table
             [dataSource]="itemTableDataSource"
             [columns]="orderItemColumns"
-            [actions]="orderItemTableActions"
-          ></app-generic-table>
+            [actions]="orderItemTableActions"></app-generic-table>
         </div>
       </div>
     </mat-tab>
@@ -192,16 +175,14 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('MainOffer')"
-          [disabled]="!isTabEditable('MainOffer')"
-        >
+          [disabled]="!isTabEditable('MainOffer')">
           Änderungen auf dieser Seite verwerfen
         </button>
         <button
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('MainOffer')"
-          [disabled]="!isTabEditable('MainOffer')"
-        >
+          [disabled]="!isTabEditable('MainOffer')">
           Speichern und weiter
         </button>
       </div>
@@ -212,8 +193,7 @@
             [config]="mainOfferFormConfig"
             [formGroup]="mainOfferFormGroup"
             [refreshTrigger]="mainOfferConfigRefreshTrigger()"
-            (valueChanged)="onMainOfferFormGroupChanged($event)"
-          ></app-form-component>
+            (valueChanged)="onMainOfferFormGroupChanged($event)"></app-form-component>
         </div>
 
         <!-- Supplier Decision Reason -->
@@ -221,8 +201,7 @@
           <app-form-component
             [config]="supplierDecisionReasonFormConfig"
             [formGroup]="supplierDecisionReasonFormGroup"
-            (valueChanged)="onSupplierDecisionReasonChanged($event)"
-          ></app-form-component>
+            (valueChanged)="onSupplierDecisionReasonChanged($event)"></app-form-component>
         </div>
       </div>
     </mat-tab>
@@ -235,16 +214,14 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('Quotations')"
-          [disabled]="!isTabEditable('Quotations')"
-        >
+          [disabled]="!isTabEditable('Quotations')">
           Änderungen auf dieser Seite verwerfen
         </button>
         <button
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('Quotations')"
-          [disabled]="!isTabEditable('Quotations')"
-        >
+          [disabled]="!isTabEditable('Quotations')">
           Speichern und weiter
         </button>
       </div>
@@ -254,8 +231,7 @@
           class="w-full mb-4"
           color="primary"
           (click)="openAddQuotationDialog()"
-          [disabled]="!isTabEditable('Quotations')"
-        >
+          [disabled]="!isTabEditable('Quotations')">
           Vergleichsangebot hinzufügen
         </button>
 
@@ -265,7 +241,8 @@
             <app-form-component
               [config]="quotationFormConfig"
               [formGroup]="quotationFormGroup"
-            ></app-form-component>
+              [refreshTrigger]="quotationFormConfigRefreshTrigger()"
+              (valueChanged)="handleQuotationDialogCompanySelection($event)"></app-form-component>
           </mat-dialog-content>
           <mat-dialog-actions align="end">
             <button mat-stroked-button color="warn" (click)="cancelAddQuotationDialog()">
@@ -281,8 +258,7 @@
           <app-generic-table
             [dataSource]="quotationTableDataSource"
             [columns]="orderQuotationColumns"
-            [actions]="orderQuotationTableActions"
-          ></app-generic-table>
+            [actions]="orderQuotationTableActions"></app-generic-table>
         </div>
       </div>
     </mat-tab>
@@ -293,16 +269,14 @@
           mat-raised-button
           color="warn"
           (click)="resetToDefault('Addresses')"
-          [disabled]="!isTabEditable('Addresses')"
-        >
+          [disabled]="!isTabEditable('Addresses')">
           Änderungen auf dieser Seite verwerfen
         </button>
         <button
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('Addresses')"
-          [disabled]="!isTabEditable('Addresses')"
-        >
+          [disabled]="!isTabEditable('Addresses')">
           Speichern und weiter
         </button>
       </div>
@@ -312,44 +286,38 @@
             [config]="deliveryPersonFormConfig"
             [formGroup]="deliveryPersonFormGroup"
             (valueChanged)="onAddressPersonSelected($event, true)"
-            [refreshTrigger]="deliveryPersonConfigRefreshTrigger()"
-          ></app-form-component>
+            [refreshTrigger]="deliveryPersonConfigRefreshTrigger()"></app-form-component>
         </div>
         <div
           class="delivery-address-container mt-4"
-          [class]="`${environment.orderFieldClassPrefix}delivery_address_id`"
-        >
+          [class]="`${environment.orderFieldClassPrefix}delivery_address_id`">
           @if (isTabEditable('Addresses')) {
-            <mat-button-toggle-group
-              name="deliveryAddressOptions"
-              [(ngModel)]="deliveryAddressOption"
-              (change)="onAddressOptionChanged($event.value, true)"
-              [disabled]="!isTabEditable('Addresses')"
-              aria-label="Addressoption auswählen"
-              class="w-full flex"
-            >
-              <!-- -->
-              @if (deliveryPersonHasExistingAddress) {
-                <mat-button-toggle value="existing" class="flex-1"
-                  >Gespeicherte Lieferadresse</mat-button-toggle
-                >
-              }
-              <mat-button-toggle
-                value="preferred"
-                [disabled]="!deliveryPersonHasPreferredAddress"
-                class="flex-1"
-              >
-                Bevorzugte Adresse
-              </mat-button-toggle>
+          <mat-button-toggle-group
+            name="deliveryAddressOptions"
+            [(ngModel)]="deliveryAddressOption"
+            (change)="onAddressOptionChanged($event.value, true)"
+            [disabled]="!isTabEditable('Addresses')"
+            aria-label="Addressoption auswählen"
+            class="w-full flex">
+            <!-- -->
+            @if (deliveryPersonHasExistingAddress) {
+            <mat-button-toggle value="existing" class="flex-1">Gespeicherte Lieferadresse</mat-button-toggle>
+            }
+            <mat-button-toggle
+              value="preferred"
+              [disabled]="!deliveryPersonHasPreferredAddress"
+              class="flex-1">
+              Bevorzugte Adresse
+            </mat-button-toggle>
 
-              <mat-button-toggle value="selected" class="flex-1">
-                Bestehende Adresse auswählen
-              </mat-button-toggle>
+            <mat-button-toggle value="selected" class="flex-1">
+              Bestehende Adresse auswählen
+            </mat-button-toggle>
 
-              <mat-button-toggle value="new" class="flex-1">
-                Neue Adresse erstellen
-              </mat-button-toggle>
-            </mat-button-toggle-group>
+            <mat-button-toggle value="new" class="flex-1">
+              Neue Adresse erstellen
+            </mat-button-toggle>
+          </mat-button-toggle-group>
           }
           <div class="delivery-info mt-4">
             <!-- Info Text -->
@@ -360,118 +328,106 @@
           <div class="spacing-container my-4"></div>
           <!-- Table for existing addresses -->
           @if (deliveryAddressOption === 'selected') {
-            <div class="table-container w-full my-4">
-              @if (addressTableDataSource.data.length > 0) {
-                <app-generic-table
-                  [dataSource]="addressTableDataSource"
-                  [columns]="addressTableColumns"
-                  (rowClicked)="onAddressInTableSelected($event, true)"
-                ></app-generic-table>
-              } @else {
-                <p class="mt-2 mb-2 text-sm text-gray-700">
-                  Fehler beim Laden der Adressen. Bitte versuchen Sie es später erneut.
-                </p>
-              }
-            </div>
+          <div class="table-container w-full my-4">
+            @if (addressTableDataSource.data.length > 0) {
+            <app-generic-table
+              [dataSource]="addressTableDataSource"
+              [columns]="addressTableColumns"
+              (rowClicked)="onAddressInTableSelected($event, true)"></app-generic-table>
+            } @else {
+            <p class="mt-2 mb-2 text-sm text-gray-700">
+              Fehler beim Laden der Adressen. Bitte versuchen Sie es später erneut.
+            </p>
+            }
+          </div>
           }
           <app-form-component
             [config]="deliveryAddressFormConfig"
-            [formGroup]="deliveryAddressFormGroup"
-          ></app-form-component>
+            [formGroup]="deliveryAddressFormGroup"></app-form-component>
           @if (selectedDeliveryPerson) {
-            <div class="flex flex-col">
-              <label
-                for="sameAsRecipientGroup"
-                class="block mb-2 text-medium font-semibold text-gray-700"
-              >
-                Entspricht Empfänger und Lieferadresse dem Rechnungsempfänger und der
-                Rechnungsadresse?
-              </label>
-              <mat-radio-group
-                id="sameAsRecipientGroup"
-                [(ngModel)]="sameAsRecipient"
-                [disabled]="!isTabEditable('Addresses')"
-                class="flex space-x-4"
-              >
-                <mat-radio-button [value]="true">Ja</mat-radio-button>
-                <mat-radio-button [value]="false">Nein</mat-radio-button>
-              </mat-radio-group>
-            </div>
+          <div class="flex flex-col">
+            <label
+              for="sameAsRecipientGroup"
+              class="block mb-2 text-medium font-semibold text-gray-700">
+              Entspricht Empfänger und Lieferadresse dem Rechnungsempfänger und der
+              Rechnungsadresse?
+            </label>
+            <mat-radio-group
+              id="sameAsRecipientGroup"
+              [(ngModel)]="sameAsRecipient"
+              [disabled]="!isTabEditable('Addresses')"
+              class="flex space-x-4">
+              <mat-radio-button [value]="true">Ja</mat-radio-button>
+              <mat-radio-button [value]="false">Nein</mat-radio-button>
+            </mat-radio-group>
+          </div>
           }
           <!-- Rechnungsadresse -->
           @if (!sameAsRecipient && selectedDeliveryPerson) {
-            <div
-              class="invoice-address-container mt-4"
-              [class]="`${environment.orderFieldClassPrefix}invoice_address_id`"
-            >
-              <app-form-component
-                [config]="invoicePersonFormConfig"
-                [formGroup]="invoicePersonFormGroup"
-                (valueChanged)="onAddressPersonSelected($event, false)"
-                [refreshTrigger]="invoicePersonConfigRefreshTrigger()"
-              ></app-form-component>
+          <div
+            class="invoice-address-container mt-4"
+            [class]="`${environment.orderFieldClassPrefix}invoice_address_id`">
+            <app-form-component
+              [config]="invoicePersonFormConfig"
+              [formGroup]="invoicePersonFormGroup"
+              (valueChanged)="onAddressPersonSelected($event, false)"
+              [refreshTrigger]="invoicePersonConfigRefreshTrigger()"></app-form-component>
 
-              @if (selectedInvoicePerson && isTabEditable('Addresses')) {
-                <mat-button-toggle-group
-                  name="invoiceAddressOptions"
-                  (change)="onAddressOptionChanged($event.value, false)"
-                  [disabled]="!isTabEditable('Addresses')"
-                  aria-label="Addressoption auswählen"
-                  [(ngModel)]="invoiceAddressOption"
-                  class="flex-1"
-                >
-                  <!-- Existing Address -->
-                  @if (invoicePersonHasExistingAddress) {
-                    <mat-button-toggle value="existing" class="flex-1"
-                      >Gespeicherte Rechnungsadresse</mat-button-toggle
-                    >
-                  }
-                  <mat-button-toggle
-                    value="preferred"
-                    [disabled]="!invoicePersonHasPreferredAddress"
-                    class="flex-1"
-                  >
-                    Bevorzugte Adresse
-                  </mat-button-toggle>
+            @if (selectedInvoicePerson && isTabEditable('Addresses')) {
+            <mat-button-toggle-group
+              name="invoiceAddressOptions"
+              (change)="onAddressOptionChanged($event.value, false)"
+              [disabled]="!isTabEditable('Addresses')"
+              aria-label="Addressoption auswählen"
+              [(ngModel)]="invoiceAddressOption"
+              class="flex-1">
+              <!-- Existing Address -->
+              @if (invoicePersonHasExistingAddress) {
+              <mat-button-toggle value="existing" class="flex-1">Gespeicherte Rechnungsadresse</mat-button-toggle>
+              }
+              <mat-button-toggle
+                value="preferred"
+                [disabled]="!invoicePersonHasPreferredAddress"
+                class="flex-1">
+                Bevorzugte Adresse
+              </mat-button-toggle>
 
-                  <mat-button-toggle value="selected" class="flex-1">
-                    Bestehende Adresse auswählen
-                  </mat-button-toggle>
-                  <mat-button-toggle value="new" class="flex-1">
-                    Neue Adresse erstellen
-                  </mat-button-toggle>
-                </mat-button-toggle-group>
+              <mat-button-toggle value="selected" class="flex-1">
+                Bestehende Adresse auswählen
+              </mat-button-toggle>
+              <mat-button-toggle value="new" class="flex-1">
+                Neue Adresse erstellen
+              </mat-button-toggle>
+            </mat-button-toggle-group>
 
-                <div class="invoice-info mt-4">
-                  <!-- Info Text -->
-                  <p class="mt-2 mb-2 text-sm text-red-700">
-                    {{ invoiceInfoText }}
-                  </p>
-                </div>
+            <div class="invoice-info mt-4">
+              <!-- Info Text -->
+              <p class="mt-2 mb-2 text-sm text-red-700">
+                {{ invoiceInfoText }}
+              </p>
+            </div>
 
-                <!-- Table for existing addresses -->
-                @if (invoiceAddressOption === 'selected') {
-                  <div class="table-container w-full mt-4">
-                    @if (addressTableDataSource.data.length > 0) {
-                      <app-generic-table
-                        [dataSource]="addressTableDataSource"
-                        [columns]="addressTableColumns"
-                        (rowClicked)="onAddressInTableSelected($event, false)"
-                      ></app-generic-table>
-                    } @else {
-                      <p class="mt-2 mb-2 text-sm text-gray-700">
-                        Fehler beim Laden der Adressen. Bitte versuchen Sie es später erneut.
-                      </p>
-                    }
-                  </div>
-                }
-
-                <app-form-component
-                  [config]="invoiceAddressFormConfig"
-                  [formGroup]="invoiceAddressFormGroup"
-                ></app-form-component>
+            <!-- Table for existing addresses -->
+            @if (invoiceAddressOption === 'selected') {
+            <div class="table-container w-full mt-4">
+              @if (addressTableDataSource.data.length > 0) {
+              <app-generic-table
+                [dataSource]="addressTableDataSource"
+                [columns]="addressTableColumns"
+                (rowClicked)="onAddressInTableSelected($event, false)"></app-generic-table>
+              } @else {
+              <p class="mt-2 mb-2 text-sm text-gray-700">
+                Fehler beim Laden der Adressen. Bitte versuchen Sie es später erneut.
+              </p>
               }
             </div>
+            }
+
+            <app-form-component
+              [config]="invoiceAddressFormConfig"
+              [formGroup]="invoiceAddressFormGroup"></app-form-component>
+            }
+          </div>
           }
         </div>
       </div>
@@ -480,36 +436,32 @@
       <mat-divider class="tab-divider"></mat-divider>
       <!-- Read-only status banner -->
       @if (readOnlyBannerMessageApprovalTab()) {
-        <div
-          class="w-full flex justify-center items-center py-3 px-4 mb-4 rounded-md bg-amber-100 border border-amber-400 text-amber-800"
-        >
-          <mat-icon class="mr-2 text-amber-600">info</mat-icon>
-          <span class="text-sm font-medium">{{ readOnlyBannerMessageApprovalTab() }}</span>
-        </div>
+      <div
+        class="w-full flex justify-center items-center py-3 px-4 mb-4 rounded-md bg-amber-100 border border-amber-400 text-amber-800">
+        <mat-icon class="mr-2 text-amber-600">info</mat-icon>
+        <span class="text-sm font-medium">{{ readOnlyBannerMessageApprovalTab() }}</span>
+      </div>
       }
       <div class="buttons w-full flex ml-auto justify-between items-start mt-2">
         <button
           mat-raised-button
           color="warn"
           (click)="resetToDefault('Approvals')"
-          [disabled]="!isTabEditable('Approvals')"
-        >
+          [disabled]="!isTabEditable('Approvals')">
           Änderungen auf dieser Seite verwerfen
         </button>
         <button
           mat-raised-button
           color="primary"
           (click)="patchOrderFromForm('Approvals')"
-          [disabled]="!isTabEditable('Approvals')"
-        >
+          [disabled]="!isTabEditable('Approvals')">
           Speichern und weiter
         </button>
       </div>
       <div class="approval-container">
         <app-form-component
           [config]="approvalFormConfig"
-          [formGroup]="approvalFormGroup"
-        ></app-form-component>
+          [formGroup]="approvalFormGroup"></app-form-component>
       </div>
     </mat-tab>
 
