@@ -1,5 +1,16 @@
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { from, lastValueFrom, map, mergeMap, Observable, Subject, tap } from 'rxjs';
+import {
+  catchError,
+  from,
+  lastValueFrom,
+  map,
+  mergeMap,
+  Observable,
+  Subject,
+  tap,
+  throwError,
+} from 'rxjs';
 import {
   ApprovalResponseDTO,
   ItemRequestDTO,
@@ -79,7 +90,7 @@ export class OrdersWrapperService {
     private readonly suppliersWrapperService: SuppliersWrapperService,
     private readonly usersWrapperService: UsersWrapperService,
     private readonly utilsService: UtilsService
-  ) { }
+  ) {}
 
   /**
    * Should be called whenever orders are created, updated, or deleted to clear the cache.
@@ -239,7 +250,56 @@ export class OrdersWrapperService {
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
-    return this.ordersService.exportOrderToFormula(Number.parseInt(orderId));
+    const parseJsonBlobError = (blob: Blob): Observable<never> =>
+      from(blob.text()).pipe(
+        mergeMap(text => {
+          try {
+            return throwError(() => JSON.parse(text));
+          } catch {
+            return throwError(() => new Error(text));
+          }
+        })
+      );
+
+    /*
+     * As openapitools generator cli doesnt seem to support multiple response content types,
+     * it must be set manually with this ugly cast.
+     * The backend will return application/json in case of an error and application/pdf in case of success,
+     * which is handled in the following code by checking the content type of the response.
+     *
+     * The backend will only return generic 500 errors if the accept header is set to only application/pdf.
+     */
+    return this.ordersService
+      .exportOrderToFormula(Number.parseInt(orderId), 'response', false, {
+        httpHeaderAccept: 'application/pdf, application/json' as 'application/pdf',
+      })
+      .pipe(
+        mergeMap((response: HttpResponse<Blob>) => {
+          const contentType = (
+            response.headers.get('Content-Type') ??
+            response.body?.type ??
+            ''
+          ).toLowerCase();
+
+          if (contentType.includes('application/json') && response.body) {
+            return parseJsonBlobError(response.body);
+          }
+
+          return [response.body as Blob];
+        }),
+        catchError((error: unknown) => {
+          const httpError = error as HttpErrorResponse;
+
+          if (
+            httpError?.error instanceof Blob &&
+            httpError.error.type.includes('application/json')
+          ) {
+            return parseJsonBlobError(httpError.error);
+          }
+
+          return throwError(() => error);
+        })
+      );
   }
 
   async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
@@ -310,14 +370,14 @@ export class OrdersWrapperService {
     ] = await Promise.all([
       order.primary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-          order.primary_cost_center_id
-        )
+            order.primary_cost_center_id
+          )
         : Promise.resolve(undefined),
 
       order.secondary_cost_center_id
         ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-          order.secondary_cost_center_id
-        )
+            order.secondary_cost_center_id
+          )
         : Promise.resolve(undefined),
 
       order.delivery_person_id

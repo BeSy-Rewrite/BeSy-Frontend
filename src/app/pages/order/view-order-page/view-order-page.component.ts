@@ -224,7 +224,7 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly mailTrackingService: MailTrackingService,
     private readonly utilsService: UtilsService,
     private readonly titleService: Title
-  ) { }
+  ) {}
 
   /**
    * Initializes the component, fetching necessary data and setting up state transitions.
@@ -312,10 +312,14 @@ export class ViewOrderPageComponent implements OnInit {
           this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
         },
         error: err => {
-          console.error('Failed to export order', err.message ?? err);
-          this.snackBar.open('Bestellung konnte nicht exportiert werden. ' + (err.message ?? err), 'Schließen', {
-            duration: 5000,
-          });
+          console.error('Failed to export order', err);
+          this.snackBar.open(
+            'Bestellung konnte nicht exportiert werden. ' + (err.message ?? err),
+            'Schließen',
+            {
+              duration: 5000,
+            }
+          );
         },
       });
   }
@@ -365,9 +369,12 @@ export class ViewOrderPageComponent implements OnInit {
         color = 'accent';
       }
 
-      if (state === OrderStatus.COMPLETED &&
-        this.internalOrder().order.status === OrderStatus.DEKAN_PENDING) {
-        label = STATE_CHANGE_TO_NAMES.get(OrderStatus.REJECTED) ?? `change to ${OrderStatus.REJECTED}`;
+      if (
+        state === OrderStatus.COMPLETED &&
+        this.internalOrder().order.status === OrderStatus.DEKAN_PENDING
+      ) {
+        label =
+          STATE_CHANGE_TO_NAMES.get(OrderStatus.REJECTED) ?? `change to ${OrderStatus.REJECTED}`;
         icon = STATE_ICONS.get(OrderStatus.REJECTED) ?? '';
         tooltip = STATE_CHANGE_TO_DESCRIPTIONS.get(OrderStatus.REJECTED) ?? '';
         color = 'warn';
@@ -388,7 +395,11 @@ export class ViewOrderPageComponent implements OnInit {
       });
     }
 
-    this.stateChangeButtons.sort((a, b) => STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(a.state) - STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(b.state));
+    this.stateChangeButtons.sort(
+      (a, b) =>
+        STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(a.state) -
+        STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(b.state)
+    );
   }
 
   private isSkipApprovalStateChange(state: OrderStatus): boolean {
