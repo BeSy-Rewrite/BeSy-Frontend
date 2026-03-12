@@ -1128,8 +1128,24 @@ paths:
           description: PDF-Formular der Bestellung erfolgreich abgerufen.
           content:
             application/pdf: {}
+        "400":
+          description: Ungültige Anfrage.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
         "404":
           description: Bestellung nicht gefunden.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Interner Serverfehler.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 
   /cost_centers:
     get:
@@ -2063,6 +2079,21 @@ components:
           example: 2025-08-24T19:11:01.398273
           type: string
           format: date
+
+    ErrorResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+        status:
+          type: integer
+        error:
+          type: string
+        message:
+          type: string
+        path:
+          type: string
 
     InvoiceRequestDTO:
       type: object

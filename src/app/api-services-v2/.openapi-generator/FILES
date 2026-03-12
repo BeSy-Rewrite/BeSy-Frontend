@@ -24,6 +24,7 @@ model/costCenterResponseDTO.ts
 model/currencyResponseDTO.ts
 model/customerIdRequestDTO.ts
 model/customerIdResponseDTO.ts
+model/errorResponse.ts
 model/invoiceRequestDTO.ts
 model/invoiceResponseDTO.ts
 model/itemRequestDTO.ts
