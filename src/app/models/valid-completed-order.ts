@@ -19,7 +19,7 @@ export const ValidCompletedOrder = zod.object({
   delivery_person_id: zod.number(),
   queries_person_id: zod.number(),
   supplier_id: zod.number(),
-  secondary_cost_center_id: zod.string(),
+  secondary_cost_center_id: zod.string().nullable(),
   delivery_address_id: zod.number(),
   invoice_address_id: zod.number(),
 });
