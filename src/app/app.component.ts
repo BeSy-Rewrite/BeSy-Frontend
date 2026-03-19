@@ -10,6 +10,7 @@ import { HomebarComponent } from './components/homebar/homebar.component';
 import { ToastComponent } from './components/toast/toast.component';
 import { WrappedBannerComponent } from './components/wrapped-banner/wrapped-banner.component';
 import { AuthenticationService } from './services/authentication.service';
+import { TrackingService } from './services/tracking.service';
 
 @Component({
   selector: 'app-root',
@@ -32,7 +33,8 @@ export class AppComponent {
   constructor(
     public readonly authService: AuthenticationService,
     private readonly iconRegistry: MatIconRegistry,
-    private readonly domSanitizer: DomSanitizer
+    private readonly domSanitizer: DomSanitizer,
+    _: TrackingService
   ) {
     this.iconRegistry.addSvgIcon(
       'cancel',
