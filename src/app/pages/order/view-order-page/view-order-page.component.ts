@@ -303,10 +303,12 @@ export class ViewOrderPageComponent implements OnInit {
 
           link.href = objectUrl;
 
-          link.download = `${this.internalOrder().orderDisplay.besy_number}.pdf`.replaceAll(
-            '/',
-            '_'
-          );
+          link.download = `${this.internalOrder().orderDisplay.besy_number}.pdf`
+            .replaceAll(
+              environment.besyNumber.separator,
+              environment.besyNumber.separatorFileExport
+            )
+            .replace(/\s/, '_');
 
           link.click();
 

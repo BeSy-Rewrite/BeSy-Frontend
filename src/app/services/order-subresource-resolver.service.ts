@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
+import { environment } from '../../environments/environment';
 import {
   CostCenterResponseDTO,
   CurrencyResponseDTO,
@@ -325,7 +326,7 @@ export class OrderSubresourceResolverService {
     if (orderNumber.some(part => part === undefined || part === null || part === '')) {
       return undefined;
     }
-    return orderNumber.join('/');
+    return environment.besyNumber.prefix + orderNumber.join(environment.besyNumber.separator);
   }
 
   /**
