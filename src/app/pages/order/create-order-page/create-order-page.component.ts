@@ -79,6 +79,8 @@ export class CreateOrderPageComponent implements OnInit {
     this.formatPersons();
 
     this.registerTourSteps();
+
+    this.resetForms();
   }
 
   /**
@@ -158,7 +160,7 @@ export class CreateOrderPageComponent implements OnInit {
         });
 
         // Navigate to the edit page of the newly created order
-        this.router.navigate(['/orders', createdOrder.id, 'edit']);
+        this.router.navigate(['/orders', createdOrder.id, 'edit']).then(() => this.resetForms());
       } else {
         this._notifications.open(
           'Interner Fehler beim Erstellen der Bestellung. Bitte versuchen Sie es später erneut.',
@@ -174,6 +176,17 @@ export class CreateOrderPageComponent implements OnInit {
         duration: 5000,
       });
     }
+  }
+
+  resetForms() {
+    this.generalFormGroup.reset();
+    this.generalFormGroup.patchValue({
+      booking_year: new Date().getFullYear().toString(),
+    });
+    this.primaryCostCenterFormGroup.reset();
+    this.secondaryCostCenterFormGroup.reset();
+    this.queriesPersonFormGroup.reset();
+    this.progressBarStepIndex = 0;
   }
 
   private registerTourSteps() {
