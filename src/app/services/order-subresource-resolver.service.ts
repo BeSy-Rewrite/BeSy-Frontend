@@ -1,6 +1,14 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
-import { CostCenterResponseDTO, CurrencyResponseDTO, ItemResponseDTO, OrderResponseDTO, PersonResponseDTO, SupplierResponseDTO, UserResponseDTO } from '../api-services-v2';
+import {
+  CostCenterResponseDTO,
+  CurrencyResponseDTO,
+  ItemResponseDTO,
+  OrderResponseDTO,
+  PersonResponseDTO,
+  SupplierResponseDTO,
+  UserResponseDTO,
+} from '../api-services-v2';
 import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-names';
 import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
 import { OrderDisplayData } from '../models/order-display-data';
@@ -21,7 +29,7 @@ type numberOrString = number | string | undefined;
 /**
  * Minimal shape of objects that can be identified either by `id` or `code`.
  */
-type IdAble = { id?: number | string; } | { code?: string; };
+type IdAble = { id?: number | string } | { code?: string };
 
 /**
  * Generic helper that loads, caches, and formats subresources for display.
@@ -46,21 +54,20 @@ class ResourceFormatter<T extends IdAble> {
     private readonly fetchAll: () => Promise<T[]>,
     private readonly debounceMs: number = 300
   ) {
-    this.requestFetch
-      .pipe(debounceTime(this.debounceMs))
-      .subscribe(() =>
-        this.fetchAll().then(resources => {
-          const map = new Map<numberOrString, T>();
-          for (const resource of resources) {
-            if ('id' in resource && resource.id) map.set(resource.id.toString().trim(), resource);
-            if ('code' in resource && resource.code) map.set(resource.code.toString().trim(), resource);
-          }
-          this.fetchInProgress = false;
-          this.mapping.next(map);
-          this.mapping.complete();
-          this.mapping = new BehaviorSubject<Map<numberOrString, T>>(map);
-        })
-      );
+    this.requestFetch.pipe(debounceTime(this.debounceMs)).subscribe(() =>
+      this.fetchAll().then(resources => {
+        const map = new Map<numberOrString, T>();
+        for (const resource of resources) {
+          if ('id' in resource && resource.id) map.set(resource.id.toString().trim(), resource);
+          if ('code' in resource && resource.code)
+            map.set(resource.code.toString().trim(), resource);
+        }
+        this.fetchInProgress = false;
+        this.mapping.next(map);
+        this.mapping.complete();
+        this.mapping = new BehaviorSubject<Map<numberOrString, T>>(map);
+      })
+    );
   }
 
   /**
@@ -82,14 +89,14 @@ class ResourceFormatter<T extends IdAble> {
       this.requestFetch.next();
     }
 
-    return this.mapping.asObservable().pipe(
-      map(mapping => mapping.has(id) ? this.formatter(mapping.get(id)!) : '')
-    );
+    return this.mapping
+      .asObservable()
+      .pipe(map(mapping => (mapping.has(id) ? this.formatter(mapping.get(id)!) : '')));
   }
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class OrderSubresourceResolverService {
   /** Formats currencies for display and caches them by id/code. */
@@ -114,23 +121,26 @@ export class OrderSubresourceResolverService {
     private readonly costCentersService: CostCenterWrapperService,
     private readonly suppliersService: SuppliersWrapperService
   ) {
-
     this.currencyFormatter = new ResourceFormatter<CurrencyResponseDTO>(
-      (c) => this.formatCurrency(c), () => this.currenciesService.getAllCurrencies()
+      c => this.formatCurrency(c),
+      () => this.currenciesService.getAllCurrencies()
     );
     this.userFormatter = new ResourceFormatter<UserResponseDTO>(
-      (u) => this.formatUser(u), () => this.usersService.getAllUsers()
+      u => this.formatUser(u),
+      () => this.usersService.getAllUsers()
     );
     this.personFormatter = new ResourceFormatter<PersonResponseDTO>(
-      (p) => this.formatPerson(p), () => this.personsService.getAllPersons()
+      p => this.formatPerson(p),
+      () => this.personsService.getAllPersons()
     );
     this.costCenterFormatter = new ResourceFormatter<CostCenterResponseDTO>(
-      (c) => this.formatCostCenter(c), () => this.costCentersService.getAllCostCenters()
+      c => this.formatCostCenter(c),
+      () => this.costCentersService.getAllCostCenters()
     );
     this.supplierFormatter = new ResourceFormatter<SupplierResponseDTO>(
-      (s) => this.formatSupplier(s), () => this.suppliersService.getAllSuppliers()
+      s => this.formatSupplier(s),
+      () => this.suppliersService.getAllSuppliers()
     );
-
   }
 
   /**
@@ -148,7 +158,7 @@ export class OrderSubresourceResolverService {
       invoicePerson: this.personFormatter.format(order.invoice_person_id),
       queriesPerson: this.personFormatter.format(order.queries_person_id),
       supplier: this.supplierFormatter.format(order.supplier_id),
-      secondaryCostCenter: this.costCenterFormatter.format(order.secondary_cost_center_id ?? '')
+      secondaryCostCenter: this.costCenterFormatter.format(order.secondary_cost_center_id ?? ''),
     }).pipe(
       map(results => {
         const data = this.convertOrderToDisplayData(order);
@@ -203,10 +213,14 @@ export class OrderSubresourceResolverService {
     data.cashback_days = order.cashback_days?.toString() ?? '';
     data.last_updated_time = this.formatDate(order.last_updated_time);
     data.flag_decision_cheapest_offer = order.flag_decision_cheapest_offer ? 'Ja' : 'Nein';
-    data.flag_decision_most_economical_offer = order.flag_decision_most_economical_offer ? 'Ja' : 'Nein';
+    data.flag_decision_most_economical_offer = order.flag_decision_most_economical_offer
+      ? 'Ja'
+      : 'Nein';
     data.flag_decision_sole_supplier = order.flag_decision_sole_supplier ? 'Ja' : 'Nein';
     data.flag_decision_contract_partner = order.flag_decision_contract_partner ? 'Ja' : 'Nein';
-    data.flag_decision_preferred_supplier_list = order.flag_decision_preferred_supplier_list ? 'Ja' : 'Nein';
+    data.flag_decision_preferred_supplier_list = order.flag_decision_preferred_supplier_list
+      ? 'Ja'
+      : 'Nein';
     data.flag_decision_other_reasons = order.flag_decision_other_reasons ? 'Ja' : 'Nein';
     data.decision_other_reasons_description = order.decision_other_reasons_description ?? '';
     data.dfg_key = order.dfg_key ?? '';
@@ -227,12 +241,11 @@ export class OrderSubresourceResolverService {
   formatDate(dateString: string | undefined): string {
     if (!dateString) return '';
     const date = new Date(dateString);
-    return date.toLocaleString("de-DE",
-      {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      });
+    return date.toLocaleString('de-DE', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    });
   }
 
   /**
@@ -243,7 +256,9 @@ export class OrderSubresourceResolverService {
    * @returns Formatted price string including currency.
    */
   formatPrice(price: number | undefined, currencyCode: string | undefined): string {
-    return Intl.NumberFormat('de', { style: 'currency', currency: currencyCode ?? 'EUR' }).format(price ?? 0);
+    return Intl.NumberFormat('de', { style: 'currency', currency: currencyCode ?? 'EUR' }).format(
+      price ?? 0
+    );
   }
 
   /**
@@ -304,11 +319,13 @@ export class OrderSubresourceResolverService {
    * @returns The constructed order number or undefined if any part is missing.
    */
   getOrderNumber(order: OrderResponseDTO): string | undefined {
-    const orderNumber = [order.primary_cost_center_id, order.booking_year, order.auto_index];
+    const formattedIndex =
+      order.auto_index !== undefined ? order.auto_index.toString().padStart(3, '0') : undefined;
+    const orderNumber = [order.primary_cost_center_id, order.booking_year, formattedIndex];
     if (orderNumber.some(part => part === undefined || part === null || part === '')) {
       return undefined;
     }
-    return orderNumber.join('-');
+    return orderNumber.join('/');
   }
 
   /**
@@ -383,10 +400,11 @@ export class OrderSubresourceResolverService {
   }
 
   /** Returns tooltip texts for specific fields in the order display data. */
-  getTooltips(order: OrderResponseDTO): { [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string } {
+  getTooltips(order: OrderResponseDTO): {
+    [K in keyof Partial<Omit<OrderDisplayData, 'tooltips'>>]: string;
+  } {
     return {
       status: STATE_DISPLAY_NAMES.get(order.status ?? '') ?? order.status ?? '',
     };
   }
-
 }
