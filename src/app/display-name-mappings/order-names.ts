@@ -35,7 +35,7 @@ export const ORDER_FIELD_NAMES: Record<string, string> = {
   created_date: 'Erstellt am',
   owner_id: 'Erstellt von',
   quote_price: 'Preis',
-  delivery_person_id: 'Bestellt für',
+  delivery_person_id: 'Adressat:in',
   invoice_person_id: 'Rechnungsempfänger:in',
   queries_person_id: 'Ansprechperson',
   customer_id: 'Kundennummer',
