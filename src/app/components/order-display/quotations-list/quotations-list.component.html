@@ -1,5 +1,14 @@
 @if (quotations.length > 0) {
-<app-generic-table [dataSource]="quotationsDataSource" [columns]="displayedColumns" [pageSize]="3" />
+  @if (quotations.length > 2) {
+    <p class="mb-2 text-he-red font-bold">
+      Nur die ersten zwei Vergleichsangebote können gedruckt werden.
+    </p>
+  }
+  <app-generic-table
+    [dataSource]="quotationsDataSource"
+    [columns]="displayedColumns"
+    [pageSize]="3"
+  />
 } @else {
-<span class="text-gray-600">Keine Angebote vorhanden.</span>
+  <span class="text-gray-600">Keine Angebote vorhanden.</span>
 }

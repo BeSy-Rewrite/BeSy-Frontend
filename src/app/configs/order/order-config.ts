@@ -208,7 +208,7 @@ export const ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG: FormConfig = {
 };
 
 export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
-  title: 'Vergleichsangebot hinzufügen',
+  title: 'Nur die ersten zwei Vergleichsangebote können gedruckt werden.',
   fields: [
     {
       name: 'price',
