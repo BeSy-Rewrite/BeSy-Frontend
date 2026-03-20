@@ -335,7 +335,7 @@ export const ORDER_SECONDARY_COST_CENTER_FORM_CONFIG: FormConfig = {
       requireSelection: true,
       editable: true,
       filterable: true,
-      tooltip: 'Pflichtfeld',
+      tooltip: 'Optional',
       defaultValue: [],
     },
   ],
