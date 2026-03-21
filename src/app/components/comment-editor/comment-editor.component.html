@@ -1,0 +1,37 @@
+<form class="w-full h-full">
+  <mat-form-field class="w-full h-full">
+    @if (commentControl.disabled) {
+      <button matIconButton matSuffix (click)="edit()" matTooltip="Kommentar bearbeiten">
+        <mat-icon class="text-he-darkblue!">edit</mat-icon>
+      </button>
+    } @else {
+      <div matSuffix>
+        <button matIconButton (click)="cancel()" matTooltip="Änderungen verwerfen">
+          <mat-icon class="text-he-red!">close</mat-icon>
+        </button>
+        <button matIconButton (click)="save()" matTooltip="Änderungen speichern">
+          <mat-icon class="text-he-darkblue!">save</mat-icon>
+        </button>
+      </div>
+    }
+    <mat-label [class]="commentControl.disabled ? 'text-gray-500!' : ''">Kommentar</mat-label>
+    <textarea
+      matInput
+      cdkTextareaAutosize
+      [formControl]="commentControl"
+      placeholder=""
+      maxlength="255"
+      class="grow w-full h-full"
+      [class]="commentControl.disabled ? 'text-gray-600!' : ''"
+    ></textarea>
+    <mat-hint
+      align="start"
+      [class]="commentControl.disabled ? 'text-he-grey-900' : 'text-gray-500'"
+    >
+      Kann in jedem Status geändert werden
+    </mat-hint>
+    <mat-hint align="end" [class]="commentControl.disabled ? 'text-he-grey-900' : 'text-gray-800'">
+      {{ commentControl.value.length }} / 255
+    </mat-hint>
+  </mat-form-field>
+</form>

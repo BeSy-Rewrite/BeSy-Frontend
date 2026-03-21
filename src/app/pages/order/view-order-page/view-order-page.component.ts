@@ -84,6 +84,7 @@ import { UsersWrapperService } from '../../../services/wrapper-services/users-wr
 
 import { Title } from '@angular/platform-browser';
 import { finalize, from } from 'rxjs';
+import { CommentEditorComponent } from '../../../components/comment-editor/comment-editor.component';
 import { LegacyInvoiceDisplayComponent } from '../../../components/order-display/legacy-invoice-display/legacy-invoice-display.component';
 import { ToastProcessingIndicatorComponent } from '../../../components/toast-processing-indicator/toast-processing-indicator.component';
 import { MailTrackingService } from '../../../services/mail-tracking.service';
@@ -149,6 +150,7 @@ interface StateChangeButtons {
     OrderArticleListComponent,
     OrderAddressesComponent,
     LegacyInvoiceDisplayComponent,
+    CommentEditorComponent,
   ],
 
   templateUrl: './view-order-page.component.html',

@@ -1,11 +1,11 @@
-<div class="pb-16">
-  <div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
-    <app-state-display [order]="internalOrder().order" />
+<div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
+  <app-state-display [order]="internalOrder().order" />
 
-    <mat-divider class="bg-gray-400" />
-  </div>
+  <mat-divider class="bg-gray-400" />
+</div>
 
-  <div class="mb-4 float-left flex flex-col items-start min-w-fit">
+<div class="pb-16 flex flex-wrap gap-y-4 gap-x-8">
+  <div class="mb-4 flex flex-col items-start grow">
     <h1
       class="font-semibold text-2xl mb-2"
       [class]="environment.orderFieldClassPrefix + 'content_description'"
@@ -13,52 +13,57 @@
       {{ internalOrder().orderDisplay.content_description }}
     </h1>
 
-    <span class="min-w-fit" [class]="environment.orderFieldClassPrefix + 'owner_id'">
-      Erstellt von:
+    <div class="flex flex-col lg:flex-row gap-8 w-full min-h-fit">
+      <div class="flex flex-col whitespace-nowrap">
+        <span class="min-w-fit" [class]="environment.orderFieldClassPrefix + 'owner_id'">
+          Erstellt von:
 
-      <button
-        matButton
-        color="primary"
-        class="w-fit"
-        [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
-        [cdkCopyToClipboard]="owner?.email ?? ''"
-      >
-        {{ owner?.name }} {{ owner?.surname }}
-      </button>
-    </span>
+          <button
+            matButton
+            color="primary"
+            class="w-fit"
+            [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
+            [cdkCopyToClipboard]="owner?.email ?? ''"
+          >
+            {{ owner?.name }} {{ owner?.surname }}
+          </button>
+        </span>
 
-    <span class="min-w-fit">
-      Bestellnummer:
+        <span class="min-w-fit">
+          Bestellnummer:
 
-      <button
-        matButton
-        color="primary"
-        class="w-fit"
-        [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number"
-        matTooltip="Bestellnummer kopieren"
-      >
-        {{ internalOrder().orderDisplay.besy_number }}
-      </button>
-    </span>
+          <button
+            matButton
+            color="primary"
+            class="w-fit"
+            [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number"
+            matTooltip="Bestellnummer kopieren"
+          >
+            {{ internalOrder().orderDisplay.besy_number }}
+          </button>
+        </span>
 
-    <span class="min-w-fit" [class]="environment.orderFieldClassPrefix + 'id'">
-      ID:
+        <span class="min-w-fit" [class]="environment.orderFieldClassPrefix + 'id'">
+          ID:
 
-      <button
-        matButton
-        color="primary"
-        class="w-fit"
-        [cdkCopyToClipboard]="currentUrl()"
-        matTooltip="Link kopieren"
-      >
-        #&nbsp;{{ internalOrder().order.id }}
+          <button
+            matButton
+            color="primary"
+            class="w-fit"
+            [cdkCopyToClipboard]="currentUrl()"
+            matTooltip="Link kopieren"
+          >
+            #&nbsp;{{ internalOrder().order.id }}
 
-        <mat-icon iconPositionEnd>link</mat-icon>
-      </button>
-    </span>
+            <mat-icon iconPositionEnd>link</mat-icon>
+          </button>
+        </span>
+      </div>
+      <app-comment-editor class="grow max-w-2xl lg:ml-auto" [order]="internalOrder().order" />
+    </div>
   </div>
 
-  <div class="sticky top-24 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
+  <div class="sticky top-24 mb-4 w-fit flex flex-col gap-2 z-50 ml-auto">
     @if (canPostToInsy()) {
       <button
         mat-raised-button
@@ -111,7 +116,7 @@
     </button>
   </div>
 
-  <div class="flex flex-wrap gap-12 mt-8 w-full h-fit">
+  <div class="flex flex-wrap gap-12 w-full h-fit">
     @for (section of sections; track section.id) {
       <div [class]="section.isFullWidth ? 'w-full' : 'grow'">
         <div class="flex flex-row justify-between">
