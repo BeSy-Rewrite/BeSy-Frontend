@@ -383,6 +383,15 @@ export const ORDER_QUERIES_PERSON_FORM_CONFIG: FormConfig = {
       emitAsSignal: true,
       defaultValue: [],
     },
+    {
+      name: 'comment',
+      label: 'Kommentar',
+      type: 'textarea',
+      required: false,
+      editable: true,
+      validators: [Validators.maxLength(255)],
+      tooltip: 'Informationen zu Bestellung, wird nicht im PDF angezeigt.',
+    },
   ],
 };
 
