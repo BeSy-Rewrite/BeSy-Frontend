@@ -353,9 +353,10 @@ export class ViewOrderPageComponent implements OnInit {
     for (const state of this.getNextAllowedStates()) {
       if (
         this.internalOrder().order.status === OrderStatus.DEKAN_PENDING &&
-        !this.authService.isAuthorizedFor(environment.approveOrdersRole)
+        !this.authService.isAuthorizedFor(environment.approveOrdersRole) &&
+        (state === OrderStatus.APPROVED || state === OrderStatus.COMPLETED)
       ) {
-        break;
+        continue;
       }
 
       let label = STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
@@ -432,6 +433,31 @@ export class ViewOrderPageComponent implements OnInit {
       return;
     }
 
+    if (newState === OrderStatus.SENT) {
+      // open dialog to confirm editing will now longer be possible
+      const data = {
+        title: 'Bestellung als "Abgeschickt" markieren?',
+
+        description:
+          'Die Bestellung wird als "Abgeschickt" markiert und kann danach nicht mehr bearbeitet werden. ' +
+          'Sind Sie sicher, dass Sie fortfahren möchten?',
+
+        cancelButtonText: 'Abbrechen',
+
+        confirmButtonText: 'Bestätigen',
+      };
+
+      setupDialog(this.dialog, data, (result: boolean) => {
+        if (result) {
+          this.executeStateChange(newState);
+        }
+      });
+    } else {
+      this.executeStateChange(newState);
+    }
+  }
+
+  executeStateChange(newState: OrderStatus): void {
     this.orderStateValidityService
       .canTransitionToState(this.internalOrder().order, newState)
       .subscribe({
