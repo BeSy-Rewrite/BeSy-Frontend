@@ -1,8 +1,11 @@
+import { NgStyle } from '@angular/common';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
@@ -21,6 +24,11 @@ import { CostCenterWrapperService } from '../../../services/wrapper-services/cos
     GenericTableComponent,
     FormComponent,
     MatButtonModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    NgStyle,
   ],
   templateUrl: './cost-center-page.component.html',
   styleUrl: './cost-center-page.component.scss',
@@ -29,9 +37,15 @@ export class CostCentersPageComponent implements OnInit {
   constructor(
     private readonly _notifications: MatSnackBar,
     private readonly costCenterWrapperService: CostCenterWrapperService
-  ) { }
+  ) {
+    this.filterStringControl.valueChanges.subscribe(() => {
+      const filterValue = this.filterStringControl.value?.trim().toLowerCase() || '';
+      this.costCentersDataSource.filter = filterValue;
+    });
+  }
 
   @ViewChild('tabGroup') tabGroup!: MatTabGroup;
+  filterStringControl = new FormControl('');
   // Data source to be displayed in the cost-center-table component
   costCentersDataSource: MatTableDataSource<CostCenterResponseDTO> =
     new MatTableDataSource<CostCenterResponseDTO>([]);

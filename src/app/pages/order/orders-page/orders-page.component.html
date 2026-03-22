@@ -1,16 +1,17 @@
 <div class="h-fit orders-page-state-icons tour-orders-page">
   <button
-    class="!fixed top-22.5 left-4 z-10 tour-filter-button"
+    class="fixed! top-22.5 left-4 z-10 tour-filter-button"
     [class.open]="showFilterButton"
     [class.closed]="!showFilterButton"
     matFab
     extended
     color="primary"
-    (click)="toggleShowFilters()">
+    (click)="toggleShowFilters()"
+  >
     @if (showFilters) {
-    <mat-icon>close</mat-icon>
+      <mat-icon>close</mat-icon>
     } @else {
-    <mat-icon>filter_list</mat-icon>
+      <mat-icon>filter_list</mat-icon>
     }
     Filter
   </button>
@@ -19,24 +20,30 @@
     #tabGroup
     mat-stretch-tabs="true"
     mat-align-tabs="start"
-    (selectedTabChange)="onTabChanged($event)">
+    (selectedTabChange)="onTabChanged($event)"
+  >
     <mat-tab label="Bestellungen verwalten">
       <mat-divider class="bg-gray-500"></mat-divider>
 
-      <div class="pt-3 flex flex-row">
+      <div class="pt-4 flex flex-row">
         <div [class.open]="showFilters" [class.closed]="!showFilters" class="relative">
-          <div class="w-104 pb-2 overflow-y-auto overflow-x-clip p-2 filter-menu-container" cdkScrollable>
+          <div
+            class="w-104 pb-2 overflow-y-auto overflow-x-clip p-2 filter-menu-container"
+            cdkScrollable
+          >
             <app-filter-menu
               class="tour-filter-menu"
               (filtersChanged)="onFiltersChanged($event)"
               (selectedColumnsChanged)="onSelectedColumnsChanged($event)"
               (resetedFilters)="onFiltersReset()"
               [ordersTableColumns]="ordersTableColumns"
-              [initialPreset]="initialPreset" />
+              [initialPreset]="initialPreset"
+            />
           </div>
           <!-- Shadow to hide sharp edges of filter menu -->
           <div
-            class="absolute left-0 right-0 top-0 bottom-0 scroll-shadow pointer-events-none"></div>
+            class="absolute left-0 right-0 top-0 bottom-0 scroll-shadow pointer-events-none"
+          ></div>
         </div>
 
         <app-generic-table
@@ -46,7 +53,8 @@
           [dataSource]="ordersDataSource"
           [columns]="ordersTableColumns"
           [actions]="actions"
-          [pageSize]="25"></app-generic-table>
+          [pageSize]="25"
+        ></app-generic-table>
       </div>
     </mat-tab>
 
@@ -68,6 +76,7 @@
   color="accent"
   (click)="startTour()"
   matTooltip="Bestellungsansicht erklären lassen"
-  aria-label="Bestellungsansicht erklären lassen">
+  aria-label="Bestellungsansicht erklären lassen"
+>
   <mat-icon>help</mat-icon>
 </button>
