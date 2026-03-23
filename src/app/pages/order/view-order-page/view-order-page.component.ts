@@ -4,7 +4,6 @@ import { Component, computed, input, OnInit, signal, WritableSignal } from '@ang
 
 import { MatButtonAppearance, MatButtonModule } from '@angular/material/button';
 
-import { MatDialog } from '@angular/material/dialog';
 
 import { MatDividerModule } from '@angular/material/divider';
 
@@ -82,6 +81,7 @@ import { StateWrapperService } from '../../../services/wrapper-services/state-wr
 
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 
+import { MatDialog } from '@angular/material/dialog';
 import { Title } from '@angular/platform-browser';
 import { finalize, from } from 'rxjs';
 import { CommentEditorComponent } from '../../../components/comment-editor/comment-editor.component';
@@ -226,7 +226,7 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly mailTrackingService: MailTrackingService,
     private readonly utilsService: UtilsService,
     private readonly titleService: Title
-  ) {}
+  ) { }
 
   /**
    * Initializes the component, fetching necessary data and setting up state transitions.
