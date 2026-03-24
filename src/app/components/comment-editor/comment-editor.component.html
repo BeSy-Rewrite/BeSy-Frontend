@@ -31,7 +31,7 @@
       Kann in jedem Status geändert werden
     </mat-hint>
     <mat-hint align="end" [class]="commentControl.disabled ? 'text-he-grey-900' : 'text-gray-800'">
-      {{ commentControl.value.length }} / 255
+      {{ commentControl.value?.length ?? 0 }} / 255
     </mat-hint>
   </mat-form-field>
 </form>
