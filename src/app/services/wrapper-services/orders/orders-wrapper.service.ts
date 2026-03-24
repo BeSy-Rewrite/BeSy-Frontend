@@ -684,6 +684,21 @@ export class OrdersWrapperService {
         continue;
       }
 
+      if (dateFields.has(key)) {
+        if (
+          this.convertToISODateString(modifiedValue) !== this.convertToISODateString(originalValue)
+        ) {
+          (changedFields as any)[key] = modifiedValue;
+          console.log(
+            `Date field ${key} changed: original=${originalValue}, modified=${modifiedValue}`
+          );
+          console.log(
+            `Converted original: ${this.convertToISODateString(originalValue)}, Converted modified: ${this.convertToISODateString(modifiedValue)}`
+          );
+        }
+        continue;
+      }
+
       if (
         typeof originalValue === 'object' &&
         originalValue !== null &&
@@ -715,6 +730,10 @@ export class OrdersWrapperService {
         (changedFields as any)[key] = modifiedValue;
       }
     }
+
+    console.log('Changed fields before formatting:', changedFields);
+    console.log('Original order:', original);
+    console.log('Modified order:', modified);
 
     // Convert undefined values to null for API compatibility
     // Format date fields to ISO date format (YYYY-MM-DD)
