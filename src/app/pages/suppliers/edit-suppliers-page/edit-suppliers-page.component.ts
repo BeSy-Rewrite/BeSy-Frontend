@@ -64,8 +64,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     private readonly cdr: ChangeDetectorRef,
     private readonly nominatimService: NominatimService,
     private readonly location: Location,
-    private readonly _dialog: MatDialog,
-    private readonly snackBar: MatSnackBar
+    private readonly _dialog: MatDialog
   ) {}
 
   supplierForm = new FormGroup({});
@@ -344,7 +343,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     this.nominatimService.throttledSearch(trimmedQuery).subscribe(results => {
       this.nominatimTableDataSource().data = results;
       if (results.length === 0) {
-        this.snackBar.open('Keine Ergebnisse gefunden', undefined, { duration: 3000 });
+        this._notifications.open('Keine Ergebnisse gefunden', undefined, { duration: 3000 });
       }
     });
   }
