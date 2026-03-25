@@ -7,8 +7,13 @@ import 'driver.js/dist/driver.css';
   providedIn: 'root',
 })
 export class DriverJsTourService {
-  private readonly highlightDriver = driver();
-  private tourDriver = driver();
+  private readonly driverButtonLabels = {
+    prevBtnText: 'Zurück',
+    nextBtnText: 'Weiter',
+    doneBtnText: 'Fertig',
+  };
+  private readonly highlightDriver = driver(this.driverButtonLabels);
+  private tourDriver = driver(this.driverButtonLabels);
 
   /**
    * Map storing registered tour steps for each component by a hash of its class string.
@@ -20,7 +25,7 @@ export class DriverJsTourService {
   constructor(
     private readonly router: Router,
     private readonly injector: Injector
-  ) { }
+  ) {}
 
   /**
    * Starts a tour with the given components' registered steps.
@@ -29,6 +34,7 @@ export class DriverJsTourService {
   startTour(components: Type<any>[]) {
     this.tourDriver.destroy();
     this.tourDriver = driver({
+      ...this.driverButtonLabels,
       showProgress: true,
       smoothScroll: true,
       steps: this.getStepsForComponents(components),
@@ -118,6 +124,7 @@ export class DriverJsTourService {
    */
   startDemoTour() {
     const driverObject = driver({
+      ...this.driverButtonLabels,
       showProgress: true,
       steps: [
         {
