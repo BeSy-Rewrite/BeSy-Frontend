@@ -51,7 +51,7 @@ export class SuppliersPageComponent implements OnInit {
       buttonType: 'filled',
       color: ButtonColor.PRIMARY,
       action: (row: SupplierResponseDTO) => this.editSupplier(row),
-    }
+    },
   ];
 
   // Data source to be displayed in the supplier-table component
@@ -113,8 +113,9 @@ export class SuppliersPageComponent implements OnInit {
     private readonly router: Router,
     private readonly _notifications: MatSnackBar,
     private readonly suppliersWrapperService: SuppliersWrapperService,
-    private readonly nominatimService: NominatimService
-  ) { }
+    private readonly nominatimService: NominatimService,
+    private readonly snackBar: MatSnackBar
+  ) {}
 
   ngOnInit(): void {
     this.loadInitialData();
@@ -246,6 +247,9 @@ export class SuppliersPageComponent implements OnInit {
 
     this.nominatimService.throttledSearch(trimmedQuery).subscribe(results => {
       this.nominatimTableDataSource().data = results;
+      if (results.length === 0) {
+        this.snackBar.open('Keine Ergebnisse gefunden', undefined, { duration: 3000 });
+      }
     });
   }
 
