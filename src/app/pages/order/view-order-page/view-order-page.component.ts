@@ -57,6 +57,9 @@ import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 
 import {
   STATE_CHANGE_BUTTON_DISPLAY_ORDER,
+  STATE_CHANGE_FROM_TO_DESCRIPTIONS,
+  STATE_CHANGE_FROM_TO_ICONS,
+  STATE_CHANGE_FROM_TO_NAMES,
   STATE_CHANGE_TO_DESCRIPTIONS,
   STATE_CHANGE_TO_NAMES,
   STATE_DISPLAY_NAMES,
@@ -359,9 +362,9 @@ export class ViewOrderPageComponent implements OnInit, OnChanges {
         continue;
       }
 
-      let label = STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
-      let icon = STATE_ICONS.get(state) ?? '';
-      let tooltip = STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '';
+      let label = STATE_CHANGE_FROM_TO_NAMES.get([this.internalOrder().order.status!, state]) ?? STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
+      let icon = STATE_CHANGE_FROM_TO_ICONS.get([this.internalOrder().order.status!, state]) ?? STATE_ICONS.get(state) ?? '';
+      let tooltip = STATE_CHANGE_FROM_TO_DESCRIPTIONS.get([this.internalOrder().order.status!, state]) ?? STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '';
       let color = 'default';
       let style: MatButtonAppearance = 'elevated';
 
@@ -381,16 +384,7 @@ export class ViewOrderPageComponent implements OnInit, OnChanges {
         state === OrderStatus.COMPLETED &&
         this.internalOrder().order.status === OrderStatus.DEKAN_PENDING
       ) {
-        label =
-          STATE_CHANGE_TO_NAMES.get(OrderStatus.REJECTED) ?? `change to ${OrderStatus.REJECTED}`;
-        icon = STATE_ICONS.get(OrderStatus.REJECTED) ?? '';
-        tooltip = STATE_CHANGE_TO_DESCRIPTIONS.get(OrderStatus.REJECTED) ?? '';
         color = 'warn';
-      }
-
-      if (this.isSkipApprovalStateChange(state)) {
-        label = STATE_CHANGE_TO_NAMES.get(OrderStatus.APPROVED) + ' (überspringen)';
-        tooltip = 'Genehmigung durch das Dekanat überspringen.';
       }
 
       this.stateChangeButtons.push({
@@ -407,12 +401,6 @@ export class ViewOrderPageComponent implements OnInit, OnChanges {
       (a, b) =>
         STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(a.state) -
         STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(b.state)
-    );
-  }
-
-  private isSkipApprovalStateChange(state: OrderStatus): boolean {
-    return (
-      this.internalOrder().order.status === OrderStatus.COMPLETED && state === OrderStatus.APPROVED
     );
   }
 
