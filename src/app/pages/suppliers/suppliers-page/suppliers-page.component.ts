@@ -269,6 +269,9 @@ export class SuppliersPageComponent implements OnInit {
 
     this.nominatimService.throttledSearch(trimmedQuery).subscribe(results => {
       this.nominatimTableDataSource().data = results;
+      if (results.length === 0) {
+        this._notifications.open('Keine Ergebnisse gefunden', undefined, { duration: 3000 });
+      }
     });
   }
 

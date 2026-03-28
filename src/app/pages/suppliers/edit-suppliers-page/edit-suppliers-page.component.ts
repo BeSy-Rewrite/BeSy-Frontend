@@ -63,8 +63,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     private readonly dialog: MatDialog,
     private readonly cdr: ChangeDetectorRef,
     private readonly nominatimService: NominatimService,
-    private readonly location: Location,
-    private readonly _dialog: MatDialog
+    private readonly location: Location
   ) { }
 
   supplierForm = new FormGroup({});
@@ -152,7 +151,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
    * Handle revert changes action
    */
   onRevertChanges() {
-    const dialogRef = this._dialog.open(ConfirmDialogComponent, {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
         title: 'Alle Änderungen zurücksetzen',
         message:
@@ -343,6 +342,9 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
 
     this.nominatimService.throttledSearch(trimmedQuery).subscribe(results => {
       this.nominatimTableDataSource().data = results;
+      if (results.length === 0) {
+        this._notifications.open('Keine Ergebnisse gefunden', undefined, { duration: 3000 });
+      }
     });
   }
 
