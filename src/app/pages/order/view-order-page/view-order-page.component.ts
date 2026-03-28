@@ -362,9 +362,10 @@ export class ViewOrderPageComponent implements OnInit, OnChanges {
         continue;
       }
 
-      let label = STATE_CHANGE_FROM_TO_NAMES.get([this.internalOrder().order.status!, state]) ?? STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
-      let icon = STATE_CHANGE_FROM_TO_ICONS.get([this.internalOrder().order.status!, state]) ?? STATE_ICONS.get(state) ?? '';
-      let tooltip = STATE_CHANGE_FROM_TO_DESCRIPTIONS.get([this.internalOrder().order.status!, state]) ?? STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '';
+      const fromState = this.internalOrder().order.status!;
+      let label = STATE_CHANGE_FROM_TO_NAMES[fromState]?.[state] ?? STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
+      let icon = STATE_CHANGE_FROM_TO_ICONS[fromState]?.[state] ?? STATE_ICONS.get(state) ?? '';
+      let tooltip = STATE_CHANGE_FROM_TO_DESCRIPTIONS[fromState]?.[state] ?? STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '';
       let color = 'default';
       let style: MatButtonAppearance = 'elevated';
 

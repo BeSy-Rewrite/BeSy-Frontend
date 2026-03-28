@@ -91,50 +91,94 @@ export const STATE_CHANGE_TO_DESCRIPTIONS = new Map<state, string>([
   [state.DELETED, 'Die Bestellung löschen.'],
 ]);
 
-export const STATE_CHANGE_FROM_TO_NAMES = new Map<[state, state], string>([
-  [[state.IN_PROGRESS, state.COMPLETED], 'Fertigstellen'],
-  [[state.IN_PROGRESS, state.DELETED], 'Löschen'],
-  [[state.COMPLETED, state.DEKAN_PENDING], 'Genehmigung anfordern'],
-  [[state.COMPLETED, state.IN_PROGRESS], 'Zurück zu "In Bearbeitung"'],
-  [[state.COMPLETED, state.DELETED], 'Löschen'],
-  [[state.COMPLETED, state.APPROVED], 'Dekanat überspringen'],
-  [[state.DEKAN_PENDING, state.APPROVED], 'Genehmigen'],
-  [[state.DEKAN_PENDING, state.COMPLETED], 'Ablehnen'],
-  [[state.APPROVED, state.SENT], 'Als Abgesendet markieren'],
-  [[state.SENT, state.SETTLED], 'Abschließen'],
-  [[state.SETTLED, state.ARCHIVED], 'Archivieren'],
-  [[state.DELETED, state.IN_PROGRESS], 'Wiederherstellen'],
-]);
+export type StateTransitionLookup = Partial<Record<state, Partial<Record<state, string>>>>;
 
-export const STATE_CHANGE_FROM_TO_DESCRIPTIONS = new Map<[state, state], string>([
-  [[state.IN_PROGRESS, state.COMPLETED], 'Die Bearbeitung der Bestellung abschließen.'],
-  [[state.IN_PROGRESS, state.DELETED], 'Die Bestellung löschen.'],
-  [[state.COMPLETED, state.DEKAN_PENDING], 'Die Bestellung zur Genehmigung durch das Dekanat einreichen.'],
-  [[state.COMPLETED, state.IN_PROGRESS], 'Die Bestellung zurück in den Bearbeitungsmodus setzen.'],
-  [[state.COMPLETED, state.DELETED], 'Die fertiggestellte Bestellung löschen.'],
-  [[state.COMPLETED, state.APPROVED], 'Die Bestellung direkt genehmigen - Dekanat überspringen.'],
-  [[state.DEKAN_PENDING, state.APPROVED], 'Die Bestellung vom Dekanat genehmigen.'],
-  [[state.DEKAN_PENDING, state.COMPLETED], 'Die Bestellung vom Dekanat ablehnen.'],
-  [[state.APPROVED, state.SENT], 'Die genehmigte Bestellung als versendet markieren.'],
-  [[state.SENT, state.SETTLED], 'Die versendete Bestellung als abgeschlossen markieren.'],
-  [[state.SETTLED, state.ARCHIVED], 'Die abgeschlossene Bestellung archivieren.'],
-  [[state.DELETED, state.IN_PROGRESS], 'Die gelöschte Bestellung wiederherstellen und zur Bearbeitung aktivieren.'],
-]);
+export const STATE_CHANGE_FROM_TO_NAMES: StateTransitionLookup = {
+  [state.IN_PROGRESS]: {
+    [state.COMPLETED]: 'Fertigstellen',
+    [state.DELETED]: 'Löschen',
+  },
+  [state.COMPLETED]: {
+    [state.DEKAN_PENDING]: 'Genehmigung anfordern',
+    [state.IN_PROGRESS]: 'Zurück zu "In Bearbeitung"',
+    [state.DELETED]: 'Löschen',
+    [state.APPROVED]: 'Dekanat überspringen',
+  },
+  [state.DEKAN_PENDING]: {
+    [state.APPROVED]: 'Genehmigen',
+    [state.COMPLETED]: 'Ablehnen',
+  },
+  [state.APPROVED]: {
+    [state.SENT]: 'Als Abgesendet markieren',
+  },
+  [state.SENT]: {
+    [state.SETTLED]: 'Abschließen',
+  },
+  [state.SETTLED]: {
+    [state.ARCHIVED]: 'Archivieren',
+  },
+  [state.DELETED]: {
+    [state.IN_PROGRESS]: 'Wiederherstellen',
+  },
+};
 
-export const STATE_CHANGE_FROM_TO_ICONS = new Map<[state, state], string>([
-  [[state.IN_PROGRESS, state.COMPLETED], '✔️'],
-  [[state.IN_PROGRESS, state.DELETED], '🗑️'],
-  [[state.COMPLETED, state.DEKAN_PENDING], '📋'],
-  [[state.COMPLETED, state.IN_PROGRESS], '↩️'],
-  [[state.COMPLETED, state.DELETED], '🗑️'],
-  [[state.COMPLETED, state.APPROVED], '👌'],
-  [[state.DEKAN_PENDING, state.APPROVED], '👌'],
-  [[state.DEKAN_PENDING, state.COMPLETED], '❌'],
-  [[state.APPROVED, state.SENT], '📤'],
-  [[state.SENT, state.SETTLED], '✅'],
-  [[state.SETTLED, state.ARCHIVED], '📦'],
-  [[state.DELETED, state.IN_PROGRESS], '🔄'],
-]);
+export const STATE_CHANGE_FROM_TO_DESCRIPTIONS: StateTransitionLookup = {
+  [state.IN_PROGRESS]: {
+    [state.COMPLETED]: 'Die Bearbeitung der Bestellung abschließen.',
+    [state.DELETED]: 'Die Bestellung löschen.',
+  },
+  [state.COMPLETED]: {
+    [state.DEKAN_PENDING]: 'Die Bestellung zur Genehmigung durch das Dekanat einreichen.',
+    [state.IN_PROGRESS]: 'Die Bestellung zurück in den Bearbeitungsmodus setzen.',
+    [state.DELETED]: 'Die fertiggestellte Bestellung löschen.',
+    [state.APPROVED]: 'Die Bestellung direkt genehmigen - Dekanat überspringen.',
+  },
+  [state.DEKAN_PENDING]: {
+    [state.APPROVED]: 'Die Bestellung vom Dekanat genehmigen.',
+    [state.COMPLETED]: 'Die Bestellung vom Dekanat ablehnen.',
+  },
+  [state.APPROVED]: {
+    [state.SENT]: 'Die genehmigte Bestellung als versendet markieren.',
+  },
+  [state.SENT]: {
+    [state.SETTLED]: 'Die versendete Bestellung als abgeschlossen markieren.',
+  },
+  [state.SETTLED]: {
+    [state.ARCHIVED]: 'Die abgeschlossene Bestellung archivieren.',
+  },
+  [state.DELETED]: {
+    [state.IN_PROGRESS]: 'Die gelöschte Bestellung wiederherstellen und zur Bearbeitung aktivieren.',
+  },
+};
+
+export const STATE_CHANGE_FROM_TO_ICONS: StateTransitionLookup = {
+  [state.IN_PROGRESS]: {
+    [state.COMPLETED]: '✔️',
+    [state.DELETED]: '🗑️',
+  },
+  [state.COMPLETED]: {
+    [state.DEKAN_PENDING]: '📋',
+    [state.IN_PROGRESS]: '↩️',
+    [state.DELETED]: '🗑️',
+    [state.APPROVED]: '👌',
+  },
+  [state.DEKAN_PENDING]: {
+    [state.APPROVED]: '👌',
+    [state.COMPLETED]: '❌',
+  },
+  [state.APPROVED]: {
+    [state.SENT]: '📤',
+  },
+  [state.SENT]: {
+    [state.SETTLED]: '✅',
+  },
+  [state.SETTLED]: {
+    [state.ARCHIVED]: '📦',
+  },
+  [state.DELETED]: {
+    [state.IN_PROGRESS]: '🔄',
+  },
+};
 
 // Order of states for the buttons in the order details view.
 export const STATE_CHANGE_BUTTON_DISPLAY_ORDER: state[] = [
