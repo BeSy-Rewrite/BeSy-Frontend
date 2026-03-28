@@ -10,7 +10,7 @@ import { environment } from '../../../environments/environment';
 import { OrderStatus } from '../../api-services-v2';
 import { ORDER_FIELD_NAMES } from '../../display-name-mappings/order-names';
 import { STATE_DISPLAY_NAMES } from '../../display-name-mappings/status-names';
-import { ORDER_EDIT_TABS_TO_CONIG_MAPPING } from '../../pages/order/edit-order-page/edit-order-page.component';
+import { ORDER_EDIT_TABS_TO_CONFIG_MAPPING } from '../../pages/order/edit-order-page/edit-order-page.component';
 import { DriverJsTourService } from '../../services/driver.js-tour.service';
 
 type ToastError = {
@@ -60,7 +60,7 @@ export class ToastInvalidOrderComponent {
   constructor(
     private readonly driverJsService: DriverJsTourService,
     private readonly router: Router
-  ) {}
+  ) { }
 
   /**
    *  Highlights a specific field in the order form based on the provided ToastError.
@@ -93,7 +93,7 @@ export class ToastInvalidOrderComponent {
   }
 
   switchToTabForField(fieldName: string) {
-    const targetTab = Object.entries(ORDER_EDIT_TABS_TO_CONIG_MAPPING).find(([_, configs]) =>
+    const targetTab = Object.entries(ORDER_EDIT_TABS_TO_CONFIG_MAPPING).find(([_, configs]) =>
       configs.some(config => config.fields.some(field => field.name === fieldName))
     )?.[0];
     if (targetTab) {

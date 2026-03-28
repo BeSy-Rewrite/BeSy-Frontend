@@ -1,6 +1,7 @@
 import { DataSource } from '@angular/cdk/table';
 import { Component, input, OnChanges, OnInit, signal } from '@angular/core';
 import { MatTableDataSource } from '@angular/material/table';
+import { Subscription } from 'rxjs';
 import { InvoiceResponseDTO, OrderResponseDTO } from '../../../api-services-v2';
 import { INVOICE_FIELD_NAMES } from '../../../display-name-mappings/invoice-names';
 import { TableColumn } from '../../../models/generic-table';
@@ -34,10 +35,12 @@ export class LegacyInvoiceDisplayComponent implements OnInit, OnChanges {
   isInitialized = false;
   isEmpty = signal(true);
 
+  subscription: Subscription | null = null;
+
   constructor(
     private readonly invoiceService: InvoicesWrapperServiceService,
     private readonly resourceResolver: OrderSubresourceResolverService
-  ) {}
+  ) { }
 
   ngOnInit() {
     this.setupDataSource();
@@ -49,7 +52,10 @@ export class LegacyInvoiceDisplayComponent implements OnInit, OnChanges {
     }
   }
   setupDataSource() {
-    this.invoiceService.getLegacyInvoicesByOrderId(this.order().id!).subscribe(invoices => {
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+    this.subscription = this.invoiceService.getLegacyInvoicesByOrderId(this.order().id!).subscribe(invoices => {
       const formattedInvoices = invoices.map(invoice => ({
         ...invoice,
         price:

@@ -65,6 +65,7 @@ export class SuppliersPageComponent implements OnInit {
       label: 'Bearbeiten',
       buttonType: 'filled',
       color: ButtonColor.PRIMARY,
+      type: 'button',
       action: (row: SupplierResponseDTO) => this.editSupplier(row),
     },
   ];
@@ -119,6 +120,7 @@ export class SuppliersPageComponent implements OnInit {
       label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
+      type: 'button',
       action: (row: CustomerIdRequestDTO) => {
         this.onDeleteCustomerID(row);
       },

@@ -51,7 +51,7 @@ export class FilterPresetsEditComponent {
       label: 'Löschen',
       buttonType: 'outlined',
       color: ButtonColor.WARN,
-
+      type: 'button',
       action: (preset) => this.deletePreset(preset)
     },
     {
@@ -59,6 +59,7 @@ export class FilterPresetsEditComponent {
       label: 'Umbenennen',
       buttonType: 'outlined',
       color: ButtonColor.PRIMARY,
+      type: 'button',
       action: (preset) => this.renamePreset(preset)
     }
   ];

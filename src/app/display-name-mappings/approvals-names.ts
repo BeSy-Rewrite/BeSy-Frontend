@@ -31,7 +31,7 @@ export const APPROVALS_FIELD_GROUPS: ApprovalFieldGroup[] = [
   },
   {
     title: 'Zustimmung bei Bestellung von Geräten (baulich-infrastrukturell relevant)',
-    hint: 'Hinweis: Folgekosten sind aus Mittel der Organisationseinheit zur finanzieren',
+    hint: 'Hinweis: Folgekosten sind aus Mittel der Organisationseinheit zu finanzieren',
     fields: ['flag_investment_room', 'flag_investment_structural_measures'],
   },
   {

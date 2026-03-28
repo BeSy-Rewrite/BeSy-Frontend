@@ -1,6 +1,6 @@
 import { ClipboardModule } from '@angular/cdk/clipboard';
 
-import { Component, computed, input, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, computed, input, OnChanges, OnInit, signal, WritableSignal } from '@angular/core';
 
 import { MatButtonAppearance, MatButtonModule } from '@angular/material/button';
 
@@ -157,7 +157,7 @@ interface StateChangeButtons {
 
   styleUrl: './view-order-page.component.scss',
 })
-export class ViewOrderPageComponent implements OnInit {
+export class ViewOrderPageComponent implements OnInit, OnChanges {
   environment = environment;
 
   /**

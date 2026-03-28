@@ -157,9 +157,11 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
    * @param {T} row - The data row associated with the button click.
    */
   handleAction(button: TableActionButton<T>, row: T) {
-    button.action
-      ? button.action(row)
-      : console.warn(`No action defined for button: ${button.label}`);
+    if ('action' in button && button.action) {
+      button.action(row);
+    } else {
+      console.warn(`No action defined for button: ${button.label}`);
+    }
   }
 
   /**

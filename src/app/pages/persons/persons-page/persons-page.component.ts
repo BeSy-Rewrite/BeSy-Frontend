@@ -76,6 +76,7 @@ export class PersonsPageComponent implements OnInit {
       label: 'Bearbeiten',
       buttonType: 'filled',
       color: ButtonColor.PRIMARY,
+      type: 'button',
       action: (row: PersonResponseDTO) => this.editPerson(row),
     },
   ];

@@ -59,6 +59,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       label: 'Herunterladen',
       buttonType: 'outlined',
       color: ButtonColor.PRIMARY,
+      type: 'button',
       action: (row: DisplayableInvoice) => {
         if (row.id) this.downloadDocument(row);
       },
@@ -68,6 +69,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       label: 'Vorschau',
       buttonType: 'outlined',
       color: ButtonColor.PRIMARY,
+      type: 'button',
       action: (row: DisplayableInvoice) => {
         if (row.id) this.openDocumentPreview(row);
       },
@@ -77,6 +79,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
       label: 'In Paperless anzeigen',
       buttonType: 'filled',
       color: ButtonColor.PRIMARY,
+      type: 'button',
       action: (row: DisplayableInvoice) => {
         window.open(`${environment.paperlessUrl}/documents/${row.paperless_id}`, '_blank');
       },
@@ -89,7 +92,7 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
     private readonly _snackBar: MatSnackBar,
     private readonly dialogRef: MatDialog,
     @Inject(DomSanitizer) private readonly sanitizer: DomSanitizer
-  ) {}
+  ) { }
 
   /**
    * Initializes the component by fetching and formatting the order documents.

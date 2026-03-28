@@ -31,7 +31,7 @@
               class="mr-4"
               mat-button
               [color]="button.color ?? 'default'"
-              [routerLink]="button.link ? (typeof button.link === 'function' ? button.link(element) : button.link) : '/undefined-link'"
+              [routerLink]="typeof button.link === 'function' ? button.link(element) : button.link"
               [matButton]="button.buttonType ?? ''"
               [disabled]="isButtonDisabled(button)">
               {{ button.label }}
@@ -72,7 +72,7 @@
     </table>
   </div>
 
-  <mat-divider class="bg-he-darkblue-400 !border-t-2" />
+  <mat-divider class="bg-he-darkblue-400 border-t-2!" />
   <mat-paginator
     [pageSizeOptions]="internalPageSizeOptions()"
     showFirstLastButtons

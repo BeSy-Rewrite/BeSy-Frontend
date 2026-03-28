@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ActivatedRouteSnapshot, Resolve, Router, RouterStateSnapshot } from '@angular/router';
-import { catchError, from, map, Observable, switchMap } from 'rxjs';
+import { catchError, from, map, Observable, switchMap, throwError } from 'rxjs';
 import { OrderResponseDTO } from '../api-services-v2';
 import { DisplayableOrder } from '../models/displayable-order';
 import { OrderSubresourceResolverService } from '../services/order-subresource-resolver.service';
@@ -30,7 +30,7 @@ export class OrderResolver implements Resolve<DisplayableOrder> {
       catchError(error => {
         console.error(`Failed to fetch order with id ${id}:`, error);
         this.router.navigate(['/not-found'], { skipLocationChange: true });
-        throw error;
+        return throwError(() => new Error(`Failed to fetch order with id ${id} with error: ${error.message}`));
       }),
       switchMap(order =>
         this.orderDisplayService
