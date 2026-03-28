@@ -208,17 +208,17 @@ export const ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG: FormConfig = {
 };
 
 export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
-  title: 'Vergleichsangebot hinzufügen',
+  title: 'Nur die ersten zwei Vergleichsangebote können gedruckt werden.',
   fields: [
     {
       name: 'price',
-      label: 'Preis (brutto)',
+      label: 'Preis (netto)',
       type: 'number',
       required: true,
       editable: true,
       validators: [Validators.min(0.01)], // Price must be a positive number bigger than 0
       tooltip:
-        'Der Preis des Vergleichsangebots ist der Gesamtpreis (brutto) des Angebots in Euro, welches mit dem Hauptangebot verglichen wird.',
+        'Der Preis des Vergleichsangebots ist der Gesamtpreis (netto) des Angebots in Euro, welches mit dem Hauptangebot verglichen wird.',
     },
     {
       name: 'company_name',
@@ -230,7 +230,7 @@ export const ORDER_QUOTATION_FORM_CONFIG: FormConfig = {
       filterable: true,
       tooltip: 'Der Name des Unternehmens, welches das Vergleichsangebot abgegeben hat.',
       emitAsSignal: true,
-      requireSelection: true,
+      requireSelection: false,
     },
     {
       name: 'company_city',
@@ -335,7 +335,7 @@ export const ORDER_SECONDARY_COST_CENTER_FORM_CONFIG: FormConfig = {
       requireSelection: true,
       editable: true,
       filterable: true,
-      tooltip: 'Pflichtfeld',
+      tooltip: 'Optional',
       defaultValue: [],
     },
   ],
@@ -382,6 +382,15 @@ export const ORDER_QUERIES_PERSON_FORM_CONFIG: FormConfig = {
       tooltip: 'Die Person, die bei Rückfragen zur Bestellung kontaktiert werden kann.',
       emitAsSignal: true,
       defaultValue: [],
+    },
+    {
+      name: 'comment',
+      label: 'Kommentar',
+      type: 'textarea',
+      required: false,
+      editable: true,
+      validators: [Validators.maxLength(255)],
+      tooltip: 'Informationen zu Bestellung, wird nicht im PDF angezeigt.',
     },
   ],
 };

@@ -1,9 +1,18 @@
+import { NgStyle } from '@angular/common';
 import { Component, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import {
+  FormControl,
+  FormGroup,
+  FormsModule,
+  ReactiveFormsModule,
+  ɵInternalFormsSharedModule,
+} from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
@@ -36,6 +45,12 @@ import { SuppliersWrapperService } from '../../../services/wrapper-services/supp
     MatButtonModule,
     MatButtonToggleModule,
     MatIconModule,
+    ɵInternalFormsSharedModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    NgStyle,
   ],
   templateUrl: './suppliers-page.component.html',
   styleUrl: './suppliers-page.component.scss',
@@ -50,10 +65,12 @@ export class SuppliersPageComponent implements OnInit {
       label: 'Bearbeiten',
       buttonType: 'filled',
       color: ButtonColor.PRIMARY,
+      type: 'button',
       action: (row: SupplierResponseDTO) => this.editSupplier(row),
     },
   ];
 
+  filterStringControl = new FormControl('');
   // Data source to be displayed in the supplier-table component
   suppliersDataSource: MatTableDataSource<SupplierResponseDTO> =
     new MatTableDataSource<SupplierResponseDTO>([]);
@@ -103,6 +120,7 @@ export class SuppliersPageComponent implements OnInit {
       label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
+      type: 'button',
       action: (row: CustomerIdRequestDTO) => {
         this.onDeleteCustomerID(row);
       },
@@ -114,7 +132,12 @@ export class SuppliersPageComponent implements OnInit {
     private readonly _notifications: MatSnackBar,
     private readonly suppliersWrapperService: SuppliersWrapperService,
     private readonly nominatimService: NominatimService
-  ) {}
+  ) {
+    this.filterStringControl.valueChanges.subscribe(() => {
+      const filterValue = this.filterStringControl.value?.trim().toLowerCase() || '';
+      this.suppliersDataSource.filter = filterValue;
+    });
+  }
 
   ngOnInit(): void {
     this.loadInitialData();

@@ -34,6 +34,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { first, Subscription } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 import {
   AddressRequestDTO,
   AddressResponseDTO,
@@ -123,6 +124,28 @@ export const ORDER_EDIT_TABS = [
   'Approvals',
 ] as const;
 
+export const ORDER_EDIT_TABS_TO_CONFIG_MAPPING: Record<
+  (typeof ORDER_EDIT_TABS)[number],
+  FormConfig[]
+> = {
+  General: [
+    ORDER_GENERAL_FORM_CONFIG,
+    ORDER_PRIMARY_COST_CENTER_FORM_CONFIG,
+    ORDER_SECONDARY_COST_CENTER_FORM_CONFIG,
+    ORDER_QUERIES_PERSON_FORM_CONFIG,
+  ],
+  MainOffer: [ORDER_MAIN_OFFER_FORM_CONFIG, ORDER_SUPPLIER_DECISION_REASON_FORM_CONFIG],
+  Items: [ORDER_ITEM_FORM_CONFIG],
+  Quotations: [ORDER_QUOTATION_FORM_CONFIG],
+  Addresses: [
+    ORDER_ADDRESS_FORM_CONFIG,
+    ORDER_DELIVERY_PERSON_FORM_CONFIG,
+    ORDER_INVOICE_PERSON_FORM_CONFIG,
+    { fields: [{ name: 'delivery_address_id' }, { name: 'invoice_address_id' }] } as FormConfig,
+  ],
+  Approvals: [ORDER_APPROVAL_FORM_CONFIG],
+};
+
 /**
  * Model for the quotations table used in the order edit/create page
  */
@@ -181,6 +204,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   @ViewChild('addQuotationDialog')
   private readonly addQuotationDialogTemplate?: TemplateRef<unknown>;
   private addQuotationDialogRef?: MatDialogRef<unknown>;
+
+  protected readonly environment = environment;
 
   constructor(
     private readonly router: Router,
@@ -284,7 +309,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     { id: 'comment', label: 'Kommentar' },
     {
       id: 'price_per_unit',
-      label: 'Stückpreis (brutto)',
+      label: 'Stückpreis',
       footerContent: this.footerContent,
     },
   ];
@@ -300,9 +325,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   orderItemTableActions: TableActionButton[] = [
     {
       id: 'delete',
-      label: 'Delete',
+      label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
+      type: 'button',
       action: (row: ItemTableModel) => this.deleteItem(row),
       disabled: this.isItemsDeleteDisabled,
     },
@@ -366,7 +392,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   quotationsToDelete = new Set<QuotationTableModel>();
   quotationTableDataSource = new MatTableDataSource<QuotationTableModel>([]);
   orderQuotationColumns: TableColumn<QuotationTableModel>[] = [
-    { id: 'price', label: 'Preis (brutto) in €' },
+    { id: 'price', label: 'Preis (netto) in €' },
     { id: 'company_name', label: 'Anbieter' },
     { id: 'company_city', label: 'Ort' },
     { id: 'quote_date', label: 'Angebotsdatum' },
@@ -380,9 +406,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   orderQuotationTableActions: TableActionButton[] = [
     {
       id: 'delete',
-      label: 'Delete',
+      label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
+      type: 'button',
       action: (row: QuotationTableModel) => this.deleteQuotation(row),
       disabled: this.isQuotationsDeleteDisabled,
     },
@@ -479,6 +506,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   readOnlyBannerMessage = signal<string>('');
   readOnlyBannerMessageApprovalTab = signal<string>('');
 
+  additionalChangesMade = false; // Flag to track if changes were made in addition to form changes (e.g. approvals/quotation add/delete)
+
   ngOnInit(): void {
     window.addEventListener('beforeunload', this.onBeforeUnload);
     // Get resolved data from route
@@ -507,8 +536,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
         this.orderBesyId.set(
           `${this.formattedOrderDTO.primary_cost_center_id?.value}-${this.formattedOrderDTO.booking_year!.slice(-2)}-${this.formattedOrderDTO.auto_index}`
         );
-        const loginCredentials = this.userWrapperService.getCurrentUser();
-        console.log(loginCredentials);
       });
     });
     this.registerTourSteps();
@@ -702,10 +729,15 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   onAddQuotation(): boolean {
     if (this.quotationFormGroup.valid) {
       const value = this.quotationFormGroup.get('company_name')?.value as unknown;
-      const companyNameObject = value as { value: string; label: string } | null;
+      const companyNameObject = value as { value: string; label: string } | null | string;
+
+      const companyName =
+        typeof companyNameObject === 'string'
+          ? companyNameObject
+          : (companyNameObject?.label ?? '');
 
       const newQuotation = this.quotationFormGroup.value as QuotationTableModel;
-      newQuotation.company_name = companyNameObject?.label ?? '';
+      newQuotation.company_name = companyName;
       newQuotation.price = this.orderWrapperService.formatPriceToGerman(newQuotation.price);
       newQuotation.quote_date = this.orderWrapperService.formatISODateTimeToDateString(
         newQuotation.quote_date
@@ -1339,6 +1371,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    */
   patchGeneralFormGroupFromOrder() {
     this.generalFormGroup.patchValue(this.formattedOrderDTO);
+    this.queriesPersonFormGroup.patchValue({ comment: this.formattedOrderDTO.comment });
 
     // Patch autocomplete fields in the form configs with the loaded order data
     this.patchConfigAutocompleteFieldsWithOrderData(
@@ -1585,7 +1618,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       (this.formattedOrderDTO.invoice_person_id &&
         this.formattedOrderDTO.delivery_person_id &&
         this.formattedOrderDTO.invoice_person_id.value !==
-          this.formattedOrderDTO.delivery_person_id.value) ||
+        this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
         this.formattedOrderDTO.invoice_address_id !== this.formattedOrderDTO.delivery_address_id)
     ) {
@@ -1745,6 +1778,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     target.secondary_cost_center_id = this.readAutocompleteValue(
       this.secondaryCostCenterFormGroup.get('secondary_cost_center_id')
     );
+    target.comment = this.queriesPersonFormGroup.get('comment')?.value;
     return true;
   }
 
@@ -1780,6 +1814,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     const itemsToCreate = this.items()
       .filter(item => !item.item_id)
       .map(item => this.orderWrapperService.mapItemTableModelToItemRequestDTO(item));
+
+    this.additionalChangesMade =
+      this.additionalChangesMade || itemsToCreate.length > 0 || this.itemsToDelete.size > 0;
 
     // create all new items if any got added
     if (itemsToCreate.length > 0) {
@@ -1842,6 +1879,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       .map(quotation =>
         this.orderWrapperService.mapQuotationTableModelToQuotationRequestDTO(quotation)
       );
+    this.additionalChangesMade =
+      this.additionalChangesMade ||
+      quotationsToCreate.length > 0 ||
+      this.quotationsToDelete.size > 0;
     // create all new quotations if any got added
     if (quotationsToCreate.length > 0) {
       try {
@@ -1875,23 +1916,23 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
           return false;
         }
       }
+    }
 
-      // delete quotations marked for deletion, bail out on first failure
-      for (const deletedQuotation of this.quotationsToDelete) {
-        try {
-          await this.orderWrapperService.deleteQuotationOfOrder(
-            this.editOrderId,
-            deletedQuotation.index!
-          );
-        } catch (error) {
-          console.error('Fehler beim Löschen eines Angebots:', error);
-          this._notifications.open(
-            'Fehler beim Löschen eines Angebots. Bitte versuchen Sie es später erneut.',
-            undefined,
-            { duration: 5000 }
-          );
-          return false;
-        }
+    // delete quotations marked for deletion, bail out on first failure
+    for (const deletedQuotation of this.quotationsToDelete) {
+      try {
+        await this.orderWrapperService.deleteQuotationOfOrder(
+          this.editOrderId,
+          deletedQuotation.index!
+        );
+      } catch (error) {
+        console.error('Fehler beim Löschen eines Angebots:', error);
+        this._notifications.open(
+          'Fehler beim Löschen eines Angebots. Bitte versuchen Sie es später erneut.',
+          undefined,
+          { duration: 5000 }
+        );
+        return false;
       }
     }
 
@@ -1923,12 +1964,11 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.approvalsFromForm
     );
 
-    console.log('Changed approval fields to be patched:', changedApprovalFields);
-
     // If no approval fields have changed, return
     if (Object.keys(changedApprovalFields).length === 0) {
       return true;
     }
+    this.additionalChangesMade = this.additionalChangesMade || true;
     // Send the approval patch to the backend
     try {
       await this.orderWrapperService.patchOrderApprovals(this.editOrderId, changedApprovalFields);
@@ -1977,14 +2017,20 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    * @returns A promise that indicates if there were changes which were submitted successfully
    */
   private async submitOrderPatch(): Promise<PatchResponseIndicator> {
-    console.log('Current formattedOrderDTO:', this.formattedOrderDTO);
-    console.log('Submitting order patch with DTO:', this.patchOrderDTO);
     // Check which fields have been modified and prepare the patch DTO accordingly
     const changedFields = this.orderWrapperService.compareOrdersAndReturnChangedFields(
       this.formattedOrderDTO,
       this.patchOrderDTO
     );
-    console.log('Changed fields to be patched:', changedFields);
+
+    if (Object.keys(changedFields).length === 0 && this.additionalChangesMade) {
+      this.additionalChangesMade = false;
+      this._notifications.open('Bestellung wurde erfolgreich aktualisiert.', undefined, {
+        duration: 3000,
+      });
+      return 'success';
+    }
+    this.additionalChangesMade = false;
 
     // If no fields have changed, return
     if (Object.keys(changedFields).length === 0) {
@@ -2053,28 +2099,28 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     string,
     { tabName: string; configs: FormConfig[] }
   > = {
-    General: {
-      tabName: 'Allgemeine Angaben',
-      configs: [
-        this.generalFormConfig,
-        this.queriesPersonFormConfig,
-        this.primaryCostCenterFormConfig,
-        this.secondaryCostCenterFormConfig,
-      ],
-    },
-    MainOffer: {
-      tabName: 'Hauptangebot',
-      configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
-    },
-    Addresses: {
-      tabName: 'Adressdaten',
-      configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
-    },
-    Approvals: {
-      tabName: 'Genehmigungen',
-      configs: [this.approvalFormConfig],
-    },
-  };
+      General: {
+        tabName: 'Allgemeine Angaben',
+        configs: [
+          this.generalFormConfig,
+          this.queriesPersonFormConfig,
+          this.primaryCostCenterFormConfig,
+          this.secondaryCostCenterFormConfig,
+        ],
+      },
+      MainOffer: {
+        tabName: 'Hauptangebot',
+        configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
+      },
+      Addresses: {
+        tabName: 'Adressdaten',
+        configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
+      },
+      Approvals: {
+        tabName: 'Genehmigungen',
+        configs: [this.approvalFormConfig],
+      },
+    };
 
   /**
    * Checks if there are unsaved changes in the form.
@@ -2194,8 +2240,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.formattedOrderDTO,
       currentOrderState
     );
-
-    console.log('Changed fields for unsaved changes detection:', changedFields);
 
     // Map changed fields to tabs using form configs
     const tabChanges = this.mapChangedFieldsToTabs(Object.keys(changedFields));

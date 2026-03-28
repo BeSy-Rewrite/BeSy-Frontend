@@ -4,11 +4,13 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 
 export interface Step {
+  id: number | string;
   label: string;
   subLabel?: string;
   tooltip: string;
   icon?: string;
   isSkippable?: boolean;
+  nextIds?: (number | string)[];
 }
 
 @Component({
@@ -52,14 +54,17 @@ export class ProgressBarComponent {
    * @returns The corresponding color class.
    */
   getColorClass(i: number): string {
+    if (this.isCompleted(i)) {
+      return 'bg-green-600';
+    }
     if (this.steps().at(i - 1)?.isSkippable && !this.isCompleted(i - 1)) {
       return this.getColorClass(i - 1);
     }
-    if (this.isActive(i - 1)) {
+    const currentStep = this.steps().at(this.currentStepIndex());
+    const stepId = this.steps().at(i)?.id;
+    const isNextStep = stepId !== undefined && currentStep?.nextIds?.includes(stepId);
+    if (this.isActive(i - 1) || isNextStep) {
       return 'bg-blue-600';
-    }
-    if (this.isCompleted(i)) {
-      return 'bg-green-600';
     }
     return 'bg-gray-500';
   }

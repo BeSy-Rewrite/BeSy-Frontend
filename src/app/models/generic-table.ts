@@ -24,7 +24,7 @@ export interface TableColumn<T = any> {
  * Interface representing an action button for a table row.
  * @template T - The type of data represented by each row.
  */
-export interface TableActionButton<T = any> {
+export type TableActionButton<T = any> = (Action<T> | LinkAction<T>) & {
   /** Unique identifier for the action button. */
   id: string;
   /** Display label for the button. */
@@ -33,12 +33,22 @@ export interface TableActionButton<T = any> {
   buttonType?: MatButtonAppearance;
   /** Color theme for the button. */
   color?: ButtonColor;
-  /** Optional action to perform when the button is clicked, given a row. */
-  action?: (row: T) => void;
   /** Whether the button is disabled. Can be a boolean or a Signal<boolean>. */
   disabled?: boolean | Signal<boolean>;
   /** Optional condition to determine if the button should be shown for a given row. */
   showCondition?: (row: T) => boolean;
+};
+
+interface Action<T = any> {
+  type: 'button';
+  /** Function to execute when the button is clicked, given a row. */
+  action: (row: T) => void;
+}
+
+interface LinkAction<T = any> {
+  type: 'link';
+  /** URL or function to generate a URL for the link, given a row. */
+  link: string | ((row: T) => string);
 }
 
 /**

@@ -17,6 +17,7 @@ import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { RouterModule } from '@angular/router';
 import { TableActionButton, TableColumn } from '../../models/generic-table';
 
 /**
@@ -52,6 +53,7 @@ import { TableActionButton, TableColumn } from '../../models/generic-table';
     MatPaginatorModule,
     MatDividerModule,
     MatTooltipModule,
+    RouterModule
   ],
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.scss',
@@ -155,9 +157,11 @@ export class GenericTableComponent<T> implements OnInit, OnChanges, AfterViewIni
    * @param {T} row - The data row associated with the button click.
    */
   handleAction(button: TableActionButton<T>, row: T) {
-    button.action
-      ? button.action(row)
-      : console.warn(`No action defined for button: ${button.label}`);
+    if ('action' in button && button.action) {
+      button.action(row);
+    } else {
+      console.warn(`No action defined for button: ${button.label}`);
+    }
   }
 
   /**

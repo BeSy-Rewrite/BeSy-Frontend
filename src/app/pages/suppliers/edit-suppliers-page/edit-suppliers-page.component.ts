@@ -64,7 +64,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     private readonly cdr: ChangeDetectorRef,
     private readonly nominatimService: NominatimService,
     private readonly location: Location
-  ) {}
+  ) { }
 
   supplierForm = new FormGroup({});
   supplierFormConfig = SUPPLIER_FORM_CONFIG;
@@ -88,6 +88,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
       label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
+      type: 'button',
       action: (row: CustomerIdResponseDTO) => this.onDeleteCustomerID(row),
       showCondition: (row: CustomerIdResponseDTO) => !row.supplier_id,
     },

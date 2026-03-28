@@ -80,6 +80,7 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
       label: 'Edit',
       buttonType: 'elevated',
       color: ButtonColor.PRIMARY,
+      type: 'button',
       action: (row: PersonResponseDTO) => this.editPerson(row),
     },
   ];

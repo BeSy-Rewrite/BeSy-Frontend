@@ -7,6 +7,7 @@ export * from './costCenterResponseDTO';
 export * from './currencyResponseDTO';
 export * from './customerIdRequestDTO';
 export * from './customerIdResponseDTO';
+export * from './errorResponse';
 export * from './invoiceRequestDTO';
 export * from './invoiceResponseDTO';
 export * from './itemRequestDTO';

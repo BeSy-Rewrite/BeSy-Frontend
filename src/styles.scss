@@ -101,7 +101,7 @@ app-homepage {
   height: 100%;
 }
 
-$content-height: calc(100vh - var(--homebar-height) - 8rem);
+$content-height: calc(100vh - var(--homebar-height) - 12rem);
 
 .sticky-headers {
   height: $content-height !important;
@@ -116,6 +116,12 @@ $content-height: calc(100vh - var(--homebar-height) - 8rem);
   }
 }
 
+$orders-page-content-height: calc(100vh - var(--homebar-height) - 8rem);
+
 app-orders-page .filter-menu-container {
-  height: $content-height !important;
+  height: $orders-page-content-height !important;
+}
+
+app-orders-page .sticky-headers {
+  height: $orders-page-content-height !important;
 }

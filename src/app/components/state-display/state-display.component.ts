@@ -43,7 +43,7 @@ export class StateDisplayComponent implements OnInit, OnChanges {
   constructor(
     private readonly stateService: StateWrapperService,
     private readonly ordersService: OrdersWrapperService
-  ) {}
+  ) { }
 
   /**
    * Initialize the component by fetching allowed state transitions
@@ -111,11 +111,12 @@ export class StateDisplayComponent implements OnInit, OnChanges {
    */
   generateStepFromState(state: OrderStatus, timestamp?: string): Step {
     return {
+      id: state,
       label: STATE_ICONS.get(state) + '\u00A0' + STATE_DISPLAY_NAMES.get(state),
       subLabel: timestamp ? new Date(timestamp).toLocaleDateString() : undefined,
       tooltip: STATE_DESCRIPTIONS.get(state) || '',
       icon: STATE_FONT_ICONS.get(state) || '',
-      isSkippable: this.skippableStates.includes(state),
+      nextIds: this.allowedStateTransitions[state] || [],
     };
   }
 

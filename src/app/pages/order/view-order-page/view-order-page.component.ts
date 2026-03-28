@@ -1,10 +1,9 @@
 import { ClipboardModule } from '@angular/cdk/clipboard';
 
-import { Component, computed, input, OnInit, signal, WritableSignal } from '@angular/core';
+import { Component, computed, input, OnChanges, OnInit, signal, WritableSignal } from '@angular/core';
 
 import { MatButtonAppearance, MatButtonModule } from '@angular/material/button';
 
-import { MatDialog } from '@angular/material/dialog';
 
 import { MatDividerModule } from '@angular/material/divider';
 
@@ -24,7 +23,7 @@ import { ZodError } from 'zod';
 
 import { environment } from '../../../../environments/environment';
 
-import { OrderStatus, UserResponseDTO } from '../../../api-services-v2';
+import { OrderResponseDTO, OrderStatus, UserResponseDTO } from '../../../api-services-v2';
 
 import { setupDialog } from '../../../components/dialog/dialog.component';
 
@@ -57,6 +56,11 @@ import { ToastRequest } from '../../../components/toast/toast.component';
 import { ORDER_FIELD_NAMES } from '../../../display-name-mappings/order-names';
 
 import {
+  STATE_CHANGE_BUTTON_DISPLAY_ORDER,
+  STATE_CHANGE_FROM_TO_DESCRIPTIONS,
+  STATE_CHANGE_FROM_TO_ICONS,
+  STATE_CHANGE_FROM_TO_NAMES,
+  STATE_CHANGE_TO_DESCRIPTIONS,
   STATE_CHANGE_TO_NAMES,
   STATE_DISPLAY_NAMES,
   STATE_ICONS,
@@ -80,7 +84,11 @@ import { StateWrapperService } from '../../../services/wrapper-services/state-wr
 
 import { UsersWrapperService } from '../../../services/wrapper-services/users-wrapper.service';
 
-import { finalize } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { Title } from '@angular/platform-browser';
+import { finalize, from } from 'rxjs';
+import { CommentEditorComponent } from '../../../components/comment-editor/comment-editor.component';
+import { LegacyInvoiceDisplayComponent } from '../../../components/order-display/legacy-invoice-display/legacy-invoice-display.component';
 import { ToastProcessingIndicatorComponent } from '../../../components/toast-processing-indicator/toast-processing-indicator.component';
 import { MailTrackingService } from '../../../services/mail-tracking.service';
 import { UtilsService } from '../../../services/utils.service';
@@ -144,13 +152,15 @@ interface StateChangeButtons {
     OrderMainQuoteComponent,
     OrderArticleListComponent,
     OrderAddressesComponent,
+    LegacyInvoiceDisplayComponent,
+    CommentEditorComponent,
   ],
 
   templateUrl: './view-order-page.component.html',
 
   styleUrl: './view-order-page.component.scss',
 })
-export class ViewOrderPageComponent implements OnInit {
+export class ViewOrderPageComponent implements OnInit, OnChanges {
   environment = environment;
 
   /**
@@ -202,6 +212,8 @@ export class ViewOrderPageComponent implements OnInit {
 
   numberOfMailsSent = signal(0);
 
+  private isInitialized = false;
+
   constructor(
     private readonly usersService: UsersWrapperService,
     private readonly stateService: StateWrapperService,
@@ -215,13 +227,32 @@ export class ViewOrderPageComponent implements OnInit {
     private readonly toastService: ToastService,
     private readonly insyService: InsyWrapperService,
     private readonly mailTrackingService: MailTrackingService,
-    private readonly utilsService: UtilsService
-  ) {}
+    private readonly utilsService: UtilsService,
+    private readonly titleService: Title
+  ) { }
 
   /**
    * Initializes the component, fetching necessary data and setting up state transitions.
    */
   ngOnInit(): void {
+    this.setup();
+
+    this.stateService.getAllowedStateTransitions().subscribe(transitions => {
+      this.stateTransitionMap = transitions;
+
+      this.createStateChangeButtons();
+    });
+    this.isInitialized = true;
+  }
+
+  ngOnChanges(): void {
+    if (this.isInitialized) {
+      this.setup();
+      this.createStateChangeButtons();
+    }
+  }
+
+  setup(): void {
     this.mailTrackingService.getMailsSentForOrder(this.order().order.id!).subscribe(count => {
       this.numberOfMailsSent.set(count);
     });
@@ -236,11 +267,9 @@ export class ViewOrderPageComponent implements OnInit {
       });
     }
 
-    this.stateService.getAllowedStateTransitions().subscribe(transitions => {
-      this.stateTransitionMap = transitions;
-
-      this.createStateChangeButtons();
-    });
+    this.titleService.setTitle(
+      `Bestellung ${this.internalOrder().orderDisplay.besy_number} ansehen`
+    );
   }
 
   /**
@@ -271,20 +300,37 @@ export class ViewOrderPageComponent implements OnInit {
           toastRef?.cancel(true);
         })
       )
-      .subscribe(blob => {
-        const link = document.createElement('a');
+      .subscribe({
+        next: blob => {
+          const link = document.createElement('a');
 
-        const objectUrl = URL.createObjectURL(blob);
+          const objectUrl = URL.createObjectURL(blob);
 
-        link.href = objectUrl;
+          link.href = objectUrl;
 
-        link.download = `Bestellung-${this.internalOrder().orderDisplay.besy_number}.pdf`;
+          link.download = `${this.internalOrder().orderDisplay.besy_number}.pdf`
+            .replaceAll(
+              environment.besyNumber.separator,
+              environment.besyNumber.separatorFileExport
+            )
+            .replace(/\s/, '_');
 
-        link.click();
+          link.click();
 
-        URL.revokeObjectURL(objectUrl);
+          URL.revokeObjectURL(objectUrl);
 
-        this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
+          this.snackBar.open('Bestellung erfolgreich exportiert.', 'Schließen', { duration: 5000 });
+        },
+        error: err => {
+          console.error('Failed to export order', err);
+          this.snackBar.open(
+            'Bestellung konnte nicht exportiert werden. ' + (err.message ?? err),
+            'Schließen',
+            {
+              duration: 5000,
+            }
+          );
+        },
       });
   }
 
@@ -309,60 +355,54 @@ export class ViewOrderPageComponent implements OnInit {
 
     for (const state of this.getNextAllowedStates()) {
       if (
-        state === OrderStatus.APPROVED &&
-        !this.authService.isAuthorizedFor(environment.approveOrdersRole)
+        this.internalOrder().order.status === OrderStatus.DEKAN_PENDING &&
+        !this.authService.isAuthorizedFor(environment.approveOrdersRole) &&
+        (state === OrderStatus.APPROVED || state === OrderStatus.COMPLETED)
       ) {
         continue;
       }
 
-      let color;
-
+      const fromState = this.internalOrder().order.status!;
+      let label = STATE_CHANGE_FROM_TO_NAMES[fromState]?.[state] ?? STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
+      let icon = STATE_CHANGE_FROM_TO_ICONS[fromState]?.[state] ?? STATE_ICONS.get(state) ?? '';
+      let tooltip = STATE_CHANGE_FROM_TO_DESCRIPTIONS[fromState]?.[state] ?? STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '';
+      let color = 'default';
       let style: MatButtonAppearance = 'elevated';
 
-      switch (state) {
-        case OrderStatus.DELETED:
-          color = 'warn';
+      if (state === OrderStatus.DELETED) {
+        color = 'warn';
+        style = 'outlined';
+      }
 
-          style = 'outlined';
+      if (
+        state === OrderStatus.APPROVED &&
+        this.internalOrder().order.status === OrderStatus.DEKAN_PENDING
+      ) {
+        color = 'accent';
+      }
 
-          break;
-
-        case OrderStatus.APPROVED:
-          color = 'accent';
-
-          break;
-
-        default:
-          color = 'default';
+      if (
+        state === OrderStatus.COMPLETED &&
+        this.internalOrder().order.status === OrderStatus.DEKAN_PENDING
+      ) {
+        color = 'warn';
       }
 
       this.stateChangeButtons.push({
-        label: STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`,
-
-        icon: STATE_ICONS.get(state) ?? '',
-
-        tooltip:
-          state === OrderStatus.DELETED
-            ? 'Bestellung wirklich löschen?'
-            : `Zu '${STATE_DISPLAY_NAMES.get(state) ?? state}' wechseln`,
-
+        label,
+        icon,
+        tooltip,
         state,
-
         color,
-
         style,
       });
     }
 
-    const deletedButtonIndex = this.stateChangeButtons.findIndex(
-      btn => btn.state === OrderStatus.DELETED
+    this.stateChangeButtons.sort(
+      (a, b) =>
+        STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(a.state) -
+        STATE_CHANGE_BUTTON_DISPLAY_ORDER.indexOf(b.state)
     );
-
-    if (deletedButtonIndex !== -1) {
-      const [deletedButton] = this.stateChangeButtons.splice(deletedButtonIndex, 1);
-
-      this.stateChangeButtons.push(deletedButton);
-    }
   }
 
   /**
@@ -382,6 +422,31 @@ export class ViewOrderPageComponent implements OnInit {
       return;
     }
 
+    if (newState === OrderStatus.SENT) {
+      // open dialog to confirm editing will now longer be possible
+      const data = {
+        title: 'Bestellung als "Abgeschickt" markieren?',
+
+        description:
+          'Die Bestellung wird als "Abgeschickt" markiert und kann danach nicht mehr bearbeitet werden. ' +
+          'Sind Sie sicher, dass Sie fortfahren möchten?',
+
+        cancelButtonText: 'Abbrechen',
+
+        confirmButtonText: 'Bestätigen',
+      };
+
+      setupDialog(this.dialog, data, (result: boolean) => {
+        if (result) {
+          this.executeStateChange(newState);
+        }
+      });
+    } else {
+      this.executeStateChange(newState);
+    }
+  }
+
+  executeStateChange(newState: OrderStatus): void {
     this.orderStateValidityService
       .canTransitionToState(this.internalOrder().order, newState)
       .subscribe({
@@ -401,6 +466,15 @@ export class ViewOrderPageComponent implements OnInit {
                 );
 
                 this.updateDisplayedOrderState(newState);
+              })
+              .catch(err => {
+                console.error('Failed to change order state', err);
+
+                this.snackBar.open(
+                  `Fehler beim Ändern des Bestellungsstatus: ${err.message || err}`,
+                  'Schließen',
+                  { duration: 5000 }
+                );
               });
           }
         },
@@ -439,11 +513,22 @@ export class ViewOrderPageComponent implements OnInit {
   updateDisplayedOrderState(newState: OrderStatus) {
     const newOrder = { ...this.internalOrder().order, status: newState };
 
-    this.orderDisplayService.resolveOrderSubresources(newOrder).subscribe(orderDisplay => {
-      this.internalOrder.set({ order: newOrder, orderDisplay });
-    });
+    const updateUI = (newOrder: OrderResponseDTO) => {
+      this.orderDisplayService.resolveOrderSubresources(newOrder).subscribe(orderDisplay => {
+        this.internalOrder.set({ order: newOrder, orderDisplay });
+      });
 
-    this.createStateChangeButtons();
+      this.createStateChangeButtons();
+    };
+
+    // If the order is marked as completed, we fetch the updated order data from the backend as the auto-index can change
+    if (newState === OrderStatus.COMPLETED) {
+      from(this.ordersService.getOrderById(newOrder.id!)).subscribe(order => {
+        updateUI(order);
+      });
+    } else {
+      updateUI(newOrder);
+    }
   }
 
   /**
@@ -453,8 +538,7 @@ export class ViewOrderPageComponent implements OnInit {
     const data = {
       title: 'Bestellung wirklich löschen?',
 
-      description:
-        'Die Bestellung wird dauerhaft gelöscht und kann nur von Admins wiederhergestellt werden.',
+      description: 'Die Bestellung wird gelöscht, kann aber wiederhergestellt werden.',
 
       cancelButtonText: 'Abbrechen',
 

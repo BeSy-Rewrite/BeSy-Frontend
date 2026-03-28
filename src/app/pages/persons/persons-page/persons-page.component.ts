@@ -1,10 +1,13 @@
+import { NgStyle } from '@angular/common';
 import { Component, effect, OnInit, signal, ViewChild, ViewEncapsulation } from '@angular/core';
-import { FormGroup } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleChange, MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
+import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
+import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
@@ -33,6 +36,11 @@ import { PersonsWrapperService } from '../../../services/wrapper-services/person
     MatButtonModule,
     MatButtonToggleModule,
     MatIconModule,
+    FormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    ReactiveFormsModule,
+    NgStyle,
   ],
   templateUrl: './persons-page.component.html',
   styleUrls: ['./persons-page.component.scss'],
@@ -47,6 +55,10 @@ export class PersonsPageComponent implements OnInit {
   ) {
     effect(() => {
       this.onAddressSelectionModeChanged(this.addressSelectionMode());
+    });
+    this.filterStringControl.valueChanges.subscribe(() => {
+      const filterValue = this.filterStringControl.value?.trim().toLowerCase() || '';
+      this.personsDataSource.filter = filterValue;
     });
   }
 
@@ -64,10 +76,12 @@ export class PersonsPageComponent implements OnInit {
       label: 'Bearbeiten',
       buttonType: 'filled',
       color: ButtonColor.PRIMARY,
+      type: 'button',
       action: (row: PersonResponseDTO) => this.editPerson(row),
     },
   ];
 
+  filterStringControl = new FormControl('');
   // Data source to be displayed in the person-table component
   personsDataSource: MatTableDataSource<PersonResponseDTO> =
     new MatTableDataSource<PersonResponseDTO>([]);

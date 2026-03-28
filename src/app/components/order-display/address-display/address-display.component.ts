@@ -9,27 +9,32 @@ type DisplayAddress = { [key in keyof AddressResponseDTO]: string };
   selector: 'app-address-display',
   imports: [],
   templateUrl: './address-display.component.html',
-  styleUrl: './address-display.component.scss'
+  styleUrl: './address-display.component.scss',
 })
 export class AddressDisplayComponent implements OnInit {
   /**
    * The ID of the address to display.
    */
-  addressId = input.required<number>();
+  addressId = input.required<number | undefined>();
 
   address = signal<DisplayAddress | undefined>(undefined);
 
-  constructor(private readonly personsService: PersonsWrapperService) { }
+  constructor(private readonly personsService: PersonsWrapperService) {}
 
   ngOnInit(): void {
-    from(this.personsService.getPersonAddressById(this.addressId())).subscribe(address => {
+    if (this.addressId() == undefined) {
+      this.address.set(undefined);
+      return;
+    }
+
+    from(this.personsService.getPersonAddressById(this.addressId()!)).subscribe(address => {
       const addressDisplay: DisplayAddress = {};
 
       for (const [key, value] of Object.entries(address ?? {})) {
-        addressDisplay[key as keyof DisplayAddress] = typeof value === 'string' ? value : value?.toString() ?? '';
+        addressDisplay[key as keyof DisplayAddress] =
+          typeof value === 'string' ? value : (value?.toString() ?? '');
       }
       this.address.set(addressDisplay);
     });
   }
-
 }

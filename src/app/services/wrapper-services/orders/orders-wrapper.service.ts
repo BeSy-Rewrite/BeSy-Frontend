@@ -1,5 +1,16 @@
+import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { from, lastValueFrom, map, mergeMap, Observable, Subject, tap } from 'rxjs';
+import {
+  catchError,
+  from,
+  lastValueFrom,
+  map,
+  mergeMap,
+  Observable,
+  Subject,
+  tap,
+  throwError,
+} from 'rxjs';
 import {
   ApprovalResponseDTO,
   ItemRequestDTO,
@@ -114,7 +125,6 @@ export class OrdersWrapperService {
    */
 
   /**
-   * Orders with the state 'DELETED' are excluded as no additional information can be retrieved for them from the API. If needed, restore them in the database directly.
    * @param page Seitenzahl für die Paginierung (beginnend bei 0).
    * @param size Anzahl der Elemente pro Seite.
    * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B.  `sort=bookingYear,desc&sort=id,asc` sortiert zuerst nach `bookingYear` (absteigend), dann nach `id` (aufsteigend).
@@ -139,9 +149,7 @@ export class OrdersWrapperService {
         filters?.createdAfter,
         filters?.createdBefore,
         filters?.ownerIds,
-        filters?.statuses?.length
-          ? filters.statuses
-          : Object.values(OrderStatus).filter(s => s !== OrderStatus.DELETED),
+        filters?.statuses,
         filters?.quotePriceMin,
         filters?.quotePriceMax,
         filters?.deliveryPersonIds,
@@ -242,7 +250,56 @@ export class OrdersWrapperService {
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
-    return this.ordersService.exportOrderToFormula(Number.parseInt(orderId));
+    const parseJsonBlobError = (blob: Blob): Observable<never> =>
+      from(blob.text()).pipe(
+        mergeMap(text => {
+          try {
+            return throwError(() => JSON.parse(text));
+          } catch {
+            return throwError(() => new Error(text));
+          }
+        })
+      );
+
+    /*
+     * As openapitools generator cli doesnt seem to support multiple response content types,
+     * it must be set manually with this ugly cast.
+     * The backend will return application/json in case of an error and application/pdf in case of success,
+     * which is handled in the following code by checking the content type of the response.
+     *
+     * The backend will only return generic 500 errors if the accept header is set to only application/pdf.
+     */
+    return this.ordersService
+      .exportOrderToFormula(Number.parseInt(orderId), 'response', false, {
+        httpHeaderAccept: 'application/pdf, application/json' as 'application/pdf',
+      })
+      .pipe(
+        mergeMap((response: HttpResponse<Blob>) => {
+          const contentType = (
+            response.headers.get('Content-Type') ??
+            response.body?.type ??
+            ''
+          ).toLowerCase();
+
+          if (contentType.includes('application/json') && response.body) {
+            return parseJsonBlobError(response.body);
+          }
+
+          return [response.body as Blob];
+        }),
+        catchError((error: unknown) => {
+          const httpError = error as HttpErrorResponse;
+
+          if (
+            httpError?.error instanceof Blob &&
+            httpError.error.type.includes('application/json')
+          ) {
+            return parseJsonBlobError(httpError.error);
+          }
+
+          return throwError(() => error);
+        })
+      );
   }
 
   async getOrderApprovals(orderId: number): Promise<ApprovalResponseDTO> {
@@ -578,6 +635,13 @@ export class OrdersWrapperService {
   ): Partial<OrderResponseDTOFormatted> {
     const changedFields: Partial<OrderResponseDTOFormatted> = {};
 
+    // Helper functions to treat null and undefined as equal
+    const isNullish = (value: any): boolean => value === null || value === undefined;
+    const areValuesEqual = (val1: any, val2: any): boolean => {
+      if (isNullish(val1) && isNullish(val2)) return true;
+      return val1 === val2;
+    };
+
     // Fields that should be formatted as ISO date (YYYY-MM-DD) only
     const dateFields = new Set(['quote_date', 'order_date', 'delivery_date']);
 
@@ -598,7 +662,7 @@ export class OrdersWrapperService {
       extractValue(original.currency) ?? extractValue((original as any).currency_short);
     const modifiedCurrencyShortValue = extractValue((modified as any).currency_short);
 
-    if (originalCurrencyValue !== modifiedCurrencyShortValue) {
+    if (!areValuesEqual(originalCurrencyValue, modifiedCurrencyShortValue)) {
       (changedFields as any).currency_short = modifiedCurrencyShortValue;
     }
 
@@ -614,8 +678,23 @@ export class OrdersWrapperService {
       if (priceFields.has(key)) {
         const origParsed = this.parseGermanPriceToNumber(originalValue);
         const modParsed = this.parseGermanPriceToNumber(modifiedValue);
-        if (origParsed !== modParsed) {
+        if (!areValuesEqual(origParsed, modParsed)) {
           (changedFields as any)[key] = modParsed;
+        }
+        continue;
+      }
+
+      if (dateFields.has(key)) {
+        if (
+          this.convertToISODateString(modifiedValue) !== this.convertToISODateString(originalValue)
+        ) {
+          (changedFields as any)[key] = modifiedValue;
+          console.log(
+            `Date field ${key} changed: original=${originalValue}, modified=${modifiedValue}`
+          );
+          console.log(
+            `Converted original: ${this.convertToISODateString(originalValue)}, Converted modified: ${this.convertToISODateString(modifiedValue)}`
+          );
         }
         continue;
       }
@@ -630,7 +709,7 @@ export class OrdersWrapperService {
         if ('value' in originalValue || 'value' in modifiedValue) {
           const orig = originalValue.value;
           const mod = modifiedValue.value;
-          if (orig !== mod) {
+          if (!areValuesEqual(orig, mod)) {
             (changedFields as any)[key] = mod;
           }
         } else if (JSON.stringify(originalValue) !== JSON.stringify(modifiedValue)) {
@@ -644,13 +723,17 @@ export class OrdersWrapperService {
       ) {
         const mod = modifiedValue.value;
         const orig = originalValue;
-        if (orig !== mod) {
+        if (!areValuesEqual(orig, mod)) {
           (changedFields as any)[key] = mod;
         }
-      } else if (originalValue !== modifiedValue) {
+      } else if (!areValuesEqual(originalValue, modifiedValue)) {
         (changedFields as any)[key] = modifiedValue;
       }
     }
+
+    console.log('Changed fields before formatting:', changedFields);
+    console.log('Original order:', original);
+    console.log('Modified order:', modified);
 
     // Convert undefined values to null for API compatibility
     // Format date fields to ISO date format (YYYY-MM-DD)

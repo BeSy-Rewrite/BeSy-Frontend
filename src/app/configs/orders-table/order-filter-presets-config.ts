@@ -37,7 +37,7 @@ export const ORDERS_FILTER_PRESETS: OrdersFilterPreset[] = [
             {
                 id: "status",
                 chipIds: [
-                    OrderStatus.APPROVALS_RECEIVED
+                    OrderStatus.DEKAN_PENDING
                 ]
             }
         ]

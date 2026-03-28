@@ -8,7 +8,8 @@ export const COST_CENTER_FORM_CONFIG: FormConfig = {
       name: 'id',
       label: 'ID',
       type: 'text',
-      required: true
+      required: true,
+      validators: [Validators.pattern(/^\S*$/)]
     },
     {
       name: 'name',

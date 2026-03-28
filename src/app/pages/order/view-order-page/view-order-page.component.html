@@ -1,149 +1,183 @@
-<div class="pb-16">
-  <div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
-    <app-state-display [order]="internalOrder().order" />
+<div class="pt-2 z-10 -mt-8 -mx-8 mb-4">
+  <app-state-display [order]="internalOrder().order" />
 
-    <mat-divider class="bg-gray-400" />
-  </div>
+  <mat-divider class="bg-gray-400" />
+</div>
 
-  <div class="mb-4 float-left flex flex-col items-start min-w-fit">
+<div class="pb-16 flex flex-wrap gap-y-4 gap-x-8">
+  <div class="mb-4 flex flex-col items-start grow">
     <h1
       class="font-semibold text-2xl mb-2"
-      [class]="environment.orderFieldClassPrefix + 'content_description'">
+      [class]="environment.orderFieldClassPrefix + 'content_description'"
+    >
       {{ internalOrder().orderDisplay.content_description }}
     </h1>
 
-    <span class="min-w-fit" [class]="environment.orderFieldClassPrefix + 'owner_id'">
-      Erstellt von:
+    <div class="flex flex-col lg:flex-row gap-8 w-full min-h-fit">
+      <div class="flex flex-col whitespace-nowrap">
+        <span class="min-w-fit" [class]="environment.orderFieldClassPrefix + 'owner_id'">
+          Erstellt von:
 
-      <button
-        matButton
-        color="primary"
-        class="w-fit"
-        [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
-        [cdkCopyToClipboard]="owner?.email ?? ''">
-        {{ owner?.name }} {{ owner?.surname }}
-      </button>
-    </span>
+          <button
+            matButton
+            color="primary"
+            class="w-fit"
+            [matTooltip]="owner?.email ? owner!.email + ' Klicke zum Kopieren' : ''"
+            [cdkCopyToClipboard]="owner?.email ?? ''"
+          >
+            {{ owner?.name }} {{ owner?.surname }}
+          </button>
+        </span>
 
-    <span class="min-w-fit">
-      Bestellnummer:
+        <span class="min-w-fit">
+          Bestellnummer:
 
-      <button
-        matButton
-        color="primary"
-        class="w-fit"
-        [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number"
-        matTooltip="Bestellnummer kopieren">
-        {{ internalOrder().orderDisplay.besy_number }}
-      </button>
-    </span>
+          <button
+            matButton
+            color="primary"
+            class="w-fit"
+            [cdkCopyToClipboard]="internalOrder().orderDisplay.besy_number"
+            matTooltip="Bestellnummer kopieren"
+          >
+            {{ internalOrder().orderDisplay.besy_number }}
+          </button>
+        </span>
 
-    <span class="min-w-fit" [class]="environment.orderFieldClassPrefix + 'id'">
-      ID:
+        <span class="min-w-fit" [class]="environment.orderFieldClassPrefix + 'id'">
+          ID:
 
-      <button
-        matButton
-        color="primary"
-        class="w-fit"
-        [cdkCopyToClipboard]="currentUrl()"
-        matTooltip="Link kopieren">
-        #&nbsp;{{ internalOrder().order.id }}
+          <button
+            matButton
+            color="primary"
+            class="w-fit"
+            [cdkCopyToClipboard]="currentUrl()"
+            matTooltip="Link kopieren"
+          >
+            #&nbsp;{{ internalOrder().order.id }}
 
-        <mat-icon iconPositionEnd>link</mat-icon>
-      </button>
-    </span>
+            <mat-icon iconPositionEnd>link</mat-icon>
+          </button>
+        </span>
+      </div>
+      <app-comment-editor class="grow max-w-2xl lg:ml-auto" [order]="internalOrder().order" />
+    </div>
   </div>
 
-  <div class="sticky top-24 ml-auto mb-4 w-fit flex flex-col gap-2 z-50">
+  <div class="sticky top-24 mb-4 w-fit flex flex-col gap-2 z-50 ml-auto">
     @if (canPostToInsy()) {
-    <button mat-raised-button color="accent" (click)="sendToInsy()">An Insy senden</button>
+      <button
+        mat-raised-button
+        color="accent"
+        (click)="sendToInsy()"
+        matTooltip="Diese Bestellung zum Inventarisieren an das Inventarisierungssystem senden"
+      >
+        An Insy senden
+      </button>
     }
 
-    <button mat-raised-button color="primary" (click)="export()">
+    <button
+      mat-raised-button
+      color="primary"
+      (click)="export()"
+      matTooltip="Bestellformular für diese Bestellung als PDF exportieren"
+    >
       <mat-icon iconPositionStart>download</mat-icon>
       Exportieren
     </button>
 
     @if (internalOrder().order.status === orderStates.IN_PROGRESS) {
-    <a
-      mat-raised-button
-      color="primary"
-      [routerLink]="['edit']"
-      [disabled]="internalOrder().order.status !== orderStates.IN_PROGRESS">
-      Bearbeiten
-    </a>
+      <a
+        mat-raised-button
+        color="primary"
+        [routerLink]="['edit']"
+        [disabled]="internalOrder().order.status !== orderStates.IN_PROGRESS"
+      >
+        Bearbeiten
+      </a>
     }
 
     @for (state of stateChangeButtons; track $index) {
-    <button
-      [matButton]="state.style ?? 'elevated'"
-      [color]="state.color"
-      (click)="changeOrderState(state.state)"
-      [matTooltip]="state.tooltip">
-      {{ state.label }} {{ state.icon }}
-    </button>
+      <button
+        [matButton]="state.style ?? 'elevated'"
+        [color]="state.color"
+        (click)="changeOrderState(state.state)"
+        [matTooltip]="state.tooltip"
+      >
+        {{ state.label }} {{ state.icon }}
+      </button>
     }
 
-    <button mat-raised-button (click)="mailSent()" matTooltip="Klicke um den Zähler der gesendeten E-Mails zu erhöhen">
+    <button
+      mat-raised-button
+      (click)="mailSent()"
+      matTooltip="Klicke um den Zähler der gesendeten E-Mails zu erhöhen"
+    >
       {{ numberOfMailsSent() }} E-Mails gesendet
     </button>
   </div>
 
-  <div class="flex flex-wrap gap-12 mt-8 w-full h-fit">
+  <div class="flex flex-wrap gap-12 w-full h-fit">
     @for (section of sections; track section.id) {
-    <div [class]="section.isFullWidth ? 'w-full' : 'grow'">
-      <div class="flex flex-row justify-between">
-        <h3 [id]="section.title" class="text-2xl mb-2">{{ section.title }}</h3>
+      <div [class]="section.isFullWidth ? 'w-full' : 'grow'">
+        <div class="flex flex-row justify-between">
+          <h3 [id]="section.title" class="text-2xl mb-2">{{ section.title }}</h3>
 
-        @if (showEditButton(section)) {
-        <a
-          matButton
-          color="primary"
-          [routerLink]="['edit']"
-          [queryParams]="{ tab: section.editTabId }">Bearbeiten</a>
+          @if (showEditButton(section)) {
+            <a
+              matButton
+              color="primary"
+              [routerLink]="['edit']"
+              [queryParams]="{ tab: section.editTabId }"
+              >Bearbeiten</a
+            >
+          }
+        </div>
+
+        <mat-divider class="bg-he-red-200 !mb-2" />
+
+        @switch (section.id) {
+          @case ('main-information') {
+            <app-order-main-information [orderData]="internalOrder()" />
+          }
+
+          @case ('addresses') {
+            <app-order-addresses [orderData]="internalOrder()" />
+          }
+
+          @case ('main-quote') {
+            <app-order-main-quote [orderData]="internalOrder()" />
+          }
+
+          @case ('articles') {
+            <app-order-article-list [order]="internalOrder().order" />
+          }
+
+          @case ('quotations') {
+            <app-quotations-list [orderId]="internalOrder().order.id!" />
+          }
+
+          @case ('documents') {
+            <div class="flex flex-col gap-8">
+              <app-order-documents [order]="internalOrder().order" />
+              <app-legacy-invoice-display [order]="internalOrder().order" />
+            </div>
+          }
+
+          @case ('contacts') {
+            <app-order-persons [order]="internalOrder().order" />
+          }
+
+          @case ('approvals') {
+            <div class="min-[108rem]:max-w-2xl">
+              <app-approvals [orderId]="internalOrder().order.id!" />
+            </div>
+          }
+
+          @case ('history') {
+            <app-state-history [order]="internalOrder().order" />
+          }
         }
       </div>
-
-      <mat-divider class="bg-he-red-200 !mb-2" />
-
-      @switch (section.id) {
-      @case ('main-information') {
-      <app-order-main-information [orderData]="internalOrder()" />
-      }
-
-      @case ('addresses') {
-      <app-order-addresses [orderData]="internalOrder()" />
-      }
-
-      @case ('main-quote') {
-      <app-order-main-quote [orderData]="internalOrder()" />
-      }
-
-      @case ('articles') {
-      <app-order-article-list [order]="internalOrder().order" />
-      }
-
-      @case ('quotations') {
-      <app-quotations-list [orderId]="internalOrder().order.id!" />
-      }
-
-      @case ('documents') {
-      <app-order-documents [order]="internalOrder().order" />
-      }
-
-      @case ('contacts') {
-      <app-order-persons [order]="internalOrder().order" />
-      }
-
-      @case ('approvals') {
-      <app-approvals [orderId]="internalOrder().order.id!" />
-      }
-
-      @case ('history') {
-      <app-state-history [order]="internalOrder().order" />
-      }
-      }
-    </div>
     }
   </div>
 </div>

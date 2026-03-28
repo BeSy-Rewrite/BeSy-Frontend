@@ -10,7 +10,7 @@ const MAILS_SENT_PREFERENCE_TYPE = 'MAILS_SENT';
 export class MailTrackingService {
   private readonly preferenceCache: Map<number, number> = new Map<number, number>();
 
-  constructor(private readonly userService: UsersWrapperService) {}
+  constructor(private readonly userService: UsersWrapperService) { }
 
   /**
    * Set the number of mails sent for a specific order
@@ -42,7 +42,7 @@ export class MailTrackingService {
    * Get the number of mails sent for a specific order
    */
   getMailsSentForOrder(orderId: number) {
-    return this.userService.getCurrentUserPreferences().pipe(
+    return this.userService.getCurrentUserPreferences(MAILS_SENT_PREFERENCE_TYPE).pipe(
       map(preferences => {
         const preference = preferences.find(p => p.preferences['orderId'] === orderId);
         if (preference) {
