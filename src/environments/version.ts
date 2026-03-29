@@ -1,1 +1,1 @@
-export const build = { version: 'main-20260210-ef5576f', commitUrl: 'https://github.com/BeSy-Rewrite/BeSy-Frontend/commit/ef5576f0de8457ebd61a1fcf27ae74aaf54ac711' };
+export const build = { version: 'test-20260329-b8ab81a', commitUrl: 'https://github.com/BeSy-Rewrite/BeSy-Frontend/commit/b8ab81aa14ca131f875c8dcc5add619fb54ae122' };
