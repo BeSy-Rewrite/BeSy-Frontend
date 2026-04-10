@@ -25,7 +25,7 @@ export const environment = {
 
   orderFieldClassPrefix: 'order-field-',
 
-  INSY_POSTABLE_STATES: [OrderStatus.SETTLED, OrderStatus.ARCHIVED] as OrderStatus[],
+  insyPostableStates: [OrderStatus.SETTLED, OrderStatus.ARCHIVED] as OrderStatus[],
 
   // Wrapped banner configuration
   wrappedEnabled: true,

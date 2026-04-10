@@ -1,9 +1,16 @@
 import { ClipboardModule } from '@angular/cdk/clipboard';
 
-import { Component, computed, input, OnChanges, OnInit, signal, WritableSignal } from '@angular/core';
+import {
+  Component,
+  computed,
+  input,
+  OnChanges,
+  OnInit,
+  signal,
+  WritableSignal,
+} from '@angular/core';
 
 import { MatButtonAppearance, MatButtonModule } from '@angular/material/button';
-
 
 import { MatDividerModule } from '@angular/material/divider';
 
@@ -207,7 +214,7 @@ export class ViewOrderPageComponent implements OnInit, OnChanges {
   lastStateChangeTimestamp = Date.now();
 
   canPostToInsy = computed(() =>
-    environment.INSY_POSTABLE_STATES.includes(this.internalOrder().order.status!)
+    environment.insyPostableStates.includes(this.internalOrder().order.status!)
   );
 
   numberOfMailsSent = signal(0);
@@ -229,7 +236,7 @@ export class ViewOrderPageComponent implements OnInit, OnChanges {
     private readonly mailTrackingService: MailTrackingService,
     private readonly utilsService: UtilsService,
     private readonly titleService: Title
-  ) { }
+  ) {}
 
   /**
    * Initializes the component, fetching necessary data and setting up state transitions.
@@ -363,9 +370,15 @@ export class ViewOrderPageComponent implements OnInit, OnChanges {
       }
 
       const fromState = this.internalOrder().order.status!;
-      let label = STATE_CHANGE_FROM_TO_NAMES[fromState]?.[state] ?? STATE_CHANGE_TO_NAMES.get(state) ?? `change to ${state}`;
+      let label =
+        STATE_CHANGE_FROM_TO_NAMES[fromState]?.[state] ??
+        STATE_CHANGE_TO_NAMES.get(state) ??
+        `change to ${state}`;
       let icon = STATE_CHANGE_FROM_TO_ICONS[fromState]?.[state] ?? STATE_ICONS.get(state) ?? '';
-      let tooltip = STATE_CHANGE_FROM_TO_DESCRIPTIONS[fromState]?.[state] ?? STATE_CHANGE_TO_DESCRIPTIONS.get(state) ?? '';
+      let tooltip =
+        STATE_CHANGE_FROM_TO_DESCRIPTIONS[fromState]?.[state] ??
+        STATE_CHANGE_TO_DESCRIPTIONS.get(state) ??
+        '';
       let color = 'default';
       let style: MatButtonAppearance = 'elevated';
 
