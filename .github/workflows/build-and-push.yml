@@ -6,7 +6,7 @@ name: Build, docker & push to github packages
 
 on:
   push:
-    branches: ["main", "test"]
+    branches: ["main", "test", "feature/**"]
     # Publish semver tags as releases.
     tags: ["v*.*.*"]
   pull_request:
@@ -81,6 +81,11 @@ jobs:
         if: ${{ github.ref == 'refs/heads/test' || github.event_name == 'pull_request' }}
         run: |
           echo "BUILD_PROFILE=test" >> "${GITHUB_ENV}"
+
+      - name: Check build profile for bic
+        if: ${{ startsWith(github.ref, 'refs/heads/feature/') }}
+        run: |
+          echo "BUILD_PROFILE=dev-bic" >> "${GITHUB_ENV}"
 
       # Prepare Docker tags
       - name: Prepare Docker tags
