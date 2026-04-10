@@ -10,7 +10,7 @@ export const environment = {
   bugReportUrl: 'https://github.com/BeSy-Rewrite/BeSy-Frontend/issues/new/choose',
 
   // Keycloak configuration
-  identityProviderUrl: 'https://idp.smart-mobility-keim.de/realms/hse-keim',
+  identityProviderUrl: 'https://idp.smart-mobility-keim.de/realms/keim-hse',
   clientId: 'besy-dev-bic',
   requiredRole: 'orderer',
   approveOrdersRole: 'approver',
