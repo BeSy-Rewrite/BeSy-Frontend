@@ -1,1 +1,1 @@
-export const build = { version: 'main-20260210-ef5576f', commitUrl: 'https://github.com/BeSy-Rewrite/BeSy-Frontend/commit/ef5576f0de8457ebd61a1fcf27ae74aaf54ac711' };
+export const build = { version: 'feature/bic-integration-20260410-75f4ba1', commitUrl: 'https://github.com/BeSy-Rewrite/BeSy-Frontend/commit/75f4ba10689c8a58ac63a20b0123320c5f909bf9' };
