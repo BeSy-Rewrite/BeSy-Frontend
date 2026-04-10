@@ -10,7 +10,7 @@ export const USED_STATES: state[] = [
   state.SENT,
   state.SETTLED,
   state.ARCHIVED,
-  state.DELETED
+  state.DELETED,
 ];
 
 export const STATE_DISPLAY_NAMES = new Map<state | string, string>([
@@ -72,20 +72,23 @@ export const STATE_CHANGE_TO_NAMES = new Map<state | string, string>([
   [state.DEKAN_PENDING, 'Genehmigung anfordern'],
   [state.APPROVED, 'Genehmigen'],
   [state.REJECTED, 'Ablehnen'],
-  [state.SENT, 'Als Abgesendet markieren'],
+  [state.SENT, 'Jetzt an BIC senden!'],
   [state.SETTLED, 'Abschließen'],
   [state.ARCHIVED, 'Archivieren'],
   [state.DELETED, 'Löschen'],
 ]);
 
 export const STATE_CHANGE_TO_DESCRIPTIONS = new Map<state, string>([
-  [state.IN_PROGRESS, 'Die Bestellung auf "In Bearbeitung" setzen, damit sie bearbeitet werden kann.'],
+  [
+    state.IN_PROGRESS,
+    'Die Bestellung auf "In Bearbeitung" setzen, damit sie bearbeitet werden kann.',
+  ],
   [state.COMPLETED, 'Die Bearbeitung der Bestellung abschließen.'],
   [state.APPROVALS_RECEIVED, 'Die erforderlichen Genehmigungen als erhalten markieren.'],
   [state.DEKAN_PENDING, 'Die Genehmigung durch das Dekanat anfordern.'],
   [state.APPROVED, 'Die Bestellung genehmigen.'],
   [state.REJECTED, 'Die Bestellung ablehnen.'],
-  [state.SENT, 'Die Bestellung als abgesendet markieren.'],
+  [state.SENT, 'Die Bestellung jetzt an BIC senden!'],
   [state.SETTLED, 'Die Bestellung abschließen.'],
   [state.ARCHIVED, 'Die Bestellung archivieren.'],
   [state.DELETED, 'Die Bestellung löschen.'],
@@ -109,7 +112,7 @@ export const STATE_CHANGE_FROM_TO_NAMES: StateTransitionLookup = {
     [state.COMPLETED]: 'Ablehnen',
   },
   [state.APPROVED]: {
-    [state.SENT]: 'Als Abgesendet markieren',
+    [state.SENT]: 'An BIC senden!',
   },
   [state.SENT]: {
     [state.SETTLED]: 'Abschließen',
@@ -138,7 +141,7 @@ export const STATE_CHANGE_FROM_TO_DESCRIPTIONS: StateTransitionLookup = {
     [state.COMPLETED]: 'Die Bestellung vom Dekanat ablehnen.',
   },
   [state.APPROVED]: {
-    [state.SENT]: 'Die genehmigte Bestellung als versendet markieren.',
+    [state.SENT]: 'Die genehmigte Bestellung an BIC senden.',
   },
   [state.SENT]: {
     [state.SETTLED]: 'Die versendete Bestellung als abgeschlossen markieren.',
@@ -147,7 +150,8 @@ export const STATE_CHANGE_FROM_TO_DESCRIPTIONS: StateTransitionLookup = {
     [state.ARCHIVED]: 'Die abgeschlossene Bestellung archivieren.',
   },
   [state.DELETED]: {
-    [state.IN_PROGRESS]: 'Die gelöschte Bestellung wiederherstellen und zur Bearbeitung aktivieren.',
+    [state.IN_PROGRESS]:
+      'Die gelöschte Bestellung wiederherstellen und zur Bearbeitung aktivieren.',
   },
 };
 
