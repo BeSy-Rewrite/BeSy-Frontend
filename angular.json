@@ -74,7 +74,28 @@
 								}
 							]
 						},
-						"development": {
+            "dev-bic": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2MB",
+                  "maximumError": "5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.dev-bic.ts"
+                }
+              ]
+            },
+            "development": {
 							"optimization": false,
 							"extractLicenses": false,
 							"sourceMap": true,
