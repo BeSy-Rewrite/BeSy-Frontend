@@ -1971,7 +1971,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     this.additionalChangesMade = this.additionalChangesMade || true;
     // Send the approval patch to the backend
     try {
-      await this.orderWrapperService.patchOrderApprovals(this.editOrderId, changedApprovalFields);
+      const approvalsAfterPatch = await this.orderWrapperService.patchOrderApprovals(this.editOrderId, changedApprovalFields);
+      this.unmodifiedApprovals = approvalsAfterPatch;
       this._notifications.open('Zustimmungen wurden erfolgreich gespeichert.', undefined, {
         duration: 3000,
       });
