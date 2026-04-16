@@ -32,10 +32,10 @@ export const environment = {
   wrappedBannerEnabled: true,
   // 0-indexed months: 11 = December, 0 = January (half-year wrap)
   // Length must be 2, first is half-year wrapped month second is full-year wrapped month
-  wrappedBannerMonths: [5, 11] as number[],
+  wrappedBannerMonths: [3, 11] as number[],
   wrappedUrl: '/wrap',
 
-  showFooter: true,
+  showFooter: false,
 
   invoicesLegacyCutoffDate: new Date('2026-01-01T00:00:00Z'),
 
