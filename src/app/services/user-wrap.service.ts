@@ -90,12 +90,7 @@ export class UserWrapService {
   private readonly destroyRef = inject(DestroyRef);
 
   private sampleOrders: OrderSnapshot[] | undefined;
-  private engagementSamples: TrackingData[] | undefined = [
-    // Sample data for testing
-    { year: 2024, requests: 150, errors: 5, totalTime: 120000 },
-    { year: 2025, requests: 200, errors: 10, totalTime: 180000 },
-    { year: 2026, requests: 250, errors: 8, totalTime: 70 * 60 * 1000 },
-  ];
+  private engagementSamples: TrackingData[] | undefined;
 
   constructor(
     private readonly ordersService: OrdersWrapperService,
@@ -168,7 +163,7 @@ export class UserWrapService {
     return Math.round(
       (new Date(history.at(-1)!.timestamp!).getTime() -
         new Date(history.at(0)!.timestamp!).getTime()) /
-        (1000 * 60 * 60 * 24)
+      (1000 * 60 * 60 * 24)
     ); // days
   }
 
@@ -475,6 +470,9 @@ export class UserWrapService {
     return this.trackingService.getTrackingData().pipe(
       tap(samples => {
         this.engagementSamples = samples;
+      }),
+      catchError(() => {
+        console.error('Failed to load tracking data for wrap metrics'); return of([] as TrackingData[]);
       })
     );
   }

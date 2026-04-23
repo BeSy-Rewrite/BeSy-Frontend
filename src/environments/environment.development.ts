@@ -10,8 +10,8 @@ export const environment = {
   bugReportUrl: 'https://github.com/BeSy-Rewrite/BeSy-Frontend/issues/new/choose',
 
   // Keycloak configuration
-  identityProviderUrl: 'https://auth.insy.hs-esslingen.com/realms/insy',
-  clientId: 'besy-dev',
+  identityProviderUrl: 'https://auth.dev.hs-esslingen.com/realms/besy',
+  clientId: 'dev-localhost',
   requiredRole: 'orderer',
   approveOrdersRole: 'approver',
 
