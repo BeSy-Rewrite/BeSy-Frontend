@@ -205,7 +205,7 @@ export class DocumentUploadComponent implements OnInit {
     uploadObservable
       .pipe(
         finalize(() => {
-          this.toastRef?.cancel(true)
+          this.toastRef?.cancel(true);
           this.processingIndicator
             ?.afterClosed()
             .pipe(
