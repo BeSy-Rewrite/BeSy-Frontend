@@ -470,6 +470,9 @@ export class UserWrapService {
     return this.trackingService.getTrackingData().pipe(
       tap(samples => {
         this.engagementSamples = samples;
+      }),
+      catchError(() => {
+        console.error('Failed to load tracking data for wrap metrics'); return of([] as TrackingData[]);
       })
     );
   }
