@@ -90,7 +90,7 @@ export class UserWrapService {
   private readonly destroyRef = inject(DestroyRef);
 
   private sampleOrders: OrderSnapshot[] | undefined;
-  private engagementSamples: TrackingData[] | undefined = undefined;
+  private engagementSamples: TrackingData[] | undefined;
 
   constructor(
     private readonly ordersService: OrdersWrapperService,
