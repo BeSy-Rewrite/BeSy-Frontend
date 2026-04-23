@@ -321,7 +321,7 @@ export class OrderSubresourceResolverService {
    */
   getOrderNumber(order: OrderResponseDTO): string | undefined {
     const formattedIndex =
-      order.auto_index !== undefined ? order.auto_index.toString().padStart(3, '0') : undefined;
+      order.auto_index != undefined ? order.auto_index.toString().padStart(3, '0') : undefined;
     const orderNumber = [order.primary_cost_center_id, order.booking_year, formattedIndex];
     if (orderNumber.some(part => part === undefined || part === null || part === '')) {
       return undefined;
