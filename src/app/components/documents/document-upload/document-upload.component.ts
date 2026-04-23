@@ -205,13 +205,14 @@ export class DocumentUploadComponent implements OnInit {
     uploadObservable
       .pipe(
         finalize(() => {
-          this.processingIndicator?.close();
+          this.toastRef?.cancel(true)
           this.processingIndicator
             ?.afterClosed()
             .pipe(
               debounceTime(50) // Loading indicator toast is created after closing the dialog, ensures it exists
             )
             .subscribe(() => this.toastRef?.cancel(true));
+          this.processingIndicator?.close();
         })
       )
       .subscribe({
