@@ -101,6 +101,7 @@ import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapp
  * Intermediate model between ItemRequestDTO and ItemResponseDTO
  */
 export interface ItemTableModel {
+  position?: number;
   item_id?: number;
   name: string;
   price_per_unit: string;
@@ -303,6 +304,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   });
 
   orderItemColumns: TableColumn<ItemTableModel>[] = [
+    { id: 'position', label: 'Pos.' },
     { id: 'name', label: 'Artikelbezeichnung' },
     { id: 'quantity', label: 'Anzahl' },
     { id: 'vat_type', label: 'MwSt. Typ' },
@@ -587,6 +589,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
       // Format price to German format
       newItem.price_per_unit = this.orderWrapperService.formatPriceToGerman(newItem.price_per_unit);
+      newItem.position = this.items().length + 1; // Set position based on current items count
 
       // Add the new item to the items list
       this.items.update(curr => [...curr, newItem]);
@@ -645,6 +648,12 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       this.itemsToDelete.add(item);
     }
     this.items.update(curr => curr.filter(i => i !== item));
+    this.items.update(curr => {
+      // Recalculate positions after deletion
+      return curr.map((item, index) => ({ ...item, position: index + 1 }));
+    });
+    console.log('Items after deletion:', this.items());
+    this.itemTableDataSource.data = this.items();
   }
 
   /**
@@ -1618,7 +1627,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       (this.formattedOrderDTO.invoice_person_id &&
         this.formattedOrderDTO.delivery_person_id &&
         this.formattedOrderDTO.invoice_person_id.value !==
-        this.formattedOrderDTO.delivery_person_id.value) ||
+          this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
         this.formattedOrderDTO.invoice_address_id !== this.formattedOrderDTO.delivery_address_id)
     ) {
@@ -1818,6 +1827,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     this.additionalChangesMade =
       this.additionalChangesMade || itemsToCreate.length > 0 || this.itemsToDelete.size > 0;
 
+    console.log('Items to create:', itemsToCreate);
+
     // create all new items if any got added
     if (itemsToCreate.length > 0) {
       try {
@@ -1971,7 +1982,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     this.additionalChangesMade = this.additionalChangesMade || true;
     // Send the approval patch to the backend
     try {
-      const approvalsAfterPatch = await this.orderWrapperService.patchOrderApprovals(this.editOrderId, changedApprovalFields);
+      const approvalsAfterPatch = await this.orderWrapperService.patchOrderApprovals(
+        this.editOrderId,
+        changedApprovalFields
+      );
       this.unmodifiedApprovals = approvalsAfterPatch;
       this._notifications.open('Zustimmungen wurden erfolgreich gespeichert.', undefined, {
         duration: 3000,
@@ -2100,28 +2114,28 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     string,
     { tabName: string; configs: FormConfig[] }
   > = {
-      General: {
-        tabName: 'Allgemeine Angaben',
-        configs: [
-          this.generalFormConfig,
-          this.queriesPersonFormConfig,
-          this.primaryCostCenterFormConfig,
-          this.secondaryCostCenterFormConfig,
-        ],
-      },
-      MainOffer: {
-        tabName: 'Hauptangebot',
-        configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
-      },
-      Addresses: {
-        tabName: 'Adressdaten',
-        configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
-      },
-      Approvals: {
-        tabName: 'Genehmigungen',
-        configs: [this.approvalFormConfig],
-      },
-    };
+    General: {
+      tabName: 'Allgemeine Angaben',
+      configs: [
+        this.generalFormConfig,
+        this.queriesPersonFormConfig,
+        this.primaryCostCenterFormConfig,
+        this.secondaryCostCenterFormConfig,
+      ],
+    },
+    MainOffer: {
+      tabName: 'Hauptangebot',
+      configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
+    },
+    Addresses: {
+      tabName: 'Adressdaten',
+      configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
+    },
+    Approvals: {
+      tabName: 'Genehmigungen',
+      configs: [this.approvalFormConfig],
+    },
+  };
 
   /**
    * Checks if there are unsaved changes in the form.
