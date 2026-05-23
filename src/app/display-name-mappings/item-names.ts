@@ -12,6 +12,6 @@ export const ITEM_FIELD_NAMES: Record<string, string> = {
   preferred_list_number: 'Bevorzugte Listennummer',
   vat_type: 'Preisart',
 
-  // Additional field from DisplayIItem
+  // Additional field from DisplayItem
   price_total: 'Gesamtpreis',
 };
