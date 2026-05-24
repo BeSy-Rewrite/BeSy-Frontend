@@ -418,7 +418,9 @@ export class OrdersWrapperService {
   }
 
   mapItemResponseToTableModel(items: ItemResponseDTO[]): ItemTableModel[] {
-    return items.map(item => ({
+    const sortedItems = [...items].sort((a, b) => (a.item_id ?? 0) - (b.item_id ?? 0));
+    return sortedItems.map((item, i) => ({
+      position: i + 1,
       item_id: item.item_id,
       name: item.name ?? '',
       price_per_unit: this.formatPriceToGerman(item.price_per_unit!) ?? 0,

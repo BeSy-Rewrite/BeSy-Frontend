@@ -40,6 +40,7 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
   });
 
   displayedColumns: TableColumn<DisplayItem>[] = [
+    { id: 'position', label: this.itemFieldLabels['position'] },
     { id: 'name', label: this.itemFieldLabels['name'], footerContent: signal('Gesamt:') },
     { id: 'comment', label: this.itemFieldLabels['comment'] },
     { id: 'article_id', label: this.itemFieldLabels['article_id'] },
@@ -86,21 +87,25 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
       return;
     }
     this.ordersService.getOrderItems(this.order().id!).then(items => {
-      this.fetchedItems.set(items);
+      const sortedItems = [...items].sort((a, b) => (a.item_id ?? 0) - (b.item_id ?? 0));
+      this.fetchedItems.set(sortedItems);
 
       this.currencyCode = this.order().currency?.code ?? 'EUR';
-      this.totalQuantity.set(this.subresourceService.calculateTotalQuantity(items));
+      this.totalQuantity.set(this.subresourceService.calculateTotalQuantity(sortedItems));
       this.totalPrice.set(this.subresourceService.calculateTotalGrossPrice(this.fetchedItems()));
 
-      this.items = new MatTableDataSource(items.map(item => this.createDisplayItem(item)));
+      this.items = new MatTableDataSource(
+        sortedItems.map((item, i) => this.createDisplayItem(item, i))
+      );
     });
   }
 
   /** Converts an ItemResponseDTO into a DisplayItem for table display. */
-  private createDisplayItem(item: ItemResponseDTO): DisplayItem {
+  private createDisplayItem(item: ItemResponseDTO, position: number): DisplayItem {
     const quantity = item.quantity?.toString() + ' ' + (item.quantity_unit ?? '');
 
     return {
+      position: position + 1,
       name: item.name ?? '',
       comment: item.comment ?? '',
       article_id: item.article_id ?? '',
