@@ -647,12 +647,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     if (item.item_id) {
       this.itemsToDelete.add(item);
     }
-    this.items.update(curr => curr.filter(i => i !== item));
-    this.items.update(curr => {
-      // Recalculate positions after deletion
-      return curr.map((item, index) => ({ ...item, position: index + 1 }));
-    });
-    console.log('Items after deletion:', this.items());
+    this.items.update(curr =>
+      curr.filter(i => i !== item).map((item, index) => ({ ...item, position: index + 1 }))
+    );
     this.itemTableDataSource.data = this.items();
   }
 
@@ -1826,8 +1823,6 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
     this.additionalChangesMade =
       this.additionalChangesMade || itemsToCreate.length > 0 || this.itemsToDelete.size > 0;
-
-    console.log('Items to create:', itemsToCreate);
 
     // create all new items if any got added
     if (itemsToCreate.length > 0) {

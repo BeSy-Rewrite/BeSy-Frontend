@@ -418,8 +418,8 @@ export class OrdersWrapperService {
   }
 
   mapItemResponseToTableModel(items: ItemResponseDTO[]): ItemTableModel[] {
-    items.sort((a, b) => (a.item_id ?? 0) - (b.item_id ?? 0));
-    return items.map((item, i) => ({
+    const sortedItems = [...items].sort((a, b) => (a.item_id ?? 0) - (b.item_id ?? 0));
+    return sortedItems.map((item, i) => ({
       position: i + 1,
       item_id: item.item_id,
       name: item.name ?? '',

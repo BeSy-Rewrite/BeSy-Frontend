@@ -87,14 +87,16 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
       return;
     }
     this.ordersService.getOrderItems(this.order().id!).then(items => {
-      items.sort((a, b) => (a.item_id ?? 0) - (b.item_id ?? 0));
-      this.fetchedItems.set(items);
+      const sortedItems = [...items].sort((a, b) => (a.item_id ?? 0) - (b.item_id ?? 0));
+      this.fetchedItems.set(sortedItems);
 
       this.currencyCode = this.order().currency?.code ?? 'EUR';
-      this.totalQuantity.set(this.subresourceService.calculateTotalQuantity(items));
+      this.totalQuantity.set(this.subresourceService.calculateTotalQuantity(sortedItems));
       this.totalPrice.set(this.subresourceService.calculateTotalGrossPrice(this.fetchedItems()));
 
-      this.items = new MatTableDataSource(items.map((item, i) => this.createDisplayItem(item, i)));
+      this.items = new MatTableDataSource(
+        sortedItems.map((item, i) => this.createDisplayItem(item, i))
+      );
     });
   }
 
