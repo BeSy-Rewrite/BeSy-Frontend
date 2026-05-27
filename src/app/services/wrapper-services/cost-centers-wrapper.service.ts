@@ -5,6 +5,7 @@ import {
   CostCenterResponseDTO,
   CostCentersService,
 } from '../../api-services-v2';
+import { convertToISODateString } from '../utilities';
 
 export interface CostCenterFormatted {
   label: string;
@@ -44,8 +45,14 @@ export class CostCenterWrapperService {
   }
 
   async createCostCenter(costCenter: CostCenterRequestDTO): Promise<CostCenterResponseDTO> {
+    const formattedCostCenter: CostCenterRequestDTO = {
+      ...costCenter,
+      // Ensure dates are in ISO format (yyyy-MM-dd)
+      begin_date: costCenter.begin_date ? convertToISODateString(costCenter.begin_date) : undefined,
+      end_date: costCenter.end_date ? convertToISODateString(costCenter.end_date) : undefined,
+    };
     const createdCostCenter = await lastValueFrom(
-      this.costCentersService.createCostCenter(costCenter)
+      this.costCentersService.createCostCenter(formattedCostCenter)
     );
 
     // Invalidate cache after creation
