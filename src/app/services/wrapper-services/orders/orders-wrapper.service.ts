@@ -29,6 +29,11 @@ import {
   ItemTableModel,
   QuotationTableModel,
 } from '../../../pages/order/edit-order-page/edit-order-page.component';
+import {
+  convertToISODateString,
+  formatPriceToGerman,
+  parseGermanPriceToNumber,
+} from '../../utilities';
 import { UtilsService } from '../../utils.service';
 import { CostCenterFormatted, CostCenterWrapperService } from '../cost-centers-wrapper.service';
 import { CurrenciesWrapperService, FormattedCurrency } from '../currencies-wrapper.service';
@@ -412,7 +417,7 @@ export class OrdersWrapperService {
       invoice_person_id: formatedInvoicePerson,
       queries_person_id: formatedQueriesPerson,
       supplier_id: formatedSupplier,
-      quote_price: this.formatPriceToGerman(order.quote_price ?? 0),
+      quote_price: formatPriceToGerman(order.quote_price ?? 0),
       currency_short: formatedCurrency,
     };
   }
@@ -421,7 +426,7 @@ export class OrdersWrapperService {
     return items.map(item => ({
       item_id: item.item_id,
       name: item.name ?? '',
-      price_per_unit: this.formatPriceToGerman(item.price_per_unit!) ?? 0,
+      price_per_unit: formatPriceToGerman(item.price_per_unit!) ?? 0,
       quantity: item.quantity ?? 0,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -436,7 +441,7 @@ export class OrdersWrapperService {
   mapItemRequestToTableModel(item: ItemRequestDTO): ItemTableModel {
     return {
       name: item.name,
-      price_per_unit: this.formatPriceToGerman(item.price_per_unit),
+      price_per_unit: formatPriceToGerman(item.price_per_unit),
       quantity: item.quantity,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -455,7 +460,7 @@ export class OrdersWrapperService {
 
     return {
       name: item.name,
-      price_per_unit: this.parseGermanPriceToNumber(item.price_per_unit) ?? 0,
+      price_per_unit: parseGermanPriceToNumber(item.price_per_unit) ?? 0,
       quantity: item.quantity ?? 0,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -473,7 +478,7 @@ export class OrdersWrapperService {
     return quotations.map(q => ({
       index: q.index ?? 0,
       quote_date: this.formatISODateTimeToDateString(q.quote_date!) ?? '',
-      price: this.formatPriceToGerman(q.price ?? 0),
+      price: formatPriceToGerman(q.price ?? 0),
       company_name: q.company_name ?? '',
       company_city: q.company_city ?? '',
     }));
@@ -482,7 +487,7 @@ export class OrdersWrapperService {
   mapQuotationRequestToTableModel(quotations: QuotationRequestDTO[]): QuotationTableModel[] {
     return quotations.map(q => ({
       quote_date: q.quote_date,
-      price: this.formatPriceToGerman(q.price),
+      price: formatPriceToGerman(q.price),
       company_name: q.company_name,
       company_city: q.company_city,
     }));
@@ -490,80 +495,11 @@ export class OrdersWrapperService {
 
   mapQuotationTableModelToQuotationRequestDTO(quotation: QuotationTableModel): QuotationRequestDTO {
     return {
-      quote_date: this.convertToISODateString(quotation.quote_date),
-      price: this.parseGermanPriceToNumber(quotation.price) ?? 0,
+      quote_date: convertToISODateString(quotation.quote_date),
+      price: parseGermanPriceToNumber(quotation.price) ?? 0,
       company_name: quotation.company_name,
       company_city: quotation.company_city,
     };
-  }
-
-  /**
-   * Converts various date formats to ISO date string (YYYY-MM-DD)
-   * Handles Luxon DateTime objects, JavaScript Date objects, and date strings
-   * @param value The date value to convert
-   * @returns ISO date string (YYYY-MM-DD) or empty string if invalid
-   */
-  private convertToISODateString(value: any): string {
-    if (value === null || value === undefined) return '';
-
-    // Handle Luxon DateTime objects
-    if (typeof value === 'object' && 'isLuxonDateTime' in value && value.isLuxonDateTime) {
-      return value.toISODate?.() ?? value.toFormat?.('yyyy-MM-dd') ?? '';
-    }
-
-    // Handle JavaScript Date objects
-    if (value instanceof Date && !Number.isNaN(value.getTime())) {
-      return value.toISOString().split('T')[0];
-    }
-
-    // Handle string dates (German format DD.MM.YYYY or ISO format)
-    if (typeof value === 'string' && value.length > 0) {
-      // Check if it's German format (DD.MM.YYYY)
-      const germanDateRegex = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/;
-      const germanDateMatch = germanDateRegex.exec(value);
-      if (germanDateMatch) {
-        const [, day, month, year] = germanDateMatch;
-        return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-      }
-      // Try parsing as ISO or other format
-      const date = new Date(value);
-      if (!Number.isNaN(date.getTime())) {
-        return date.toISOString().split('T')[0];
-      }
-    }
-
-    return '';
-  }
-
-  /**
-   * Transforms a number or string into a German formatted price string, e.g. "1234.5" → "1.234,50"
-   * Supports both dot and comma as decimal separators in the input.
-   * @param value The number or string to format.
-   * @returns The formatted price string in German format.
-   */
-  formatPriceToGerman(value: string | number): string {
-    if (value === null || value === undefined) return '0,00';
-
-    // Convert to string and trim whitespace
-    let str = String(value).trim();
-
-    // If both comma and dot are present, determine which is the decimal separator
-    const lastComma = str.lastIndexOf(',');
-    const lastDot = str.lastIndexOf('.');
-    if (lastComma > lastDot) {
-      str = str.replaceAll('.', '').replace(',', '.'); // remove dots and replace comma with dot as decimal separator
-    } else {
-      str = str.replaceAll(',', ''); // remove commas and keep dot as decimal separator
-    }
-
-    const num = Number.parseFloat(str);
-    if (Number.isNaN(num)) return '0,00';
-
-    // Format as German price string
-    return num.toLocaleString('de-DE', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
   }
 
   /**
@@ -583,8 +519,8 @@ export class OrdersWrapperService {
       comment_for_supplier: formattedOrder.comment_for_supplier,
       quote_number: formattedOrder.quote_number,
       quote_sign: formattedOrder.quote_sign,
-      quote_date: this.convertToISODateString(formattedOrder.quote_date),
-      quote_price: this.parseGermanPriceToNumber(formattedOrder.quote_price),
+      quote_date: convertToISODateString(formattedOrder.quote_date),
+      quote_price: parseGermanPriceToNumber(formattedOrder.quote_price),
       delivery_person_id: formattedOrder.delivery_person_id?.value,
       invoice_person_id: formattedOrder.invoice_person_id?.value,
       queries_person_id: formattedOrder.queries_person_id?.value,
@@ -606,21 +542,6 @@ export class OrdersWrapperService {
       delivery_address_id: formattedOrder.delivery_address_id,
       invoice_address_id: formattedOrder.invoice_address_id,
     };
-  }
-
-  /**
-   * Parses a German formatted price string (e.g. "1.234,56") to a number
-   * @param price The German formatted price string
-   * @returns The parsed number or undefined if parsing fails
-   */
-  parseGermanPriceToNumber(price?: string): number | undefined {
-    if (!price) return undefined;
-
-    // Remove thousand separators (.) and replace decimal comma with dot
-    const normalized = price.replaceAll('.', '').replace(',', '.');
-    const num = Number.parseFloat(normalized);
-
-    return Number.isNaN(num) ? undefined : num;
   }
 
   /**
@@ -676,8 +597,8 @@ export class OrdersWrapperService {
 
       // Special handling for price fields - compare parsed values
       if (priceFields.has(key)) {
-        const origParsed = this.parseGermanPriceToNumber(originalValue);
-        const modParsed = this.parseGermanPriceToNumber(modifiedValue);
+        const origParsed = parseGermanPriceToNumber(originalValue);
+        const modParsed = parseGermanPriceToNumber(modifiedValue);
         if (!areValuesEqual(origParsed, modParsed)) {
           (changedFields as any)[key] = modParsed;
         }
@@ -685,15 +606,13 @@ export class OrdersWrapperService {
       }
 
       if (dateFields.has(key)) {
-        if (
-          this.convertToISODateString(modifiedValue) !== this.convertToISODateString(originalValue)
-        ) {
+        if (convertToISODateString(modifiedValue) !== convertToISODateString(originalValue)) {
           (changedFields as any)[key] = modifiedValue;
           console.log(
             `Date field ${key} changed: original=${originalValue}, modified=${modifiedValue}`
           );
           console.log(
-            `Converted original: ${this.convertToISODateString(originalValue)}, Converted modified: ${this.convertToISODateString(modifiedValue)}`
+            `Converted original: ${convertToISODateString(originalValue)}, Converted modified: ${convertToISODateString(modifiedValue)}`
           );
         }
         continue;
@@ -745,7 +664,7 @@ export class OrdersWrapperService {
         }
         // Format date fields to ISO date string (YYYY-MM-DD) using helper method
         if (dateFields.has(key)) {
-          return [key, this.convertToISODateString(value)];
+          return [key, convertToISODateString(value)];
         }
         if (key === 'booking_year' && typeof value === 'string') {
           return [key, value.slice(-2)]; // Get last 2 digits
