@@ -46,15 +46,43 @@
           ></div>
         </div>
 
-        <app-generic-table
-          [class.expanded]="!showFilters"
-          [class.collapsed]="showFilters"
-          class="w-full tour-orders-table sticky-headers"
-          [dataSource]="ordersDataSource"
-          [columns]="ordersTableColumns"
-          [actions]="actions"
-          [pageSize]="25"
-        ></app-generic-table>
+        <div class="w-full" [class.expanded]="!showFilters" [class.collapsed]="showFilters">
+          <div>
+            <mat-form-field
+              [ngStyle]="{
+                'width.ch': inputText.value.length + 6,
+                'min-width.ch': 48,
+                'max-width': '100%',
+              }"
+            >
+              <input
+                #inputText
+                matInput
+                type="search"
+                placeholder="Bestellungen durchsuchen..."
+                [formControl]="searchTermControl"
+              />
+              <mat-icon
+                mat-mini-fab
+                matIconSuffix
+                class="help-button"
+                color="accent"
+                matTooltip="Die Bestellungssuche ist aktuell noch in der Testphase. Die Ergebnisse sind gegebenenfalls noch nicht optimal."
+                aria-label="Die Bestellungssuche ist aktuell noch in der Testphase. Die Ergebnisse sind gegebenenfalls noch nicht optimal."
+              >
+                <mat-icon>info</mat-icon>
+              </mat-icon>
+            </mat-form-field>
+          </div>
+
+          <app-generic-table
+            class="w-full tour-orders-table sticky-headers"
+            [dataSource]="dataSourceService"
+            [columns]="ordersTableColumns"
+            [actions]="actions"
+            [pageSize]="25"
+          ></app-generic-table>
+        </div>
       </div>
     </mat-tab>
 

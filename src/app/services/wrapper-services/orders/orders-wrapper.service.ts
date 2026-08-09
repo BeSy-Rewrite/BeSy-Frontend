@@ -137,7 +137,7 @@ export class OrdersWrapperService {
     size: number = 20,
     sort: Array<string> = [],
     filters?: FilterRequestParams,
-    _searchTerm?: string
+    searchTerm?: string
   ): Promise<PagedOrderResponseDTO> {
     return await lastValueFrom(
       this.ordersService.getAllOrders(
@@ -161,7 +161,8 @@ export class OrdersWrapperService {
         filters?.lastUpdatedTimeAfter,
         filters?.lastUpdatedTimeBefore,
         filters?.autoIndexMin,
-        filters?.autoIndexMax
+        filters?.autoIndexMax,
+        searchTerm
       )
     );
   }
