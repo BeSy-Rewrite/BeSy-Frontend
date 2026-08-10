@@ -162,7 +162,7 @@ export class OrdersWrapperService {
         filters?.lastUpdatedTimeBefore,
         filters?.autoIndexMin,
         filters?.autoIndexMax,
-        searchTerm
+        searchTerm?.trim() ? searchTerm.trim() : undefined
       )
     );
   }

@@ -126,9 +126,8 @@ export class OrdersPageComponent implements OnInit {
 
     toObservable(this.dataSourceService.sorting).subscribe(() => this.updateUrlParams());
 
-    this.searchTermControl.valueChanges.subscribe(() => {
-      const filterValue = this.searchTermControl.value?.trim().toLowerCase() || '';
-      this.dataSourceService.searchTerm = filterValue;
+    this.searchTermControl.valueChanges.subscribe(value => {
+      this.dataSourceService.searchTerm = value ?? '';
     });
   }
   /**
