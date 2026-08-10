@@ -529,6 +529,14 @@ paths:
             type: integer
             format: int32
             example: 200
+
+        - name: searchTerm
+          in: query
+          description: Filtert nach Bestellungen, die den Suchbegriff enthalten.
+          required: false
+          schema:
+            type: string
+            example: "Suchbegriff"
       responses:
         "200":
           description: OK
