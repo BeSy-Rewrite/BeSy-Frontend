@@ -115,3 +115,7 @@ $content-height: calc(100vh - var(--homebar-height) - 12rem);
     z-index: 10;
   }
 }
+
+app-orders-page .filter-menu-container {
+  height: calc($content-height + 4.8rem) !important;
+}
