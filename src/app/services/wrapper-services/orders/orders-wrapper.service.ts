@@ -135,7 +135,7 @@ export class OrdersWrapperService {
     size: number = 20,
     sort: Array<string> = [],
     filters?: FilterRequestParams,
-    _searchTerm?: string
+    searchTerm?: string
   ): Promise<PagedOrderResponseDTO> {
     return await lastValueFrom(
       this.ordersService.getAllOrders(
@@ -159,7 +159,8 @@ export class OrdersWrapperService {
         filters?.lastUpdatedTimeAfter,
         filters?.lastUpdatedTimeBefore,
         filters?.autoIndexMin,
-        filters?.autoIndexMax
+        filters?.autoIndexMax,
+        searchTerm?.trim() ? searchTerm.trim() : undefined
       )
     );
   }
@@ -416,7 +417,9 @@ export class OrdersWrapperService {
   }
 
   mapItemResponseToTableModel(items: ItemResponseDTO[]): ItemTableModel[] {
-    return items.map(item => ({
+    const sortedItems = [...items].sort((a, b) => (a.item_id ?? 0) - (b.item_id ?? 0));
+    return sortedItems.map((item, i) => ({
+      position: i + 1,
       item_id: item.item_id,
       name: item.name ?? '',
       price_per_unit: this.utilsService.formatPriceToGerman(item.price_per_unit!) ?? 0,

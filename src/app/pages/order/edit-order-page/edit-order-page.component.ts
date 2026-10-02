@@ -101,6 +101,7 @@ import { VatWrapperService } from '../../../services/wrapper-services/vats-wrapp
  * Intermediate model between ItemRequestDTO and ItemResponseDTO
  */
 export interface ItemTableModel {
+  position?: number;
   item_id?: number;
   name: string;
   price_per_unit: string;
@@ -303,6 +304,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   });
 
   orderItemColumns: TableColumn<ItemTableModel>[] = [
+    { id: 'position', label: 'Pos.' },
     { id: 'name', label: 'Artikelbezeichnung' },
     { id: 'quantity', label: 'Anzahl' },
     { id: 'vat_type', label: 'MwSt. Typ' },
@@ -587,6 +589,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
       // Format price to German format
       newItem.price_per_unit = this.utilsService.formatPriceToGerman(newItem.price_per_unit);
+      newItem.position = this.items().length + 1; // Set position based on current items count
 
       // Add the new item to the items list
       this.items.update(curr => [...curr, newItem]);
@@ -644,7 +647,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     if (item.item_id) {
       this.itemsToDelete.add(item);
     }
-    this.items.update(curr => curr.filter(i => i !== item));
+    this.items.update(curr =>
+      curr.filter(i => i !== item).map((item, index) => ({ ...item, position: index + 1 }))
+    );
+    this.itemTableDataSource.data = this.items();
   }
 
   /**

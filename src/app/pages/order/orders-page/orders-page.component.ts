@@ -1,6 +1,7 @@
+import { NgStyle } from '@angular/common';
 import { afterNextRender, Component, inject, Injector, OnInit, viewChild } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -33,10 +34,8 @@ import { DriverJsTourService } from '../../../services/driver.js-tour.service';
 import { OrdersDataSourceService } from '../../../services/orders-data-source.service';
 import { CreateOrderPageComponent } from '../create-order-page/create-order-page.component';
 
-
 const URL_PARAM_BOUNDARY_MIN = 'min';
 const URL_PARAM_BOUNDARY_MAX = 'max';
-
 
 /**
  * Component for managing the orders page.
@@ -58,6 +57,7 @@ const URL_PARAM_BOUNDARY_MAX = 'max';
     GenericTableComponent,
     FilterMenuComponent,
     CreateOrderPageComponent,
+    NgStyle,
   ],
   templateUrl: './orders-page.component.html',
   styleUrl: './orders-page.component.scss',
@@ -65,9 +65,6 @@ const URL_PARAM_BOUNDARY_MAX = 'max';
 export class OrdersPageComponent implements OnInit {
   /** Columns to display in the orders table. */
   ordersTableColumns = [...ordersTableConfig];
-
-  /** Data source for the orders table. */
-  ordersDataSource = inject(OrdersDataSourceService);
 
   /** Actions available for each row in the table. */
   actions: TableActionButton[] = [
@@ -94,7 +91,9 @@ export class OrdersPageComponent implements OnInit {
 
   ordersTable = viewChild.required(GenericTableComponent);
 
-  private readonly dataSourceService = inject(OrdersDataSourceService);
+  protected readonly dataSourceService = inject(OrdersDataSourceService);
+
+  searchTermControl = new FormControl('');
 
   tabGroup = viewChild.required(MatTabGroup);
 
@@ -126,6 +125,10 @@ export class OrdersPageComponent implements OnInit {
     }
 
     toObservable(this.dataSourceService.sorting).subscribe(() => this.updateUrlParams());
+
+    this.searchTermControl.valueChanges.subscribe(value => {
+      this.dataSourceService.searchTerm = value ?? '';
+    });
   }
   /**
    * Lifecycle hook that is called after data-bound properties are initialized.
@@ -171,7 +174,7 @@ export class OrdersPageComponent implements OnInit {
    * @param filters - The active filters to apply.
    */
   onFiltersChanged(filters: ActiveFilters) {
-    this.ordersDataSource.filter = filters;
+    this.dataSourceService.filter = filters;
     this.updateUrlParams();
   }
 
@@ -314,8 +317,12 @@ export class OrdersPageComponent implements OnInit {
       return {
         id: key as keyof ActiveFilters,
         range: {
-          start: Number.isNaN(start) ? ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)?.data?.minValue ?? 0 : start,
-          end: Number.isNaN(end) ? ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)?.data?.maxValue ?? 100 : end,
+          start: Number.isNaN(start)
+            ? (ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)?.data?.minValue ?? 0)
+            : start,
+          end: Number.isNaN(end)
+            ? (ORDERS_FILTER_MENU_CONFIG.find(f => f.key === key)?.data?.maxValue ?? 100)
+            : end,
         },
       };
     }
@@ -324,15 +331,25 @@ export class OrdersPageComponent implements OnInit {
 
   /** Encodes range filter parameters for URL. */
   encodeRangeParam(range: RangeFilterPreset): string {
-    const low = range.range.start === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.minValue ? URL_PARAM_BOUNDARY_MIN : range.range.start;
-    const high = range.range.end === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.maxValue ? URL_PARAM_BOUNDARY_MAX : range.range.end;
+    const low =
+      range.range.start === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.minValue
+        ? URL_PARAM_BOUNDARY_MIN
+        : range.range.start;
+    const high =
+      range.range.end === ORDERS_FILTER_MENU_CONFIG.find(f => f.key === range.id)?.data?.maxValue
+        ? URL_PARAM_BOUNDARY_MAX
+        : range.range.end;
     return low + '-' + high;
   }
 
   /** Encodes date range filter parameters for URL. */
   encodeDateRangeParam(dateRange: DateRangeFilterPreset): string {
-    const start = dateRange.dateRange.start ? dateRange.dateRange.start.toISOString().split('T')[0] : URL_PARAM_BOUNDARY_MIN;
-    const end = dateRange.dateRange.end ? dateRange.dateRange.end.toISOString().split('T')[0] : URL_PARAM_BOUNDARY_MAX;
+    const start = dateRange.dateRange.start
+      ? dateRange.dateRange.start.toISOString().split('T')[0]
+      : URL_PARAM_BOUNDARY_MIN;
+    const end = dateRange.dateRange.end
+      ? dateRange.dateRange.end.toISOString().split('T')[0]
+      : URL_PARAM_BOUNDARY_MAX;
     return start + '_' + end;
   }
 
@@ -355,7 +372,15 @@ export class OrdersPageComponent implements OnInit {
         //params['selectedColumnIds'] = filter.selectedColumnIds.join(',');
       }
       // Remove undefined parameters
-      if ([undefined, null, '', `${URL_PARAM_BOUNDARY_MIN}-${URL_PARAM_BOUNDARY_MAX}`, `${URL_PARAM_BOUNDARY_MIN}_${URL_PARAM_BOUNDARY_MAX}`].includes(params[filter.id])) {
+      if (
+        [
+          undefined,
+          null,
+          '',
+          `${URL_PARAM_BOUNDARY_MIN}-${URL_PARAM_BOUNDARY_MAX}`,
+          `${URL_PARAM_BOUNDARY_MIN}_${URL_PARAM_BOUNDARY_MAX}`,
+        ].includes(params[filter.id])
+      ) {
         delete params[filter.id];
       }
     }
