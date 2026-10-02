@@ -1,10 +1,11 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { lastValueFrom } from 'rxjs';
 import {
   CostCenterRequestDTO,
   CostCenterResponseDTO,
   CostCentersService,
 } from '../../api-services-v2';
+import { UtilsService } from '../utils.service';
 
 export interface CostCenterFormatted {
   label: string;
@@ -19,7 +20,8 @@ export class CostCenterWrapperService {
   private cacheTimestamp: number | null = null;
   private readonly CACHE_DURATION_MS = 60 * 1000; // 1 minute
 
-  constructor(private readonly costCentersService: CostCentersService) {}
+  private readonly utilsService = inject(UtilsService);
+  private readonly costCentersService = inject(CostCentersService);
 
   async getAllCostCenters(): Promise<CostCenterResponseDTO[]> {
     const now = Date.now();
@@ -44,8 +46,18 @@ export class CostCenterWrapperService {
   }
 
   async createCostCenter(costCenter: CostCenterRequestDTO): Promise<CostCenterResponseDTO> {
+    const formattedCostCenter: CostCenterRequestDTO = {
+      ...costCenter,
+      // Ensure dates are in ISO format (yyyy-MM-dd)
+      begin_date: costCenter.begin_date
+        ? this.utilsService.convertToISODateString(costCenter.begin_date)
+        : undefined,
+      end_date: costCenter.end_date
+        ? this.utilsService.convertToISODateString(costCenter.end_date)
+        : undefined,
+    };
     const createdCostCenter = await lastValueFrom(
-      this.costCentersService.createCostCenter(costCenter)
+      this.costCentersService.createCostCenter(formattedCostCenter)
     );
 
     // Invalidate cache after creation
