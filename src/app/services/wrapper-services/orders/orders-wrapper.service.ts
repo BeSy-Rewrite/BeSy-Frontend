@@ -1,5 +1,5 @@
 import { HttpErrorResponse, HttpResponse } from '@angular/common/http';
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import {
   catchError,
   from,
@@ -29,11 +29,6 @@ import {
   ItemTableModel,
   QuotationTableModel,
 } from '../../../pages/order/edit-order-page/edit-order-page.component';
-import {
-  convertToISODateString,
-  formatPriceToGerman,
-  parseGermanPriceToNumber,
-} from '../../utilities';
 import { UtilsService } from '../../utils.service';
 import { CostCenterFormatted, CostCenterWrapperService } from '../cost-centers-wrapper.service';
 import { CurrenciesWrapperService, FormattedCurrency } from '../currencies-wrapper.service';
@@ -87,15 +82,13 @@ export interface OrderResponseDTOFormatted {
 export class OrdersWrapperService {
   ordersChanged = new Subject<void>();
 
-  constructor(
-    private readonly ordersService: OrdersService,
-    private readonly costCenterWrapperService: CostCenterWrapperService,
-    private readonly personsWrapperService: PersonsWrapperService,
-    private readonly currenciesWrapperService: CurrenciesWrapperService,
-    private readonly suppliersWrapperService: SuppliersWrapperService,
-    private readonly usersWrapperService: UsersWrapperService,
-    private readonly utilsService: UtilsService
-  ) {}
+  private readonly ordersService = inject(OrdersService);
+  private readonly costCenterWrapperService = inject(CostCenterWrapperService);
+  private readonly personsWrapperService = inject(PersonsWrapperService);
+  private readonly currenciesWrapperService = inject(CurrenciesWrapperService);
+  private readonly suppliersWrapperService = inject(SuppliersWrapperService);
+  private readonly usersWrapperService = inject(UsersWrapperService);
+  private readonly utilsService = inject(UtilsService);
 
   /**
    * Should be called whenever orders are created, updated, or deleted to clear the cache.
@@ -319,10 +312,10 @@ export class OrdersWrapperService {
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
     return await lastValueFrom(
       this.ordersService.updateOrderStatus(orderId, JSON.stringify(newState)).pipe(
-        tap(updatedState => {
+        tap(async updatedState => {
           this.onOrdersChanged();
           if (updatedState === OrderStatus.SENT)
-            this.utilsService.getConfettiInstance().addConfetti();
+            await this.utilsService.getConfettiInstance().addConfetti();
         })
       )
     );
@@ -417,7 +410,7 @@ export class OrdersWrapperService {
       invoice_person_id: formatedInvoicePerson,
       queries_person_id: formatedQueriesPerson,
       supplier_id: formatedSupplier,
-      quote_price: formatPriceToGerman(order.quote_price ?? 0),
+      quote_price: this.utilsService.formatPriceToGerman(order.quote_price ?? 0),
       currency_short: formatedCurrency,
     };
   }
@@ -426,7 +419,7 @@ export class OrdersWrapperService {
     return items.map(item => ({
       item_id: item.item_id,
       name: item.name ?? '',
-      price_per_unit: formatPriceToGerman(item.price_per_unit!) ?? 0,
+      price_per_unit: this.utilsService.formatPriceToGerman(item.price_per_unit!) ?? 0,
       quantity: item.quantity ?? 0,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -441,7 +434,7 @@ export class OrdersWrapperService {
   mapItemRequestToTableModel(item: ItemRequestDTO): ItemTableModel {
     return {
       name: item.name,
-      price_per_unit: formatPriceToGerman(item.price_per_unit),
+      price_per_unit: this.utilsService.formatPriceToGerman(item.price_per_unit),
       quantity: item.quantity,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -460,7 +453,7 @@ export class OrdersWrapperService {
 
     return {
       name: item.name,
-      price_per_unit: parseGermanPriceToNumber(item.price_per_unit) ?? 0,
+      price_per_unit: this.utilsService.parseGermanPriceToNumber(item.price_per_unit) ?? 0,
       quantity: item.quantity ?? 0,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -477,8 +470,8 @@ export class OrdersWrapperService {
   mapQuotationResponseToTableModel(quotations: QuotationResponseDTO[]): QuotationTableModel[] {
     return quotations.map(q => ({
       index: q.index ?? 0,
-      quote_date: this.formatISODateTimeToDateString(q.quote_date!) ?? '',
-      price: formatPriceToGerman(q.price ?? 0),
+      quote_date: this.utilsService.formatISODateTimeToDateString(q.quote_date!) ?? '',
+      price: this.utilsService.formatPriceToGerman(q.price ?? 0),
       company_name: q.company_name ?? '',
       company_city: q.company_city ?? '',
     }));
@@ -487,7 +480,7 @@ export class OrdersWrapperService {
   mapQuotationRequestToTableModel(quotations: QuotationRequestDTO[]): QuotationTableModel[] {
     return quotations.map(q => ({
       quote_date: q.quote_date,
-      price: formatPriceToGerman(q.price),
+      price: this.utilsService.formatPriceToGerman(q.price),
       company_name: q.company_name,
       company_city: q.company_city,
     }));
@@ -495,8 +488,8 @@ export class OrdersWrapperService {
 
   mapQuotationTableModelToQuotationRequestDTO(quotation: QuotationTableModel): QuotationRequestDTO {
     return {
-      quote_date: convertToISODateString(quotation.quote_date),
-      price: parseGermanPriceToNumber(quotation.price) ?? 0,
+      quote_date: this.utilsService.convertToISODateString(quotation.quote_date),
+      price: this.utilsService.parseGermanPriceToNumber(quotation.price) ?? 0,
       company_name: quotation.company_name,
       company_city: quotation.company_city,
     };
@@ -519,8 +512,8 @@ export class OrdersWrapperService {
       comment_for_supplier: formattedOrder.comment_for_supplier,
       quote_number: formattedOrder.quote_number,
       quote_sign: formattedOrder.quote_sign,
-      quote_date: convertToISODateString(formattedOrder.quote_date),
-      quote_price: parseGermanPriceToNumber(formattedOrder.quote_price),
+      quote_date: this.utilsService.convertToISODateString(formattedOrder.quote_date),
+      quote_price: this.utilsService.parseGermanPriceToNumber(formattedOrder.quote_price),
       delivery_person_id: formattedOrder.delivery_person_id?.value,
       invoice_person_id: formattedOrder.invoice_person_id?.value,
       queries_person_id: formattedOrder.queries_person_id?.value,
@@ -597,8 +590,8 @@ export class OrdersWrapperService {
 
       // Special handling for price fields - compare parsed values
       if (priceFields.has(key)) {
-        const origParsed = parseGermanPriceToNumber(originalValue);
-        const modParsed = parseGermanPriceToNumber(modifiedValue);
+        const origParsed = this.utilsService.parseGermanPriceToNumber(originalValue);
+        const modParsed = this.utilsService.parseGermanPriceToNumber(modifiedValue);
         if (!areValuesEqual(origParsed, modParsed)) {
           (changedFields as any)[key] = modParsed;
         }
@@ -606,13 +599,16 @@ export class OrdersWrapperService {
       }
 
       if (dateFields.has(key)) {
-        if (convertToISODateString(modifiedValue) !== convertToISODateString(originalValue)) {
+        if (
+          this.utilsService.convertToISODateString(modifiedValue) !==
+          this.utilsService.convertToISODateString(originalValue)
+        ) {
           (changedFields as any)[key] = modifiedValue;
           console.log(
             `Date field ${key} changed: original=${originalValue}, modified=${modifiedValue}`
           );
           console.log(
-            `Converted original: ${convertToISODateString(originalValue)}, Converted modified: ${convertToISODateString(modifiedValue)}`
+            `Converted original: ${this.utilsService.convertToISODateString(originalValue)}, Converted modified: ${this.utilsService.convertToISODateString(modifiedValue)}`
           );
         }
         continue;
@@ -664,7 +660,7 @@ export class OrdersWrapperService {
         }
         // Format date fields to ISO date string (YYYY-MM-DD) using helper method
         if (dateFields.has(key)) {
-          return [key, convertToISODateString(value)];
+          return [key, this.utilsService.convertToISODateString(value)];
         }
         if (key === 'booking_year' && typeof value === 'string') {
           return [key, value.slice(-2)]; // Get last 2 digits
@@ -672,16 +668,5 @@ export class OrdersWrapperService {
         return [key, value];
       })
     ) as Partial<OrderResponseDTOFormatted>;
-  }
-
-  public formatLocalDateTimeToISO(date: Date): string {
-    if (!date) return '';
-    // example input: 2200-12-08T00:00:00.000+01:00
-    return date.toISOString();
-  }
-
-  public formatISODateTimeToDateString(dateString: string): string {
-    if (!dateString) return '';
-    return new Date(dateString).toLocaleDateString('de-DE');
   }
 }

@@ -282,7 +282,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   // Compute the footer content for the items table, showing the total sum of all items
   footerContent = computed(() => {
     const sum = this.items().reduce((total, item) => {
-      const price = this.orderWrapperService.parseGermanPriceToNumber(item.price_per_unit) ?? 0;
+      const price = this.utilsService.parseGermanPriceToNumber(item.price_per_unit) ?? 0;
       const quantity = item.quantity ?? 0;
 
       const vat = Number(item.vat_value) || 0;
@@ -586,7 +586,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       const newItem = this.orderItemFormGroup.value as ItemTableModel;
 
       // Format price to German format
-      newItem.price_per_unit = this.orderWrapperService.formatPriceToGerman(newItem.price_per_unit);
+      newItem.price_per_unit = this.utilsService.formatPriceToGerman(newItem.price_per_unit);
 
       // Add the new item to the items list
       this.items.update(curr => [...curr, newItem]);
@@ -738,8 +738,8 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
 
       const newQuotation = this.quotationFormGroup.value as QuotationTableModel;
       newQuotation.company_name = companyName;
-      newQuotation.price = this.orderWrapperService.formatPriceToGerman(newQuotation.price);
-      newQuotation.quote_date = this.orderWrapperService.formatISODateTimeToDateString(
+      newQuotation.price = this.utilsService.formatPriceToGerman(newQuotation.price);
+      newQuotation.quote_date = this.utilsService.formatISODateTimeToDateString(
         newQuotation.quote_date
       );
       this.quotations.update(curr => [...curr, newQuotation]);
@@ -1618,7 +1618,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       (this.formattedOrderDTO.invoice_person_id &&
         this.formattedOrderDTO.delivery_person_id &&
         this.formattedOrderDTO.invoice_person_id.value !==
-        this.formattedOrderDTO.delivery_person_id.value) ||
+          this.formattedOrderDTO.delivery_person_id.value) ||
       (this.formattedOrderDTO.invoice_address_id &&
         this.formattedOrderDTO.invoice_address_id !== this.formattedOrderDTO.delivery_address_id)
     ) {
@@ -1971,7 +1971,10 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     this.additionalChangesMade = this.additionalChangesMade || true;
     // Send the approval patch to the backend
     try {
-      const approvalsAfterPatch = await this.orderWrapperService.patchOrderApprovals(this.editOrderId, changedApprovalFields);
+      const approvalsAfterPatch = await this.orderWrapperService.patchOrderApprovals(
+        this.editOrderId,
+        changedApprovalFields
+      );
       this.unmodifiedApprovals = approvalsAfterPatch;
       this._notifications.open('Zustimmungen wurden erfolgreich gespeichert.', undefined, {
         duration: 3000,
@@ -2100,28 +2103,28 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     string,
     { tabName: string; configs: FormConfig[] }
   > = {
-      General: {
-        tabName: 'Allgemeine Angaben',
-        configs: [
-          this.generalFormConfig,
-          this.queriesPersonFormConfig,
-          this.primaryCostCenterFormConfig,
-          this.secondaryCostCenterFormConfig,
-        ],
-      },
-      MainOffer: {
-        tabName: 'Hauptangebot',
-        configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
-      },
-      Addresses: {
-        tabName: 'Adressdaten',
-        configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
-      },
-      Approvals: {
-        tabName: 'Genehmigungen',
-        configs: [this.approvalFormConfig],
-      },
-    };
+    General: {
+      tabName: 'Allgemeine Angaben',
+      configs: [
+        this.generalFormConfig,
+        this.queriesPersonFormConfig,
+        this.primaryCostCenterFormConfig,
+        this.secondaryCostCenterFormConfig,
+      ],
+    },
+    MainOffer: {
+      tabName: 'Hauptangebot',
+      configs: [this.mainOfferFormConfig, this.supplierDecisionReasonFormConfig],
+    },
+    Addresses: {
+      tabName: 'Adressdaten',
+      configs: [this.deliveryPersonFormConfig, this.invoicePersonFormConfig],
+    },
+    Approvals: {
+      tabName: 'Genehmigungen',
+      configs: [this.approvalFormConfig],
+    },
+  };
 
   /**
    * Checks if there are unsaved changes in the form.
