@@ -33,12 +33,8 @@
 
   @include mat.tabs-overrides(
     (
-      active-focus-indicator-color: orange,
-      active-focus-label-text-color: red,
-      active-label-text-color: green,
-      foreground-color: orange,
+      active-label-text-color: red,
       inactive-label-text-color: blue,
-      background-color: green,
     )
   );
 
@@ -114,6 +110,14 @@ $content-height: calc(100vh - var(--homebar-height) - 12rem);
     top: 0;
     z-index: 10;
   }
+}
+
+app-order-edit .mat-mdc-tab-header {
+  position: sticky;
+  top: 9rem;
+  z-index: 1000;
+  background-color: var(--color-gray-100);
+  border-bottom: 1px solid var(--color-gray-400);
 }
 
 app-orders-page .filter-menu-container {

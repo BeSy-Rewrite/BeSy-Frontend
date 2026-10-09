@@ -9,6 +9,7 @@ import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
 import { EditOrderPageComponent } from './pages/order/edit-order-page/edit-order-page.component';
+import { OrderEditComponent } from './pages/order/editing/order-edit/order-edit.component';
 import { OrdersPageComponent } from './pages/order/orders-page/orders-page.component';
 import { ViewOrderPageComponent } from './pages/order/view-order-page/view-order-page.component';
 import { EditPersonPageComponent } from './pages/persons/edit-person-page/edit-person-page.component';
@@ -23,6 +24,14 @@ import { EditSupplierResolver } from './resolver/edit-supplier.resolver';
 import { OrderResolver } from './resolver/order.resolver';
 
 export const routes: Routes = [
+  {
+    path: 'dev/:id',
+    component: OrderEditComponent,
+    canActivate: [DefaultGuard],
+    resolve: {
+      order: OrderResolver,
+    },
+  },
   {
     title: 'BeSy',
     path: '',
