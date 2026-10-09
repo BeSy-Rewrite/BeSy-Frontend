@@ -9,6 +9,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
+import { map } from 'rxjs';
 import { CostCenterRequestDTO, CostCenterResponseDTO } from '../../../api-services-v2';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { GenericTableComponent } from '../../../components/generic-table/generic-table.component';
@@ -60,16 +61,30 @@ export class CostCentersPageComponent implements OnInit {
   costCenterForm = new FormGroup({});
   costCenterFormConfig = COST_CENTER_FORM_CONFIG;
 
-  async ngOnInit() {
+  ngOnInit() {
     // Initialization logic here
-    this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(
-      // Format cost center date from ISO format yyyy-MM-dd to dd.MM.yyyy
-      (await this.costCenterWrapperService.getAllCostCenters()).map(cc => ({
-        ...cc,
-        begin_date: cc.begin_date ? this.formatDate(cc.begin_date) : undefined,
-        end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
-      }))
-    );
+    // Format cost center date from ISO format yyyy-MM-dd to dd.MM.yyyy
+    this.costCenterWrapperService
+      .getAllCostCenters()
+      .pipe(
+        map(ccs =>
+          ccs.map(cc => ({
+            ...cc,
+            begin_date: cc.begin_date ? this.formatDate(cc.begin_date) : undefined,
+            end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
+          }))
+        )
+      )
+      .subscribe({
+        next: ccs => {
+          this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(ccs);
+        },
+        error: () => {
+          this._notifications.open('Fehler beim Laden der Kostenstellen', 'Schließen', {
+            duration: 3000,
+          });
+        },
+      });
   }
 
   async onSubmit() {
@@ -82,18 +97,33 @@ export class CostCentersPageComponent implements OnInit {
         });
 
         // Refresh the data source to include the newly created cost center
-        this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(
-          (await this.costCenterWrapperService.getAllCostCenters()).map(cc => ({
-            ...cc,
-            begin_date: cc.begin_date ? this.formatDate(cc.begin_date) : undefined,
-            end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
-          }))
-        );
+        this.costCenterWrapperService
+          .getAllCostCenters()
+          .pipe(
+            map(ccs =>
+              ccs.map(cc => ({
+                ...cc,
+                begin_date: cc.begin_date ? this.formatDate(cc.begin_date) : undefined,
+                end_date: cc.end_date ? this.formatDate(cc.end_date) : undefined,
+              }))
+            )
+          )
+          .subscribe({
+            next: ccs => {
+              this.costCentersDataSource = new MatTableDataSource<CostCenterResponseDTO>(ccs);
+            },
+            error: () => {
+              this._notifications.open('Fehler beim Neu-Laden der Kostenstellen', 'Schließen', {
+                duration: 3000,
+              });
+            },
+          });
         this.tabGroup.selectedIndex = 0; // Switch to the first tab
       } catch (error) {
         this._notifications.open('Fehler beim Erstellen der Kostenstelle', 'Schließen', {
           duration: 3000,
         });
+        console.error('Error creating cost center:', error);
       }
     } else {
       // Handle invalid form case

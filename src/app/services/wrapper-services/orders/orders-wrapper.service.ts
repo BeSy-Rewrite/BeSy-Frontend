@@ -29,6 +29,14 @@ import {
   ItemTableModel,
   QuotationTableModel,
 } from '../../../pages/order/edit-order-page/edit-order-page.component';
+import {
+  formatPriceToGerman,
+  parseGermanPriceToNumber,
+} from '../../../utils/price-conversion.utils';
+import {
+  convertToISODateString,
+  formatISODateTimeToDateString,
+} from '../../../utils/time-conversion.utils';
 import { UtilsService } from '../../utils.service';
 import { CostCenterFormatted, CostCenterWrapperService } from '../cost-centers-wrapper.service';
 import { CurrenciesWrapperService, FormattedCurrency } from '../currencies-wrapper.service';
@@ -368,14 +376,18 @@ export class OrdersWrapperService {
       formatedCurrency,
     ] = await Promise.all([
       order.primary_cost_center_id
-        ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-            order.primary_cost_center_id
+        ? lastValueFrom(
+            this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
+              order.primary_cost_center_id
+            )
           )
         : Promise.resolve(undefined),
 
       order.secondary_cost_center_id
-        ? this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
-            order.secondary_cost_center_id
+        ? lastValueFrom(
+            this.costCenterWrapperService.getCostCenterByIdFormattedForAutocomplete(
+              order.secondary_cost_center_id
+            )
           )
         : Promise.resolve(undefined),
 
@@ -411,7 +423,7 @@ export class OrdersWrapperService {
       invoice_person_id: formatedInvoicePerson,
       queries_person_id: formatedQueriesPerson,
       supplier_id: formatedSupplier,
-      quote_price: this.utilsService.formatPriceToGerman(order.quote_price ?? 0),
+      quote_price: formatPriceToGerman(order.quote_price ?? 0),
       currency_short: formatedCurrency,
     };
   }
@@ -422,7 +434,7 @@ export class OrdersWrapperService {
       position: i + 1,
       item_id: item.item_id,
       name: item.name ?? '',
-      price_per_unit: this.utilsService.formatPriceToGerman(item.price_per_unit!) ?? 0,
+      price_per_unit: formatPriceToGerman(item.price_per_unit!) ?? 0,
       quantity: item.quantity ?? 0,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -437,7 +449,7 @@ export class OrdersWrapperService {
   mapItemRequestToTableModel(item: ItemRequestDTO): ItemTableModel {
     return {
       name: item.name,
-      price_per_unit: this.utilsService.formatPriceToGerman(item.price_per_unit),
+      price_per_unit: formatPriceToGerman(item.price_per_unit),
       quantity: item.quantity,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -456,7 +468,7 @@ export class OrdersWrapperService {
 
     return {
       name: item.name,
-      price_per_unit: this.utilsService.parseGermanPriceToNumber(item.price_per_unit) ?? 0,
+      price_per_unit: parseGermanPriceToNumber(item.price_per_unit) ?? 0,
       quantity: item.quantity ?? 0,
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
@@ -473,8 +485,8 @@ export class OrdersWrapperService {
   mapQuotationResponseToTableModel(quotations: QuotationResponseDTO[]): QuotationTableModel[] {
     return quotations.map(q => ({
       index: q.index ?? 0,
-      quote_date: this.utilsService.formatISODateTimeToDateString(q.quote_date!) ?? '',
-      price: this.utilsService.formatPriceToGerman(q.price ?? 0),
+      quote_date: formatISODateTimeToDateString(q.quote_date!) ?? '',
+      price: formatPriceToGerman(q.price ?? 0),
       company_name: q.company_name ?? '',
       company_city: q.company_city ?? '',
     }));
@@ -483,7 +495,7 @@ export class OrdersWrapperService {
   mapQuotationRequestToTableModel(quotations: QuotationRequestDTO[]): QuotationTableModel[] {
     return quotations.map(q => ({
       quote_date: q.quote_date,
-      price: this.utilsService.formatPriceToGerman(q.price),
+      price: formatPriceToGerman(q.price),
       company_name: q.company_name,
       company_city: q.company_city,
     }));
@@ -491,8 +503,8 @@ export class OrdersWrapperService {
 
   mapQuotationTableModelToQuotationRequestDTO(quotation: QuotationTableModel): QuotationRequestDTO {
     return {
-      quote_date: this.utilsService.convertToISODateString(quotation.quote_date),
-      price: this.utilsService.parseGermanPriceToNumber(quotation.price) ?? 0,
+      quote_date: convertToISODateString(quotation.quote_date),
+      price: parseGermanPriceToNumber(quotation.price) ?? 0,
       company_name: quotation.company_name,
       company_city: quotation.company_city,
     };
@@ -515,8 +527,8 @@ export class OrdersWrapperService {
       comment_for_supplier: formattedOrder.comment_for_supplier,
       quote_number: formattedOrder.quote_number,
       quote_sign: formattedOrder.quote_sign,
-      quote_date: this.utilsService.convertToISODateString(formattedOrder.quote_date),
-      quote_price: this.utilsService.parseGermanPriceToNumber(formattedOrder.quote_price),
+      quote_date: convertToISODateString(formattedOrder.quote_date),
+      quote_price: parseGermanPriceToNumber(formattedOrder.quote_price),
       delivery_person_id: formattedOrder.delivery_person_id?.value,
       invoice_person_id: formattedOrder.invoice_person_id?.value,
       queries_person_id: formattedOrder.queries_person_id?.value,
@@ -593,8 +605,8 @@ export class OrdersWrapperService {
 
       // Special handling for price fields - compare parsed values
       if (priceFields.has(key)) {
-        const origParsed = this.utilsService.parseGermanPriceToNumber(originalValue);
-        const modParsed = this.utilsService.parseGermanPriceToNumber(modifiedValue);
+        const origParsed = parseGermanPriceToNumber(originalValue);
+        const modParsed = parseGermanPriceToNumber(modifiedValue);
         if (!areValuesEqual(origParsed, modParsed)) {
           (changedFields as any)[key] = modParsed;
         }
@@ -602,16 +614,13 @@ export class OrdersWrapperService {
       }
 
       if (dateFields.has(key)) {
-        if (
-          this.utilsService.convertToISODateString(modifiedValue) !==
-          this.utilsService.convertToISODateString(originalValue)
-        ) {
+        if (convertToISODateString(modifiedValue) !== convertToISODateString(originalValue)) {
           (changedFields as any)[key] = modifiedValue;
           console.log(
             `Date field ${key} changed: original=${originalValue}, modified=${modifiedValue}`
           );
           console.log(
-            `Converted original: ${this.utilsService.convertToISODateString(originalValue)}, Converted modified: ${this.utilsService.convertToISODateString(modifiedValue)}`
+            `Converted original: ${convertToISODateString(originalValue)}, Converted modified: ${convertToISODateString(modifiedValue)}`
           );
         }
         continue;
@@ -663,7 +672,7 @@ export class OrdersWrapperService {
         }
         // Format date fields to ISO date string (YYYY-MM-DD) using helper method
         if (dateFields.has(key)) {
-          return [key, this.utilsService.convertToISODateString(value)];
+          return [key, convertToISODateString(value)];
         }
         if (key === 'booking_year' && typeof value === 'string') {
           return [key, value.slice(-2)]; // Get last 2 digits

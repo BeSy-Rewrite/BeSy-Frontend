@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, debounceTime, forkJoin, map, Observable, of } from 'rxjs';
+import { BehaviorSubject, debounceTime, forkJoin, lastValueFrom, map, Observable, of } from 'rxjs';
 import { environment } from '../../environments/environment';
 import {
   CostCenterResponseDTO,
@@ -136,7 +136,7 @@ export class OrderSubresourceResolverService {
     );
     this.costCenterFormatter = new ResourceFormatter<CostCenterResponseDTO>(
       c => this.formatCostCenter(c),
-      () => this.costCentersService.getAllCostCenters()
+      () => lastValueFrom(this.costCentersService.getAllCostCenters())
     );
     this.supplierFormatter = new ResourceFormatter<SupplierResponseDTO>(
       s => this.formatSupplier(s),

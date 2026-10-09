@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { lastValueFrom, map } from 'rxjs';
+import { lastValueFrom, map, Observable } from 'rxjs';
 import { PersonRequestDTO, PersonResponseDTO, PersonsService } from '../../api-services-v2';
+import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
 
 // Interface for person with full name
 export interface PersonWithFullName extends PersonResponseDTO {
@@ -35,17 +36,30 @@ export class PersonsWrapperService {
 
   /**
    * Fetch all persons with their full name
-   * @returns PersonWithFullName[] List of persons with full name
+   * @returns Observable<PersonWithFullName[]> List of persons with full name
    */
-  async getAllPersonsWithFullName() {
-    return lastValueFrom(
-      this.personsService.getAllPersons().pipe(
-        map(persons =>
-          persons.map(person => ({
-            ...person,
-            fullName: [person.name, person.surname].filter(Boolean).join(' '),
-          }))
-        )
+  getAllPersonsWithFullName(): Observable<PersonWithFullName[]> {
+    return this.personsService.getAllPersons().pipe(
+      map(persons =>
+        persons.map(person => ({
+          ...person,
+          fullName: [person.name, person.surname].filter(Boolean).join(' '),
+        }))
+      )
+    );
+  }
+
+  /**
+   * Fetch all persons formatted for autocomplete
+   * @returns Observable<AutocompleteOption<PersonWithFullName>[]> List of persons formatted for autocomplete
+   */
+  getAllPersonsFormattedForAutocomplete(): Observable<AutocompleteOption<PersonWithFullName>[]> {
+    return this.getAllPersonsWithFullName().pipe(
+      map(persons =>
+        persons.map(person => ({
+          label: person.fullName,
+          value: person,
+        }))
       )
     );
   }

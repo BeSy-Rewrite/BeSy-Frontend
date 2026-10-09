@@ -6,6 +6,7 @@ import { MatDivider } from '@angular/material/divider';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTabsModule } from '@angular/material/tabs';
 import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { CostCenterResponseDTO } from '../../../api-services-v2';
 import { FormComponent } from '../../../components/form-component/form-component.component';
 import { ProgressBarComponent } from '../../../components/progress-bar/progress-bar.component';
@@ -67,12 +68,16 @@ export class CreateOrderPageComponent implements OnInit {
     private readonly driverJsTourService: DriverJsTourService
   ) {}
 
-  async ngOnInit(): Promise<void> {
+  ngOnInit() {
     // Load cost centers and persons
-    [this.costCenters, this.persons] = await Promise.all([
-      this.costCenterWrapperService.getAllCostCenters(),
-      this.personsWrapperService.getAllPersonsWithFullName(),
-    ]);
+
+    forkJoin({
+      costCenters: this.costCenterWrapperService.getAllCostCenters(),
+      persons: this.personsWrapperService.getAllPersonsWithFullName(),
+    }).subscribe(({ costCenters, persons }) => {
+      this.costCenters = costCenters;
+      this.persons = persons;
+    });
 
     // Format cost centers and persons for the autocomplete fields
     this.formatCostCenters();

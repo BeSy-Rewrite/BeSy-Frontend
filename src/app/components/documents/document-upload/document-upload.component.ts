@@ -104,7 +104,7 @@ export class DocumentUploadComponent implements OnInit {
    * Initializes the component by loading cost centers for the form.
    */
   ngOnInit(): void {
-    this.costCentersService.getAllCostCenters().then(costCenters => {
+    this.costCentersService.getAllCostCenters().subscribe(costCenters => {
       const costCenterField = this.documentFormConfig.fields.find(
         field => field.name === 'costCenterId'
       );
