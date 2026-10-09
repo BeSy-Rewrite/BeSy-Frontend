@@ -50,6 +50,12 @@
       <mat-tab [label]="tab.label">
         <div class="pt-8 lg:max-w-4/5 xl:max-w-3/5 m-auto">
           @switch (tab.identifier) {
+            @case (tabIdentifiers.GENERAL) {
+              <app-order-edit-general
+                [generalFormGroup]="$any(formGroup.get(tab.identifier))"
+                [order]="order()"
+              />
+            }
             @default {
               <p>Content for {{ tab.label }}</p>
               <div>

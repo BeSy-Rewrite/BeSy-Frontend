@@ -7,6 +7,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
 import { StateDisplayComponent } from '../../../../components/state-display/state-display.component';
 import { DisplayableOrder } from '../../../../models/displayable-order';
+import { OrderEditGeneralComponent } from '../order-edit-general/order-edit-general.component';
 import { ORDER_EDITING_TABS, OrderEditTabIdentifier } from '../order-edit-tab.config';
 
 @Component({
@@ -18,6 +19,7 @@ import { ORDER_EDITING_TABS, OrderEditTabIdentifier } from '../order-edit-tab.co
     MatButtonModule,
     MatIconModule,
     StateDisplayComponent,
+    OrderEditGeneralComponent,
   ],
   templateUrl: './order-edit.component.html',
   styleUrl: './order-edit.component.scss',
