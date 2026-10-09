@@ -2,6 +2,7 @@ import {
   Component,
   ElementRef,
   Input,
+  OnChanges,
   OnInit,
   output,
   QueryList,
@@ -103,7 +104,7 @@ export interface FormConfig {
   templateUrl: './form-component.component.html',
   styleUrls: ['./form-component.component.scss'],
 })
-export class FormComponent implements OnInit {
+export class FormComponent implements OnInit, OnChanges {
   constructor(private readonly fb: FormBuilder) {}
 
   protected readonly environment = environment;

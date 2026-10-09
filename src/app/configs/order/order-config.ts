@@ -1,5 +1,6 @@
 import { Validators } from '@angular/forms';
 import { FormConfig } from '../../components/form-component/form-component.component';
+import { costCenterActiveValidator } from '../../pages/cost-center/cost-center-active.input-validator';
 
 export const ORDER_ADDRESS_FORM_CONFIG: FormConfig = {
   subtitle: 'Lieferadresse für die Bestellung',
@@ -363,6 +364,76 @@ export const ORDER_GENERAL_FORM_CONFIG: FormConfig = {
       validators: [Validators.pattern('^[0-9]{4}$')],
       tooltip: 'Das Buchungsjahr gibt an, in welchem Jahr die Bestellung verbucht wird.',
       defaultValue: new Date().getFullYear().toString(),
+    },
+  ],
+};
+
+export const NEW_ORDER_GENERAL_FORM_CONFIG: FormConfig = {
+  title: 'Allgemeine Angaben',
+  fields: [
+    {
+      name: 'content_description',
+      label: 'Bestellungsname',
+      type: 'text',
+      required: true,
+      editable: false,
+      validators: [Validators.maxLength(100)],
+      tooltip:
+        'Name der Bestellung, unter diesem Namen wird die Bestellung in der Übersicht angezeigt.',
+    },
+    {
+      name: 'booking_year',
+      label: 'Buchungsjahr',
+      type: 'text',
+      required: false,
+      editable: true,
+      validators: [Validators.pattern('^[0-9]{4}$')],
+      tooltip: 'Das Buchungsjahr gibt an, in welchem Jahr die Bestellung verbucht wird.',
+      defaultValue: new Date().getFullYear().toString(),
+    },
+    {
+      name: 'primary_cost_center_id',
+      label: 'Primäre Kostenstelle',
+      type: 'autocomplete',
+      required: true,
+      requireSelection: true,
+      editable: true,
+      filterable: true,
+      tooltip: 'Pflichtfeld',
+      validators: [costCenterActiveValidator],
+    },
+    {
+      name: 'secondary_cost_center_id',
+      label: 'Sekundäre Kostenstelle',
+      type: 'autocomplete',
+      required: false,
+      requireSelection: true,
+      editable: true,
+      filterable: true,
+      tooltip: 'Optional',
+      validators: [costCenterActiveValidator],
+    },
+    {
+      name: 'queries_person_id',
+      label: 'Person für Rückfragen',
+      type: 'autocomplete',
+      requireSelection: true,
+      required: false,
+      filterable: true,
+      // Will be loaded from persons api
+      options: [],
+      editable: true,
+      tooltip: 'Die Person, die bei Rückfragen zur Bestellung kontaktiert werden kann.',
+      emitAsSignal: true,
+    },
+    {
+      name: 'comment',
+      label: 'Kommentar',
+      type: 'textarea',
+      required: false,
+      editable: true,
+      validators: [Validators.maxLength(255)],
+      tooltip: 'Informationen zu Bestellung, wird nicht im PDF angezeigt.',
     },
   ],
 };
