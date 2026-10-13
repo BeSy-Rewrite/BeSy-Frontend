@@ -13,6 +13,12 @@ import { TableColumn } from '../../../models/generic-table';
 import { OrderDisplayData } from '../../../models/order-display-data';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
 import { OrdersWrapperService } from '../../../services/wrapper-services/orders/orders-wrapper.service';
+import { formatPreferredList, formatPriceToGerman } from '../../../utils/formatting';
+import {
+  calculateTotalGrossPrice,
+  calculateTotalNetPrice,
+  calculateTotalQuantity,
+} from '../../../utils/price-conversion.utils';
 
 @Component({
   selector: 'app-order-main-information',
@@ -46,13 +52,13 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
   private currencyCode = 'EUR';
 
   totalPriceFormatted = computed(() => {
-    const formatted = this.subresourceService.formatPrice(this.totalPrice(), this.currencyCode);
+    const formatted = formatPriceToGerman(this.totalPrice(), this.currencyCode);
     return formatted + '\u00A0(brutto)';
   });
 
   totalNetPriceFormatted = computed(() => {
-    const totalNetPrice = this.subresourceService.calculateTotalNetPrice(this.fetchedItems());
-    const formatted = this.subresourceService.formatPrice(totalNetPrice, this.currencyCode);
+    const totalNetPrice = calculateTotalNetPrice(this.fetchedItems());
+    const formatted = formatPriceToGerman(totalNetPrice, this.currencyCode);
     return formatted + '\u00A0(netto)';
   });
 
@@ -109,15 +115,24 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
     }
 
     const orderId: number = orderWrapper.order.id;
-    this.ordersService.getOrderItems(orderId).then(items => {
-      this.fetchedItems.set(items);
+    this.ordersService
+      .getOrderItems(orderId)
+      .then(items => {
+        this.fetchedItems.set(items);
 
-      this.currencyCode = orderWrapper.order.currency?.code ?? 'EUR';
-      this.totalQuantity.set(this.subresourceService.calculateTotalQuantity(items));
-      this.totalPrice.set(this.subresourceService.calculateTotalGrossPrice(this.fetchedItems()));
+        this.currencyCode = orderWrapper.order.currency?.code ?? 'EUR';
+        this.totalQuantity.set(calculateTotalQuantity(items));
+        this.totalPrice.set(calculateTotalGrossPrice(this.fetchedItems()));
 
-      this.items = new MatTableDataSource(items.map(item => this.createDisplayItem(item)));
-    });
+        this.items = new MatTableDataSource(items.map(item => this.createDisplayItem(item)));
+      })
+      .catch(error => {
+        console.error('Error loading order items:', error);
+        this.fetchedItems.set([]);
+        this.items = new MatTableDataSource([]);
+        this.totalQuantity.set(0);
+        this.totalPrice.set(0);
+      });
   }
 
   /** Converts an ItemResponseDTO into a DisplayItem for table display. */
@@ -131,20 +146,14 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
       preferred_list: (item.preferred_list ?? '') + (item.preferred_list_number ?? ''),
       vat: item.vat?.value?.toString() + '%',
       vat_type: item.vat_type ?? '',
-      price_per_unit: this.subresourceService.formatPrice(
-        item.price_per_unit ?? 0,
-        this.currencyCode
-      ),
+      price_per_unit: formatPriceToGerman(item.price_per_unit ?? 0, this.currencyCode),
       quantity: quantity.trim(),
-      price_total: this.subresourceService.formatPrice(
-        this.subresourceService.calculateTotalGrossPrice([item]),
-        this.currencyCode
-      ),
+      price_total: formatPriceToGerman(calculateTotalGrossPrice([item]), this.currencyCode),
       tooltips: {
         vat: item.vat
           ? `MwSt.: ${item.vat.value}% (${item.vat.description})`
           : 'Keine MwSt. angegeben',
-        preferred_list: this.subresourceService.formatPreferredList(item.preferred_list),
+        preferred_list: formatPreferredList(item.preferred_list),
         price_total: `Gesamtbruttopreis für Menge: ${quantity.trim()}`,
       },
     };
@@ -165,7 +174,7 @@ export class OrderMainInformationComponent implements OnInit, OnChanges {
    */
   isQuotePriceProbablyNetto(): boolean {
     const quotePrice = this.orderData().order['quote_price'];
-    const totalPrice = this.subresourceService.calculateTotalNetPrice(this.fetchedItems());
+    const totalPrice = calculateTotalNetPrice(this.fetchedItems());
     return Math.abs((quotePrice ?? 0) - totalPrice) < 0.01;
   }
 }

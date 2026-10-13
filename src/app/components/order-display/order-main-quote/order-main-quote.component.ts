@@ -11,6 +11,11 @@ import { DisplayableOrder } from '../../../models/displayable-order';
 import { OrderDisplayData } from '../../../models/order-display-data';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
 import { OrdersWrapperService } from '../../../services/wrapper-services/orders/orders-wrapper.service';
+import { formatPriceToGerman } from '../../../utils/formatting';
+import {
+  calculateTotalGrossPrice,
+  calculateTotalNetPrice,
+} from '../../../utils/price-conversion.utils';
 
 @Component({
   selector: 'app-order-main-quote',
@@ -81,16 +86,16 @@ export class OrderMainQuoteComponent implements OnInit, OnChanges {
     from(this.ordersService.getOrderItems(this.orderData().order.id!)).subscribe(items => {
       this.currencyCode = this.orderData().order.currency?.code ?? this.currencyCode;
 
-      const totalGrossPrice = this.subresourceService.calculateTotalGrossPrice(items);
-      const totalNetPrice = this.subresourceService.calculateTotalNetPrice(items);
+      const totalGrossPrice = calculateTotalGrossPrice(items);
+      const totalNetPrice = calculateTotalNetPrice(items);
 
       this.isPriceProbablyBrutto = this.isQuotePriceEqualsTo(totalGrossPrice);
       this.isPriceProbablyNetto = this.isQuotePriceEqualsTo(totalNetPrice);
 
       this.totalNetPriceFormatted =
-        this.subresourceService.formatPrice(totalNetPrice, this.currencyCode) + '\u00A0(netto)';
+        formatPriceToGerman(totalNetPrice, this.currencyCode) + '\u00A0(netto)';
       this.totalGrossPriceFormatted =
-        this.subresourceService.formatPrice(totalGrossPrice, this.currencyCode) + '\u00A0(brutto)';
+        formatPriceToGerman(totalGrossPrice, this.currencyCode) + '\u00A0(brutto)';
     });
   }
 

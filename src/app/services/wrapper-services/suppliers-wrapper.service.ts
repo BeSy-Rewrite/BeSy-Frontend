@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
-import { lastValueFrom } from 'rxjs';
+import { lastValueFrom, map, Observable, of, tap } from 'rxjs';
 import {
   CustomerIdRequestDTO,
   SupplierRequestDTO,
   SupplierResponseDTO,
   SuppliersService,
 } from '../../api-services-v2';
+import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
+import { formatSupplier } from '../../utils/formatting';
 
 export interface SupplierFormatted {
   label: string | undefined;
@@ -32,17 +34,19 @@ export class SuppliersWrapperService {
    * Retrieves all suppliers, using cached data if available and valid.
    * @returns A promise that resolves to an array of all suppliers.
    */
-  async getAllSuppliers() {
+  getAllSuppliers(): Observable<SupplierResponseDTO[]> {
     // Return cached suppliers if cache is still valid
     if (this.isCacheValid()) {
-      return this.supplierCache!;
+      return of(this.supplierCache!);
     }
 
     // Fetch from API and cache the result
-    const suppliers = await lastValueFrom(this.suppliersService.getAllSuppliers());
-    this.supplierCache = suppliers;
-    this.cacheTimestamp = Date.now();
-    return suppliers;
+    return this.suppliersService.getAllSuppliers().pipe(
+      tap(suppliers => {
+        this.supplierCache = suppliers;
+        this.cacheTimestamp = Date.now();
+      })
+    );
   }
 
   /**
@@ -50,15 +54,15 @@ export class SuppliersWrapperService {
    * @param id The unique ID of the supplier to retrieve.
    * @returns A promise that resolves to the supplier data.
    */
-  async getSupplierById(id: number) {
+  getSupplierById(id: number) {
     // Check cache first
     if (this.isCacheValid()) {
       const cachedSupplier = this.supplierCache?.find(supplier => supplier.id === id);
       if (cachedSupplier) {
-        return cachedSupplier;
+        return of(cachedSupplier);
       }
     }
-    return lastValueFrom(this.suppliersService.getSupplierById(id));
+    return this.suppliersService.getSupplierById(id);
   }
 
   /**
@@ -103,7 +107,7 @@ export class SuppliersWrapperService {
    * @returns CustomerIdResponseDTO List of customer IDs for a supplier.
    * @throws ApiError
    */
-  async getCustomersIdsBySupplierId(supplierId: number) {
+  async getCustomerIdsBySupplierId(supplierId: number) {
     const customerIds = await lastValueFrom(
       this.suppliersService.getCustomerIdsOfOrder(supplierId)
     );
@@ -129,6 +133,17 @@ export class SuppliersWrapperService {
     return lastValueFrom(this.suppliersService.getSupplierAddress(id));
   }
 
+  getAllSuppliersFormattedForAutocomplete(): Observable<AutocompleteOption<SupplierResponseDTO>[]> {
+    return this.getAllSuppliers().pipe(
+      map(suppliers =>
+        suppliers.map(supplier => ({
+          label: formatSupplier(supplier),
+          value: supplier,
+        }))
+      )
+    );
+  }
+
   /**
    * Retrieves a supplier formatted for autocomplete by its unique ID.
    * @param id The unique ID of the supplier to retrieve.
@@ -137,10 +152,10 @@ export class SuppliersWrapperService {
   async getSupplierByIdFormattedForAutocomplete(
     id: number
   ): Promise<SupplierFormatted | undefined> {
-    const supplier = await this.getSupplierById(id);
+    const supplier = await lastValueFrom(this.getSupplierById(id));
     if (supplier) {
       return {
-        label: supplier.name,
+        label: formatSupplier(supplier),
         value: supplier.id,
       };
     }
@@ -150,16 +165,13 @@ export class SuppliersWrapperService {
   /**
    * Checks if a supplier with the given name exists.
    * @param name The name of the supplier to check.
-   * @returns A promise that resolves to a boolean indicating if the supplier exists.
+   * @returns An observable that emits a boolean indicating if the supplier exists.
    */
-  async checkIfSupplierExists(name: string): Promise<boolean> {
-    if (!this.isCacheValid()) {
-      const suppliers = await this.getAllSuppliers();
-      return suppliers.some(supplier => supplier.name?.toLowerCase() === name.toLowerCase());
-    }
-    return (
-      this.supplierCache?.some(supplier => supplier.name?.toLowerCase() === name.toLowerCase()) ||
-      false
+  checkIfSupplierExists(name: string): Observable<boolean> {
+    return this.getAllSuppliers().pipe(
+      map(suppliers =>
+        suppliers.some(supplier => supplier.name?.toLowerCase() === name.toLowerCase())
+      )
     );
   }
 }

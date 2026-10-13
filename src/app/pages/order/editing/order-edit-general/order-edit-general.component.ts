@@ -1,4 +1,4 @@
-import { Component, DestroyRef, inject, input, OnInit, signal } from '@angular/core';
+import { Component, DestroyRef, inject, input, OnChanges, signal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 import { FormComponent } from '../../../../components/form-component/form-component.component';
 import { NEW_ORDER_GENERAL_FORM_CONFIG } from '../../../../configs/order/order-config';
@@ -6,9 +6,9 @@ import {
   patchAutocompleteOptions,
   patchFormDefaultValues,
 } from '../../../../form-config-patching/form-config-patching.util';
-import { DisplayableOrder } from '../../../../models/displayable-order';
 import { CostCenterWrapperService } from '../../../../services/wrapper-services/cost-centers-wrapper.service';
 import { PersonsWrapperService } from '../../../../services/wrapper-services/persons-wrapper.service';
+import { EditingFormattedOrder } from '../editing-formatted-order';
 
 @Component({
   selector: 'app-order-edit-general',
@@ -16,7 +16,7 @@ import { PersonsWrapperService } from '../../../../services/wrapper-services/per
   templateUrl: './order-edit-general.component.html',
   styleUrl: './order-edit-general.component.scss',
 })
-export class OrderEditGeneralComponent implements OnInit {
+export class OrderEditGeneralComponent implements OnChanges {
   private readonly costCenterService = inject(CostCenterWrapperService);
   private readonly personsService = inject(PersonsWrapperService);
   private readonly destroyRef = inject(DestroyRef);
@@ -24,9 +24,9 @@ export class OrderEditGeneralComponent implements OnInit {
   protected generalFormConfig = signal(NEW_ORDER_GENERAL_FORM_CONFIG);
 
   generalFormGroup = input<FormGroup>(new FormGroup({}));
-  order = input.required<DisplayableOrder>();
+  order = input.required<EditingFormattedOrder>();
 
-  ngOnInit() {
+  ngOnChanges() {
     if (!this.generalFormGroup) {
       throw new Error('generalFormGroup input is required');
     }
@@ -34,16 +34,14 @@ export class OrderEditGeneralComponent implements OnInit {
     patchAutocompleteOptions(
       this.generalFormConfig,
       {
-        primary_cost_center_id: this.costCenterService.getAutocompleteOptions(),
-        secondary_cost_center_id: this.costCenterService.getAutocompleteOptions(),
+        primary_cost_center_id: this.costCenterService.getAllCostCentersFormattedForAutocomplete(),
+        secondary_cost_center_id:
+          this.costCenterService.getAllCostCentersFormattedForAutocomplete(),
         person_id: this.personsService.getAllPersonsFormattedForAutocomplete(),
         queries_person_id: this.personsService.getAllPersonsFormattedForAutocomplete(),
       },
       this.destroyRef
     );
-    patchFormDefaultValues(
-      this.generalFormConfig,
-      this.order().orderDisplay as any as Record<string, unknown>
-    );
+    patchFormDefaultValues(this.generalFormConfig, this.order());
   }
 }

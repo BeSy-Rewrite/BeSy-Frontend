@@ -10,6 +10,11 @@ import { DisplayItem } from '../../../models/display-item';
 import { TableColumn } from '../../../models/generic-table';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
 import { OrdersWrapperService } from '../../../services/wrapper-services/orders/orders-wrapper.service';
+import { formatPreferredList, formatPriceToGerman } from '../../../utils/formatting';
+import {
+  calculateTotalGrossPrice,
+  calculateTotalQuantity,
+} from '../../../utils/price-conversion.utils';
 import { GenericTableComponent } from '../../generic-table/generic-table.component';
 
 @Component({
@@ -30,7 +35,7 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
   private currencyCode = 'EUR';
   totalPrice = signal(0);
   totalPriceFormatted = computed(() => {
-    const formatted = this.subresourceService.formatPrice(this.totalPrice(), this.currencyCode);
+    const formatted = formatPriceToGerman(this.totalPrice(), this.currencyCode);
     return formatted + '\u00A0(brutto)';
   });
 
@@ -86,18 +91,28 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
       );
       return;
     }
-    this.ordersService.getOrderItems(this.order().id!).then(items => {
-      const sortedItems = [...items].sort((a, b) => (a.item_id ?? 0) - (b.item_id ?? 0));
-      this.fetchedItems.set(sortedItems);
+    this.ordersService
+      .getOrderItems(this.order().id!)
+      .then(items => {
+        const sortedItems = [...items].sort((a, b) => (a.item_id ?? 0) - (b.item_id ?? 0));
+        this.fetchedItems.set(sortedItems);
 
-      this.currencyCode = this.order().currency?.code ?? 'EUR';
-      this.totalQuantity.set(this.subresourceService.calculateTotalQuantity(sortedItems));
-      this.totalPrice.set(this.subresourceService.calculateTotalGrossPrice(this.fetchedItems()));
+        this.currencyCode = this.order().currency?.code ?? 'EUR';
+        this.totalQuantity.set(calculateTotalQuantity(sortedItems));
+        this.totalPrice.set(calculateTotalGrossPrice(this.fetchedItems()));
 
-      this.items = new MatTableDataSource(
-        sortedItems.map((item, i) => this.createDisplayItem(item, i))
-      );
-    });
+        this.items = new MatTableDataSource(
+          sortedItems.map((item, i) => this.createDisplayItem(item, i))
+        );
+      })
+      .catch(error => {
+        console.error('Error loading order items:', error);
+        this.snackbar.open(
+          'Fehler beim Laden der Artikel. Bitte versuchen Sie es später erneut.',
+          'Schließen',
+          { duration: 5000 }
+        );
+      });
   }
 
   /** Converts an ItemResponseDTO into a DisplayItem for table display. */
@@ -112,20 +127,14 @@ export class OrderArticleListComponent implements OnInit, OnChanges {
       preferred_list: (item.preferred_list ?? '') + (item.preferred_list_number ?? ''),
       vat: item.vat?.value?.toString() + '%',
       vat_type: item.vat_type ?? '',
-      price_per_unit: this.subresourceService.formatPrice(
-        item.price_per_unit ?? 0,
-        this.currencyCode
-      ),
+      price_per_unit: formatPriceToGerman(item.price_per_unit ?? 0, this.currencyCode),
       quantity: quantity.trim(),
-      price_total: this.subresourceService.formatPrice(
-        this.subresourceService.calculateTotalGrossPrice([item]),
-        this.currencyCode
-      ),
+      price_total: formatPriceToGerman(calculateTotalGrossPrice([item]), this.currencyCode),
       tooltips: {
         vat: item.vat
           ? `MwSt.: ${item.vat.value}% (${item.vat.description})`
           : 'Keine MwSt. angegeben',
-        preferred_list: this.subresourceService.formatPreferredList(item.preferred_list),
+        preferred_list: formatPreferredList(item.preferred_list),
         price_total: `Gesamtbruttopreis für Menge: ${quantity.trim()}`,
       },
     };

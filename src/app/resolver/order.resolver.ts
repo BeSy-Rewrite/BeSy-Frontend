@@ -14,9 +14,12 @@ export class OrderResolver implements Resolve<DisplayableOrder> {
     private readonly ordersService: OrdersWrapperService,
     private readonly orderDisplayService: OrderSubresourceResolverService,
     private readonly router: Router
-  ) { }
+  ) {}
 
-  resolve(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<DisplayableOrder> {
+  resolve(
+    route: ActivatedRouteSnapshot,
+    _state: RouterStateSnapshot
+  ): Observable<DisplayableOrder> {
     const id = route.paramMap.get('id')!;
     let observable: Observable<OrderResponseDTO>;
 
@@ -29,8 +32,10 @@ export class OrderResolver implements Resolve<DisplayableOrder> {
     return observable.pipe(
       catchError(error => {
         console.error(`Failed to fetch order with id ${id}:`, error);
-        this.router.navigate(['/not-found'], { skipLocationChange: true });
-        return throwError(() => new Error(`Failed to fetch order with id ${id} with error: ${error.message}`));
+        void this.router.navigate(['/not-found'], { skipLocationChange: true });
+        return throwError(
+          () => new Error(`Failed to fetch order with id ${id} with error: ${error.message}`)
+        );
       }),
       switchMap(order =>
         this.orderDisplayService

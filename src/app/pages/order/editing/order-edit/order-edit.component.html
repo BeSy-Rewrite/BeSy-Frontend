@@ -41,20 +41,25 @@
         <mat-icon iconPositionStart>save</mat-icon>
         Alle Änderungen speichern
       </button>
-      <button mat-raised-button color="primary" class="mt-2">Speichern und weiter</button>
+      <button mat-raised-button color="primary" class="mt-2" (click)="saveTab()">
+        Speichern und weiter
+      </button>
     </div>
   </div>
 
   <mat-tab-group mat-stretch-tabs="true" mat-align-tabs="start" class="mb-4">
     @for (tab of tabs; track $index) {
       <mat-tab [label]="tab.label">
-        <div class="pt-8 lg:max-w-4/5 xl:max-w-3/5 m-auto">
+        <div class="p-4 pt-8 lg:max-w-4/5 xl:max-w-3/5 m-auto">
           @switch (tab.identifier) {
             @case (tabIdentifiers.GENERAL) {
               <app-order-edit-general
                 [generalFormGroup]="$any(formGroup.get(tab.identifier))"
-                [order]="order()"
+                [order]="formattedOrder()"
               />
+            }
+            @case (tabIdentifiers.DOCUMENTS) {
+              <app-order-documents [order]="order().order" />
             }
             @default {
               <p>Content for {{ tab.label }}</p>

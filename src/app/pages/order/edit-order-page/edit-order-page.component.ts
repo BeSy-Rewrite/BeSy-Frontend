@@ -574,7 +574,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
       await Promise.all([
         this.vatWrapperService.getAllVats(),
         lastValueFrom(this.personsWrapperService.getAllPersonsWithFullName()),
-        this.suppliersWrapperService.getAllSuppliers(),
+        lastValueFrom(this.suppliersWrapperService.getAllSuppliers()),
         lastValueFrom(this.costCenterWrapperService.getAllCostCenters()),
         this.currenciesWrapperService.getAllCurrenciesWithSymbol(),
       ]);
@@ -1234,8 +1234,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   async setCustomerIdsForSupplier(supplierId: number) {
     try {
       // Fetch customer IDs for the selected supplier
-      const customerIds =
-        await this.suppliersWrapperService.getCustomersIdsBySupplierId(supplierId);
+      const customerIds = await this.suppliersWrapperService.getCustomerIdsBySupplierId(supplierId);
       const customerIdField = this.mainOfferFormConfig.fields.find(f => f.name === 'customer_id');
       if (customerIdField) {
         customerIdField.options = customerIds.map(c => ({

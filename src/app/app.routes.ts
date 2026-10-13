@@ -9,6 +9,7 @@ import { HomepageComponent } from './pages/homepage/homepage.component';
 import { NotFoundComponent } from './pages/not-found/not-found.component';
 import { CreateOrderPageComponent } from './pages/order/create-order-page/create-order-page.component';
 import { EditOrderPageComponent } from './pages/order/edit-order-page/edit-order-page.component';
+import { formattedOrderResolver } from './pages/order/editing/formatted-order.resolver';
 import { OrderEditComponent } from './pages/order/editing/order-edit/order-edit.component';
 import { OrdersPageComponent } from './pages/order/orders-page/orders-page.component';
 import { ViewOrderPageComponent } from './pages/order/view-order-page/view-order-page.component';
@@ -30,6 +31,7 @@ export const routes: Routes = [
     canActivate: [DefaultGuard],
     resolve: {
       order: OrderResolver,
+      formattedOrder: formattedOrderResolver,
     },
   },
   {

@@ -34,7 +34,7 @@ export class EditSupplierResolver implements Resolve<EditSupplierResolvedData | 
     return forkJoin({
       supplier: this.supplierWrapperService.getSupplierById(numericId),
       supplierAddress: this.supplierWrapperService.getSupplierAddress(numericId),
-      customerIds: this.supplierWrapperService.getCustomersIdsBySupplierId(numericId),
+      customerIds: this.supplierWrapperService.getCustomerIdsBySupplierId(numericId),
     }).pipe(
       map(result => result as EditSupplierResolvedData),
       catchError((error: any) => {

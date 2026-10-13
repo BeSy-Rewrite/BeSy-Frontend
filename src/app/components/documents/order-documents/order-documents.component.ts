@@ -5,13 +5,13 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
-import { DomSanitizer } from '@angular/platform-browser';
+import { DomSanitizer, SafeUrl } from '@angular/platform-browser';
 import { environment } from '../../../../environments/environment';
 import { InvoiceResponseDTO, OrderResponseDTO, OrderStatus } from '../../../api-services-v2';
 import { INVOICE_FIELD_NAMES } from '../../../display-name-mappings/invoice-names';
 import { ButtonColor, TableActionButton, TableColumn } from '../../../models/generic-table';
-import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
+import { formatDate, formatPriceToGerman } from '../../../utils/formatting';
 import { GenericTableComponent } from '../../generic-table/generic-table.component';
 import { DocumentPreviewComponent } from '../document-preview/document-preview.component';
 import { DocumentUploadComponent } from '../document-upload/document-upload.component';
@@ -88,11 +88,10 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
 
   constructor(
     private readonly invoicesService: InvoicesWrapperServiceService,
-    private readonly resourceResolverService: OrderSubresourceResolverService,
     private readonly _snackBar: MatSnackBar,
     private readonly dialogRef: MatDialog,
     @Inject(DomSanitizer) private readonly sanitizer: DomSanitizer
-  ) { }
+  ) {}
 
   /**
    * Initializes the component by fetching and formatting the order documents.
@@ -105,9 +104,9 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
     this.invoicesService.getDocumentsByOrderId(this.order().id!).subscribe(invoices => {
       this.documents = invoices.map(invoice => ({
         ...invoice,
-        date: this.resourceResolverService.formatDate(invoice.date),
-        created_date: this.resourceResolverService.formatDate(invoice.created_date),
-        price: this.resourceResolverService.formatPrice(invoice.price, 'EUR'),
+        date: formatDate(invoice.date),
+        created_date: formatDate(invoice.created_date),
+        price: formatPriceToGerman(invoice.price, 'EUR'),
         tooltips: {
           paperless_id: invoice.paperless_id
             ? 'Klicken zum Kopieren der Paperless ID'
@@ -148,22 +147,23 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
     if (!this.checkForValidIds(row)) return;
 
     this.invoicesService.getDocumentPreview(row.id!).subscribe(blob => {
+      // The URL is safe because it is generated from a local Blob object.
       const objectUrl = URL.createObjectURL(blob);
-      this.openPreviewDialog(row, objectUrl);
+      this.openPreviewDialog(row, this.sanitizer.bypassSecurityTrustUrl(objectUrl));
     });
   }
 
   /**
    * Opens the document preview dialog.
    * @param row The document meta data.
-   * @param previewImageURL The URL of the preview image.
+   * @param previewImageURL The sanitized URL of the preview image.
    */
-  openPreviewDialog(row: DisplayableInvoice, previewImageURL: string) {
+  private openPreviewDialog(row: DisplayableInvoice, previewImageURL: SafeUrl) {
     this.dialogRef.open(DocumentPreviewComponent, {
       data: {
         title: `Vorschau für Dokument ${row.paperless_id} - Bestellung ${row.order_id}`,
         comment: row.comment,
-        previewImageURL: this.sanitizer.bypassSecurityTrustUrl(previewImageURL),
+        previewImageURL,
         onDownload: () => {
           this.downloadDocument(row);
         },
@@ -190,7 +190,9 @@ export class OrderDocumentsComponent implements OnInit, OnChanges {
   /** Handles clicks on the paperless ID field. */
   handlePaperlessIdClick(row: DisplayableInvoice): void {
     if (row.paperless_id) {
-      navigator.clipboard.writeText(row.paperless_id?.toString());
+      navigator.clipboard.writeText(row.paperless_id?.toString()).catch(err => {
+        console.error('Failed to copy Paperless ID to clipboard:', err);
+      });
     } else {
       console.log('No paperless ID, opening upload dialog');
       this.openUploadDialog(row.id);

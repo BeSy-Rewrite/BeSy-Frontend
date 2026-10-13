@@ -1,27 +1,20 @@
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { Component, input, OnInit, output } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from "@angular/material/divider";
+import { MatDividerModule } from '@angular/material/divider';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { PersonResponseDTO, UserResponseDTO } from '../../api-services-v2';
 import { PERSON_FIELD_NAMES } from '../../display-name-mappings/person-names';
 import { PersonsWrapperService } from '../../services/wrapper-services/persons-wrapper.service';
 import { UsersWrapperService } from '../../services/wrapper-services/users-wrapper.service';
 
-
 @Component({
   selector: 'app-person-details',
-  imports: [
-    ClipboardModule,
-    MatButtonModule,
-    MatTooltipModule,
-    MatDividerModule
-  ],
+  imports: [ClipboardModule, MatButtonModule, MatTooltipModule, MatDividerModule],
   templateUrl: './person-details.component.html',
-  styleUrl: './person-details.component.scss'
+  styleUrl: './person-details.component.scss',
 })
 export class PersonDetailsComponent implements OnInit {
-
   personId = input.required<number>();
   isUserId = input<boolean>(false);
 
@@ -31,18 +24,19 @@ export class PersonDetailsComponent implements OnInit {
   personData = new Map<string, string>();
   personFieldLabels = PERSON_FIELD_NAMES;
 
-  constructor(private readonly personsService: PersonsWrapperService,
+  constructor(
+    private readonly personsService: PersonsWrapperService,
     private readonly usersService: UsersWrapperService
-  ) { }
+  ) {}
 
   ngOnInit(): void {
     if (this.isUserId()) {
-      this.usersService.getUserById(this.personId().toString()).then(user => {
+      this.usersService.getUserById(this.personId().toString()).subscribe(user => {
         this.person = this.userToPerson(user);
         this.setupPersonData();
       });
     } else {
-      this.personsService.getPersonById(this.personId()).then(person => {
+      this.personsService.getPersonById(this.personId()).subscribe(person => {
         this.person = person;
         this.setupPersonData();
       });
@@ -51,7 +45,7 @@ export class PersonDetailsComponent implements OnInit {
 
   private setupPersonData(): void {
     for (const [key, value] of Object.entries(this.person)) {
-      if (key === "gender") {
+      if (key === 'gender') {
         continue;
       }
       if (value && typeof value === 'string') {
@@ -68,7 +62,12 @@ export class PersonDetailsComponent implements OnInit {
 
   getInitials(): string {
     const name = this.person?.name + ' ' + this.person?.surname;
-    return name.match(/\b(\w)/g)?.join('').toUpperCase() ?? '?';
+    return (
+      name
+        .match(/\b(\w)/g)
+        ?.join('')
+        .toUpperCase() ?? '?'
+    );
   }
 
   userToPerson(user: UserResponseDTO): PersonResponseDTO {
@@ -78,5 +77,4 @@ export class PersonDetailsComponent implements OnInit {
       email: user.email,
     };
   }
-
 }

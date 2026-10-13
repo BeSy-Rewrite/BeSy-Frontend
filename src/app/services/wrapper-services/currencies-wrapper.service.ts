@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
+import { from, lastValueFrom, map, Observable } from 'rxjs';
 import { CurrenciesService, CurrencyResponseDTO } from '../../api-services-v2';
-import { lastValueFrom } from 'rxjs';
-
+import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
+import { formatCurrency, getCurrencySymbol } from '../../utils/formatting';
 
 export interface CurrencyWithDisplayName extends CurrencyResponseDTO {
   symbol: string; // currency symbol, e.g. "€"
@@ -10,15 +11,14 @@ export interface CurrencyWithDisplayName extends CurrencyResponseDTO {
 
 export interface FormattedCurrency {
   label: string;
-  value: string
+  value: string;
 }
 
 @Injectable({
   providedIn: 'root',
 })
 export class CurrenciesWrapperService {
-
-    constructor(private readonly currenciesService: CurrenciesService) { }
+  constructor(private readonly currenciesService: CurrenciesService) {}
   private static readonly CACHE_KEY = 'currencies_cache';
   private static readonly CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
@@ -31,12 +31,8 @@ export class CurrenciesWrapperService {
    * @param forceRefresh Whether to bypass the cache and fetch fresh data.
    * @returns A promise that resolves to an array of currencies with their symbols.
    */
-  async getAllCurrenciesWithSymbol(
-    forceRefresh = false
-  ): Promise<CurrencyWithDisplayName[]> {
-    const cacheString = localStorage.getItem(
-      CurrenciesWrapperService.CACHE_KEY
-    );
+  async getAllCurrenciesWithSymbol(forceRefresh = false): Promise<CurrencyWithDisplayName[]> {
+    const cacheString = localStorage.getItem(CurrenciesWrapperService.CACHE_KEY);
     const cache = cacheString ? JSON.parse(cacheString) : null;
 
     // Check if cache is set and still valid
@@ -52,28 +48,7 @@ export class CurrenciesWrapperService {
     const currencies = await this.getAllCurrencies();
 
     // Enrich currencies with symbols
-    const enrichedCurrencies = currencies.map((c) => {
-      const code = c.code ?? '';
-      const name = c.name ?? '';
-
-      let symbol = '';
-      if (code) {
-        try {
-          symbol =
-            Intl.NumberFormat('en', { style: 'currency', currency: code })
-              .formatToParts(0)
-              .find((part) => part.type === 'currency')?.value ?? '';
-        } catch {
-          symbol = '';
-        }
-      }
-
-      return {
-        ...c,
-        symbol,
-        displayName: `${name} (${symbol})`,
-      } as CurrencyWithDisplayName;
-    });
+    const enrichedCurrencies = currencies.map(c => this.formatCurrencyWithSymbol(c));
 
     // Cache the enriched data with a timestamp
     localStorage.setItem(
@@ -89,25 +64,22 @@ export class CurrenciesWrapperService {
   }
 
   formatCurrencyWithSymbol(currency: CurrencyResponseDTO): CurrencyWithDisplayName {
-    const code = currency.code ?? '';
-
-    let symbol = '';
-    if (code) {
-      try {
-        symbol =
-          Intl.NumberFormat('en', { style: 'currency', currency: code })
-            .formatToParts(0)
-            .find((part) => part.type === 'currency')?.value ?? '';
-      } catch {
-        symbol = '';
-      }
-    }
-
     return {
       ...currency,
-      symbol,
-      displayName: `${currency.name} (${symbol})`,
+      symbol: currency.code ? (getCurrencySymbol(currency.code) ?? '?') : '?',
+      displayName: formatCurrency(currency),
     };
+  }
+
+  getAllCurrenciesForAutocomplete(): Observable<AutocompleteOption<CurrencyWithDisplayName>[]> {
+    return from(this.getAllCurrenciesWithSymbol()).pipe(
+      map(currencies =>
+        currencies.map(currency => ({
+          label: currency.displayName,
+          value: currency,
+        }))
+      )
+    );
   }
 
   /**
@@ -118,6 +90,6 @@ export class CurrenciesWrapperService {
     return {
       label: formatted.displayName,
       value: formatted.code ?? '',
-    }
+    };
   }
 }

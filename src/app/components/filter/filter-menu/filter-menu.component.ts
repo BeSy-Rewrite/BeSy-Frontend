@@ -169,7 +169,9 @@ export class FilterMenuComponent implements OnInit {
     };
   });
 
-  selectedColumnIds = signal<string[]>(ordersTableConfig.filter(col => !col.isInvisible).map(col => col.id));
+  selectedColumnIds = signal<string[]>(
+    ordersTableConfig.filter(col => !col.isInvisible).map(col => col.id)
+  );
   isColumnSelectionExpanded = signal<boolean>(false);
 
   /** Configuration for all available filters in the menu. */
@@ -373,7 +375,7 @@ export class FilterMenuComponent implements OnInit {
    * Loads and sets up supplier chips.
    */
   setupSuppliers() {
-    return from(this.suppliersService.getAllSuppliers()).pipe(
+    return this.suppliersService.getAllSuppliers().pipe(
       tap((suppliers: SupplierResponseDTO[]) => {
         this.chips['supplier_id'].set(
           suppliers.map(supplier => ({

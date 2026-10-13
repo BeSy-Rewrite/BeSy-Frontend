@@ -38,14 +38,18 @@ export type DefaultValuesMap = Record<string, unknown>;
  */
 export function patchFormDefaultValues<T extends FormConfig>(
   configSignal: WritableSignal<T>,
-  values: DefaultValuesMap
+  values: object
 ): void {
-  if (!values || Object.keys(values).length === 0) return;
+  const entries = values as DefaultValuesMap;
+  if (!entries || Object.keys(entries).length === 0) return;
 
-  configSignal.update(config => ({
-    ...config,
-    fields: config.fields.map(field =>
-      field.name in values ? { ...field, defaultValue: values[field.name] } : field
-    ),
-  }));
+  configSignal.update(config => {
+    const updatedConfig = {
+      ...config,
+      fields: config.fields.map(field =>
+        field.name in entries ? { ...field, defaultValue: entries[field.name] } : field
+      ),
+    };
+    return updatedConfig;
+  });
 }

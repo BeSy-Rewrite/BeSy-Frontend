@@ -32,8 +32,8 @@ export class UsersWrapperService {
    * @returns Promise<UserResponseDTO>
    * @throws ApiError
    */
-  getUserById(id: string): Promise<UserResponseDTO> {
-    return lastValueFrom(this.usersService.getUser(id));
+  getUserById(id: string): Observable<UserResponseDTO> {
+    return this.usersService.getUser(id);
   }
 
   /**

@@ -1,5 +1,14 @@
 import { NgStyle } from '@angular/common';
-import { Component, OnInit, signal, ViewChild, WritableSignal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+  ViewChild,
+  WritableSignal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
   FormControl,
   FormGroup,
@@ -17,6 +26,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { Router } from '@angular/router';
+import { forkJoin, from, map, of, switchMap } from 'rxjs';
 import {
   AddressRequestDTO,
   CustomerIdRequestDTO,
@@ -127,12 +137,13 @@ export class SuppliersPageComponent implements OnInit {
     },
   ];
 
-  constructor(
-    private readonly router: Router,
-    private readonly _notifications: MatSnackBar,
-    private readonly suppliersWrapperService: SuppliersWrapperService,
-    private readonly nominatimService: NominatimService
-  ) {
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
+  private readonly _notifications = inject(MatSnackBar);
+  private readonly suppliersWrapperService = inject(SuppliersWrapperService);
+  private readonly nominatimService = inject(NominatimService);
+
+  constructor() {
     this.filterStringControl.valueChanges.subscribe(() => {
       const filterValue = this.filterStringControl.value?.trim().toLowerCase() || '';
       this.suppliersDataSource.filter = filterValue;
@@ -143,10 +154,11 @@ export class SuppliersPageComponent implements OnInit {
     this.loadInitialData();
   }
 
-  private async loadInitialData(): Promise<void> {
+  private loadInitialData() {
     // Load initial data for the supplier table
-    const suppliers = await this.suppliersWrapperService.getAllSuppliers();
-    this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(suppliers);
+    this.suppliersWrapperService.getAllSuppliers().subscribe(suppliers => {
+      this.suppliersDataSource = new MatTableDataSource<SupplierResponseDTO>(suppliers);
+    });
   }
 
   // * Handle edit action
@@ -160,7 +172,7 @@ export class SuppliersPageComponent implements OnInit {
   }
 
   // * Handle form submission
-  async onSubmit() {
+  onSubmit() {
     // Check if both forms are valid
     if (this.supplierFormGroup.valid && this.addressFormGroup.valid) {
       // Both forms are valid, check the address mode to determine whether to use an existing address or create a new one
@@ -169,47 +181,21 @@ export class SuppliersPageComponent implements OnInit {
 
       // Check if a supplier with the same name already exists --> the backend will throw an error
 
-      const supplierExists = await this.suppliersWrapperService.checkIfSupplierExists(
-        supplierFormValue.name
-      );
-      if (supplierExists) {
-        this._notifications.open(
-          'Ein Lieferant mit diesem Namen existiert bereits. Bitte bearbeiten sie den entsprechenden Lieferanten oder wählen sie einen anderen Namen aus.',
-          undefined,
-          {
-            duration: 5000,
-          }
-        );
-        return;
-      }
-
-      try {
-        // create Supplier
-        const response = await this.suppliersWrapperService.createSupplier({
-          ...supplierFormValue,
-          address: addressFormValue,
-        });
-
-        // If there are customer IDs to create, create them
-        if (this.customerIDs().length > 0 && response.id) {
-          for (const customerIdData of this.customerIDs()) {
-            await this.suppliersWrapperService.createSupplierCustomerId(
-              response.id,
-              customerIdData
+      this.suppliersWrapperService
+        .checkIfSupplierExists(supplierFormValue.name)
+        .subscribe(result => {
+          if (result) {
+            this._notifications.open(
+              'Ein Lieferant mit diesem Namen existiert bereits. Bitte bearbeiten sie den entsprechenden Lieferanten oder wählen sie einen anderen Namen aus.',
+              undefined,
+              {
+                duration: 5000,
+              }
             );
+          } else {
+            this.createSupplier(supplierFormValue, addressFormValue);
           }
-        }
-
-        // Show success notification
-        this._notifications.open('Lieferant erfolgreich erstellt', undefined, {
-          duration: 3000,
         });
-      } catch (error) {
-        console.error('Error creating supplier:', error);
-        this._notifications.open('Fehler beim Erstellen des Lieferanten', undefined, {
-          duration: 3000,
-        });
-      }
     } else {
       // Handle form errors
       this.supplierFormGroup.markAllAsTouched();
@@ -218,6 +204,52 @@ export class SuppliersPageComponent implements OnInit {
         duration: 3000,
       });
     }
+  }
+
+  private createSupplier(
+    supplierRequestDTO: SupplierRequestDTO,
+    addressRequestDTO: AddressRequestDTO
+  ) {
+    // create Supplier
+    from(
+      this.suppliersWrapperService.createSupplier({
+        ...supplierRequestDTO,
+        address: addressRequestDTO,
+      })
+    )
+      .pipe(
+        switchMap(response => {
+          const customerIds = this.customerIDs();
+          if (customerIds.length > 0 && response.id) {
+            return forkJoin(
+              customerIds.map(customerIdData =>
+                from(
+                  this.suppliersWrapperService.createSupplierCustomerId(
+                    response.id!,
+                    customerIdData
+                  )
+                )
+              )
+            ).pipe(map(() => response));
+          }
+          return of(response);
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe({
+        next: () => {
+          // Show success notification
+          this._notifications.open('Lieferant erfolgreich erstellt', undefined, {
+            duration: 3000,
+          });
+        },
+        error: error => {
+          console.error('Error creating supplier:', error);
+          this._notifications.open('Fehler beim Erstellen des Lieferanten', undefined, {
+            duration: 3000,
+          });
+        },
+      });
   }
 
   // * Handle back navigation

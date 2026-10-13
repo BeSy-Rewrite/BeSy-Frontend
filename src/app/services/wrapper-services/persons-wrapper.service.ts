@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { lastValueFrom, map, Observable } from 'rxjs';
 import { PersonRequestDTO, PersonResponseDTO, PersonsService } from '../../api-services-v2';
 import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
+import { formatPerson } from '../../utils/formatting';
 
 // Interface for person with full name
 export interface PersonWithFullName extends PersonResponseDTO {
@@ -23,8 +24,8 @@ export class PersonsWrapperService {
     return lastValueFrom(this.personsService.getAllPersons());
   }
 
-  async getPersonById(id: number) {
-    return lastValueFrom(this.personsService.getPersonById(id));
+  getPersonById(id: number) {
+    return this.personsService.getPersonById(id);
   }
 
   async createPerson(person: PersonRequestDTO) {
@@ -43,7 +44,7 @@ export class PersonsWrapperService {
       map(persons =>
         persons.map(person => ({
           ...person,
-          fullName: [person.name, person.surname].filter(Boolean).join(' '),
+          fullName: formatPerson(person),
         }))
       )
     );
@@ -69,14 +70,14 @@ export class PersonsWrapperService {
    * @param id ID of the person
    * @returns PersonWithFullName | undefined
    */
-  async getPersonByIdWithFullName(id: number) {
-    const person = await this.getPersonById(id);
+  async getPersonByIdWithFullName(id: number): Promise<PersonWithFullName | undefined> {
+    const person = await lastValueFrom(this.getPersonById(id));
     if (!person) return undefined;
 
     return {
       ...person,
-      fullName: [person.name, person.surname].filter(Boolean).join(' '),
-    } as PersonWithFullName;
+      fullName: formatPerson(person),
+    };
   }
 
   async getAllPersonsAddresses() {

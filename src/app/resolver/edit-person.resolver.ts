@@ -36,7 +36,7 @@ export class EditPersonResolver implements Resolve<EditPersonResolvedData | null
     }
 
     // Fetch person by ID, if the person has an addressId, fetch the address as well
-    return from(this.personsService.getPersonById(numericId)).pipe(
+    return this.personsService.getPersonById(numericId).pipe(
       catchError(error => {
         if (error?.status === 404) {
           this.router.navigate(['/not-found'], { skipLocationChange: true });

@@ -126,24 +126,24 @@ export class OrderSubresourceResolverService {
     private readonly suppliersService: SuppliersWrapperService
   ) {
     this.currencyFormatter = new ResourceFormatter<CurrencyResponseDTO>(
-      c => this.formatCurrency(c),
+      c => formatCurrency(c),
       () => this.currenciesService.getAllCurrencies()
     );
     this.userFormatter = new ResourceFormatter<UserResponseDTO>(
-      u => this.formatUser(u),
+      u => formatUser(u),
       () => this.usersService.getAllUsers()
     );
     this.personFormatter = new ResourceFormatter<PersonResponseDTO>(
-      p => this.formatPerson(p),
+      p => formatPerson(p),
       () => this.personsService.getAllPersons()
     );
     this.costCenterFormatter = new ResourceFormatter<CostCenterResponseDTO>(
-      c => this.formatCostCenter(c),
+      c => formatCostCenter(c),
       () => lastValueFrom(this.costCentersService.getAllCostCenters())
     );
     this.supplierFormatter = new ResourceFormatter<SupplierResponseDTO>(
-      s => this.formatSupplier(s),
-      () => this.suppliersService.getAllSuppliers()
+      s => formatSupplier(s),
+      () => lastValueFrom(this.suppliersService.getAllSuppliers())
     );
   }
 

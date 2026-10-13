@@ -6,11 +6,12 @@ import {
   CostCentersService,
 } from '../../api-services-v2';
 import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
+import { formatCostCenter } from '../../utils/formatting';
 import { convertToISODateString } from '../../utils/time-conversion.utils';
 
 export interface CostCenterFormatted {
   label: string;
-  value: string;
+  value: number;
 }
 
 @Injectable({
@@ -45,6 +46,18 @@ export class CostCenterWrapperService {
     );
   }
 
+  getCostCenterById(id: number): Observable<CostCenterResponseDTO> {
+    return this.getAllCostCenters().pipe(
+      map(costCenters => {
+        const costCenter = costCenters.find(costCenter => costCenter.id === id);
+        if (!costCenter) {
+          throw new Error(`Cost center with id ${id} not found`);
+        }
+        return costCenter;
+      })
+    );
+  }
+
   async createCostCenter(costCenter: CostCenterRequestDTO): Promise<CostCenterResponseDTO> {
     const formattedCostCenter: CostCenterRequestDTO = {
       ...costCenter,
@@ -67,11 +80,13 @@ export class CostCenterWrapperService {
    * Fetch all cost centers and format them for autocomplete usage.
    * @returns formatted cost centers for autocomplete
    */
-  getAutocompleteOptions(): Observable<AutocompleteOption<CostCenterResponseDTO>[]> {
+  getAllCostCentersFormattedForAutocomplete(): Observable<
+    AutocompleteOption<CostCenterResponseDTO>[]
+  > {
     return this.getAllCostCenters().pipe(
       map(costCenters =>
         costCenters.map(costCenter => ({
-          label: `${costCenter.id ?? ''} (${costCenter.name ?? ''})`,
+          label: formatCostCenter(costCenter),
           value: costCenter,
         }))
       )
@@ -84,18 +99,18 @@ export class CostCenterWrapperService {
    * @returns formatted cost center or null if not found
    */
   getCostCenterByIdFormattedForAutocomplete(
-    id: string
+    id: number
   ): Observable<CostCenterFormatted | undefined> {
     return this.getAllCostCenters().pipe(
       map(costCenters => {
         const costCenter = costCenters.find(cc => cc.id === id);
 
-        if (!costCenter) return undefined;
+        if (!costCenter?.id) return undefined;
 
         return {
           // Concatenate code and name for better identification in the label in format "code (name)"
-          label: `${costCenter.id ?? ''} (${costCenter.name ?? ''})`,
-          value: costCenter.id ?? '',
+          label: formatCostCenter(costCenter),
+          value: costCenter.id!,
         };
       })
     );

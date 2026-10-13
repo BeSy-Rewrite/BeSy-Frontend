@@ -7,6 +7,7 @@ import { INVOICE_FIELD_NAMES } from '../../../display-name-mappings/invoice-name
 import { TableColumn } from '../../../models/generic-table';
 import { OrderSubresourceResolverService } from '../../../services/order-subresource-resolver.service';
 import { InvoicesWrapperServiceService } from '../../../services/wrapper-services/invoices-wrapper-service.service';
+import { formatPriceToGerman } from '../../../utils/formatting';
 import { GenericTableComponent } from '../../generic-table/generic-table.component';
 
 type LegacyInvoiceDisplayData = Omit<InvoiceResponseDTO, 'price'> & {
@@ -40,7 +41,7 @@ export class LegacyInvoiceDisplayComponent implements OnInit, OnChanges {
   constructor(
     private readonly invoiceService: InvoicesWrapperServiceService,
     private readonly resourceResolver: OrderSubresourceResolverService
-  ) { }
+  ) {}
 
   ngOnInit() {
     this.setupDataSource();
@@ -55,15 +56,16 @@ export class LegacyInvoiceDisplayComponent implements OnInit, OnChanges {
     if (this.subscription) {
       this.subscription.unsubscribe();
     }
-    this.subscription = this.invoiceService.getLegacyInvoicesByOrderId(this.order().id!).subscribe(invoices => {
-      const formattedInvoices = invoices.map(invoice => ({
-        ...invoice,
-        price:
-          this.resourceResolver.formatPrice(invoice.price, this.order().currency?.code ?? 'EUR') ??
-          'Unbekannt',
-      }));
-      this.dataSource = new MatTableDataSource<LegacyInvoiceDisplayData>(formattedInvoices);
-      this.isEmpty.set(formattedInvoices.length <= 0);
-    });
+    this.subscription = this.invoiceService
+      .getLegacyInvoicesByOrderId(this.order().id!)
+      .subscribe(invoices => {
+        const formattedInvoices = invoices.map(invoice => ({
+          ...invoice,
+          price:
+            formatPriceToGerman(invoice.price, this.order().currency?.code ?? 'EUR') ?? 'Unbekannt',
+        }));
+        this.dataSource = new MatTableDataSource<LegacyInvoiceDisplayData>(formattedInvoices);
+        this.isEmpty.set(formattedInvoices.length <= 0);
+      });
   }
 }
