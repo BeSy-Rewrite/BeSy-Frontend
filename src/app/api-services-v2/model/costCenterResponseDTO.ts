@@ -10,7 +10,7 @@
 
 
 export interface CostCenterResponseDTO { 
-    id?: string;
+    id?: number;
     name?: string;
     begin_date?: string;
     end_date?: string;

@@ -13,7 +13,7 @@ import { CurrencyResponseDTO } from './currencyResponseDTO';
 
 export interface OrderResponseDTO { 
     id?: number;
-    primary_cost_center_id?: string;
+    primary_cost_center_id?: number;
     booking_year?: string;
     auto_index?: number;
     created_date?: string;
@@ -33,7 +33,7 @@ export interface OrderResponseDTO {
     queries_person_id?: number;
     customer_id?: string;
     supplier_id?: number;
-    secondary_cost_center_id?: string;
+    secondary_cost_center_id?: number;
     fixed_discount?: number;
     percentage_discount?: number;
     cash_discount?: number;
