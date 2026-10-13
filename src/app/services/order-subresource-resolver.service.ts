@@ -12,8 +12,13 @@ import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/statu
 import { OrderDisplayData } from '../models/order-display-data';
 import {
   formatBookingYear,
+  formatCostCenter,
+  formatCurrency,
   formatDate,
+  formatPerson,
   formatPriceToGerman,
+  formatSupplier,
+  formatUser,
   getOrderNumber,
 } from '../utils/formatting';
 import { CostCenterWrapperService } from './wrapper-services/cost-centers-wrapper.service';
