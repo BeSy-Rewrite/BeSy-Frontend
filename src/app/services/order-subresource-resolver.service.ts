@@ -1,18 +1,21 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, debounceTime, forkJoin, lastValueFrom, map, Observable, of } from 'rxjs';
-import { environment } from '../../environments/environment';
 import {
   CostCenterResponseDTO,
   CurrencyResponseDTO,
-  ItemResponseDTO,
   OrderResponseDTO,
   PersonResponseDTO,
   SupplierResponseDTO,
   UserResponseDTO,
 } from '../api-services-v2';
-import { PREFERRED_LIST_NAMES } from '../display-name-mappings/preferred-list-names';
 import { STATE_DISPLAY_NAMES, STATE_ICONS } from '../display-name-mappings/status-names';
 import { OrderDisplayData } from '../models/order-display-data';
+import {
+  formatBookingYear,
+  formatDate,
+  formatPriceToGerman,
+  getOrderNumber,
+} from '../utils/formatting';
 import { CostCenterWrapperService } from './wrapper-services/cost-centers-wrapper.service';
 import { CurrenciesWrapperService } from './wrapper-services/currencies-wrapper.service';
 import { PersonsWrapperService } from './wrapper-services/persons-wrapper.service';
@@ -186,11 +189,11 @@ export class OrderSubresourceResolverService {
   convertOrderToDisplayData(order: OrderResponseDTO): OrderDisplayData {
     const data = {} as OrderDisplayData;
     data.id = order.id?.toString() ?? '';
-    data.besy_number = this.getOrderNumber(order) ?? 'nicht vergeben';
+    data.besy_number = getOrderNumber(order) ?? 'nicht vergeben';
     data.primary_cost_center_id = '';
-    data.booking_year = order.booking_year ? '20' + order.booking_year : '';
+    data.booking_year = formatBookingYear(order.booking_year) ?? '';
     data.auto_index = order.auto_index ?? '';
-    data.created_date = this.formatDate(order.created_date);
+    data.created_date = formatDate(order.created_date);
     data.legacy_alias = order.legacy_alias ?? '';
     data.owner_id = '';
     data.content_description = order.content_description ?? '';
@@ -200,8 +203,8 @@ export class OrderSubresourceResolverService {
     data.comment_for_supplier = order.comment_for_supplier ?? '';
     data.quote_number = order.quote_number ?? '';
     data.quote_sign = order.quote_sign ?? '';
-    data.quote_date = this.formatDate(order.quote_date);
-    data.quote_price = this.formatPrice(order.quote_price ?? 0, order.currency?.code ?? 'EUR');
+    data.quote_date = formatDate(order.quote_date);
+    data.quote_price = formatPriceToGerman(order.quote_price ?? 0, order.currency?.code ?? 'EUR');
     data.delivery_person_id = '';
     data.invoice_person_id = '';
     data.queries_person_id = '';
@@ -212,7 +215,7 @@ export class OrderSubresourceResolverService {
     data.percentage_discount = order.percentage_discount?.toString() ?? '';
     data.cash_discount = order.cash_discount?.toString() ?? '';
     data.cashback_days = order.cashback_days?.toString() ?? '';
-    data.last_updated_time = this.formatDate(order.last_updated_time);
+    data.last_updated_time = formatDate(order.last_updated_time);
     data.flag_decision_cheapest_offer = order.flag_decision_cheapest_offer ? 'Ja' : 'Nein';
     data.flag_decision_most_economical_offer = order.flag_decision_most_economical_offer
       ? 'Ja'
@@ -231,173 +234,6 @@ export class OrderSubresourceResolverService {
     data.tooltips = this.getTooltips(order);
 
     return data;
-  }
-
-  /**
-   * Formats an ISO date string into a localized, human-readable date.
-   * Returns an empty string when the input is falsy or invalid.
-   * @param dateString ISO 8601 date string.
-   * @returns Formatted date string.
-   */
-  formatDate(dateString: string | undefined): string {
-    if (!dateString) return '';
-    const date = new Date(dateString);
-    return date.toLocaleString('de-DE', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    });
-  }
-
-  /**
-   * Formats a price with currency according to locale.
-   * Returns an empty string when price or currencyCode is missing.
-   * @param price Numeric price value.
-   * @param currencyCode ISO 4217 currency code (e.g., "EUR").
-   * @returns Formatted price string including currency.
-   */
-  formatPrice(price: number | undefined, currencyCode: string | undefined): string {
-    return Intl.NumberFormat('de', { style: 'currency', currency: currencyCode ?? 'EUR' }).format(
-      price ?? 0
-    );
-  }
-
-  /**
-   * Formats a supplier object into a display label (e.g., "123 - Supplier AG").
-   * @param supplier Supplier DTO.
-   * @returns Formatted supplier label or empty string.
-   */
-  formatSupplier(supplier: SupplierResponseDTO | undefined): string {
-    return supplier?.name ?? supplier?.website ?? '';
-  }
-
-  /**
-   * Returns a human-readable label for a currency (e.g., "EUR – Euro").
-   */
-  formatCurrency = (currency: CurrencyResponseDTO) => {
-    return currency.name ?? currency.code ?? '';
-  };
-
-  /**
-   * Returns a human-readable label for a user (e.g., "u123 – Jane Doe").
-   */
-  formatUser = (user: UserResponseDTO) => {
-    const names = [user.name ?? ''];
-    names.push(user.surname ?? '');
-    return names.filter(name => name && name.trim().length > 0).join(' ');
-  };
-
-  /**
-   * Returns a human-readable label for a person (e.g., "p42 – John Doe").
-   */
-  formatPerson = (person: PersonResponseDTO) => {
-    const names = [person.title ?? '', person.name ?? '', person.surname ?? ''];
-    return names.filter(name => name && name.trim().length > 0).join(' ');
-  };
-
-  /**
-   * Returns a human-readable label for a cost center (e.g., "4711 – IT Services").
-   */
-  formatCostCenter = (center: CostCenterResponseDTO) => {
-    return `${center.id} - ${center.name}`;
-  };
-
-  /**
-   * Formats the preferred list enum into a human-readable string.
-   * @param preferredList The preferred list enum value.
-   * @returns The formatted preferred list string.
-   */
-  formatPreferredList(preferredList: ItemResponseDTO.PreferredListEnum | undefined): string {
-    if (preferredList) {
-      return PREFERRED_LIST_NAMES.get(preferredList) ?? preferredList;
-    }
-    return 'Keine bevorzugte Liste';
-  }
-
-  /**
-   * Constructs the order number from its components.
-   * @param order The order DTO.
-   * @returns The constructed order number or undefined if any part is missing.
-   */
-  getOrderNumber(order: OrderResponseDTO): string | undefined {
-    const formattedIndex =
-      order.auto_index != undefined ? order.auto_index.toString().padStart(3, '0') : undefined;
-    const orderNumber = [order.primary_cost_center_id, order.booking_year, formattedIndex];
-    if (orderNumber.some(part => part === undefined || part === null || part === '')) {
-      return undefined;
-    }
-    return environment.besyNumber.prefix + orderNumber.join(environment.besyNumber.separator);
-  }
-
-  /**
-   * Calculates the net price from a gross price and VAT percentage.
-   * If VAT is zero or negative, returns the gross price unchanged.
-   * @param grossPrice The gross price including VAT.
-   * @param vatPercent The VAT percentage to apply. E.g., 19 for 19% VAT.
-   * @returns The calculated net price.
-   */
-  calculateNetPrice(grossPrice: number, vatPercent: number): number {
-    if (vatPercent <= 0) return grossPrice;
-    return grossPrice / (1 + vatPercent / 100);
-  }
-
-  /**
-   * Calculates the gross price from a net price and VAT percentage.
-   * If VAT is zero or negative, returns the net price unchanged.
-   * @param netPrice The net price excluding VAT.
-   * @param vatPercent The VAT percentage to apply. E.g., 19 for 19% VAT.
-   * @returns The calculated gross price.
-   */
-  calculateGrossPrice(netPrice: number, vatPercent: number): number {
-    if (vatPercent <= 0) return netPrice;
-    return netPrice * (1 + vatPercent / 100);
-  }
-
-  /**
-   * Calculates the total net price for a list of items.
-   * @param items The list of items to calculate the total net price for.
-   * @returns The total net price.
-   */
-  calculateTotalNetPrice(items: ItemResponseDTO[]): number {
-    let totalNetPrice = 0;
-    for (const item of items) {
-      let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
-      if (item.vat_type === ItemResponseDTO.VatTypeEnum.BRUTTO) {
-        price = this.calculateNetPrice(price, item.vat?.value ?? 0);
-      }
-      totalNetPrice += price;
-    }
-    return totalNetPrice;
-  }
-
-  /**
-   * Calculates the total gross price for a list of items.
-   * @param items The list of items to calculate the total gross price for.
-   * @returns The total gross price.
-   */
-  calculateTotalGrossPrice(items: ItemResponseDTO[]): number {
-    let totalGrossPrice = 0;
-    for (const item of items) {
-      let price = (item.price_per_unit ?? 0) * (item.quantity ?? 0);
-      if (item.vat_type === ItemResponseDTO.VatTypeEnum.NETTO) {
-        price = this.calculateGrossPrice(price, item.vat?.value ?? 0);
-      }
-      totalGrossPrice += price;
-    }
-    return totalGrossPrice;
-  }
-
-  /**
-   * Calculates the total quantity of items.
-   * @param items The list of items to calculate the total quantity for.
-   * @returns The total quantity.
-   */
-  calculateTotalQuantity(items: ItemResponseDTO[]): number {
-    let totalQuantity = 0;
-    for (const item of items) {
-      totalQuantity += item.quantity ?? 0;
-    }
-    return totalQuantity;
   }
 
   /** Returns tooltip texts for specific fields in the order display data. */
