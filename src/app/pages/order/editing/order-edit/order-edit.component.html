@@ -47,7 +47,12 @@
     </div>
   </div>
 
-  <mat-tab-group mat-stretch-tabs="true" mat-align-tabs="start" class="mb-4">
+  <mat-tab-group
+    mat-stretch-tabs="true"
+    mat-align-tabs="start"
+    class="mb-4"
+    [(selectedIndex)]="selectedTabIndex"
+  >
     @for (tab of tabs; track $index) {
       <mat-tab [label]="tab.label">
         <div class="p-4 pt-8 lg:max-w-4/5 xl:max-w-3/5 m-auto">
