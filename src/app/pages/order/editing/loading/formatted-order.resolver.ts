@@ -1,10 +1,10 @@
 import { inject } from '@angular/core';
 import { ResolveFn, Router } from '@angular/router';
 import { catchError, from, Observable, switchMap, throwError } from 'rxjs';
-import { OrderResponseDTO } from '../../../api-services-v2';
-import { OrdersWrapperService } from '../../../services/wrapper-services/orders/orders-wrapper.service';
+import { OrderResponseDTO } from '../../../../api-services-v2';
+import { OrdersWrapperService } from '../../../../services/wrapper-services/orders/orders-wrapper.service';
+import { EditingFormattedOrder } from '../editing-formatted-order';
 import { EditOrderFormattingService } from './edit-order-formatting.service';
-import { EditingFormattedOrder } from './editing-formatted-order';
 
 export const formattedOrderResolver: ResolveFn<EditingFormattedOrder> = (
   route
