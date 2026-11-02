@@ -2,7 +2,7 @@ import { OrderStatus } from '../app/api-services-v2';
 
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000/api/v1',
+  apiUrl: 'http://localhost:3000',
   paperlessUrl: 'http://localhost:8000',
 
   footerLinks: [{ name: 'InSy', link: 'https://insy.hs-esslingen.com' }],
@@ -44,4 +44,6 @@ export const environment = {
     separator: '/',
     separatorFileExport: '_',
   },
+
+  defaultVatValue: 19, // Default VAT value for new items, in percent
 };
