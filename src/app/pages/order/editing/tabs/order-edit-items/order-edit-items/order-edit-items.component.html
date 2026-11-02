@@ -1,0 +1,13 @@
+<div class="flex flex-col gap-4">
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="!isEditable()"
+    (click)="openAddItemDialog()"
+  >
+    <mat-icon iconPositionStart>add</mat-icon>
+    Position hinzufügen
+  </button>
+
+  <app-generic-table [dataSource]="tableDataSource()" [columns]="columns" [actions]="actions" />
+</div>
