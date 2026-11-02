@@ -18,6 +18,8 @@ export interface TableColumn<T = any> {
   action?: (row: T) => void;
   /** Optional footer content for the column, as a signal. */
   footerContent?: Signal<string | number>;
+  /** Optional formatter function to format the cell content for this column, given a row. */
+  formatter?: (row: T) => string | number;
 }
 
 /**
