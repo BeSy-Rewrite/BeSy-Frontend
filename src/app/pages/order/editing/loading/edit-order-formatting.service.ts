@@ -126,9 +126,9 @@ export class EditOrderFormattingService {
   /**
    * Resolves an ID to an AutocompleteOption by fetching the corresponding entity and formatting it.
    */
-  private resolveOption<T>(
-    id: number | undefined | null,
-    fetchFn: (id: number) => Observable<T>,
+  private resolveOption<i, T>(
+    id: i | undefined | null,
+    fetchFn: (id: i) => Observable<T>,
     formatFn: (value: T) => string
   ): Observable<AutocompleteOption<T> | undefined> {
     if (!id) {
