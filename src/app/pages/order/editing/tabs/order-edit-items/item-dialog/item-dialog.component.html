@@ -1,0 +1,11 @@
+<mat-dialog-content>
+  <div class="pt-8">
+    <app-form-component [config]="itemFormConfig()" [formGroup]="itemFormGroup" />
+  </div>
+</mat-dialog-content>
+<mat-dialog-actions align="end">
+  <button mat-stroked-button color="warn" (click)="cancelAddItem()">Abbrechen</button>
+  <button mat-flat-button color="primary" (click)="confirmAddItem()">
+    {{ isEditMode() ? 'Speichern' : 'Hinzufügen' }}
+  </button>
+</mat-dialog-actions>
