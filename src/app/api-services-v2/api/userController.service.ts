@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -17,6 +17,8 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
+import { ErrorResponse } from '../model/errorResponse';
+// @ts-ignore
 import { UserPreferencesRequestDTO } from '../model/userPreferencesRequestDTO';
 // @ts-ignore
 import { UserPreferencesResponseDTO } from '../model/userPreferencesResponseDTO';
@@ -33,24 +35,25 @@ import { BaseService } from '../api.base.service';
 @Injectable({
   providedIn: 'root'
 })
-export class UsersService extends BaseService {
+export class UserControllerService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
     }
 
     /**
-     * @endpoint post /users/me/preferences
+     * Fügt eine Präferenz für den aktuell authentifizierten Benutzer hinzu.
+     * @endpoint post /api/v2/users/me/preferences
      * @param userPreferencesRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public addCurrentUserPreferences(userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserPreferencesResponseDTO>;
-    public addCurrentUserPreferences(userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserPreferencesResponseDTO>>;
-    public addCurrentUserPreferences(userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserPreferencesResponseDTO>>;
-    public addCurrentUserPreferences(userPreferencesRequestDTO: UserPreferencesRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public addUserPreferences(userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserPreferencesResponseDTO>;
+    public addUserPreferences(userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserPreferencesResponseDTO>>;
+    public addUserPreferences(userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserPreferencesResponseDTO>>;
+    public addUserPreferences(userPreferencesRequestDTO: UserPreferencesRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (userPreferencesRequestDTO === null || userPreferencesRequestDTO === undefined) {
-            throw new Error('Required parameter userPreferencesRequestDTO was null or undefined when calling addCurrentUserPreferences.');
+            throw new Error('Required parameter userPreferencesRequestDTO was null or undefined when calling addUserPreferences.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -87,7 +90,7 @@ export class UsersService extends BaseService {
             }
         }
 
-        let localVarPath = `/users/me/preferences`;
+        let localVarPath = `/api/v2/users/me/preferences`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<UserPreferencesResponseDTO>('post', `${basePath}${localVarPath}`,
             {
@@ -104,22 +107,24 @@ export class UsersService extends BaseService {
     }
 
     /**
-     * @endpoint delete /users/me/preferences/{id}
-     * @param id ID der Benutzerpräferenz
+     * Löscht eine Präferenz des aktuell authentifizierten Benutzers.
+     * @endpoint delete /api/v2/users/me/preferences/{id}
+     * @param id ID der Benutzerpräferenz.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public deleteCurrentUserPreferences(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public deleteCurrentUserPreferences(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public deleteCurrentUserPreferences(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
-    public deleteCurrentUserPreferences(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public deleteUserPreferences(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public deleteUserPreferences(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public deleteUserPreferences(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public deleteUserPreferences(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling deleteCurrentUserPreferences.');
+            throw new Error('Required parameter id was null or undefined when calling deleteUserPreferences.');
         }
 
         let localVarHeaders = this.defaultHeaders;
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
         ]);
         if (localVarHttpHeaderAcceptSelected !== undefined) {
             localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
@@ -141,7 +146,7 @@ export class UsersService extends BaseService {
             }
         }
 
-        let localVarPath = `/users/me/preferences/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        let localVarPath = `/api/v2/users/me/preferences/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`,
             {
@@ -157,7 +162,8 @@ export class UsersService extends BaseService {
     }
 
     /**
-     * @endpoint get /users
+     * Gibt alle Benutzer zurück.
+     * @endpoint get /api/v2/users
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -191,7 +197,7 @@ export class UsersService extends BaseService {
             }
         }
 
-        let localVarPath = `/users`;
+        let localVarPath = `/api/v2/users`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<UserResponseDTO>>('get', `${basePath}${localVarPath}`,
             {
@@ -207,7 +213,8 @@ export class UsersService extends BaseService {
     }
 
     /**
-     * @endpoint get /users/me
+     * Gibt den aktuell authentifizierten Benutzer zurück.
+     * @endpoint get /api/v2/users/me
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -241,7 +248,7 @@ export class UsersService extends BaseService {
             }
         }
 
-        let localVarPath = `/users/me`;
+        let localVarPath = `/api/v2/users/me`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<UserResponseDTO>('get', `${basePath}${localVarPath}`,
             {
@@ -257,15 +264,71 @@ export class UsersService extends BaseService {
     }
 
     /**
-     * @endpoint get /users/me/preferences
+     * Gibt einen Benutzer anhand seiner ID zurück.
+     * @endpoint get /api/v2/users/{id}
+     * @param id Die ID des abzurufenden Benutzers.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getUserById(id: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserResponseDTO>;
+    public getUserById(id: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserResponseDTO>>;
+    public getUserById(id: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserResponseDTO>>;
+    public getUserById(id: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (id === null || id === undefined) {
+            throw new Error('Required parameter id was null or undefined when calling getUserById.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v2/users/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<UserResponseDTO>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Gibt die Präferenzen des aktuell authentifizierten Benutzers zurück.
+     * @endpoint get /api/v2/users/me/preferences
      * @param type Filtert Benutzerpräferenzen nach Typ
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getCurrentUserPreferences(type?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<UserPreferencesResponseDTO>>;
-    public getCurrentUserPreferences(type?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<UserPreferencesResponseDTO>>>;
-    public getCurrentUserPreferences(type?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<UserPreferencesResponseDTO>>>;
-    public getCurrentUserPreferences(type?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getUserPreferences(type?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<UserPreferencesResponseDTO>>;
+    public getUserPreferences(type?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<UserPreferencesResponseDTO>>>;
+    public getUserPreferences(type?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<UserPreferencesResponseDTO>>>;
+    public getUserPreferences(type?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
         localVarQueryParameters = this.addToHttpParams(localVarQueryParameters,
@@ -296,7 +359,7 @@ export class UsersService extends BaseService {
             }
         }
 
-        let localVarPath = `/users/me/preferences`;
+        let localVarPath = `/api/v2/users/me/preferences`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<UserPreferencesResponseDTO>>('get', `${basePath}${localVarPath}`,
             {
@@ -313,75 +376,22 @@ export class UsersService extends BaseService {
     }
 
     /**
-     * @endpoint get /users/{id}
-     * @param id 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getUser(id: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserResponseDTO>;
-    public getUser(id: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserResponseDTO>>;
-    public getUser(id: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserResponseDTO>>;
-    public getUser(id: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling getUser.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/json'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/users/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<UserResponseDTO>('get', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * @endpoint put /users/me/preferences/{id}
-     * @param id ID der Benutzerpräferenz
+     * Aktualisiert eine Präferenz des aktuell authentifizierten Benutzers.
+     * @endpoint put /api/v2/users/me/preferences/{id}
+     * @param id ID der Benutzerpräferenz.
      * @param userPreferencesRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public updateCurrentUserPreferences(id: number, userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserPreferencesResponseDTO>;
-    public updateCurrentUserPreferences(id: number, userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserPreferencesResponseDTO>>;
-    public updateCurrentUserPreferences(id: number, userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserPreferencesResponseDTO>>;
-    public updateCurrentUserPreferences(id: number, userPreferencesRequestDTO: UserPreferencesRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public updateUserPreferences(id: number, userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<UserPreferencesResponseDTO>;
+    public updateUserPreferences(id: number, userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<UserPreferencesResponseDTO>>;
+    public updateUserPreferences(id: number, userPreferencesRequestDTO: UserPreferencesRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<UserPreferencesResponseDTO>>;
+    public updateUserPreferences(id: number, userPreferencesRequestDTO: UserPreferencesRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (id === null || id === undefined) {
-            throw new Error('Required parameter id was null or undefined when calling updateCurrentUserPreferences.');
+            throw new Error('Required parameter id was null or undefined when calling updateUserPreferences.');
         }
         if (userPreferencesRequestDTO === null || userPreferencesRequestDTO === undefined) {
-            throw new Error('Required parameter userPreferencesRequestDTO was null or undefined when calling updateCurrentUserPreferences.');
+            throw new Error('Required parameter userPreferencesRequestDTO was null or undefined when calling updateUserPreferences.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -418,7 +428,7 @@ export class UsersService extends BaseService {
             }
         }
 
-        let localVarPath = `/users/me/preferences/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        let localVarPath = `/api/v2/users/me/preferences/${this.configuration.encodeParam({name: "id", value: id, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<UserPreferencesResponseDTO>('put', `${basePath}${localVarPath}`,
             {

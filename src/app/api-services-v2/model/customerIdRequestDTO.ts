@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *

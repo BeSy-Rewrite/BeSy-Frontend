@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -10,7 +10,7 @@
 
 
 export interface UserResponseDTO { 
-    id?: string;
+    id: number;
     surname?: string;
     name?: string;
     email?: string;

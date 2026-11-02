@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -17,6 +17,8 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
+import { ErrorResponse } from '../model/errorResponse';
+// @ts-ignore
 import { VatResponseDTO } from '../model/vatResponseDTO';
 
 // @ts-ignore
@@ -29,7 +31,7 @@ import { BaseService } from '../api.base.service';
 @Injectable({
   providedIn: 'root'
 })
-export class VatsService extends BaseService {
+export class VatControllerService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
@@ -37,7 +39,7 @@ export class VatsService extends BaseService {
 
     /**
      * Der &#x60;value&#x60; einer VAT ist zugleich dessen ID.
-     * @endpoint get /vats
+     * @endpoint get /api/v2/vats
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -71,7 +73,7 @@ export class VatsService extends BaseService {
             }
         }
 
-        let localVarPath = `/vats`;
+        let localVarPath = `/api/v2/vats`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<VatResponseDTO>>('get', `${basePath}${localVarPath}`,
             {

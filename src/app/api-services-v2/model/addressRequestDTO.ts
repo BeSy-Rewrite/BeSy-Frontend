@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -10,13 +10,13 @@
 
 
 export interface AddressRequestDTO { 
-    postal_code?: string;
     building_name?: string;
-    building_number?: string;
-    comment?: string;
-    country?: string;
-    county?: string;
     street?: string;
+    building_number?: string;
     town: string;
+    postal_code?: string;
+    county?: string;
+    country?: string;
+    comment?: string;
 }
 

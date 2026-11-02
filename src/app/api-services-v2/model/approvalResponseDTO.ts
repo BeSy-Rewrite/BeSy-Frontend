@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -10,12 +10,12 @@
 
 
 export interface ApprovalResponseDTO { 
-    order_id?: number;
-    flag_edv_permission?: boolean;
-    flag_furniture_permission?: boolean;
-    flag_furniture_room?: boolean;
-    flag_investment_room?: boolean;
-    flag_investment_structural_measures?: boolean;
-    flag_media_permission?: boolean;
+    order_id: number;
+    flag_edv_permission: boolean;
+    flag_furniture_permission: boolean;
+    flag_furniture_room: boolean;
+    flag_investment_room: boolean;
+    flag_investment_structural_measures: boolean;
+    flag_media_permission: boolean;
 }
 

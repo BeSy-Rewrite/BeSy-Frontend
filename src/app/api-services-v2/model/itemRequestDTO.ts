@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -16,9 +16,9 @@ export interface ItemRequestDTO {
     quantity_unit?: string;
     article_id?: string;
     comment?: string;
-    vat_value: string;
     preferred_list?: ItemRequestDTO.PreferredListEnum;
     preferred_list_number?: string;
+    vat_value: number;
     vat_type: ItemRequestDTO.VatTypeEnum;
 }
 export namespace ItemRequestDTO {

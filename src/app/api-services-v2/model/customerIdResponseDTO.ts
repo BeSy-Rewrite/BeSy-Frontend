@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -10,14 +10,11 @@
 
 
 export interface CustomerIdResponseDTO { 
-    /**
-     * ID des zugehörigen Lieferanten
-     */
-    supplier_id?: number;
+    supplier_id: number;
     /**
      * Kundenkennung (extern oder intern)
      */
-    customer_id?: string;
+    customer_id: string;
     /**
      * Optionaler Kommentar zur Kundenkennung
      */

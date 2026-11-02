@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -17,9 +17,9 @@ import { CustomHttpParameterCodec }                          from '../encoder';
 import { Observable }                                        from 'rxjs';
 
 // @ts-ignore
-import { CostCenterRequestDTO } from '../model/costCenterRequestDTO';
+import { CurrencyResponseDTO } from '../model/currencyResponseDTO';
 // @ts-ignore
-import { CostCenterResponseDTO } from '../model/costCenterResponseDTO';
+import { ErrorResponse } from '../model/errorResponse';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -31,25 +31,22 @@ import { BaseService } from '../api.base.service';
 @Injectable({
   providedIn: 'root'
 })
-export class CostCentersService extends BaseService {
+export class CurrencyControllerService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
     }
 
     /**
-     * @endpoint post /cost_centers
-     * @param costCenterRequestDTO 
+     * Gibt alle verfügbaren Währungen zurück.
+     * @endpoint get /api/v2/currencies
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createCostCenter(costCenterRequestDTO: CostCenterRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CostCenterResponseDTO>;
-    public createCostCenter(costCenterRequestDTO: CostCenterRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CostCenterResponseDTO>>;
-    public createCostCenter(costCenterRequestDTO: CostCenterRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CostCenterResponseDTO>>;
-    public createCostCenter(costCenterRequestDTO: CostCenterRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (costCenterRequestDTO === null || costCenterRequestDTO === undefined) {
-            throw new Error('Required parameter costCenterRequestDTO was null or undefined when calling createCostCenter.');
-        }
+    public getAllCurrencies(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<CurrencyResponseDTO>>;
+    public getAllCurrencies(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<CurrencyResponseDTO>>>;
+    public getAllCurrencies(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<CurrencyResponseDTO>>>;
+    public getAllCurrencies(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -65,15 +62,6 @@ export class CostCentersService extends BaseService {
         const localVarTransferCache: boolean = options?.transferCache ?? true;
 
 
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-        }
-
         let responseType_: 'text' | 'json' | 'blob' = 'json';
         if (localVarHttpHeaderAcceptSelected) {
             if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
@@ -85,12 +73,11 @@ export class CostCentersService extends BaseService {
             }
         }
 
-        let localVarPath = `/cost_centers`;
+        let localVarPath = `/api/v2/currencies`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<CostCenterResponseDTO>('post', `${basePath}${localVarPath}`,
+        return this.httpClient.request<Array<CurrencyResponseDTO>>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: costCenterRequestDTO,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -102,14 +89,19 @@ export class CostCentersService extends BaseService {
     }
 
     /**
-     * @endpoint get /cost_centers
+     * Gibt eine Währung anhand ihres ISO-Codes zurück.
+     * @endpoint get /api/v2/currencies/{code}
+     * @param code Der ISO-Code der abzurufenden Währung
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getCostCenters(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<CostCenterResponseDTO>>;
-    public getCostCenters(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<CostCenterResponseDTO>>>;
-    public getCostCenters(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<CostCenterResponseDTO>>>;
-    public getCostCenters(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getCurrencyByCode(code: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CurrencyResponseDTO>;
+    public getCurrencyByCode(code: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CurrencyResponseDTO>>;
+    public getCurrencyByCode(code: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CurrencyResponseDTO>>;
+    public getCurrencyByCode(code: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (code === null || code === undefined) {
+            throw new Error('Required parameter code was null or undefined when calling getCurrencyByCode.');
+        }
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -136,9 +128,9 @@ export class CostCentersService extends BaseService {
             }
         }
 
-        let localVarPath = `/cost_centers`;
+        let localVarPath = `/api/v2/currencies/${this.configuration.encodeParam({name: "code", value: code, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<Array<CostCenterResponseDTO>>('get', `${basePath}${localVarPath}`,
+        return this.httpClient.request<CurrencyResponseDTO>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,

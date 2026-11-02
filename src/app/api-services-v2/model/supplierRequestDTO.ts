@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -12,13 +12,13 @@ import { AddressRequestDTO } from './addressRequestDTO';
 
 export interface SupplierRequestDTO { 
     name: string;
-    flag_preferred: boolean;
-    vat_id?: string;
-    email?: string;
-    fax?: string;
     phone?: string;
+    fax?: string;
+    email?: string;
     comment?: string;
     website?: string;
+    vat_id?: string;
+    flag_preferred: boolean;
     address: AddressRequestDTO;
 }
 

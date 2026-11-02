@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -11,6 +11,6 @@
 
 export interface UserPreferencesRequestDTO { 
     preference_type: string;
-    preferences: { [key: string]: any; };
+    preferences: any;
 }
 

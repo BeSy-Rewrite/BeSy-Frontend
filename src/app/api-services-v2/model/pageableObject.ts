@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -7,15 +7,15 @@
  * https://openapi-generator.tech
  * Do not edit the class manually.
  */
-import { Sort } from './sort';
+import { SortObject } from './sortObject';
 
 
-export interface PagedOrderResponseDTOPageable { 
-    page_number?: number;
-    page_size?: number;
-    sort?: Sort;
+export interface PageableObject { 
     offset?: number;
     paged?: boolean;
+    sort?: SortObject;
+    page_size?: number;
+    page_number?: number;
     unpaged?: boolean;
 }
 

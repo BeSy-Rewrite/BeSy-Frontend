@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -10,9 +10,9 @@
 
 
 export interface QuotationRequestDTO { 
-    quote_date: string;
-    price: number;
     company_name: string;
     company_city: string;
+    quote_date: string;
+    price: number;
 }
 

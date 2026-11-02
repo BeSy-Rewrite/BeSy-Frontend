@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -9,8 +9,10 @@
  */
 
 
-export const PreferenceType = {
-    ORDER_PRESETS: 'ORDER_PRESETS'
-} as const;
-export type PreferenceType = typeof PreferenceType[keyof typeof PreferenceType];
+export interface UpdateCostCenterDTO { 
+    name: string;
+    begin_date?: string;
+    end_date?: string;
+    comment?: string;
+}
 

@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -10,15 +10,15 @@
 
 
 export interface SupplierResponseDTO { 
-    id?: number;
+    id: number;
     name?: string;
-    deactivated_date?: string;
-    flag_preferred?: boolean;
-    vat_id?: string;
-    email?: string;
-    fax?: string;
     phone?: string;
+    fax?: string;
+    email?: string;
     comment?: string;
     website?: string;
+    vat_id?: string;
+    flag_preferred?: boolean;
+    deactivated_date?: string;
 }
 

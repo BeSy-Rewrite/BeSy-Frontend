@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -13,7 +13,7 @@ import { CurrencyResponseDTO } from './currencyResponseDTO';
 
 export interface OrderResponseDTO { 
     id?: number;
-    primary_cost_center_id?: number;
+    primary_cost_center_id?: string;
     booking_year?: string;
     auto_index?: number;
     created_date?: string;
@@ -33,10 +33,10 @@ export interface OrderResponseDTO {
     queries_person_id?: number;
     customer_id?: string;
     supplier_id?: number;
-    secondary_cost_center_id?: number;
+    secondary_cost_center_id?: string;
     fixed_discount?: number;
     percentage_discount?: number;
-    cash_discount?: number;
+    cashback_percentage?: number;
     cashback_days?: number;
     last_updated_time?: string;
     flag_decision_cheapest_offer?: boolean;

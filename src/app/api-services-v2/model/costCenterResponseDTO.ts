@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -10,7 +10,7 @@
 
 
 export interface CostCenterResponseDTO { 
-    id?: number;
+    id: string;
     name?: string;
     begin_date?: string;
     end_date?: string;

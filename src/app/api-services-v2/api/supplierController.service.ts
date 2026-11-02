@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -23,9 +23,13 @@ import { CustomerIdRequestDTO } from '../model/customerIdRequestDTO';
 // @ts-ignore
 import { CustomerIdResponseDTO } from '../model/customerIdResponseDTO';
 // @ts-ignore
+import { ErrorResponse } from '../model/errorResponse';
+// @ts-ignore
 import { SupplierRequestDTO } from '../model/supplierRequestDTO';
 // @ts-ignore
 import { SupplierResponseDTO } from '../model/supplierResponseDTO';
+// @ts-ignore
+import { SupplierWithAddressResponseDTO } from '../model/supplierWithAddressResponseDTO';
 
 // @ts-ignore
 import { BASE_PATH, COLLECTION_FORMATS }                     from '../variables';
@@ -37,21 +41,91 @@ import { BaseService } from '../api.base.service';
 @Injectable({
   providedIn: 'root'
 })
-export class SuppliersService extends BaseService {
+export class SupplierControllerService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
     }
 
     /**
-     * @endpoint post /suppliers
+     * Erstellt eine Kundennummer für einen Lieferanten.
+     * @endpoint post /api/v2/suppliers/{supplier-id}/customer_ids
+     * @param supplierId Die eindeutige ID des Lieferanten, für welchen die Kundennummer erstellt werden soll.
+     * @param customerIdRequestDTO 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public createCustomerId(supplierId: number, customerIdRequestDTO: CustomerIdRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CustomerIdResponseDTO>;
+    public createCustomerId(supplierId: number, customerIdRequestDTO: CustomerIdRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CustomerIdResponseDTO>>;
+    public createCustomerId(supplierId: number, customerIdRequestDTO: CustomerIdRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CustomerIdResponseDTO>>;
+    public createCustomerId(supplierId: number, customerIdRequestDTO: CustomerIdRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (supplierId === null || supplierId === undefined) {
+            throw new Error('Required parameter supplierId was null or undefined when calling createCustomerId.');
+        }
+        if (customerIdRequestDTO === null || customerIdRequestDTO === undefined) {
+            throw new Error('Required parameter customerIdRequestDTO was null or undefined when calling createCustomerId.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v2/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/customer_ids`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<CustomerIdResponseDTO>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: customerIdRequestDTO,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Erstellt einen neuen Lieferanten.
+     * @endpoint post /api/v2/suppliers
      * @param supplierRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createSupplier(supplierRequestDTO: SupplierRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<SupplierResponseDTO>;
-    public createSupplier(supplierRequestDTO: SupplierRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<SupplierResponseDTO>>;
-    public createSupplier(supplierRequestDTO: SupplierRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<SupplierResponseDTO>>;
+    public createSupplier(supplierRequestDTO: SupplierRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<SupplierWithAddressResponseDTO>;
+    public createSupplier(supplierRequestDTO: SupplierRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<SupplierWithAddressResponseDTO>>;
+    public createSupplier(supplierRequestDTO: SupplierRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<SupplierWithAddressResponseDTO>>;
     public createSupplier(supplierRequestDTO: SupplierRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (supplierRequestDTO === null || supplierRequestDTO === undefined) {
             throw new Error('Required parameter supplierRequestDTO was null or undefined when calling createSupplier.');
@@ -91,9 +165,9 @@ export class SuppliersService extends BaseService {
             }
         }
 
-        let localVarPath = `/suppliers`;
+        let localVarPath = `/api/v2/suppliers`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<SupplierResponseDTO>('post', `${basePath}${localVarPath}`,
+        return this.httpClient.request<SupplierWithAddressResponseDTO>('post', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 body: supplierRequestDTO,
@@ -108,21 +182,18 @@ export class SuppliersService extends BaseService {
     }
 
     /**
-     * @endpoint post /suppliers/{supplier-id}/customer_ids
-     * @param supplierId Die eindeutige ID des Lieferanten, für welchen die Kundennummern erstellt werden soll.
-     * @param customerIdRequestDTO 
+     * Gibt die Adresse des angegebenen Lieferanten zurück.
+     * @endpoint get /api/v2/suppliers/{supplier-id}/address
+     * @param supplierId Die ID des Lieferanten, dessen Adresse abgerufen werden soll.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createSupplierCustomerId(supplierId: number, customerIdRequestDTO: CustomerIdRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<CustomerIdResponseDTO>;
-    public createSupplierCustomerId(supplierId: number, customerIdRequestDTO: CustomerIdRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<CustomerIdResponseDTO>>;
-    public createSupplierCustomerId(supplierId: number, customerIdRequestDTO: CustomerIdRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<CustomerIdResponseDTO>>;
-    public createSupplierCustomerId(supplierId: number, customerIdRequestDTO: CustomerIdRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getAddressOfSupplier(supplierId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AddressResponseDTO>;
+    public getAddressOfSupplier(supplierId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AddressResponseDTO>>;
+    public getAddressOfSupplier(supplierId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AddressResponseDTO>>;
+    public getAddressOfSupplier(supplierId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (supplierId === null || supplierId === undefined) {
-            throw new Error('Required parameter supplierId was null or undefined when calling createSupplierCustomerId.');
-        }
-        if (customerIdRequestDTO === null || customerIdRequestDTO === undefined) {
-            throw new Error('Required parameter customerIdRequestDTO was null or undefined when calling createSupplierCustomerId.');
+            throw new Error('Required parameter supplierId was null or undefined when calling getAddressOfSupplier.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -139,15 +210,6 @@ export class SuppliersService extends BaseService {
         const localVarTransferCache: boolean = options?.transferCache ?? true;
 
 
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-        }
-
         let responseType_: 'text' | 'json' | 'blob' = 'json';
         if (localVarHttpHeaderAcceptSelected) {
             if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
@@ -159,12 +221,11 @@ export class SuppliersService extends BaseService {
             }
         }
 
-        let localVarPath = `/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/customer_ids`;
+        let localVarPath = `/api/v2/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/address`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<CustomerIdResponseDTO>('post', `${basePath}${localVarPath}`,
+        return this.httpClient.request<AddressResponseDTO>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
-                body: customerIdRequestDTO,
                 responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
@@ -176,15 +237,16 @@ export class SuppliersService extends BaseService {
     }
 
     /**
-     * @endpoint get /suppliers/addresses
+     * Gibt eine Liste aller Lieferantenadressen zurück.
+     * @endpoint get /api/v2/suppliers/addresses
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      * @deprecated
      */
-    public getAllSupplierAddresses(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<AddressResponseDTO>>;
-    public getAllSupplierAddresses(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<AddressResponseDTO>>>;
-    public getAllSupplierAddresses(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<AddressResponseDTO>>>;
-    public getAllSupplierAddresses(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getAddresses1(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<AddressResponseDTO>>;
+    public getAddresses1(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<AddressResponseDTO>>>;
+    public getAddresses1(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<AddressResponseDTO>>>;
+    public getAddresses1(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -211,7 +273,7 @@ export class SuppliersService extends BaseService {
             }
         }
 
-        let localVarPath = `/suppliers/addresses`;
+        let localVarPath = `/api/v2/suppliers/addresses`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<AddressResponseDTO>>('get', `${basePath}${localVarPath}`,
             {
@@ -227,7 +289,63 @@ export class SuppliersService extends BaseService {
     }
 
     /**
-     * @endpoint get /suppliers
+     * Gibt die Kundennummern eines Lieferanten zurück.
+     * @endpoint get /api/v2/suppliers/{supplier-id}/customer_ids
+     * @param supplierId Die eindeutige ID des Lieferanten, für welchen die Kundennummern abgerufen werden sollen.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getAllCustomerIds(supplierId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<CustomerIdResponseDTO>>;
+    public getAllCustomerIds(supplierId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<CustomerIdResponseDTO>>>;
+    public getAllCustomerIds(supplierId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<CustomerIdResponseDTO>>>;
+    public getAllCustomerIds(supplierId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (supplierId === null || supplierId === undefined) {
+            throw new Error('Required parameter supplierId was null or undefined when calling getAllCustomerIds.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v2/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}/customer_ids`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<CustomerIdResponseDTO>>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Gibt eine Liste von Lieferanten zurück.
+     * @endpoint get /api/v2/suppliers
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -261,7 +379,7 @@ export class SuppliersService extends BaseService {
             }
         }
 
-        let localVarPath = `/suppliers`;
+        let localVarPath = `/api/v2/suppliers`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<SupplierResponseDTO>>('get', `${basePath}${localVarPath}`,
             {
@@ -277,115 +395,8 @@ export class SuppliersService extends BaseService {
     }
 
     /**
-     * @endpoint get /suppliers/{supplier-id}/customer_ids
-     * @param supplierId Die eindeutige ID des Lieferanten, für welchen die Kundennummern abgerufen werden sollen.
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getCustomerIdsOfOrder(supplierId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<CustomerIdResponseDTO>>;
-    public getCustomerIdsOfOrder(supplierId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<CustomerIdResponseDTO>>>;
-    public getCustomerIdsOfOrder(supplierId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<CustomerIdResponseDTO>>>;
-    public getCustomerIdsOfOrder(supplierId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (supplierId === null || supplierId === undefined) {
-            throw new Error('Required parameter supplierId was null or undefined when calling getCustomerIdsOfOrder.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/json'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/customer_ids`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<Array<CustomerIdResponseDTO>>('get', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * @endpoint get /suppliers/{supplier-id}/address
-     * @param supplierId 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getSupplierAddress(supplierId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<AddressResponseDTO>;
-    public getSupplierAddress(supplierId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<AddressResponseDTO>>;
-    public getSupplierAddress(supplierId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<AddressResponseDTO>>;
-    public getSupplierAddress(supplierId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (supplierId === null || supplierId === undefined) {
-            throw new Error('Required parameter supplierId was null or undefined when calling getSupplierAddress.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/json'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/address`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<AddressResponseDTO>('get', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * @endpoint get /suppliers/{supplier-id}
+     * Gibt einen Lieferanten anhand seiner ID zurück.
+     * @endpoint get /api/v2/suppliers/{supplier-id}
      * @param supplierId Die eindeutige ID des Lieferanten, welcher abgerufen werden soll.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -423,7 +434,7 @@ export class SuppliersService extends BaseService {
             }
         }
 
-        let localVarPath = `/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}`;
+        let localVarPath = `/api/v2/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<SupplierResponseDTO>('get', `${basePath}${localVarPath}`,
             {
@@ -439,21 +450,22 @@ export class SuppliersService extends BaseService {
     }
 
     /**
-     * @endpoint put /suppliers/{supplier-id}
+     * Aktualisiert einen bestehenden Lieferanten anhand seiner ID.
+     * @endpoint put /api/v2/suppliers/{supplier-id}
      * @param supplierId Die eindeutige ID des Lieferanten, welcher aktualisiert werden soll.
      * @param supplierRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public updateSupplierById(supplierId: number, supplierRequestDTO: SupplierRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<SupplierResponseDTO>;
-    public updateSupplierById(supplierId: number, supplierRequestDTO: SupplierRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<SupplierResponseDTO>>;
-    public updateSupplierById(supplierId: number, supplierRequestDTO: SupplierRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<SupplierResponseDTO>>;
-    public updateSupplierById(supplierId: number, supplierRequestDTO: SupplierRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public updateSupplier(supplierId: number, supplierRequestDTO: SupplierRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<SupplierWithAddressResponseDTO>;
+    public updateSupplier(supplierId: number, supplierRequestDTO: SupplierRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<SupplierWithAddressResponseDTO>>;
+    public updateSupplier(supplierId: number, supplierRequestDTO: SupplierRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<SupplierWithAddressResponseDTO>>;
+    public updateSupplier(supplierId: number, supplierRequestDTO: SupplierRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (supplierId === null || supplierId === undefined) {
-            throw new Error('Required parameter supplierId was null or undefined when calling updateSupplierById.');
+            throw new Error('Required parameter supplierId was null or undefined when calling updateSupplier.');
         }
         if (supplierRequestDTO === null || supplierRequestDTO === undefined) {
-            throw new Error('Required parameter supplierRequestDTO was null or undefined when calling updateSupplierById.');
+            throw new Error('Required parameter supplierRequestDTO was null or undefined when calling updateSupplier.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -490,9 +502,9 @@ export class SuppliersService extends BaseService {
             }
         }
 
-        let localVarPath = `/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}`;
+        let localVarPath = `/api/v2/suppliers/${this.configuration.encodeParam({name: "supplierId", value: supplierId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<SupplierResponseDTO>('put', `${basePath}${localVarPath}`,
+        return this.httpClient.request<SupplierWithAddressResponseDTO>('put', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 body: supplierRequestDTO,

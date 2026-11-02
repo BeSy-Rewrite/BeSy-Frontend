@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -10,11 +10,29 @@
 
 
 export interface ApprovalRequestDTO { 
+    /**
+     * Flag indicating if the user has EDV permission
+     */
     flag_edv_permission?: boolean;
+    /**
+     * Flag indicating if the user has furniture permission
+     */
     flag_furniture_permission?: boolean;
+    /**
+     * Flag indicating if the user has furniture room permission
+     */
     flag_furniture_room?: boolean;
+    /**
+     * Flag indicating if the user has investment permission
+     */
     flag_investment_room?: boolean;
+    /**
+     * Flag indicating if the user has investment structural measures permission
+     */
     flag_investment_structural_measures?: boolean;
+    /**
+     * Flag indicating if the user has media permission
+     */
     flag_media_permission?: boolean;
 }
 

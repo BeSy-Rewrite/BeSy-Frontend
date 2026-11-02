@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -9,7 +9,7 @@
  */
 
 
-export interface Sort { 
+export interface SortObject { 
     empty?: boolean;
     sorted?: boolean;
     unsorted?: boolean;

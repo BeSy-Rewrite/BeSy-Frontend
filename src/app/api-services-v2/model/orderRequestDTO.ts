@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -10,7 +10,7 @@
 
 
 export interface OrderRequestDTO { 
-    primary_cost_center_id?: number;
+    primary_cost_center_id?: string;
     booking_year?: string;
     legacy_alias?: string;
     owner_id?: number;
@@ -27,7 +27,7 @@ export interface OrderRequestDTO {
     queries_person_id?: number;
     customer_id?: string;
     supplier_id?: number;
-    secondary_cost_center_id?: number;
+    secondary_cost_center_id?: string;
     fixed_discount?: number;
     percentage_discount?: number;
     cashback_percentage?: number;

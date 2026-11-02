@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -39,7 +39,7 @@ import { OrderStatus } from '../model/orderStatus';
 // @ts-ignore
 import { OrderStatusHistoryResponseDTO } from '../model/orderStatusHistoryResponseDTO';
 // @ts-ignore
-import { PagedOrderResponseDTO } from '../model/pagedOrderResponseDTO';
+import { PageOrderResponseDTO } from '../model/pageOrderResponseDTO';
 // @ts-ignore
 import { QuotationRequestDTO } from '../model/quotationRequestDTO';
 // @ts-ignore
@@ -55,83 +55,15 @@ import { BaseService } from '../api.base.service';
 @Injectable({
   providedIn: 'root'
 })
-export class OrdersService extends BaseService {
+export class OrderControllerService extends BaseService {
 
     constructor(protected httpClient: HttpClient, @Optional() @Inject(BASE_PATH) basePath: string|string[], @Optional() configuration?: Configuration) {
         super(basePath, configuration);
     }
 
     /**
-     * @endpoint post /orders/{order-id}/invoices
-     * @param orderId ID der Bestellung
-     * @param invoiceRequestDTO 
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public createInvoice(orderId: number, invoiceRequestDTO: InvoiceRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<InvoiceResponseDTO>;
-    public createInvoice(orderId: number, invoiceRequestDTO: InvoiceRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<InvoiceResponseDTO>>;
-    public createInvoice(orderId: number, invoiceRequestDTO: InvoiceRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<InvoiceResponseDTO>>;
-    public createInvoice(orderId: number, invoiceRequestDTO: InvoiceRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (orderId === null || orderId === undefined) {
-            throw new Error('Required parameter orderId was null or undefined when calling createInvoice.');
-        }
-        if (invoiceRequestDTO === null || invoiceRequestDTO === undefined) {
-            throw new Error('Required parameter invoiceRequestDTO was null or undefined when calling createInvoice.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/json'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        // to determine the Content-Type header
-        const consumes: string[] = [
-            'application/json'
-        ];
-        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
-        if (httpContentTypeSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
-        }
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/invoices`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<InvoiceResponseDTO>('post', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                body: invoiceRequestDTO,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * Erstellt eine neue Bestellung und setzt den Bestellstatus (&#x60;status&#x60;) auf \&quot;In Bearbeitung\&quot; (&#x60;IN_PROGRESS&#x60;). Nur in diesem Bestellstatus ist das Bearbeiten einer Bestellung möglich. 
-     * @endpoint post /orders
+     * Erstellt eine neue Bestellung und setzt den Bestellstatus (&#x60;status&#x60;) auf \&quot;In Bearbeitung\&quot; (&#x60;IN_PROGRESS&#x60;). Nur in diesem Bestellstatus ist das Bearbeiten einer Bestellung möglich.
+     * @endpoint post /api/v2/orders
      * @param orderRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -178,7 +110,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders`;
+        let localVarPath = `/api/v2/orders`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<OrderResponseDTO>('post', `${basePath}${localVarPath}`,
             {
@@ -195,22 +127,22 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * Erstellt neue Artikel einer Bestellung. 
-     * @endpoint post /orders/{order-id}/items
-     * @param orderId Die eindeutige ID der Bestellung, für welche neue Artikel angelegt werden sollen.
-     * @param itemRequestDTO 
+     * Erstellt eine Rechnung für die angegebene Bestellung.
+     * @endpoint post /api/v2/orders/{order-id}/invoices
+     * @param orderId ID der Bestellung
+     * @param invoiceRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<ItemResponseDTO>>;
-    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<ItemResponseDTO>>>;
-    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<ItemResponseDTO>>>;
-    public createOrderItems(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public createOrderInvoice(orderId: number, invoiceRequestDTO: InvoiceRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<InvoiceResponseDTO>;
+    public createOrderInvoice(orderId: number, invoiceRequestDTO: InvoiceRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<InvoiceResponseDTO>>;
+    public createOrderInvoice(orderId: number, invoiceRequestDTO: InvoiceRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<InvoiceResponseDTO>>;
+    public createOrderInvoice(orderId: number, invoiceRequestDTO: InvoiceRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (orderId === null || orderId === undefined) {
-            throw new Error('Required parameter orderId was null or undefined when calling createOrderItems.');
+            throw new Error('Required parameter orderId was null or undefined when calling createOrderInvoice.');
         }
-        if (itemRequestDTO === null || itemRequestDTO === undefined) {
-            throw new Error('Required parameter itemRequestDTO was null or undefined when calling createOrderItems.');
+        if (invoiceRequestDTO === null || invoiceRequestDTO === undefined) {
+            throw new Error('Required parameter invoiceRequestDTO was null or undefined when calling createOrderInvoice.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -247,7 +179,76 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/items`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/invoices`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<InvoiceResponseDTO>('post', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: invoiceRequestDTO,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Erstellt neue Artikel einer Bestellung.
+     * @endpoint post /api/v2/orders/{order-id}/items
+     * @param orderId Die eindeutige ID der Bestellung, für welche neue Artikel angelegt werden sollen.
+     * @param itemRequestDTO 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public createOrderItem(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<ItemResponseDTO>>;
+    public createOrderItem(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<ItemResponseDTO>>>;
+    public createOrderItem(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<ItemResponseDTO>>>;
+    public createOrderItem(orderId: number, itemRequestDTO: Array<ItemRequestDTO>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (orderId === null || orderId === undefined) {
+            throw new Error('Required parameter orderId was null or undefined when calling createOrderItem.');
+        }
+        if (itemRequestDTO === null || itemRequestDTO === undefined) {
+            throw new Error('Required parameter itemRequestDTO was null or undefined when calling createOrderItem.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/items`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<ItemResponseDTO>>('post', `${basePath}${localVarPath}`,
             {
@@ -264,22 +265,22 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * Erstellt neue Vergleichsangebote einer Bestellung. 
-     * @endpoint post /orders/{order-id}/quotations
+     * Erstellt neue Vergleichsangebote einer Bestellung.
+     * @endpoint post /api/v2/orders/{order-id}/quotations
      * @param orderId Die eindeutige ID der Bestellung, für welche neue Vergleichsangebote angelegt werden sollen.
      * @param quotationRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<QuotationResponseDTO>>;
-    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<QuotationResponseDTO>>>;
-    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<QuotationResponseDTO>>>;
-    public createOrderQuotations(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public createOrderQuotation(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<QuotationResponseDTO>>;
+    public createOrderQuotation(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<QuotationResponseDTO>>>;
+    public createOrderQuotation(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<QuotationResponseDTO>>>;
+    public createOrderQuotation(orderId: number, quotationRequestDTO: Array<QuotationRequestDTO>, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (orderId === null || orderId === undefined) {
-            throw new Error('Required parameter orderId was null or undefined when calling createOrderQuotations.');
+            throw new Error('Required parameter orderId was null or undefined when calling createOrderQuotation.');
         }
         if (quotationRequestDTO === null || quotationRequestDTO === undefined) {
-            throw new Error('Required parameter quotationRequestDTO was null or undefined when calling createOrderQuotations.');
+            throw new Error('Required parameter quotationRequestDTO was null or undefined when calling createOrderQuotation.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -316,7 +317,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/quotations`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/quotations`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<QuotationResponseDTO>>('post', `${basePath}${localVarPath}`,
             {
@@ -333,74 +334,16 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * Löscht einen Artikel einer bestehenden Bestellung (&#x60;order-id&#x60;) anhand der &#x60;item-id&#x60; (Hard Delete). 
-     * @endpoint delete /orders/{order-id}/items/{item-id}
-     * @param orderId ID der Bestellung, deren Artikel gelöscht werden soll.
-     * @param itemId ID des Artikels, der gelöscht werden soll.
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public deleteItemOfOrder(orderId: number, itemId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public deleteItemOfOrder(orderId: number, itemId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public deleteItemOfOrder(orderId: number, itemId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
-    public deleteItemOfOrder(orderId: number, itemId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (orderId === null || orderId === undefined) {
-            throw new Error('Required parameter orderId was null or undefined when calling deleteItemOfOrder.');
-        }
-        if (itemId === null || itemId === undefined) {
-            throw new Error('Required parameter itemId was null or undefined when calling deleteItemOfOrder.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/items/${this.configuration.encodeParam({name: "itemId", value: itemId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * Löscht eine bestehende Bestellung anhand der &#x60;order-id&#x60; (Soft Delete). Setzt den Bestelltatus (&#x60;order_status&#x60;) auf gelöscht (&#x60;DELETED&#x60;). 
-     * @endpoint delete /orders/{order-id}
+     * Löscht eine bestehende Bestellung anhand der &#x60;order-id&#x60; (Soft Delete). Setzt den Bestellstatus (&#x60;order_status&#x60;) auf gelöscht (&#x60;DELETED&#x60;).
+     * @endpoint delete /api/v2/orders/{order-id}
      * @param orderId ID der zu löschenden Bestellung.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public deleteOrder(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public deleteOrder(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public deleteOrder(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
-    public deleteOrder(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public deleteOrder(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public deleteOrder(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public deleteOrder(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public deleteOrder(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (orderId === null || orderId === undefined) {
             throw new Error('Required parameter orderId was null or undefined when calling deleteOrder.');
         }
@@ -408,118 +351,6 @@ export class OrdersService extends BaseService {
         let localVarHeaders = this.defaultHeaders;
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * Löscht ein Vergleichsangebot einer bestehenden Bestellung (&#x60;order-id&#x60;) anhand der &#x60;quotation-id&#x60; (Hard Delete). 
-     * @endpoint delete /orders/{order-id}/quotations/{quotation-id}
-     * @param orderId ID der Bestellung, deren Vergleichsartikel gelöscht werden soll.
-     * @param quotationId ID des Vergleichsartikel, der gelöscht werden soll.
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public deleteQuotationOfOrder(orderId: number, quotationId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public deleteQuotationOfOrder(orderId: number, quotationId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public deleteQuotationOfOrder(orderId: number, quotationId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
-    public deleteQuotationOfOrder(orderId: number, quotationId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: undefined, context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (orderId === null || orderId === undefined) {
-            throw new Error('Required parameter orderId was null or undefined when calling deleteQuotationOfOrder.');
-        }
-        if (quotationId === null || quotationId === undefined) {
-            throw new Error('Required parameter quotationId was null or undefined when calling deleteQuotationOfOrder.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/quotations/${this.configuration.encodeParam({name: "quotationId", value: quotationId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: <any>responseType_,
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * @endpoint get /orders/{order-id}/export
-     * @param orderId Die eindeutige ID der Bestellung, für die das Bestellformular als PDF exportiert wird.
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public exportOrderToFormula(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/pdf' | 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
-    public exportOrderToFormula(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/pdf' | 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
-    public exportOrderToFormula(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/pdf' | 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
-    public exportOrderToFormula(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/pdf' | 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (orderId === null || orderId === undefined) {
-            throw new Error('Required parameter orderId was null or undefined when calling exportOrderToFormula.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/pdf',
             'application/json'
         ]);
         if (localVarHttpHeaderAcceptSelected !== undefined) {
@@ -542,9 +373,9 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/export`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<any>('get', `${basePath}${localVarPath}`,
+        return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,
@@ -558,22 +389,186 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * @endpoint get /orders
-     * @param page Seitenzahl für die Paginierung (beginnend bei 0).
-     * @param size Anzahl der Elemente pro Seite.
-     * @param sort Sortierung der Ergebnisse. Mehrfache Sortierfelder möglich, z. B. &#x60;sort&#x3D;bookingYear,desc&amp;sort&#x3D;id,asc&#x60; sortiert zuerst nach &#x60;bookingYear&#x60; (absteigend), dann nach &#x60;id&#x60; (aufsteigend). 
+     * Löscht einen Artikel einer bestehenden Bestellung (&#x60;order-id&#x60;) anhand der &#x60;item-id&#x60; (Hard Delete).
+     * @endpoint delete /api/v2/orders/{order-id}/items/{item-id}
+     * @param orderId ID der Bestellung, deren Artikel gelöscht werden soll.
+     * @param itemId ID des Artikels, der gelöscht werden soll.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public deleteOrderItem(orderId: number, itemId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public deleteOrderItem(orderId: number, itemId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public deleteOrderItem(orderId: number, itemId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public deleteOrderItem(orderId: number, itemId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (orderId === null || orderId === undefined) {
+            throw new Error('Required parameter orderId was null or undefined when calling deleteOrderItem.');
+        }
+        if (itemId === null || itemId === undefined) {
+            throw new Error('Required parameter itemId was null or undefined when calling deleteOrderItem.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/items/${this.configuration.encodeParam({name: "itemId", value: itemId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Löscht ein Vergleichsangebot einer bestehenden Bestellung (&#x60;order-id&#x60;) anhand der &#x60;quotation-id&#x60; (Hard Delete).
+     * @endpoint delete /api/v2/orders/{order-id}/quotations/{quotation-id}
+     * @param orderId ID der Bestellung, deren Vergleichsartikel gelöscht werden soll.
+     * @param quotationId ID des Vergleichsartikels, der gelöscht werden soll.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public deleteOrderQuotation(orderId: number, quotationId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any>;
+    public deleteOrderQuotation(orderId: number, quotationId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<any>>;
+    public deleteOrderQuotation(orderId: number, quotationId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<any>>;
+    public deleteOrderQuotation(orderId: number, quotationId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (orderId === null || orderId === undefined) {
+            throw new Error('Required parameter orderId was null or undefined when calling deleteOrderQuotation.');
+        }
+        if (quotationId === null || quotationId === undefined) {
+            throw new Error('Required parameter quotationId was null or undefined when calling deleteOrderQuotation.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/quotations/${this.configuration.encodeParam({name: "quotationId", value: quotationId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<any>('delete', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Exportiert das Bestellformular der angegebenen Bestellung als PDF.
+     * @endpoint get /api/v2/orders/{order-id}/export
+     * @param orderId Die eindeutige ID der Bestellung, für die das Bestellformular als PDF exportiert wird.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public exportOrder(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<Blob>;
+    public exportOrder(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Blob>>;
+    public exportOrder(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Blob>>;
+    public exportOrder(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (orderId === null || orderId === undefined) {
+            throw new Error('Required parameter orderId was null or undefined when calling exportOrder.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/pdf'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/export`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: "blob",
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Gibt Bestellungen paginiert zurück und ermöglicht die Filterung nach Kostenstellen, Personen, Status, Preisen, Lieferanten, Zeitpunkten und Suchbegriffen.
+     * @endpoint get /api/v2/orders
+     * @param page 
+     * @param size 
+     * @param sort Sortierung der Ergebnisse. Standardmäßig nach Erstellungsdatum absteigend sortiert. Unterstützt mehrfache Sortierungen. Erster Parameter ist die Hauptsortierung, der letzte die niedrigste Sortierung. Anders ausgedrückt: Die Sortierungen werden von rechts nach links angewendet.
      * @param primaryCostCenters Filtert nach IDs der primären Kostenstellen.
-     * @param bookingYears Filtert nach den letzten zwei Ziffern der Jahreszahl der Buchung. Achtung, diese muss ein String sein, z.B. \&quot;25\&quot;.
+     * @param bookingYears Filtert nach den letzten zwei Ziffern der Jahreszahl der Buchung. Diese muss ein String sein, z. B. \&quot;25\&quot;.
      * @param createdAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt erstellt wurden.
      * @param createdBefore Filtert nach Bestellungen, welche vor oder zu diesem Zeitpunkt erstellt wurden.
      * @param ownerIds Filtert nach IDs der Ersteller der Bestellung.
-     * @param statuses Filtert nach dem Bestellstatus. Beinhaltet default-mäßig alle Bestellstatus.
+     * @param statuses Filtert nach dem Bestellstatus. Beinhaltet defaultmäßig alle Bestellstatus.
      * @param quotePriceMin Filtert nach quotePriceMin.
      * @param quotePriceMax Filtert nach quotePriceMax.
      * @param deliveryPersonIds Filtert nach IDs der Besteller.
-     * @param invoicePersonIds Filtert nach IDs invoicePersonIds.
-     * @param queriesPersonIds Filtert nach IDs queriesPersonIds.
-     * @param customerIds Filter nach Kundennummern.
+     * @param invoicePersonIds Filtert nach IDs der Rechnungsempfänger.
+     * @param queriesPersonIds Filtert nach IDs der anfragenden Personen.
+     * @param customerIds Filtert nach Kundennummern.
      * @param supplierIds Filtert nach IDs der Lieferanten.
      * @param secondaryCostCenters Filtert nach IDs der sekundären Kostenstellen.
      * @param lastUpdatedTimeAfter Filtert nach Bestellungen, welche nach oder zu diesem Zeitpunkt bearbeitet wurden.
@@ -584,9 +579,9 @@ export class OrdersService extends BaseService {
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, searchTerm?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PagedOrderResponseDTO>;
-    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, searchTerm?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PagedOrderResponseDTO>>;
-    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, searchTerm?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PagedOrderResponseDTO>>;
+    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, searchTerm?: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<PageOrderResponseDTO>;
+    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, searchTerm?: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<PageOrderResponseDTO>>;
+    public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, searchTerm?: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<PageOrderResponseDTO>>;
     public getAllOrders(page?: number, size?: number, sort?: Array<string>, primaryCostCenters?: Array<string>, bookingYears?: Array<string>, createdAfter?: string, createdBefore?: string, ownerIds?: Array<number>, statuses?: Array<OrderStatus>, quotePriceMin?: number, quotePriceMax?: number, deliveryPersonIds?: Array<number>, invoicePersonIds?: Array<number>, queriesPersonIds?: Array<number>, customerIds?: Array<string>, supplierIds?: Array<number>, secondaryCostCenters?: Array<string>, lastUpdatedTimeAfter?: string, lastUpdatedTimeBefore?: string, autoIndexGTE?: number, autoIndexLTE?: number, searchTerm?: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarQueryParameters = new HttpParams({encoder: this.encoder});
@@ -704,9 +699,9 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders`;
+        let localVarPath = `/api/v2/orders`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<PagedOrderResponseDTO>('get', `${basePath}${localVarPath}`,
+        return this.httpClient.request<PageOrderResponseDTO>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 params: localVarQueryParameters,
@@ -721,68 +716,25 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * Gibt das vollständige PDF-Dokument zur angegebenen Rechnung zurück.
-     * @endpoint get /orders/invoice/{invoice-id}/document
-     * @param invoiceId ID der Rechnung, für die das PDF heruntergeladen wird.
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getInvoiceDocument(invoiceId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<Blob>;
-    public getInvoiceDocument(invoiceId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Blob>>;
-    public getInvoiceDocument(invoiceId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Blob>>;
-    public getInvoiceDocument(invoiceId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (invoiceId === null || invoiceId === undefined) {
-            throw new Error('Required parameter invoiceId was null or undefined when calling getInvoiceDocument.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/pdf'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let localVarPath = `/orders/invoice/${this.configuration.encodeParam({name: "invoiceId", value: invoiceId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/document`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request('get', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: "blob",
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
      * Gibt eine Vorschau des PDF-Dokuments als IMG-Datei zur angegebenen Rechnung zurück.
-     * @endpoint get /orders/invoice/{invoice-id}/document/preview
+     * @endpoint get /api/v2/orders/invoice/{invoice-id}/document/preview
      * @param invoiceId ID der Rechnung, für die die PDF-Vorschau abgerufen wird.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getInvoiceDocumentPreview(invoiceId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<Blob>;
-    public getInvoiceDocumentPreview(invoiceId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Blob>>;
-    public getInvoiceDocumentPreview(invoiceId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Blob>>;
-    public getInvoiceDocumentPreview(invoiceId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getInvoicePdfPreview(invoiceId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'image/png', context?: HttpContext, transferCache?: boolean}): Observable<Blob>;
+    public getInvoicePdfPreview(invoiceId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'image/png', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Blob>>;
+    public getInvoicePdfPreview(invoiceId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'image/png', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Blob>>;
+    public getInvoicePdfPreview(invoiceId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'image/png', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (invoiceId === null || invoiceId === undefined) {
-            throw new Error('Required parameter invoiceId was null or undefined when calling getInvoiceDocumentPreview.');
+            throw new Error('Required parameter invoiceId was null or undefined when calling getInvoicePdfPreview.');
         }
 
         let localVarHeaders = this.defaultHeaders;
 
         const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/pdf'
+            'application/json',
+            'image/png'
         ]);
         if (localVarHttpHeaderAcceptSelected !== undefined) {
             localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
@@ -793,66 +745,12 @@ export class OrdersService extends BaseService {
         const localVarTransferCache: boolean = options?.transferCache ?? true;
 
 
-        let localVarPath = `/orders/invoice/${this.configuration.encodeParam({name: "invoiceId", value: invoiceId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/document/preview`;
+        let localVarPath = `/api/v2/orders/invoice/${this.configuration.encodeParam({name: "invoiceId", value: invoiceId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/document/preview`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: "blob",
-                ...(withCredentials ? { withCredentials } : {}),
-                headers: localVarHeaders,
-                observe: observe,
-                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
-                reportProgress: reportProgress
-            }
-        );
-    }
-
-    /**
-     * @endpoint get /orders/{order-id}/invoices
-     * @param orderId ID der Bestellung
-     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
-     * @param reportProgress flag to report request and response progress.
-     */
-    public getInvoicesOfOrder(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<InvoiceResponseDTO>>;
-    public getInvoicesOfOrder(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<InvoiceResponseDTO>>>;
-    public getInvoicesOfOrder(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<InvoiceResponseDTO>>>;
-    public getInvoicesOfOrder(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
-        if (orderId === null || orderId === undefined) {
-            throw new Error('Required parameter orderId was null or undefined when calling getInvoicesOfOrder.');
-        }
-
-        let localVarHeaders = this.defaultHeaders;
-
-        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
-            'application/json'
-        ]);
-        if (localVarHttpHeaderAcceptSelected !== undefined) {
-            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
-        }
-
-        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
-
-        const localVarTransferCache: boolean = options?.transferCache ?? true;
-
-
-        let responseType_: 'text' | 'json' | 'blob' = 'json';
-        if (localVarHttpHeaderAcceptSelected) {
-            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
-                responseType_ = 'text';
-            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
-                responseType_ = 'json';
-            } else {
-                responseType_ = 'blob';
-            }
-        }
-
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/invoices`;
-        const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<Array<InvoiceResponseDTO>>('get', `${basePath}${localVarPath}`,
-            {
-                context: localVarHttpContext,
-                responseType: <any>responseType_,
                 ...(withCredentials ? { withCredentials } : {}),
                 headers: localVarHeaders,
                 observe: observe,
@@ -864,8 +762,8 @@ export class OrdersService extends BaseService {
 
     /**
      * Gibt die Zustimmungen für die angegebene Bestellung zurück.
-     * @endpoint get /orders/{order-id}/approvals
-     * @param orderId ID der Bestellung, deren Zustimmungen abgerufen wird.
+     * @endpoint get /api/v2/orders/{order-id}/approvals
+     * @param orderId ID der Bestellung, deren Zustimmungen abgerufen werden.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
@@ -902,7 +800,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/approvals`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/approvals`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<ApprovalResponseDTO>('get', `${basePath}${localVarPath}`,
             {
@@ -918,7 +816,8 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * @endpoint get /orders/{order-id}
+     * Gibt eine Bestellung anhand ihrer eindeutigen ID zurück.
+     * @endpoint get /api/v2/orders/{order-id}
      * @param orderId Die eindeutige ID der Bestellung, die abgerufen werden soll.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -956,7 +855,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<OrderResponseDTO>('get', `${basePath}${localVarPath}`,
             {
@@ -972,7 +871,63 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * @endpoint get /orders/{order-id}/items
+     * Gibt die Rechnungen der angegebenen Bestellung zurück.
+     * @endpoint get /api/v2/orders/{order-id}/invoices
+     * @param orderId ID der Bestellung
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getOrderInvoices(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<InvoiceResponseDTO>>;
+    public getOrderInvoices(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<InvoiceResponseDTO>>>;
+    public getOrderInvoices(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<InvoiceResponseDTO>>>;
+    public getOrderInvoices(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (orderId === null || orderId === undefined) {
+            throw new Error('Required parameter orderId was null or undefined when calling getOrderInvoices.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/invoices`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<Array<InvoiceResponseDTO>>('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Gibt die Artikel der angegebenen Bestellung zurück.
+     * @endpoint get /api/v2/orders/{order-id}/items
      * @param orderId Die eindeutige ID der Bestellung, für welche die Artikel abgerufen werden sollen.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1010,7 +965,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/items`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/items`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<ItemResponseDTO>>('get', `${basePath}${localVarPath}`,
             {
@@ -1026,7 +981,8 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * @endpoint get /orders/{order-id}/quotations
+     * Gibt die Vergleichsangebote der angegebenen Bestellung zurück.
+     * @endpoint get /api/v2/orders/{order-id}/quotations
      * @param orderId Die eindeutige ID der Bestellung, für welche die Vergleichsangebote abgerufen werden sollen.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1064,7 +1020,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/quotations`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/quotations`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<QuotationResponseDTO>>('get', `${basePath}${localVarPath}`,
             {
@@ -1081,17 +1037,17 @@ export class OrdersService extends BaseService {
 
     /**
      * Gibt eine Liste des Verlaufes des Bestellstatus einer Bestellung zurück.
-     * @endpoint get /orders/{order-id}/status/history
+     * @endpoint get /api/v2/orders/{order-id}/status/history
      * @param orderId ID der Bestellung, deren Bestellstatus-Historie abgerufen werden soll.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getOrderStatusHistory(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<OrderStatusHistoryResponseDTO>>;
-    public getOrderStatusHistory(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<OrderStatusHistoryResponseDTO>>>;
-    public getOrderStatusHistory(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<OrderStatusHistoryResponseDTO>>>;
-    public getOrderStatusHistory(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getOrderStateHistory(orderId: number, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<Array<OrderStatusHistoryResponseDTO>>;
+    public getOrderStateHistory(orderId: number, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Array<OrderStatusHistoryResponseDTO>>>;
+    public getOrderStateHistory(orderId: number, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Array<OrderStatusHistoryResponseDTO>>>;
+    public getOrderStateHistory(orderId: number, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (orderId === null || orderId === undefined) {
-            throw new Error('Required parameter orderId was null or undefined when calling getOrderStatusHistory.');
+            throw new Error('Required parameter orderId was null or undefined when calling getOrderStateHistory.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -1119,7 +1075,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/status/history`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/status/history`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<Array<OrderStatusHistoryResponseDTO>>('get', `${basePath}${localVarPath}`,
             {
@@ -1136,14 +1092,14 @@ export class OrdersService extends BaseService {
 
     /**
      * Gibt eine Map zurück, die jedem OrderStatus die erlaubten nächsten OrderStatus-Werte zuordnet.
-     * @endpoint get /orders/statuses
+     * @endpoint get /api/v2/orders/statuses
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public getOrderStatusTransitions(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<{ [key: string]: Array<OrderStatus>; }>;
-    public getOrderStatusTransitions(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<{ [key: string]: Array<OrderStatus>; }>>;
-    public getOrderStatusTransitions(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<{ [key: string]: Array<OrderStatus>; }>>;
-    public getOrderStatusTransitions(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public getOrderStates(observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<{ [key: string]: Set<OrderStatus>; }>;
+    public getOrderStates(observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<{ [key: string]: Set<OrderStatus>; }>>;
+    public getOrderStates(observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<{ [key: string]: Set<OrderStatus>; }>>;
+    public getOrderStates(observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
 
         let localVarHeaders = this.defaultHeaders;
 
@@ -1170,9 +1126,9 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/statuses`;
+        let localVarPath = `/api/v2/orders/statuses`;
         const { basePath, withCredentials } = this.configuration;
-        return this.httpClient.request<{ [key: string]: Array<OrderStatus>; }>('get', `${basePath}${localVarPath}`,
+        return this.httpClient.request<{ [key: string]: Set<OrderStatus>; }>('get', `${basePath}${localVarPath}`,
             {
                 context: localVarHttpContext,
                 responseType: <any>responseType_,
@@ -1186,8 +1142,53 @@ export class OrdersService extends BaseService {
     }
 
     /**
+     * Gibt das vollständige PDF-Dokument zur angegebenen Rechnung zurück.
+     * @endpoint get /api/v2/orders/invoice/{invoice-id}/document
+     * @param invoiceId ID der Rechnung, für die das PDF heruntergeladen wird.
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public getPdfOfInvoice(invoiceId: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<Blob>;
+    public getPdfOfInvoice(invoiceId: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<Blob>>;
+    public getPdfOfInvoice(invoiceId: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json' | 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<Blob>>;
+    public getPdfOfInvoice(invoiceId: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json' | 'application/pdf', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (invoiceId === null || invoiceId === undefined) {
+            throw new Error('Required parameter invoiceId was null or undefined when calling getPdfOfInvoice.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json',
+            'application/pdf'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        let localVarPath = `/api/v2/orders/invoice/${this.configuration.encodeParam({name: "invoiceId", value: invoiceId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/document`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request('get', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                responseType: "blob",
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
      * Aktualisiert eine Bestellung. Nur nicht-leere Felder im Request-Body werden übernommen. Nur möglich, wenn sich die Bestellung im Bestellstatus (&#x60;status&#x60;) \&quot;In Bearbeitung\&quot; (&#x60;IN_PROGRESS&#x60;) befindet.
-     * @endpoint patch /orders/{order-id}
+     * @endpoint patch /api/v2/orders/{order-id}
      * @param orderId Die eindeutige ID der Bestellung, die verändert werden soll.
      * @param orderRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
@@ -1238,7 +1239,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<OrderResponseDTO>('patch', `${basePath}${localVarPath}`,
             {
@@ -1256,8 +1257,8 @@ export class OrdersService extends BaseService {
 
     /**
      * Aktualisiert Felder der Zustimmungen für die angegebene Bestellung. Nur nicht-leere Felder im Request-Body werden übernommen.
-     * @endpoint patch /orders/{order-id}/approvals
-     * @param orderId ID der Bestellung, deren Zustimmungen aktualisiert wird.
+     * @endpoint patch /api/v2/orders/{order-id}/approvals
+     * @param orderId ID der Bestellung, deren Zustimmungen aktualisiert werden.
      * @param approvalRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
@@ -1307,7 +1308,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/approvals`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/approvals`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<ApprovalResponseDTO>('patch', `${basePath}${localVarPath}`,
             {
@@ -1324,22 +1325,26 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * Aktualisiert den Bestellstatus (&#x60;status&#x60;) mit der angegebenen &#x60;order-id&#x60;. Wirft einen Fehler, wenn der neue Status &#x60;DELETED&#x60; ist — bitte stattdessen den DELETE-Endpunkt verwenden. 
-     * @endpoint put /orders/{order-id}/status
-     * @param orderId ID der Bestellung, deren Bestellstatus aktualisiert wird.
-     * @param body 
+     * Aktualisiert einen Artikel einer bestehenden Bestellung.
+     * @endpoint patch /api/v2/orders/{order-id}/items/{item-id}
+     * @param orderId ID der Bestellung, deren Artikel aktualisiert werden soll.
+     * @param itemId ID des zu aktualisierenden Artikels.
+     * @param itemRequestDTO 
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public updateOrderStatus(orderId: number, body: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<OrderStatus>;
-    public updateOrderStatus(orderId: number, body: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<OrderStatus>>;
-    public updateOrderStatus(orderId: number, body: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<OrderStatus>>;
-    public updateOrderStatus(orderId: number, body: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public updateOrderItem(orderId: number, itemId: number, itemRequestDTO: ItemRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<ItemResponseDTO>;
+    public updateOrderItem(orderId: number, itemId: number, itemRequestDTO: ItemRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<ItemResponseDTO>>;
+    public updateOrderItem(orderId: number, itemId: number, itemRequestDTO: ItemRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<ItemResponseDTO>>;
+    public updateOrderItem(orderId: number, itemId: number, itemRequestDTO: ItemRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (orderId === null || orderId === undefined) {
-            throw new Error('Required parameter orderId was null or undefined when calling updateOrderStatus.');
+            throw new Error('Required parameter orderId was null or undefined when calling updateOrderItem.');
         }
-        if (body === null || body === undefined) {
-            throw new Error('Required parameter body was null or undefined when calling updateOrderStatus.');
+        if (itemId === null || itemId === undefined) {
+            throw new Error('Required parameter itemId was null or undefined when calling updateOrderItem.');
+        }
+        if (itemRequestDTO === null || itemRequestDTO === undefined) {
+            throw new Error('Required parameter itemRequestDTO was null or undefined when calling updateOrderItem.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -1376,7 +1381,149 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: undefined})}/status`;
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/items/${this.configuration.encodeParam({name: "itemId", value: itemId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<ItemResponseDTO>('patch', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: itemRequestDTO,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Aktualisiert ein vorhandenes Vergleichsangebot einer bestehenden Bestellung.
+     * @endpoint patch /api/v2/orders/{order-id}/quotations/{quotation-id}
+     * @param orderId ID der Bestellung, deren Angebot aktualisiert werden soll.
+     * @param quotationId ID des zu aktualisierenden Angebots.
+     * @param quotationRequestDTO 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public updateOrderQuotation(orderId: number, quotationId: number, quotationRequestDTO: QuotationRequestDTO, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<QuotationResponseDTO>;
+    public updateOrderQuotation(orderId: number, quotationId: number, quotationRequestDTO: QuotationRequestDTO, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<QuotationResponseDTO>>;
+    public updateOrderQuotation(orderId: number, quotationId: number, quotationRequestDTO: QuotationRequestDTO, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<QuotationResponseDTO>>;
+    public updateOrderQuotation(orderId: number, quotationId: number, quotationRequestDTO: QuotationRequestDTO, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (orderId === null || orderId === undefined) {
+            throw new Error('Required parameter orderId was null or undefined when calling updateOrderQuotation.');
+        }
+        if (quotationId === null || quotationId === undefined) {
+            throw new Error('Required parameter quotationId was null or undefined when calling updateOrderQuotation.');
+        }
+        if (quotationRequestDTO === null || quotationRequestDTO === undefined) {
+            throw new Error('Required parameter quotationRequestDTO was null or undefined when calling updateOrderQuotation.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/quotations/${this.configuration.encodeParam({name: "quotationId", value: quotationId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int32"})}`;
+        const { basePath, withCredentials } = this.configuration;
+        return this.httpClient.request<QuotationResponseDTO>('patch', `${basePath}${localVarPath}`,
+            {
+                context: localVarHttpContext,
+                body: quotationRequestDTO,
+                responseType: <any>responseType_,
+                ...(withCredentials ? { withCredentials } : {}),
+                headers: localVarHeaders,
+                observe: observe,
+                ...(localVarTransferCache !== undefined ? { transferCache: localVarTransferCache } : {}),
+                reportProgress: reportProgress
+            }
+        );
+    }
+
+    /**
+     * Aktualisiert den Bestellstatus (&#x60;status&#x60;) mit der angegebenen &#x60;order-id&#x60;. Wirft einen Fehler, wenn der neue Status &#x60;DELETED&#x60; ist – bitte stattdessen den DELETE-Endpunkt verwenden.
+     * @endpoint put /api/v2/orders/{order-id}/status
+     * @param orderId ID der Bestellung, deren Bestellstatus aktualisiert wird.
+     * @param body 
+     * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
+     * @param reportProgress flag to report request and response progress.
+     */
+    public updateOrderState(orderId: number, body: string, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<OrderStatus>;
+    public updateOrderState(orderId: number, body: string, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<OrderStatus>>;
+    public updateOrderState(orderId: number, body: string, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<OrderStatus>>;
+    public updateOrderState(orderId: number, body: string, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+        if (orderId === null || orderId === undefined) {
+            throw new Error('Required parameter orderId was null or undefined when calling updateOrderState.');
+        }
+        if (body === null || body === undefined) {
+            throw new Error('Required parameter body was null or undefined when calling updateOrderState.');
+        }
+
+        let localVarHeaders = this.defaultHeaders;
+
+        const localVarHttpHeaderAcceptSelected: string | undefined = options?.httpHeaderAccept ?? this.configuration.selectHeaderAccept([
+            'application/json'
+        ]);
+        if (localVarHttpHeaderAcceptSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Accept', localVarHttpHeaderAcceptSelected);
+        }
+
+        const localVarHttpContext: HttpContext = options?.context ?? new HttpContext();
+
+        const localVarTransferCache: boolean = options?.transferCache ?? true;
+
+
+        // to determine the Content-Type header
+        const consumes: string[] = [
+            'application/json'
+        ];
+        const httpContentTypeSelected: string | undefined = this.configuration.selectHeaderContentType(consumes);
+        if (httpContentTypeSelected !== undefined) {
+            localVarHeaders = localVarHeaders.set('Content-Type', httpContentTypeSelected);
+        }
+
+        let responseType_: 'text' | 'json' | 'blob' = 'json';
+        if (localVarHttpHeaderAcceptSelected) {
+            if (localVarHttpHeaderAcceptSelected.startsWith('text')) {
+                responseType_ = 'text';
+            } else if (this.configuration.isJsonMime(localVarHttpHeaderAcceptSelected)) {
+                responseType_ = 'json';
+            } else {
+                responseType_ = 'blob';
+            }
+        }
+
+        let localVarPath = `/api/v2/orders/${this.configuration.encodeParam({name: "orderId", value: orderId, in: "path", style: "simple", explode: false, dataType: "number", dataFormat: "int64"})}/status`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<OrderStatus>('put', `${basePath}${localVarPath}`,
             {
@@ -1393,19 +1540,22 @@ export class OrdersService extends BaseService {
     }
 
     /**
-     * Lädt eine PDF-Datei hoch und verknüpft sie nach der Verarbeitung mit der angegebenen Rechnung. Jede Rechnung kann ausschließlich mit einem PDF-Dokument verküpft werden. 
-     * @endpoint post /orders/invoice/{invoice-id}/document
+     * Lädt eine PDF-Datei hoch und verknüpft sie nach der Verarbeitung mit der angegebenen Rechnung. Jede Rechnung kann ausschließlich mit einem PDF-Dokument verknüpft werden.
+     * @endpoint post /api/v2/orders/invoice/{invoice-id}/document
      * @param invoiceId Die ID der Rechnung, mit der das Dokument verknüpft werden soll
-     * @param file Die hochzuladende PDF-Datei
+     * @param file Die hochzuladende PDF-Datei.
      * @param observe set whether or not to return the data Observable as the body, response or events. defaults to returning the body.
      * @param reportProgress flag to report request and response progress.
      */
-    public uploadInvoiceDocument(invoiceId: string, file?: Blob, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<InvoiceResponseDTO>;
-    public uploadInvoiceDocument(invoiceId: string, file?: Blob, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<InvoiceResponseDTO>>;
-    public uploadInvoiceDocument(invoiceId: string, file?: Blob, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<InvoiceResponseDTO>>;
-    public uploadInvoiceDocument(invoiceId: string, file?: Blob, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
+    public uploadOrderInvoicePdf(invoiceId: string, file: Blob, observe?: 'body', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<InvoiceResponseDTO>;
+    public uploadOrderInvoicePdf(invoiceId: string, file: Blob, observe?: 'response', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpResponse<InvoiceResponseDTO>>;
+    public uploadOrderInvoicePdf(invoiceId: string, file: Blob, observe?: 'events', reportProgress?: boolean, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<HttpEvent<InvoiceResponseDTO>>;
+    public uploadOrderInvoicePdf(invoiceId: string, file: Blob, observe: any = 'body', reportProgress: boolean = false, options?: {httpHeaderAccept?: 'application/json', context?: HttpContext, transferCache?: boolean}): Observable<any> {
         if (invoiceId === null || invoiceId === undefined) {
-            throw new Error('Required parameter invoiceId was null or undefined when calling uploadInvoiceDocument.');
+            throw new Error('Required parameter invoiceId was null or undefined when calling uploadOrderInvoicePdf.');
+        }
+        if (file === null || file === undefined) {
+            throw new Error('Required parameter file was null or undefined when calling uploadOrderInvoicePdf.');
         }
 
         let localVarHeaders = this.defaultHeaders;
@@ -1455,7 +1605,7 @@ export class OrdersService extends BaseService {
             }
         }
 
-        let localVarPath = `/orders/invoice/${this.configuration.encodeParam({name: "invoiceId", value: invoiceId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/document`;
+        let localVarPath = `/api/v2/orders/invoice/${this.configuration.encodeParam({name: "invoiceId", value: invoiceId, in: "path", style: "simple", explode: false, dataType: "string", dataFormat: undefined})}/document`;
         const { basePath, withCredentials } = this.configuration;
         return this.httpClient.request<InvoiceResponseDTO>('post', `${basePath}${localVarPath}`,
             {

@@ -1,5 +1,5 @@
 /**
- * Bestellsystem API
+ * BeSy API
  *
  * 
  *
@@ -24,7 +24,8 @@ export interface PersonResponseDTO {
 export namespace PersonResponseDTO {
     export const GenderEnum = {
         M: 'm',
-        F: 'f'
+        F: 'f',
+        D: 'd'
     } as const;
     export type GenderEnum = typeof GenderEnum[keyof typeof GenderEnum];
 }
