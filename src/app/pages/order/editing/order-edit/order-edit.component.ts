@@ -1,15 +1,21 @@
 import { AfterViewInit, Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
+import { MatDialog } from '@angular/material/dialog';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTabsModule } from '@angular/material/tabs';
 import { RouterModule } from '@angular/router';
+import { ConfirmDialogComponent } from '../../../../components/confirm-dialog/confirm-dialog.component';
 import { OrderDocumentsComponent } from '../../../../components/documents/order-documents/order-documents.component';
 import { StateDisplayComponent } from '../../../../components/state-display/state-display.component';
 import { DisplayableOrder } from '../../../../models/displayable-order';
 import { EditingFormattedOrder } from '../editing-formatted-order';
+import { ItemsTabSaveStrategy } from '../saving/strategies/items-tab-save-strategy';
+import { TAB_SAVE_STRATEGY, TabSaveStrategy } from '../saving/tab-save-strategy';
 import { OrderEditGeneralComponent } from '../tabs/order-edit-general/order-edit-general.component';
+import { OrderEditItemsComponent } from '../tabs/order-edit-items/order-edit-items/order-edit-items.component';
+import { OrderItemsStateService } from '../tabs/order-edit-items/order-items-state.service';
 import { ORDER_EDITING_TABS, OrderEditTabIdentifier } from '../tabs/order-edit-tab.config';
 
 @Component({
@@ -23,6 +29,11 @@ import { ORDER_EDITING_TABS, OrderEditTabIdentifier } from '../tabs/order-edit-t
     StateDisplayComponent,
     OrderEditGeneralComponent,
     OrderDocumentsComponent,
+    OrderEditItemsComponent,
+  ],
+  providers: [
+    OrderItemsStateService,
+    { provide: TAB_SAVE_STRATEGY, useClass: ItemsTabSaveStrategy, multi: true },
   ],
   templateUrl: './order-edit.component.html',
   styleUrl: './order-edit.component.scss',
@@ -31,7 +42,9 @@ export class OrderEditComponent implements OnInit, AfterViewInit {
   protected readonly tabIdentifiers = OrderEditTabIdentifier;
   protected readonly tabs = ORDER_EDITING_TABS;
 
+  private readonly strategies = inject(TAB_SAVE_STRATEGY) as TabSaveStrategy[]; // multi -> Array
   private readonly formBuilder = inject(FormBuilder);
+  private readonly dialog = inject(MatDialog);
 
   protected readonly order = input.required<DisplayableOrder>();
   /**
@@ -76,25 +89,62 @@ export class OrderEditComponent implements OnInit, AfterViewInit {
     }
   }
 
-  protected saveTab(): void {
-    const tabIdentifier = this.selectedTabIdentifier();
-    console.log(`Saving tab: ${tabIdentifier}`);
-    const tabFormGroup = this.formGroup.get(tabIdentifier) as FormGroup;
-    if (!tabFormGroup) {
-      console.error(`Form group for tab ${tabIdentifier} not found.`);
+  protected saveTab(identifier: OrderEditTabIdentifier = this.selectedTabIdentifier()): void {
+    const strategy = this.strategies.find(s => s.tabIdentifier === identifier);
+    if (!strategy) {
+      console.error(`Keine Save-Strategy für Tab "${identifier}" registriert.`);
       return;
     }
-    console.log('Tab form values:', tabFormGroup.value);
-    console.log('Tab form validity:', tabFormGroup.valid);
-    console.log('Tab form errors:', tabFormGroup.errors);
+
+    const tabFormGroup = this.formGroup.get(identifier) as FormGroup;
+    strategy.save(tabFormGroup, this.formattedOrder()).subscribe({
+      next: patch => this.applyOrderPatch(patch),
+      error: err => console.error(`Speichern von Tab "${identifier}" fehlgeschlagen:`, err),
+    });
+    tabFormGroup.markAsPristine();
   }
 
   protected saveAll(): void {
-    console.log('Saving all forms...');
-    console.log(this.formGroup.value);
-    console.log('Form validity:', this.formGroup.valid);
-    console.log('Form errors:', this.formGroup.errors);
-    console.log(this.formGroup.pristine);
+    // Hinweis: Für echte Atomarität ggf. concatMap/forkJoin statt sequenziellem Aufruf verwenden.
+    for (const tab of this.tabs) {
+      this.saveTab(tab.identifier);
+    }
+    this.formGroup.markAsPristine();
+  }
+
+  private applyOrderPatch(patch: Partial<EditingFormattedOrder>): void {
+    if (Object.keys(patch).length === 0) return;
+    // z. B. formattedOrder-Signal neu befüllen / betroffene Felder in den Form-Groups patchen
+  }
+
+  protected revertTab(identifier: OrderEditTabIdentifier = this.selectedTabIdentifier()): void {
+    const strategy = this.strategies.find(s => s.tabIdentifier === identifier);
+    if (!strategy) {
+      console.error(`Keine Revert-Strategy für Tab "${identifier}" registriert.`);
+      return;
+    }
+
+    strategy.revert();
+  }
+
+  protected revertAll(): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Alle Änderungen zurücksetzen',
+        message:
+          'Möchten Sie wirklich alle Änderungen zurücksetzen? Alle ungespeicherten Änderungen gehen verloren.',
+        confirmButtonText: 'Zurücksetzen',
+        cancelButtonText: 'Abbrechen',
+      },
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result === true) {
+        for (const tab of this.tabs) {
+          this.revertTab(tab.identifier);
+        }
+      }
+    });
   }
 
   protected startTour(): void {
