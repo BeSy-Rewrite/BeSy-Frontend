@@ -1,10 +1,10 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { lastValueFrom, map, Observable, of, tap } from 'rxjs';
 import {
   CustomerIdRequestDTO,
+  SupplierControllerService,
   SupplierRequestDTO,
   SupplierResponseDTO,
-  SuppliersService,
 } from '../../api-services-v2';
 import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
 import { formatSupplier } from '../../utils/formatting';
@@ -22,7 +22,7 @@ export class SuppliersWrapperService {
   private cacheTimestamp: number = 0;
   private readonly CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
 
-  constructor(private readonly suppliersService: SuppliersService) {}
+  private readonly suppliersService = inject(SupplierControllerService);
 
   private isCacheValid(): boolean {
     return (
@@ -91,7 +91,7 @@ export class SuppliersWrapperService {
   async updateSupplier(id: number, supplier: SupplierRequestDTO) {
     try {
       const updatedSupplier = await lastValueFrom(
-        this.suppliersService.updateSupplierById(id, supplier)
+        this.suppliersService.updateSupplier(id, supplier)
       );
       this.supplierCache = undefined; // Invalidate cache
       this.cacheTimestamp = 0; // Reset cache timestamp
@@ -108,9 +108,7 @@ export class SuppliersWrapperService {
    * @throws ApiError
    */
   async getCustomerIdsBySupplierId(supplierId: number) {
-    const customerIds = await lastValueFrom(
-      this.suppliersService.getCustomerIdsOfOrder(supplierId)
-    );
+    const customerIds = await lastValueFrom(this.suppliersService.getAllCustomerIds(supplierId));
     return customerIds;
   }
 
@@ -121,7 +119,7 @@ export class SuppliersWrapperService {
    * @returns A promise that resolves to the created customer ID data.
    */
   async createSupplierCustomerId(supplierId: number, customerId: CustomerIdRequestDTO) {
-    return lastValueFrom(this.suppliersService.createSupplierCustomerId(supplierId, customerId));
+    return lastValueFrom(this.suppliersService.createCustomerId(supplierId, customerId));
   }
 
   /**
@@ -130,7 +128,7 @@ export class SuppliersWrapperService {
    * @returns A promise that resolves to the supplier's address data.
    */
   async getSupplierAddress(id: number) {
-    return lastValueFrom(this.suppliersService.getSupplierAddress(id));
+    return lastValueFrom(this.suppliersService.getAddressOfSupplier(id));
   }
 
   getAllSuppliersFormattedForAutocomplete(): Observable<AutocompleteOption<SupplierResponseDTO>[]> {

@@ -1,6 +1,10 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { lastValueFrom, map, Observable } from 'rxjs';
-import { PersonRequestDTO, PersonResponseDTO, PersonsService } from '../../api-services-v2';
+import {
+  PersonControllerService,
+  PersonRequestDTO,
+  PersonResponseDTO,
+} from '../../api-services-v2';
 import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
 import { formatPerson } from '../../utils/formatting';
 
@@ -18,7 +22,7 @@ export interface FormattedPerson {
   providedIn: 'root',
 })
 export class PersonsWrapperService {
-  constructor(private readonly personsService: PersonsService) {}
+  private readonly personsService = inject(PersonControllerService);
 
   async getAllPersons() {
     return lastValueFrom(this.personsService.getAllPersons());
@@ -32,7 +36,7 @@ export class PersonsWrapperService {
     return lastValueFrom(this.personsService.createPerson(person));
   }
   async updatePerson(id: number, person: PersonRequestDTO) {
-    return lastValueFrom(this.personsService.updatePersonById(id, person));
+    return lastValueFrom(this.personsService.updatePerson(id, person));
   }
 
   /**
@@ -80,16 +84,16 @@ export class PersonsWrapperService {
     };
   }
 
-  async getAllPersonsAddresses() {
-    return lastValueFrom(this.personsService.getAllPersonAddresses());
+  getAllPersonsAddresses() {
+    return this.personsService.getAddresses();
   }
 
   async getPersonAddressById(id: number) {
-    return lastValueFrom(this.personsService.getPersonAddress(id));
+    return lastValueFrom(this.personsService.getAddressOfPerson(id));
   }
 
   async createPersonAddress(address: any) {
-    return lastValueFrom(this.personsService.createPersonAddress(address));
+    return lastValueFrom(this.personsService.createAddress(address));
   }
 
   async getPersonByIdFormattedForAutocomplete(id: number): Promise<FormattedPerson | undefined> {
@@ -105,7 +109,7 @@ export class PersonsWrapperService {
   getAddress(addressId: number) {
     return lastValueFrom(
       this.personsService
-        .getAllPersonAddresses()
+        .getAddresses()
         .pipe(map(addresses => addresses.find(addr => addr.id === addressId)))
     );
   }

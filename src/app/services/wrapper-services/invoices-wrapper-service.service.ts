@@ -1,11 +1,11 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { from, map, mergeMap, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import {
   InvoiceRequestDTO,
   InvoiceResponseDTO,
+  OrderControllerService,
   OrderResponseDTO,
-  OrdersService,
 } from '../../api-services-v2';
 import { DocumentDTO } from '../../models/document-invoice';
 import { OrdersWrapperService } from './orders/orders-wrapper.service';
@@ -14,14 +14,12 @@ import { OrdersWrapperService } from './orders/orders-wrapper.service';
   providedIn: 'root',
 })
 export class InvoicesWrapperServiceService {
-  constructor(
-    private readonly ordersService: OrdersService,
-    private readonly ordersWrapperService: OrdersWrapperService
-  ) {}
+  private readonly ordersService = inject(OrderControllerService);
+  private readonly ordersWrapperService = inject(OrdersWrapperService);
 
   getDocumentsByOrderId(orderId: number) {
     return this.ordersService
-      .getInvoicesOfOrder(orderId)
+      .getOrderInvoices(orderId)
       .pipe(
         map(invoices =>
           invoices.filter(
@@ -36,7 +34,7 @@ export class InvoicesWrapperServiceService {
 
   getLegacyInvoicesByOrderId(orderId: number) {
     return this.ordersService
-      .getInvoicesOfOrder(orderId)
+      .getOrderInvoices(orderId)
       .pipe(
         map(invoices =>
           invoices.filter(
@@ -51,22 +49,22 @@ export class InvoicesWrapperServiceService {
   }
 
   getAllDocumentsByOrderId(orderId: number) {
-    return this.ordersService.getInvoicesOfOrder(orderId);
+    return this.ordersService.getOrderInvoices(orderId);
   }
 
   downloadDocument(documentId: string) {
-    return this.ordersService.getInvoiceDocument(documentId);
+    return this.ordersService.getPdfOfInvoice(documentId);
   }
 
   getDocumentPreview(documentId: string) {
-    return this.ordersService.getInvoiceDocumentPreview(documentId);
+    return this.ordersService.getInvoicePdfPreview(documentId);
   }
 
   createInvoiceForOrder(
     orderId: number,
     invoice: InvoiceRequestDTO
   ): Observable<InvoiceResponseDTO> {
-    return this.ordersService.createInvoice(orderId, invoice);
+    return this.ordersService.createOrderInvoice(orderId, invoice);
   }
 
   createDocumentForOrder(orderId: number, document: DocumentDTO): Observable<InvoiceResponseDTO> {
@@ -78,7 +76,7 @@ export class InvoicesWrapperServiceService {
   }
 
   uploadInvoiceFile(invoiceId: string, file: File): Observable<InvoiceResponseDTO> {
-    return this.ordersService.uploadInvoiceDocument(invoiceId, file);
+    return this.ordersService.uploadOrderInvoicePdf(invoiceId, file);
   }
 
   createInvoiceDTOFromDocumentDTO(

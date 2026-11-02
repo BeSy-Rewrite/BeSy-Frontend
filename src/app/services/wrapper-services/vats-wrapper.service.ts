@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { from, lastValueFrom, map, Observable } from 'rxjs';
-import { VatResponseDTO, VatsService } from '../../api-services-v2';
+import { VatControllerService, VatResponseDTO } from '../../api-services-v2';
 import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
 import { formatVat } from '../../utils/formatting';
 
@@ -8,7 +8,7 @@ import { formatVat } from '../../utils/formatting';
   providedIn: 'root',
 })
 export class VatWrapperService {
-  constructor(private readonly vatsService: VatsService) {}
+  constructor(private readonly vatsService: VatControllerService) {}
 
   private cachedVats: VatResponseDTO[] | null = null;
   private cacheTimestamp: number | null = null;

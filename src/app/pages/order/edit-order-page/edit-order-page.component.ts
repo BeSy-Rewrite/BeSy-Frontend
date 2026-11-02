@@ -865,7 +865,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
     }
 
     if (!this.personAddresses) {
-      this.personsWrapperService.getAllPersonsWithFullName().subscribe(addresses => {
+      this.personsWrapperService.getAllPersonsAddresses().subscribe(addresses => {
         this.personAddresses = addresses;
       });
     }
@@ -933,7 +933,7 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
    */
   async onAddressOptionChanged(option: string, isRecipient: boolean) {
     if (!this.personAddresses) {
-      this.personsWrapperService.getAllPersonsWithFullName().subscribe(addresses => {
+      this.personsWrapperService.getAllPersonsAddresses().subscribe(addresses => {
         this.personAddresses = addresses;
       });
     }
@@ -1553,7 +1553,9 @@ export class EditOrderPageComponent implements OnInit, HasUnsavedChanges, OnDest
   private async patchAddressFormsWithOrderData() {
     // Load all addresses of any person into the address table for selection
     if (this.personAddresses.length === 0) {
-      this.personAddresses = await this.personsWrapperService.getAllPersonsAddresses();
+      this.personAddresses = await lastValueFrom(
+        this.personsWrapperService.getAllPersonsAddresses()
+      );
       this.addressTableDataSource.data = this.personAddresses;
     }
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { catchError, forkJoin, map, mergeMap, Observable, of, switchMap } from 'rxjs';
 import { UserPreferencesRequestDTO } from '../api-services-v2';
@@ -22,10 +22,8 @@ export const ORDER_PRESETS = 'ORDER_PRESETS';
 export class UserPreferencesService {
   private readonly labelPreferenceIdMap: Map<string, number> = new Map<string, number>();
 
-  constructor(
-    private readonly usersWrapper: UsersWrapperService,
-    private readonly _snackBar: MatSnackBar
-  ) {}
+  private readonly usersWrapper = inject(UsersWrapperService);
+  private readonly _snackBar = inject(MatSnackBar);
 
   /**
    * Combines default presets (resolved with the current user) and saved presets.
@@ -70,7 +68,10 @@ export class UserPreferencesService {
     return this.usersWrapper.getCurrentUserPreferences(ORDER_PRESETS).pipe(
       map(preferences =>
         preferences.map(preference => {
-          if (preference.preferences['label']) {
+          if (
+            'label' in preference.preferences &&
+            typeof preference.preferences['label'] === 'string'
+          ) {
             this.labelPreferenceIdMap.set(preference.preferences['label'], preference.id);
           }
           return this.parseAndCheckPreset({
@@ -248,7 +249,7 @@ export class UserPreferencesService {
    */
   private replaceCurrentUserInPresets(
     filterPresets: OrdersFilterPreset[],
-    userId: string
+    userId: number
   ): OrdersFilterPreset[] {
     return filterPresets.map(preset => ({
       ...preset,
@@ -264,7 +265,7 @@ export class UserPreferencesService {
    * @param userId The ID of the current user.
    * @returns The modified filter preset.
    */
-  private replaceCurrentUserInAppliedFilter(filter: FilterPresetType, userId: string): any {
+  private replaceCurrentUserInAppliedFilter(filter: FilterPresetType, userId: number): any {
     if (!('chipIds' in filter)) {
       return filter;
     }

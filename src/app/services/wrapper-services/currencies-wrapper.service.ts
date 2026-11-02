@@ -1,6 +1,6 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { from, lastValueFrom, map, Observable } from 'rxjs';
-import { CurrenciesService, CurrencyResponseDTO } from '../../api-services-v2';
+import { CurrencyControllerService, CurrencyResponseDTO } from '../../api-services-v2';
 import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
 import { formatCurrency, getCurrencySymbol } from '../../utils/formatting';
 
@@ -18,7 +18,7 @@ export interface FormattedCurrency {
   providedIn: 'root',
 })
 export class CurrenciesWrapperService {
-  constructor(private readonly currenciesService: CurrenciesService) {}
+  private readonly currenciesService = inject(CurrencyControllerService);
   private static readonly CACHE_KEY = 'currencies_cache';
   private static readonly CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 

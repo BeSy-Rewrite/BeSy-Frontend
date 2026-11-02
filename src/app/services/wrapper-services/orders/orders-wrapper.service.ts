@@ -15,12 +15,12 @@ import {
   ApprovalResponseDTO,
   ItemRequestDTO,
   ItemResponseDTO,
+  OrderControllerService,
   OrderRequestDTO,
   OrderResponseDTO,
-  OrdersService,
   OrderStatus,
   OrderStatusHistoryResponseDTO,
-  PagedOrderResponseDTO,
+  PageOrderResponseDTO,
   QuotationRequestDTO,
   QuotationResponseDTO,
 } from '../../../api-services-v2';
@@ -90,7 +90,7 @@ export interface OrderResponseDTOFormatted {
 export class OrdersWrapperService {
   ordersChanged = new Subject<void>();
 
-  private readonly ordersService = inject(OrdersService);
+  private readonly ordersService = inject(OrderControllerService);
   private readonly costCenterWrapperService = inject(CostCenterWrapperService);
   private readonly personsWrapperService = inject(PersonsWrapperService);
   private readonly currenciesWrapperService = inject(CurrenciesWrapperService);
@@ -144,7 +144,7 @@ export class OrdersWrapperService {
     sort: Array<string> = [],
     filters?: FilterRequestParams,
     searchTerm?: string
-  ): Promise<PagedOrderResponseDTO> {
+  ): Promise<PageOrderResponseDTO> {
     return await lastValueFrom(
       this.ordersService.getAllOrders(
         page,
@@ -178,9 +178,7 @@ export class OrdersWrapperService {
     return await lastValueFrom(
       this.usersWrapperService.getCurrentUser().pipe(
         mergeMap(user => {
-          if (user.id == undefined) throw new Error('Current user ID is undefined');
-          request.owner_id = Number.parseInt(user.id);
-          console.log('Creating order with owner_id:', request);
+          request.owner_id = user.id;
           return this.ordersService.createOrder(request).pipe(tap(() => this.onOrdersChanged()));
         })
       )
@@ -232,12 +230,15 @@ export class OrdersWrapperService {
     return await lastValueFrom(this.ordersService.getOrderItems(id));
   }
 
-  async createOrderItems(orderId: number, requestBody: any): Promise<any> {
-    return await lastValueFrom(this.ordersService.createOrderItems(orderId, requestBody));
+  async createOrderItems(
+    orderId: number,
+    requestBody: ItemRequestDTO[]
+  ): Promise<ItemResponseDTO[]> {
+    return await lastValueFrom(this.ordersService.createOrderItem(orderId, requestBody));
   }
 
   async deleteItemOfOrder(orderId: number, itemId: number): Promise<void> {
-    return await lastValueFrom(this.ordersService.deleteItemOfOrder(orderId, itemId));
+    return await lastValueFrom(this.ordersService.deleteOrderItem(orderId, itemId));
   }
 
   async getOrderQuotations(orderId: number): Promise<QuotationResponseDTO[]>;
@@ -249,11 +250,11 @@ export class OrdersWrapperService {
   }
 
   async createOrderQuotations(orderId: number, requestBody: any): Promise<any> {
-    return await lastValueFrom(this.ordersService.createOrderQuotations(orderId, requestBody));
+    return await lastValueFrom(this.ordersService.createOrderQuotation(orderId, requestBody));
   }
 
   async deleteQuotationOfOrder(orderId: number, quotationId: number): Promise<void> {
-    return await lastValueFrom(this.ordersService.deleteQuotationOfOrder(orderId, quotationId));
+    return await lastValueFrom(this.ordersService.deleteOrderQuotation(orderId, quotationId));
   }
 
   exportOrderToDocument(orderId: string): Observable<Blob> {
@@ -277,7 +278,7 @@ export class OrdersWrapperService {
      * The backend will only return generic 500 errors if the accept header is set to only application/pdf.
      */
     return this.ordersService
-      .exportOrderToFormula(Number.parseInt(orderId), 'response', false, {
+      .exportOrder(Number.parseInt(orderId), 'response', false, {
         httpHeaderAccept: 'application/pdf, application/json' as 'application/pdf',
       })
       .pipe(
@@ -314,13 +315,13 @@ export class OrdersWrapperService {
   }
 
   async getOrderStatusHistory(orderId: number): Promise<OrderStatusHistoryResponseDTO[]> {
-    return await lastValueFrom(this.ordersService.getOrderStatusHistory(orderId));
+    return await lastValueFrom(this.ordersService.getOrderStateHistory(orderId));
   }
 
   // JSON.stringify needed as angular http client otherwise sends plain text instead of application/json
   async updateOrderState(orderId: number, newState: OrderStatus): Promise<OrderStatus> {
     return await lastValueFrom(
-      this.ordersService.updateOrderStatus(orderId, JSON.stringify(newState)).pipe(
+      this.ordersService.updateOrderState(orderId, JSON.stringify(newState)).pipe(
         tap(async updatedState => {
           this.onOrdersChanged();
           if (updatedState === OrderStatus.SENT)
@@ -454,7 +455,7 @@ export class OrdersWrapperService {
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
       comment: item.comment,
-      vat_value: item.vat_value,
+      vat_value: item.vat_value.toString(),
       preferred_list: item.preferred_list,
       preferred_list_number: item.preferred_list_number,
       vat_type: item.vat_type,
@@ -473,7 +474,7 @@ export class OrdersWrapperService {
       quantity_unit: item.quantity_unit,
       article_id: item.article_id,
       comment: item.comment,
-      vat_value: vatValue,
+      vat_value: Number.parseFloat(vatValue),
       // preferred_list is optional in both models; cast to match generated enum type
       preferred_list: item.preferred_list as ItemRequestDTO.PreferredListEnum | undefined,
       preferred_list_number: item.preferred_list_number,

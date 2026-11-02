@@ -1,14 +1,13 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { map, Observable, of, tap } from 'rxjs';
-import { OrdersService, OrderStatus } from '../../api-services-v2';
+import { OrderControllerService, OrderStatus } from '../../api-services-v2';
 import { AllowedStateTransitions } from '../../models/allowed-states-transitions';
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class StateWrapperService {
-  constructor(private readonly ordersService: OrdersService) { }
+  private readonly ordersService = inject(OrderControllerService);
 
   private stateTransitions: AllowedStateTransitions | undefined = undefined;
   private longestStateSequence: OrderStatus[] | undefined = undefined;
@@ -23,9 +22,9 @@ export class StateWrapperService {
     if (this.stateTransitions) {
       return of(this.stateTransitions);
     }
-    return this.ordersService.getOrderStatusTransitions().pipe(
+    return this.ordersService.getOrderStates().pipe(
       map(statuses => statuses as AllowedStateTransitions),
-      tap(transitions => this.stateTransitions = transitions)
+      tap(transitions => (this.stateTransitions = transitions))
     );
   }
 
@@ -39,7 +38,7 @@ export class StateWrapperService {
     }
     return this.getAllowedStateTransitions().pipe(
       map(() => this.determineNextStateInLongestSequence()[0] ?? [this.initialState]),
-      tap(sequence => this.longestStateSequence = sequence)
+      tap(sequence => (this.longestStateSequence = sequence))
     );
   }
 
@@ -83,13 +82,17 @@ export class StateWrapperService {
    * @param states Current sequence of states.
    * @returns The longest sequence of states including the next valid state.
    */
-  private determineNextStateInLongestSequence(states: OrderStatus[] = [this.initialState]): OrderStatus[][] {
+  private determineNextStateInLongestSequence(
+    states: OrderStatus[] = [this.initialState]
+  ): OrderStatus[][] {
     const lastState = states.at(-1);
     if (!lastState) {
       return [states];
     }
 
-    const possibleNextStates = this.stateTransitions?.[lastState]?.filter((nextState) => !states.includes(nextState));
+    const possibleNextStates = this.stateTransitions?.[lastState]?.filter(
+      nextState => !states.includes(nextState)
+    );
     if (!possibleNextStates || possibleNextStates.length === 0) {
       return [states];
     }

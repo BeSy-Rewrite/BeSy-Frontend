@@ -39,7 +39,7 @@ describe('OrderAddressesComponent', () => {
       secondary_cost_center_id: '',
       fixed_discount: '',
       percentage_discount: '',
-      cash_discount: '',
+      cashback_percentage: '',
       cashback_days: '',
       last_updated_time: '',
       flag_decision_cheapest_offer: '',

@@ -218,7 +218,7 @@ export class OrderSubresourceResolverService {
     data.secondary_cost_center_id = '';
     data.fixed_discount = order.fixed_discount?.toString() ?? '';
     data.percentage_discount = order.percentage_discount?.toString() ?? '';
-    data.cash_discount = order.cash_discount?.toString() ?? '';
+    data.cashback_percentage = order.cashback_percentage?.toString() ?? '';
     data.cashback_days = order.cashback_days?.toString() ?? '';
     data.last_updated_time = formatDate(order.last_updated_time);
     data.flag_decision_cheapest_offer = order.flag_decision_cheapest_offer ? 'Ja' : 'Nein';

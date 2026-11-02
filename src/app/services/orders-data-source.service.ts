@@ -5,7 +5,7 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort, Sort } from '@angular/material/sort';
 import { BehaviorSubject, debounceTime, forkJoin, Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { OrderResponseDTO, OrderStatus, PagedOrderResponseDTO } from '../api-services-v2';
+import { OrderResponseDTO, OrderStatus, PageOrderResponseDTO } from '../api-services-v2';
 import { DataSourceSorting } from '../models/datasource-sorting';
 import { ActiveFilters } from '../models/filter/filter-menu-types';
 import { FilterRange } from '../models/filter/filter-range';
@@ -307,7 +307,7 @@ export class OrdersDataSourceService extends DataSource<OrderDisplayData> {
         this.getFilterRequestParams(),
         this._searchTerm ?? ''
       )
-      .subscribe((page: PagedOrderResponseDTO) => {
+      .subscribe((page: PageOrderResponseDTO) => {
         this.data = page.content ?? [];
 
         if (this._paginator) {

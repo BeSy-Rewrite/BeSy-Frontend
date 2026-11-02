@@ -13,7 +13,7 @@ import {
   throwError,
 } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { OrderStatusHistoryResponseDTO } from '../api-services-v2';
+import { OrderResponseDTO, OrderStatusHistoryResponseDTO } from '../api-services-v2';
 import { FilterRequestParams } from '../models/filter/filter-request-params';
 import { CachedOrdersService } from './cached-orders.service';
 import { MailTrackingService } from './mail-tracking.service';
@@ -84,6 +84,19 @@ export interface UserWrap {
   previousWrapId?: string;
 }
 
+interface OrderData {
+  resolvedOrder: { besy_number: any };
+  items: any[];
+  order: {
+    quote_price: any;
+    last_updated_time: any;
+    content_description: any;
+    id: number;
+  };
+  history: OrderStatusHistoryResponseDTO[];
+  mailsSent: any;
+}
+
 @Injectable({ providedIn: 'root' })
 export class UserWrapService {
   private readonly historySubject = new BehaviorSubject<UserWrap[]>([]);
@@ -92,14 +105,14 @@ export class UserWrapService {
   private sampleOrders: OrderSnapshot[] | undefined;
   private engagementSamples: TrackingData[] | undefined;
 
-  constructor(
-    private readonly ordersService: OrdersWrapperService,
-    private readonly cachedOrdersService: CachedOrdersService,
-    private readonly subResourceResolver: OrderSubresourceResolverService,
-    private readonly userService: UsersWrapperService,
-    private readonly trackingService: TrackingService,
-    private readonly mailTrackingService: MailTrackingService
-  ) {
+  private readonly ordersService = inject(OrdersWrapperService);
+  private readonly cachedOrdersService = inject(CachedOrdersService);
+  private readonly subResourceResolver = inject(OrderSubresourceResolverService);
+  private readonly userService = inject(UsersWrapperService);
+  private readonly trackingService = inject(TrackingService);
+  private readonly mailTrackingService = inject(MailTrackingService);
+
+  constructor() {
     this.loadHistory().subscribe(wraps => {
       this.historySubject.next(wraps);
     });
@@ -110,16 +123,14 @@ export class UserWrapService {
 
     return this.userService.getCurrentUser().pipe(
       switchMap(user =>
-        from(
-          this.cachedOrdersService.getAllOrders(0, 1000, ['lastUpdatedTime,desc'], {
-            ownerIds: [Number.parseInt(user.id!) ?? 0],
-            lastUpdatedTimeAfter: this.getRange('year').start.toISOString(),
-          } as FilterRequestParams)
-        )
+        this.cachedOrdersService.getAllOrders(0, 1000, ['lastUpdatedTime,desc'], {
+          ownerIds: [user.id],
+          lastUpdatedTimeAfter: this.getRange('year').start.toISOString(),
+        } as FilterRequestParams)
       ),
       map(
         response =>
-          response.content?.map(order =>
+          response.content?.map((order: OrderResponseDTO) =>
             forkJoin({
               order: of(order),
               resolvedOrder: from(this.subResourceResolver.resolveOrderSubresources(order)),
@@ -130,14 +141,27 @@ export class UserWrapService {
           ) ?? []
       ),
       switchMap(orderDetailsObservables => {
-        return forkJoin(orderDetailsObservables);
+        return forkJoin(orderDetailsObservables as Observable<OrderData>[]);
       }),
       map(orderDetailsArray =>
         orderDetailsArray.map(
-          orderData =>
+          (orderData: {
+            resolvedOrder: { besy_number: any };
+            items: any[];
+            order: {
+              quote_price: any;
+              last_updated_time: any;
+              content_description: any;
+              id: number;
+            };
+            history: OrderStatusHistoryResponseDTO[];
+            mailsSent: any;
+          }) =>
             ({
               id: orderData.resolvedOrder.besy_number,
-              itemCount: orderData.items.map(item => item.quantity ?? 0).reduce((a, b) => a + b, 0),
+              itemCount: orderData.items
+                .map((item: { quantity: any }) => item.quantity ?? 0)
+                .reduce((a: any, b: any) => a + b, 0),
               totalPrice: orderData.order.quote_price ?? 0,
               processDurationDays: this.calculateProcessDurationDays(orderData.history),
               placedAt: orderData.order.last_updated_time,
@@ -163,7 +187,7 @@ export class UserWrapService {
     return Math.round(
       (new Date(history.at(-1)!.timestamp!).getTime() -
         new Date(history.at(0)!.timestamp!).getTime()) /
-      (1000 * 60 * 60 * 24)
+        (1000 * 60 * 60 * 24)
     ); // days
   }
 
@@ -472,7 +496,8 @@ export class UserWrapService {
         this.engagementSamples = samples;
       }),
       catchError(() => {
-        console.error('Failed to load tracking data for wrap metrics'); return of([] as TrackingData[]);
+        console.error('Failed to load tracking data for wrap metrics');
+        return of([] as TrackingData[]);
       })
     );
   }

@@ -1,9 +1,9 @@
 import { inject, Injectable } from '@angular/core';
 import { lastValueFrom, map, Observable, of, tap } from 'rxjs';
 import {
+  CostCenterControllerService,
   CostCenterRequestDTO,
   CostCenterResponseDTO,
-  CostCentersService,
 } from '../../api-services-v2';
 import { AutocompleteOption } from '../../form-config-patching/autocomplete-option';
 import { formatCostCenter } from '../../utils/formatting';
@@ -11,7 +11,7 @@ import { convertToISODateString } from '../../utils/time-conversion.utils';
 
 export interface CostCenterFormatted {
   label: string;
-  value: number;
+  value: string;
 }
 
 @Injectable({
@@ -22,7 +22,7 @@ export class CostCenterWrapperService {
   private cacheTimestamp: number | null = null;
   private readonly CACHE_DURATION_MS = 60 * 1000; // 1 minute
 
-  private readonly costCentersService = inject(CostCentersService);
+  private readonly costCentersService = inject(CostCenterControllerService);
 
   getAllCostCenters(): Observable<CostCenterResponseDTO[]> {
     const now = Date.now();
@@ -37,7 +37,7 @@ export class CostCenterWrapperService {
     }
 
     // Otherwise, fetch new data
-    return this.costCentersService.getCostCenters().pipe(
+    return this.costCentersService.getAllCostCenters().pipe(
       // Update cache
       tap(costCenters => {
         this.cachedCostCenters = costCenters;
@@ -46,7 +46,7 @@ export class CostCenterWrapperService {
     );
   }
 
-  getCostCenterById(id: number): Observable<CostCenterResponseDTO> {
+  getCostCenterById(id: string): Observable<CostCenterResponseDTO> {
     return this.getAllCostCenters().pipe(
       map(costCenters => {
         const costCenter = costCenters.find(costCenter => costCenter.id === id);
@@ -99,7 +99,7 @@ export class CostCenterWrapperService {
    * @returns formatted cost center or null if not found
    */
   getCostCenterByIdFormattedForAutocomplete(
-    id: number
+    id: string
   ): Observable<CostCenterFormatted | undefined> {
     return this.getAllCostCenters().pipe(
       map(costCenters => {

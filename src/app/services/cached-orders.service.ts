@@ -1,12 +1,12 @@
 import { Injectable } from '@angular/core';
 import { from, of, tap } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { PagedOrderResponseDTO } from '../api-services-v2';
+import { PageOrderResponseDTO } from '../api-services-v2';
 import { FilterRequestParams } from '../models/filter/filter-request-params';
 import { OrdersWrapperService } from './wrapper-services/orders/orders-wrapper.service';
 
 type CacheEntry = {
-  response: PagedOrderResponseDTO;
+  response: PageOrderResponseDTO;
   createdAt: Date;
 };
 
@@ -84,7 +84,7 @@ export class CachedOrdersService {
     searchTerm: string = ''
   ) {
     return from(this.ordersService.getAllOrders(page, size, sort, filters, searchTerm)).pipe(
-      tap((pageResponse: PagedOrderResponseDTO) => {
+      tap((pageResponse: PageOrderResponseDTO) => {
         if (
           pageResponse.total_elements !== undefined &&
           this.totalElements !== pageResponse.total_elements
