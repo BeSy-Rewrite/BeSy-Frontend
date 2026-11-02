@@ -1,5 +1,5 @@
-import { FormConfig } from '../../components/form-component/form-component.component';
 import { Validators } from '@angular/forms';
+import { FormConfig } from '../../components/form-component/form-component.component';
 
 export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
   title: 'Neuen Artikel hinzufügen',
@@ -9,6 +9,12 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
       label: 'Artikelbezeichnung',
       type: 'text',
       required: true,
+    },
+    {
+      name: 'article_id',
+      label: 'Artikelnummer',
+      type: 'text',
+      required: false,
     },
     {
       name: 'price_per_unit',
@@ -27,7 +33,8 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
         { label: 'Brutto', value: 'brutto' },
       ],
       defaultValue: 'brutto',
-      tooltip: 'Geben Sie an, ob der Stückpreis als Netto- oder Bruttopreis verstanden werden soll.',
+      tooltip:
+        'Geben Sie an, ob der Stückpreis als Netto- oder Bruttopreis verstanden werden soll.',
     },
     {
       name: 'quantity',
@@ -43,10 +50,8 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
       type: 'select',
       required: true,
       // Will be loaded from API: vats
-      options: [
-        { label: 'Fehler beim Laden der Mehrwertsteuersätze', value: undefined },
-      ],
-      defaultValue: 19,
+      options: [{ label: 'Fehler beim Laden der Mehrwertsteuersätze', value: undefined }],
+      //defaultValue: 19,
       tooltip: 'Der Mehrwertsteuersatz, der auf diesen Artikel angewendet wird.',
     },
     {
@@ -54,7 +59,7 @@ export const ORDER_ITEM_FORM_CONFIG: FormConfig = {
       label: 'Kommentar',
       type: 'textarea',
       required: false,
-      validators: [Validators.maxLength(255)]
+      validators: [Validators.maxLength(255)],
     },
   ],
 };
