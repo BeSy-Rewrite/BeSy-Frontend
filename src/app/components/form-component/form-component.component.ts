@@ -1,15 +1,17 @@
 import {
   Component,
+  DestroyRef,
   ElementRef,
+  inject,
+  input,
   Input,
   OnChanges,
-  OnInit,
   output,
   QueryList,
-  SimpleChanges,
   ViewChildren,
 } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AbstractControl, FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
@@ -26,6 +28,11 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatTooltip } from '@angular/material/tooltip';
 import { environment } from '../../../environments/environment';
 import { GenericTableComponent } from '../generic-table/generic-table.component';
+
+export interface FieldOption {
+  label: string;
+  value: any;
+}
 
 export interface FormField {
   name: string;
@@ -47,11 +54,14 @@ export interface FormField {
   /** Whether the field is required to be filled */
   required: boolean;
 
-  /** Default value when rendering the field */
+  /**
+   * Default value when rendering the field.
+   * For select/radio/autocomplete this may be either the raw option value or a whole option ({ label, value }).
+   */
   defaultValue?: any;
 
   /** Dropdown options for select or autocomplete fields from which the user can choose from */
-  options?: { label: string; value: any }[];
+  options?: FieldOption[];
 
   /** Optional validators for the form control, e.g. Validators.required or custom validators */
   validators?: any[];
@@ -63,7 +73,7 @@ export interface FormField {
   nominatim_param?: string;
   nominatim_field?: string;
 
-  /**  Defines if the field should be disabled in edit mode (if editable is false) or remain enabled (if editable is true or undefined)*/
+  /** Defines if the field should be disabled in edit mode (if editable is false) or remain enabled (if editable is true or undefined) */
   editable?: boolean;
 
   /** Used to add additional information about the expected field input */
@@ -80,6 +90,11 @@ export interface FormConfig {
   title?: string;
   subtitle?: string;
   fields: FormField[];
+}
+
+/** Checks whether a value has the shape of an option ({ label, value }). */
+function isOption(value: unknown): value is FieldOption {
+  return typeof value === 'object' && value !== null && 'label' in value && 'value' in value;
 }
 
 @Component({
@@ -104,12 +119,13 @@ export interface FormConfig {
   templateUrl: './form-component.component.html',
   styleUrls: ['./form-component.component.scss'],
 })
-export class FormComponent implements OnInit, OnChanges {
-  constructor(private readonly fb: FormBuilder) {}
+export class FormComponent implements OnChanges {
+  private readonly fb = inject(FormBuilder);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly environment = environment;
 
-  @Input() config!: FormConfig;
+  config = input.required<FormConfig>();
   @Input() formGroup!: FormGroup;
   @Input() editMode?: boolean;
 
@@ -128,34 +144,163 @@ export class FormComponent implements OnInit, OnChanges {
   searchEvent = output<string>();
 
   // Filtered options for autocomplete fields
-  filteredOptions: { [fieldName: string]: { label: string; value: any }[] } = {};
+  filteredOptions: { [fieldName: string]: FieldOption[] } = {};
   @ViewChildren('autoInput') autoInputs!: QueryList<ElementRef<HTMLInputElement>>;
 
-  ngOnInit() {
+  /** Controls whose valueChanges subscription has already been set up (prevents duplicate subscriptions). */
+  private readonly wiredControls = new WeakSet<AbstractControl>();
+
+  /** Last applied defaultValue per control (by reference), so each default is applied only once. */
+  private readonly appliedDefaults = new WeakMap<AbstractControl, unknown>();
+
+  /** Runs on the first binding and on every input change (including config signal updates). */
+  ngOnChanges(): void {
     this.updateFormControls();
   }
 
-  private editModeDisableFields() {
-    this.config.fields.forEach(field => {
-      if (!field.editable) {
-        this.formGroup.get(field.name)?.disable();
-      }
-    });
-  }
+  protected compareValues = (a: any, b: any) =>
+    a === b || (a != null && b != null && JSON.stringify(a) === JSON.stringify(b));
+
+  // display function for autocomplete to show label instead of object
+  displayFn = (val: any) => {
+    if (!val) return '';
+    return typeof val === 'object' ? val.label : val;
+  };
 
   onAutocompleteInput(field: FormField, value: string) {
     if (value == null) return;
     if (field.filterable) this.filterOptions(field, value);
   }
 
+  emitSearch(fieldName: string) {
+    const query = this.formGroup.get(fieldName)?.value ?? '';
+    this.searchEvent.emit(typeof query === 'string' ? query.trim() : '');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Control setup
+  // ---------------------------------------------------------------------------
+
+  private updateFormControls(): void {
+    if (!this.formGroup) return;
+
+    for (const field of this.config().fields) {
+      const control = this.ensureControl(field);
+
+      if (field.type === 'autocomplete' && field.options) {
+        this.filteredOptions[field.name] = field.options.slice();
+      }
+
+      this.wireValueChanges(field.name, control);
+      this.applyDefaultValue(field, control);
+    }
+
+    if (this.editMode) {
+      this.editModeDisableFields();
+    }
+  }
+
+  /** Creates the control once; existing controls (and user input) are kept. */
+  private ensureControl(field: FormField): AbstractControl {
+    if (!this.formGroup.contains(field.name)) {
+      this.formGroup.addControl(field.name, this.fb.control(null, field.validators ?? []));
+    }
+    return this.formGroup.get(field.name)!;
+  }
+
+  /** Subscribes exactly once per control. Reads the current field config on each emission. */
+  private wireValueChanges(fieldName: string, control: AbstractControl): void {
+    if (this.wiredControls.has(control)) return;
+    this.wiredControls.add(control);
+
+    control.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(value => {
+      // Options and flags may have been patched since subscribing, so look up the current field
+      const field = this.findField(fieldName);
+      if (!field) return;
+
+      if (field.type === 'autocomplete' && field.filterable) {
+        this.filterOptions(field, value);
+      }
+      if (field.emitAsSignal) {
+        this.valueChanged.emit({ field: fieldName, value });
+      }
+    });
+  }
+
+  // ---------------------------------------------------------------------------
+  // Default values
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Applies `field.defaultValue` to the control, also for controls that already exist.
+   * - Each default (by reference) is applied only once.
+   * - User input (dirty controls) is never overwritten.
+   * - If options are not loaded yet, it is retried on the next config update.
+   */
+  private applyDefaultValue(field: FormField, control: AbstractControl): void {
+    const defaultValue = field.defaultValue;
+
+    if (defaultValue === undefined) return;
+    if (this.appliedDefaults.get(control) === defaultValue) return;
+    if (control.dirty) return;
+
+    const value = this.resolveDefaultValue(field, defaultValue);
+    if (value === undefined) return; // e.g. options not loaded yet -> retry later
+
+    control.setValue(value, { emitEvent: false });
+    this.appliedDefaults.set(control, defaultValue);
+  }
+
+  /** Converts the default into the value the control expects for the given field type. */
+  private resolveDefaultValue(field: FormField, defaultValue: unknown): unknown {
+    if (defaultValue === null) return null;
+
+    // Accept both the raw value and a whole option ({ label, value })
+    const raw = isOption(defaultValue) ? defaultValue.value : defaultValue;
+
+    switch (field.type) {
+      case 'select':
+      case 'radio':
+        // mat-select / mat-radio-group bind to opt.value
+        return this.findOption(field, raw)?.value;
+
+      case 'autocomplete': {
+        // mat-autocomplete binds to the whole option object
+        const match = this.findOption(field, raw);
+        if (match) return match;
+        // Options not loaded yet: an option-shaped default can be shown directly via displayFn
+        if (isOption(defaultValue)) return defaultValue;
+        // Free-text autocomplete may accept plain strings
+        return !field.requireSelection && typeof defaultValue === 'string'
+          ? defaultValue
+          : undefined;
+      }
+
+      default:
+        return defaultValue;
+    }
+  }
+
+  private findOption(field: FormField, raw: unknown): FieldOption | undefined {
+    return field.options?.find(opt => this.compareValues(opt.value, raw));
+  }
+
+  // ---------------------------------------------------------------------------
+  // Helpers
+  // ---------------------------------------------------------------------------
+
+  private findField(name: string): FormField | undefined {
+    return this.config().fields.find(field => field.name === name);
+  }
+
   private filterOptions(field: FormField, value: any) {
     let filterValue = '';
 
     if (typeof value === 'string') {
-      // Benutzer tippt selbst
+      // User is typing
       filterValue = value.toLowerCase();
     } else if (value && typeof value === 'object' && typeof value.label === 'string') {
-      // Benutzer hat bereits ein Objekt ausgewählt
+      // User has already selected an option
       filterValue = value.label.toLowerCase();
     }
 
@@ -164,98 +309,13 @@ export class FormComponent implements OnInit, OnChanges {
     );
   }
 
-  // display function for autocomplete to show label instead of object
-  displayFn = (val: any) => {
-    if (!val) return '';
-    return typeof val === 'object' ? val.label : val;
-  };
-
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes['refreshTrigger']) {
-      this.updateFormControls();
-    }
-  }
-
-  emitSearch(fieldName: string) {
-    const query = this.formGroup.get(fieldName)?.value ?? '';
-    this.searchEvent.emit(typeof query === 'string' ? query.trim() : '');
-  }
-
-  private updateFormControls() {
-    this.config.fields.forEach(field => {
-      // If the control already exists, do not overwrite it (to preserve user input)
-      if (!this.formGroup.get(field.name)) {
-        this.formGroup.addControl(
-          field.name,
-          this.fb.control(field.defaultValue, field.validators || [])
-        );
+  private editModeDisableFields() {
+    for (const field of this.config().fields) {
+      const control = this.formGroup.get(field.name);
+      if (!field.editable && control?.enabled) {
+        // emitEvent: false prevents valueChanges emissions on every config update
+        control.disable({ emitEvent: false });
       }
-
-      // Handle Autocomplete fields
-      if (field.type === 'autocomplete' && field.options) {
-        this.filteredOptions[field.name] = field.options.slice();
-
-        const control = this.formGroup.get(field.name);
-
-        // Set default value if it's an object and matches one of the options
-        if (field.defaultValue && field.options?.length > 0) {
-          const match = field.options.find(opt => opt.value === field.defaultValue.value) || null;
-
-          // Set the control value to the matching option object
-          if (match) {
-            control?.setValue(match, { emitEvent: false });
-          }
-        }
-
-        // Handle filtering for Autocomplete fields
-        if (field.filterable) {
-          control?.valueChanges.subscribe(val => {
-            this.filterOptions(field, val);
-          });
-        }
-      }
-
-      // Handle Select fields
-      if (field.type === 'select' && field.options) {
-        const control = this.formGroup.get(field.name);
-
-        // Set default value if it matches one of the options
-        if (field.defaultValue && field.options?.length > 0) {
-          const match = field.options.find(opt => opt.value === field.defaultValue) || null;
-
-          // Set the control value to the matching option value
-          if (match) {
-            control?.setValue(match.value, { emitEvent: false });
-          }
-        }
-      }
-
-      if (field.type === 'radio' && field.options) {
-        const control = this.formGroup.get(field.name);
-
-        // Set default value if it matches one of the options
-        if (field.defaultValue && field.options?.length > 0) {
-          const match = field.options.find(opt => opt.value === field.defaultValue) || null;
-
-          // Set the control value to the matching option value
-          if (match) {
-            control?.setValue(match.value, { emitEvent: false });
-          }
-        }
-      }
-
-      // Emit value changes as signals if configured as such in the config
-      if (field.emitAsSignal) {
-        const control = this.formGroup.get(field.name);
-        control?.valueChanges.subscribe(val => {
-          this.valueChanged.emit({ field: field.name, value: val });
-        });
-      }
-    });
-
-    // Disable non-editable fields in edit mode
-    if (this.editMode) {
-      this.editModeDisableFields();
     }
   }
 }
