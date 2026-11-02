@@ -41,6 +41,36 @@ import { ButtonColor, TableActionButton } from '../../../models/generic-table';
 import { EditSupplierResolvedData } from '../../../resolver/edit-supplier.resolver';
 import { NominatimMappedAddress, NominatimService } from '../../../services/nominatim.service';
 import { SuppliersWrapperService } from '../../../services/wrapper-services/suppliers-wrapper.service';
+
+type CustomerIdRow =
+  | {
+      state: 'persisted';
+      customer_id: string;
+      comment: string;
+      supplier_id: number;
+    }
+  | {
+      state: 'pending';
+      customer_id: string;
+      comment: string;
+    };
+
+function toCustomerIdRow(response: CustomerIdResponseDTO): CustomerIdRow {
+  return {
+    state: 'persisted',
+    supplier_id: response.supplier_id,
+    customer_id: response.customer_id,
+    comment: response.comment ?? '',
+  };
+}
+
+function toCustomerIdRequest(row: CustomerIdRow): CustomerIdRequestDTO {
+  return {
+    customer_id: row.customer_id,
+    comment: row.comment,
+  };
+}
+
 @Component({
   selector: 'app-edit-suppliers-page',
   imports: [
@@ -64,7 +94,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     private readonly cdr: ChangeDetectorRef,
     private readonly nominatimService: NominatimService,
     private readonly location: Location
-  ) { }
+  ) {}
 
   supplierForm = new FormGroup({});
   supplierFormConfig = SUPPLIER_FORM_CONFIG;
@@ -76,21 +106,21 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
   customerIdFormConfig = EDIT_CUSTOMER_ID_FORM_CONFIG;
 
   addressIsSelected: WritableSignal<boolean> = signal(false);
-  customerIDs = signal<CustomerIdResponseDTO[]>([]);
-  customerIDsTableDataSource = new MatTableDataSource<CustomerIdResponseDTO>([]);
+  customerIDs = signal<CustomerIdRow[]>([]);
+  customerIDsTableDataSource = new MatTableDataSource<CustomerIdRow>([]);
   customerIDsTableColumns = [
     { id: 'customer_id', label: 'Kundennummer' },
     { id: 'comment', label: 'Kommentar' },
   ];
-  customerIDsTableActions: TableActionButton<CustomerIdResponseDTO>[] = [
+  customerIDsTableActions: TableActionButton<CustomerIdRow>[] = [
     {
       id: 'delete',
       label: 'Löschen',
       buttonType: 'filled',
       color: ButtonColor.WARN,
       type: 'button',
-      action: (row: CustomerIdResponseDTO) => this.onDeleteCustomerID(row),
-      showCondition: (row: CustomerIdResponseDTO) => !row.supplier_id,
+      action: (row: CustomerIdRow) => this.onDeleteCustomerID(row),
+      showCondition: (row: CustomerIdRow) => row.state === 'pending',
     },
   ];
   supplier: SupplierResponseDTO | undefined = undefined;
@@ -122,11 +152,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     this.supplierName.set(supplierData.supplier.name);
 
     this.customerIDs.set(
-      (supplierData.customerIds ?? []).map(custId => ({
-        supplier_id: this.supplierId,
-        customer_id: custId.customer_id,
-        comment: custId.comment ?? '',
-      }))
+      (supplierData.customerIds ?? []).map(customerId => toCustomerIdRow(customerId))
     );
     this.customerIDsTableDataSource.data = this.customerIDs();
 
@@ -180,10 +206,7 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     this.addressFormGroup.disable();
     this.customerIDs.set(
       (this.route.snapshot.data['supplierData'] as EditSupplierResolvedData).customerIds?.map(
-        custId => ({
-          customer_id: custId.customer_id,
-          comment: custId.comment ?? '',
-        })
+        custId => toCustomerIdRow(custId)
       ) ?? []
     );
     this.customerIDsTableDataSource.data = this.customerIDs();
@@ -203,9 +226,9 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
       },
     });
 
-    dialogRef.afterClosed().subscribe(async confirmed => {
+    dialogRef.afterClosed().subscribe(confirmed => {
       if (confirmed) {
-        this.saveSupplierChanges();
+        void this.saveSupplierChanges();
       }
     });
   }
@@ -249,29 +272,32 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
         this.addressFormGroup.disable();
       }
 
-      // If a entry in customerIDs has no supplier_id, it is a new entry and needs to be created
-      for (const custId of this.customerIDs()) {
-        // Only create if supplier_id is not set
-        if (!custId.supplier_id) {
-          const response = await this.suppliersWrapperService.createSupplierCustomerId(
+      // If an entry in customerIDs has no supplier_id, it is a new entry and needs to be created
+      const pendingRows = this.customerIDs().filter(row => row.state === 'pending');
+      const createdRows = await Promise.all(
+        pendingRows.map(async row => ({
+          row,
+          created: await this.suppliersWrapperService.createSupplierCustomerId(
             this.supplierId!,
-            {
-              customer_id: custId.customer_id,
-              comment: custId.comment ?? '',
-            } as CustomerIdRequestDTO
-          );
+            toCustomerIdRequest(row)
+          ),
+        }))
+      );
 
-          // Update the local signal with the new supplier_id from the backend
-          this.customerIDs.update(current =>
-            current.map(item =>
-              item.customer_id === response.customer_id
-                ? { ...item, supplier_id: this.supplierId }
-                : item
-            )
-          );
-          this.customerIDsTableDataSource.data = this.customerIDs();
-        }
-      }
+      this.customerIDs.update(rows =>
+        rows.map(current => {
+          const createdRow = createdRows.find(({ row }) => row === current);
+
+          return createdRow
+            ? {
+                state: 'persisted',
+                supplier_id: createdRow.created.supplier_id,
+                customer_id: createdRow.created.customer_id,
+                comment: createdRow.created.comment ?? current.comment,
+              }
+            : current;
+        })
+      );
 
       this._notifications.open('Lieferant erfolgreich aktualisiert', undefined, { duration: 3000 });
     } catch (error) {
@@ -282,8 +308,18 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
     }
   }
 
-  onDeleteCustomerID(row: CustomerIdResponseDTO) {
+  onDeleteCustomerID(row: CustomerIdRow) {
     // Remove from the displayed table
+    if (row.state === 'persisted') {
+      this._notifications.open(
+        'Diese Kundennummer kann nicht gelöscht werden, da sie bereits gespeichert wurde.',
+        undefined,
+        {
+          duration: 3000,
+        }
+      );
+      return;
+    }
     this.customerIDs.update(current =>
       current.filter(
         item => !(item.customer_id === row.customer_id && item.comment === row.comment)
@@ -312,15 +348,13 @@ export class EditSuppliersPageComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Add new customer ID to the signal and update the table data source
-    // Important: Don't add supplier_id for locally-added entries so they can be deleted
-    const newCustomerId: CustomerIdResponseDTO = {
+    const newCustomerId: CustomerIdRow = {
+      state: 'pending',
       customer_id: customerIdFormValue.customer_id,
-      comment: customerIdFormValue.comment,
-      // supplier_id is intentionally omitted for local entries
+      comment: customerIdFormValue.comment ?? '',
     };
 
-    this.customerIDs.update(current => [...current, newCustomerId]);
+    this.customerIDs.update(rows => [...rows, newCustomerId]);
     this.customerIDsTableDataSource.data = this.customerIDs();
     this.customerIdForm.reset();
   }

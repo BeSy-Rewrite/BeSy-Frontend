@@ -123,7 +123,7 @@ export class EditPersonPageComponent implements OnInit, AfterViewInit {
       `${this.fetchedPerson?.name ?? ''} ${this.fetchedPerson?.surname ?? ''}`.trim()
     );
 
-    this.personsWrapperService.getAllPersonsAddresses().then(addresses => {
+    this.personsWrapperService.getAllPersonsAddresses().subscribe(addresses => {
       this.addresses = addresses;
       this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(this.addresses);
     });

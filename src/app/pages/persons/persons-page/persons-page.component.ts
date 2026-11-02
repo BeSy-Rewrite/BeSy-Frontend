@@ -123,7 +123,7 @@ export class PersonsPageComponent implements OnInit {
     this.personsWrapperService.getAllPersons().then(persons => {
       this.personsDataSource = new MatTableDataSource<PersonResponseDTO>(persons);
     });
-    this.personsWrapperService.getAllPersonsAddresses().then(addresses => {
+    this.personsWrapperService.getAllPersonsAddresses().subscribe(addresses => {
       this.addresses = addresses;
       this.addressTableDataSource = new MatTableDataSource<AddressResponseDTO>(this.addresses);
     });
